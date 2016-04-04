@@ -891,7 +891,7 @@ double   NativeOps::execSummaryStatsScalarDouble(
 
 	dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[17], deviceProperties[(int) extraPointers[2]]);
 
-	summaryStatsReduceDouble<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
+	summaryStatsReduceDouble<<<launchDims.x,launchDims.y,launchDims.z * 10, *stream>>>(
 			opNum,
 			xPointer,
 			xShapeInfoPointer,
@@ -1839,13 +1839,13 @@ float   NativeOps::execSummaryStatsScalarFloat(
 
 	dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[3], deviceProperties[(int) extraPointers[2]]);
 
-	summaryStatsReduceFloat<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
+	summaryStatsReduceFloat<<<launchDims.x,launchDims.y,launchDims.z * 10, *stream>>>(
 			opNum,
 			xPointer,
 			xShapeInfoPointer,
 			extraParamsPointer,
-			xPointer,
-			xShapeInfoPointer,
+			scalarShapeInformation->getDevicePointer(),
+			scalarShapeInformation->getDeviceShapeInfo(),
 			scalarShapeInformation->getDimensionDevicePointer(),
 			1,
 			1,biasCorrected);
