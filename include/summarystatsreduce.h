@@ -600,7 +600,7 @@ struct SharedSummaryStatsData<double> {
 		__shared__ int xElementWiseStride;
 		__shared__ int reductionIndexesPerBlock;
 
-		int numElements = gridDim.x;
+		int numElements = blockDim.x;
 		//shared memory space for storing intermediate results
 		SummaryStatsData<T> *sPartials;
 		functions::summarystats::SharedSummaryStatsData<T> holder;
@@ -829,34 +829,59 @@ struct SharedSummaryStatsData<double> {
 		    }
 		}
 		else if (resultScalar) {
-			if(blockIdx.x >= resultLength && tid < numElements)
-				return;
+            if(blockIdx.x >= resultLength)
+			    return;
 
-			unsigned int i = blockIdx.x * xElementWiseStride + tid;
-			unsigned int gridSize = blockDim.x * gridDim.x * xElementWiseStride;
-			int n = shape::length(xShapeInfo);
-			// we reduce multiple elements per thread.  The number is determined by the
-			// number of active thread blocks (via gridDim).  More blocks will result
-			// in a larger gridSize and therefore fewer elements per thread
-#pragma unroll
-			while (i < n) {
-				SummaryStatsData <T> indexVal;
-				indexVal.initWithValue(dx[i]);
-				reduction = update(reduction, indexVal, extraParams);
-				i += gridSize;
-			}
+			if (threadIdx.x == 0)
+			    xElementWiseStride = shape::elementWiseStride(xShapeInfo);
 
-			// each thread puts its local sum into shared memory
-			if(tid < numElements && reduction.n > 0)
-				sPartials[tid] = reduction;
+            int n = shape::length(xShapeInfo);
+            int numElements = blockDim.x;
+
 			__syncthreads();
-			if(tid < numElements && reduction.n > 0)
-				aggregatePartials(&sPartials, tid,numElements ,extraParams);
 
-			// write result for this block to global mem
-			if (tid == 0) {
-				reduction = sPartials[0];
-				result[blockIdx.x] = getValue(reduction);
+			if(xElementWiseStride >= 1) {
+                if(xElementWiseStride == 1) {
+#pragma unroll
+				    for(int i = blockIdx.x * (blockDim.x) + tid;i < n; i += blockDim.x * gridDim.x) {
+					    SummaryStatsData <T> indexVal2;
+					    indexVal2.initWithValue(dx[i]);
+						reduction =  update(reduction,indexVal2, extraParams);
+				    }
+			    } else {
+#pragma unroll
+				    for(int i = xElementWiseStride * (blockIdx.x * (blockDim.x) + tid);i < n; i += (blockDim.x * gridDim.x * xElementWiseStride)) {
+                        SummaryStatsData <T> indexVal2;
+					    indexVal2.initWithValue(dx[i * xElementWiseStride]);
+						reduction =  update(reduction,indexVal2, extraParams);
+    				}
+	    		}
+            } else {
+                int rank = shape::rank(xShapeInfo);
+    			int *ind2sub = (int *) malloc(sizeof(int) * rank);
+#pragma unroll
+	    		for(int i = blockIdx.x * (blockDim.x) + tid;i < n; i += blockDim.x * gridDim.x) {
+    				shape::ind2sub(rank,shape::shapeOf(xShapeInfo),i,&ind2sub);
+                    int offset = shape::getOffset(0,xShapeInfo,shape::stride(xShapeInfo),ind2sub,rank);
+    				SummaryStatsData <T> indexVal2;
+					indexVal2.initWithValue(dx[offset]);
+    				reduction =  update(reduction,indexVal2, extraParams);
+			    }
+
+                free(ind2sub);
+            }
+
+            __syncthreads();
+            sPartials[tid] = reduction;
+
+            __syncthreads();
+            if(tid < numElements)
+			    aggregatePartials(&sPartials, tid,numElements ,extraParams);
+
+
+            __syncthreads();
+            if (tid == 0) {
+				result[0] = getValue(sPartials[0]);
 			}
 		}
 	}

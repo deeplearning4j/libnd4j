@@ -157,8 +157,6 @@ public:
 				for(int i = blockIdx.x * (blockDim.x) + tid;i < n; i += blockDim.x * gridDim.x) {
 					sPartials[tid] = this->update(sPartials[tid],this->op(dx[i],extraParams),extraParams);
 				}
-
-
 			}
 			else {
 #pragma unroll
@@ -172,6 +170,7 @@ public:
 			T **sPartialsRef = (T **) &sPartials;
 			aggregatePartials(sPartialsRef, tid, numElements,extraParams);
 
+			__syncthreads();
 			if (tid == 0) {
 				result[0] = this->postProcess(sPartials[0],n,extraParams);
 			}
@@ -194,8 +193,6 @@ public:
 			}
 
 			free(ind2sub);
-
-
 		}
 
 	}
