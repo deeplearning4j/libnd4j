@@ -164,16 +164,17 @@ public:
 #pragma unroll
 				for(int i = elementWiseStride * (blockIdx.x * (blockDim.x) + tid);i < n; i += (blockDim.x * gridDim.x * elementWiseStride)) {
 					sPartials[tid] = this->update(sPartials[tid],this->op(dx[i * elementWiseStride],extraParams),extraParams);
-					__syncthreads();
 				}
 			}
 
 
-
+			__syncthreads();
 			T **sPartialsRef = (T **) &sPartials;
 			aggregatePartials(sPartialsRef, tid, numElements,extraParams);
 
-
+			if (tid == 0) {
+				result[0] = this->postProcess(sPartials[0],n,extraParams);
+			}
 		}
 		else {
 			int rank = shape::rank(xShapeInfo);
@@ -187,6 +188,7 @@ public:
 
 
 			// write result for this block to global mem
+			__syncthreads();
 			if (tid == 0) {
 				result[blockIdx.x] = this->postProcess(sPartials[0],n,extraParams);
 			}
