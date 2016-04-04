@@ -156,6 +156,7 @@ public:
 #pragma unroll
 				for(int i = blockIdx.x * (blockDim.x) + tid;i < n; i += blockDim.x * gridDim.x) {
 					sPartials[tid] = this->update(sPartials[tid],this->op(dx[i],extraParams),extraParams);
+					__syncthreads();
 				}
 
 
@@ -172,7 +173,10 @@ public:
 
 			T **sPartialsRef = (T **) &sPartials;
 			aggregatePartials(sPartialsRef, tid, numElements,extraParams);
-
+			// write result for this block to global mem
+			if (tid == 0) {
+				result[blockIdx.x] = this->postProcess(sPartials[0],n,extraParams);
+			}
 
 		}
 		else {
@@ -219,10 +223,6 @@ public:
 			int *dimension,
 			int dimensionLength,
 			int postProcessOrNot) {
-
-		/**
-		 * Gpu information for the problem
-		 */
 		int tid = threadIdx.x;
 
 		__shared__ volatile int resultScalar;
@@ -243,7 +243,6 @@ public:
 
 		__shared__ int resultLength;
 
-		__shared__ int elementsPerTad;
 
 
 		//only compute the tad indexes once
@@ -265,6 +264,9 @@ public:
 
 			if (resultLength == 1)
 				resultScalar = 1;
+
+			printf("result scalar %d\n",resultScalar);
+
 			/**
 			 * The element wise stride belong longs to a reduction index.
 			 * When used out of order, we can get rid of the data
@@ -278,27 +280,12 @@ public:
 
 			int *xStride = shape::stride(xShapeInfo);
 			char xOrder = shape::order(xShapeInfo);
-			/*
-				int *xShape = shape::shapeOf(xShapeInfo);
-				int *xStride = shape::stride(xShapeInfo);
-				char xOrder = shape::order(xShapeInfo);
-				int n = shape::length(xShapeInfo);
-				int xRank = shape::rank(xShapeInfo);
-				int xOffset = shape::offset(xShapeInfo);
-			 */
-			//				int
-
-			if (dimension[0] != shape::MAX_DIMENSION) {
-				xElementWiseStride =  xStride[dimension[0]];//shape::computeElementWiseStride(xRank,xShape,xStride,xOrder == 'f');
-			} else {
-				xElementWiseStride = shape::elementWiseStride(xShapeInfo);
-			}
+			xElementWiseStride = shape::elementWiseStride(xShapeInfo);
 
 
 			//printf("Order is: [%c], stride is: xElementStride: [%i], passed strides are: [%i], dimension: [%i]\n", xOrder, xElementWiseStride, xStride[0], dimension[0]);
 
 			xLength = shape::length(xShapeInfo);
-			elementsPerTad = xLength / resultLength;
 		}
 		__syncthreads();
 
@@ -478,9 +465,6 @@ public:
 
 		}
 		else {
-			if(tid == 0) {
-				printf("Scalar!\n");
-			}
 			this->execScalarCuda(
 					dx,
 					xShapeInfo,
