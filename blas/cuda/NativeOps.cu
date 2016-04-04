@@ -2230,7 +2230,6 @@ Nd4jPointer NativeOps::freeHost(Nd4jPointer pointer) {
  * @param ptrToDeviceId pointer to deviceId.
  */
 Nd4jPointer NativeOps::freeDevice(Nd4jPointer pointer, Nd4jPointer ptrToDeviceId) {
-	// not supported
 	cudaError_t res = cudaFree((void *)pointer);
 	if (res != 0)
 		pointer = 0L;
