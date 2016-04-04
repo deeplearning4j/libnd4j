@@ -297,7 +297,7 @@ public:
 			}
 
 
-			//printf("Order is: [%c], stride is: xElementStride: [%i], passed strides are: [%i], dimension: [%i]\n", xOrder, xElementWiseStride, xStride[0], dimension[0]);
+			//printf("Order is: [%c], stride is: xElementStride: [%i], passed strides are: [%i], dimension: [%i], dimensionLength: [%i]\n", xOrder, xElementWiseStride, xStride[0], dimension[0], dimensionLength);
 
 			xLength = shape::length(xShapeInfo);
 			elementsPerTad = xLength / resultLength;
@@ -338,16 +338,12 @@ public:
 						if(shape[i] == 1)
 							numOnes++;
 					}
-				}
 
-				__syncthreads();
-
-
-				//squeeze the dimensions
-				if(numOnes > 0) {
-					squeezed = false;
-					newSqueezeDimensions = false;
-					inputShapeInfo = shape::squeezeDimensions(
+					//squeeze the dimensions
+					if(numOnes > 0) {
+						squeezed = false;
+						newSqueezeDimensions = false;
+						inputShapeInfo = shape::squeezeDimensions(
 							inputShapeInfo,
 							&dimension,
 							&dimensionLength,
@@ -355,6 +351,7 @@ public:
 							&newSqueezeDimensions,
 							wholeRank,
 							numOnes);
+					}
 				}
 
 				__syncthreads();
@@ -408,17 +405,17 @@ public:
 
 				}
 
+				__syncthreads();
+				if (tid == 0) {
+					free(tadShapeShapeInfo);
 
-				free(tadShapeShapeInfo);
+					if(newSqueezeDimensions) {
+						free(dimension);
+					}
 
-
-
-				if(newSqueezeDimensions) {
-					free(dimension);
-				}
-
-				if(numOnes > 0) {
-					free(xShapeInfo);
+					if(numOnes > 0) {
+						free(xShapeInfo);
+					}
 				}
 
 
@@ -450,27 +447,18 @@ public:
 				int xLength = shape::length(xShapeInfo);
 				int i = 0,j = 0;
 
-				//            if (threadIdx.x == 0)
-				//            	printf("ElementsPerReduction: [%i], tadLength: [%i]\n", elementsPerReductionIndex, tadLength);
 #pragma unroll
 				for(i = tid; i < resultLength; i+= blockDim.x * gridDim.x) {
 					int offsetForTad = shape::tadOffset(tid, xShapeInfo, dimension, dimensionLength);//shape::offset(i, xShapeInfo, dimension,dimensionLength, xTadInfo);
-
-					//				printf("Initial Tid: [%i], index: [%i], offsetForTad: [%i], value: [%f] \n", tid, offsetForTad, offsetForTad, dx[offsetForTad]);
-
 					sPartials[tid] = op(dx[offsetForTad], extraParams);
-					__syncthreads();
 					for(j = 1; j < elementsPerReductionIndex; j++) {
-						//					printf("Cycled Tid: [%i], index: [%i], offsetForTad: [%i], value: [%f] \n", tid, offsetForTad + xElementWiseStride * j , offsetForTad, dx[offsetForTad + xElementWiseStride * j]);
-
 						sPartials[tid] =  update(sPartials[tid],op(dx[offsetForTad + xElementWiseStride * j], extraParams), extraParams);
-						__syncthreads();
 					}
 
 					result[i] = postProcess(sPartials[tid],tadLength,extraParams);
 				}
 
-
+				__syncthreads();
 				if(tid == 0) {
 					shape::freePermuteInfo(xTadInfo);
 				}
