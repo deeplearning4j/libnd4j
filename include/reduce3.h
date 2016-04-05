@@ -644,7 +644,6 @@ namespace functions {
 
 
 #endif
-
             /**
              *
              * @param x
@@ -658,14 +657,12 @@ namespace functions {
 #ifdef __CUDACC__
             __host__
 #endif
-            void execScalar(
+            T execScalar(
                     T *x,
                     int *xShapeInfo,
                     T *extraParamsVals,
                     T *y,
-                    int *yShapeInfo,
-                    T *result,
-                    int *resultShapeIfo) {
+                    int *yShapeInfo) {
                 T startingVal = this->startingValue(x);
                 int length = shape::length(xShapeInfo);
                 int xElementWiseStride = shape::elementWiseStride(xShapeInfo);
@@ -699,7 +696,7 @@ namespace functions {
                         }
 
 
-                        result[0] = postProcess(startingVal, length,&(extraParamsVals));
+                        return postProcess(startingVal, length,&(extraParamsVals));
 
                     }
 
@@ -724,7 +721,7 @@ namespace functions {
                             }
                         }
 
-                        result[0] =  postProcess(startingVal, length,&(extraParamsVals));
+                        return  postProcess(startingVal, length,&(extraParamsVals));
                     }
 
                 }
@@ -768,7 +765,7 @@ namespace functions {
                                                  y,
                                                  yStridesIter);
 
-                        result[0] = postProcess(startingVal,n,&extraParamsVals);
+                        return postProcess(startingVal,n,&extraParamsVals);
                     }
                     else {
                         printf("Unable to prepare array\n");
@@ -776,9 +773,34 @@ namespace functions {
 
                 }
 
-                result[0] = startingVal;
+                return startingVal;
 
 
+            }
+
+
+            /**
+             *
+             * @param x
+             * @param xShapeInfo
+             * @param extraParamsVals
+             * @param y
+             * @param yShapeInfo
+             * @param result
+             * @param resultShapeInfo
+             */
+#ifdef __CUDACC__
+            __host__
+#endif
+            void execScalar(
+                    T *x,
+                    int *xShapeInfo,
+                    T *extraParamsVals,
+                    T *y,
+                    int *yShapeInfo,
+                    T *result,
+                    int *resultShapeIfo) {
+                result[0] = execScalar(x,xShapeInfo,extraParamsVals,y,yShapeInfo);
             }
             /**
              *
@@ -800,7 +822,7 @@ namespace functions {
                     T *y, int *yShapeInfo,
                     T *result, int *resultShapeInfo) {
 
-                result[0] = execScalar(
+                execScalar(
                         x,
                         xShapeInfo,
                         extraParamsVals,
@@ -831,7 +853,7 @@ namespace functions {
                       int *dimension,
                       int dimensionLength) {
                 if(shape::isScalar(resultShapeInfoBuffer)) {
-                    result[0] = execScalar(
+                    execScalar(
                             x,
                             xShapeInfo,
                             extraParamsVals,
