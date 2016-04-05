@@ -3497,8 +3497,6 @@ public:
 		int strideY = (int) extraParams[1];
 		int padWidth = (int) extraParams[2];
 		int padHeight = (int) extraParams[3];
-		int imgHeight = (int) extraParams[4];
-		int imgWidth = (int) extraParams[5];
 
 
 		int exampleFrom = 0;
@@ -3654,8 +3652,6 @@ public:
 		int strideY = (int) extraParams[1];
 		int padWidth = (int) extraParams[2];
 		int padHeight = (int) extraParams[3];
-		int imgHeight = (int) extraParams[4];
-		int imgWidth = (int) extraParams[5];
 
 
 		int exampleFrom = 0;

@@ -239,11 +239,9 @@ public:
 		__syncthreads();
 
 		//length for the tad
-		__shared__ int xLength;
 
 		__shared__ int resultLength;
 
-		__shared__ int elementsPerTad;
 
 
 		//only compute the tad indexes once
@@ -296,15 +294,11 @@ public:
 
 
 			//printf("Order is: [%c], stride is: xElementStride: [%i], passed strides are: [%i], dimension: [%i]\n", xOrder, xElementWiseStride, xStride[0], dimension[0]);
-
-			xLength = shape::length(xShapeInfo);
-			elementsPerTad = xLength / resultLength;
 		}
 		__syncthreads();
 
 
 
-		int n = xLength;
 
 
 		if (!resultScalar) {
