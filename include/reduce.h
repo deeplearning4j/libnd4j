@@ -151,6 +151,7 @@ public:
 			sPartials[i] = init;
 		__syncthreads();
 
+
 		if(elementWiseStride >= 1) {
 			if(elementWiseStride == 1) {
 #pragma unroll
@@ -277,19 +278,13 @@ public:
 
 			int *xStride = shape::stride(xShapeInfo);
 			char xOrder = shape::order(xShapeInfo);
-			/*
-				int *xShape = shape::shapeOf(xShapeInfo);
-				int *xStride = shape::stride(xShapeInfo);
-				char xOrder = shape::order(xShapeInfo);
-				int n = shape::length(xShapeInfo);
-				int xRank = shape::rank(xShapeInfo);
-				int xOffset = shape::offset(xShapeInfo);
-			 */
-			//				int
 
-
-			xElementWiseStride = shape::elementWiseStride(xShapeInfo);
-
+			// this code is used only for single-dimension cases
+			if (dimension[0] == shape::MAX_DIMENSION || dimensionLength > 1) {
+				xElementWiseStride = shape::elementWiseStride(xShapeInfo);
+			} else {
+				xElementWiseStride =  xStride[dimension[0]];
+			}
 
 			//printf("Order is: [%c], stride is: xElementStride: [%i], passed strides are: [%i], dimension: [%i], dimensionLength: [%i]\n", xOrder, xElementWiseStride, xStride[0], dimension[0], dimensionLength);
 

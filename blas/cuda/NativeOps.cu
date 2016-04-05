@@ -236,7 +236,7 @@ void   NativeOps::execIndexReduceDouble(
 
 	dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[27], deviceProperties[(int) extraPointers[2]]);
 
-	indexReduceDouble<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
+	indexReduceDouble<<<launchDims.x,launchDims.y,launchDims.z * 2, *stream>>>(
 			opNum,
 			xPointer,
 			xShapeInfoPointer,
@@ -1185,7 +1185,7 @@ void   NativeOps::execIndexReduceFloat(
 
 	dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[13], deviceProperties[(int) extraPointers[2]]);
 
-	indexReduceFloat<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
+	indexReduceFloat<<<launchDims.x,launchDims.y,launchDims.z * 2, *stream>>>(
 			opNum,
 			xPointer,
 			xShapeInfoPointer,

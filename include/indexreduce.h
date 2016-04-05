@@ -290,7 +290,9 @@ namespace functions {
                     if (resultLength == 1)
                         resultScalar = 1;
                     xOffset = shape::offset(xShapeInfo);
-                    xElementWiseStride = shape::elementWiseStride(xShapeInfo);
+
+			        xElementWiseStride = shape::elementWiseStride(xShapeInfo);
+
                     xLength = shape::length(xShapeInfo);
                     elementsPerTad = xLength / resultLength;
 
@@ -308,49 +310,49 @@ namespace functions {
                 if (!resultScalar) {
                     if (dimensionLength > 1) {
                         __shared__ int numOnes;
-				__shared__ bool squeezed;
-				__shared__ bool newSqueezeDimensions;
-				__shared__ int *inputShapeInfo;
-				//decompose in to several sub tads after
-				//moving all dimensions (in sorted order)
-				//to the back.
-				//permuted version of the x shape info for setting up the tad problem
+				        __shared__ bool squeezed;
+				        __shared__ bool newSqueezeDimensions;
+				        __shared__ int *inputShapeInfo;
+				        //decompose in to several sub tads after
+				        //moving all dimensions (in sorted order)
+				        //to the back.
+				        //permuted version of the x shape info for setting up the tad problem
 
-				__shared__ int *tadShapeShapeInfo;
+				        __shared__ int *tadShapeShapeInfo;
 
-				if(tid == 0) {
-					inputShapeInfo = xShapeInfo;
-				}
+        				if(tid == 0) {
+		        			inputShapeInfo = xShapeInfo;
+				        }
 
-				__syncthreads();
+				        __syncthreads();
 
-				int *shape = shape::shapeOf(inputShapeInfo);
-				int *stride = shape::stride(inputShapeInfo);
-				int wholeRank = shape::rank(inputShapeInfo);
+        				int *shape = shape::shapeOf(inputShapeInfo);
+        				int *stride = shape::stride(inputShapeInfo);
+        				int wholeRank = shape::rank(inputShapeInfo);
 
-				if(tid == 0) {
-					numOnes = 0;
-					for(int i = 0; i < wholeRank; i++) {
-						if(shape[i] == 1)
-							numOnes++;
-					}
+        				if(tid == 0) {
+		        			numOnes = 0;
+				        	for(int i = 0; i < wholeRank; i++) {
+						        if(shape[i] == 1)
+							            numOnes++;
+					        }
 
-					//squeeze the dimensions
-					if(numOnes > 0) {
-						squeezed = false;
-						newSqueezeDimensions = false;
-						inputShapeInfo = shape::squeezeDimensions(
-							inputShapeInfo,
-							&dimension,
-							&dimensionLength,
-							&squeezed,
-							&newSqueezeDimensions,
-							wholeRank,
-							numOnes);
-					}
-				}
+    					    //squeeze the dimensions
+	    				    if(numOnes > 0) {
+		    			    	squeezed = false;
+			    	    		newSqueezeDimensions = false;
+				    		    inputShapeInfo = shape::squeezeDimensions(
+							        inputShapeInfo,
+							        &dimension,
+							        &dimensionLength,
+							        &squeezed,
+							        &newSqueezeDimensions,
+							        wholeRank,
+							        numOnes);
+					        }
+				        }
 
-				__syncthreads();
+				        __syncthreads();
 
 				//decompose in to several sub tads after
 				//moving all dimensions (in sorted order)
