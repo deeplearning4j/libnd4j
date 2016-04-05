@@ -236,7 +236,7 @@ void   NativeOps::execIndexReduceDouble(
 
 	dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[27], deviceProperties[(int) extraPointers[2]]);
 
-	indexReduceDouble<<<launchDims.x,launchDims.y,launchDims.z * 2, *stream>>>(
+	indexReduceDouble<<<1,launchDims.y,launchDims.z * 2, *stream>>>(
 			opNum,
 			xPointer,
 			xShapeInfoPointer,
@@ -1135,7 +1135,7 @@ float   NativeOps::execIndexReduceScalarFloat(
 	cudaStream_t *stream = reinterpret_cast<cudaStream_t *>(&extraPointers[1]);
 	ScalarInfo<float> *scalarInfo = new ScalarInfo<float>(*stream);
 
-	indexReduceFloat<<<1,launchDims.y, launchDims.z * 4, *stream>>>(
+	indexReduceFloat<<<1,launchDims.y, launchDims.z * 2, *stream>>>(
 			opNum,
 			xPointer,
 			xShapeInfoPointer,
@@ -1185,7 +1185,7 @@ void   NativeOps::execIndexReduceFloat(
 
 	dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[13], deviceProperties[(int) extraPointers[2]]);
 
-	indexReduceFloat<<<launchDims.x,launchDims.y,launchDims.z * 2, *stream>>>(
+	indexReduceFloat<<<1,launchDims.y,launchDims.z * 2, *stream>>>(
 			opNum,
 			xPointer,
 			xShapeInfoPointer,

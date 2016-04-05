@@ -291,7 +291,7 @@ namespace functions {
                         resultScalar = 1;
                     xOffset = shape::offset(xShapeInfo);
 
-			        xElementWiseStride = shape::elementWiseStride(xShapeInfo);
+				    xElementWiseStride = shape::elementWiseStride(xShapeInfo);
 
                     xLength = shape::length(xShapeInfo);
                     elementsPerTad = xLength / resultLength;
