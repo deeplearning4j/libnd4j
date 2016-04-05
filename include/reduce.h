@@ -287,17 +287,13 @@ public:
 			 */
 			//				int
 
-			if (dimension[0] != shape::MAX_DIMENSION) {
-				xElementWiseStride =  xStride[dimension[0]];//shape::computeElementWiseStride(xRank,xShape,xStride,xOrder == 'f');
-			} else {
-				xElementWiseStride = shape::elementWiseStride(xShapeInfo);
-			}
+
+			xElementWiseStride = shape::elementWiseStride(xShapeInfo);
 
 
 			//printf("Order is: [%c], stride is: xElementStride: [%i], passed strides are: [%i], dimension: [%i], dimensionLength: [%i]\n", xOrder, xElementWiseStride, xStride[0], dimension[0], dimensionLength);
 
 			xLength = shape::length(xShapeInfo);
-			elementsPerTad = xLength / resultLength;
 		}
 		__syncthreads();
 
@@ -341,13 +337,13 @@ public:
 						squeezed = false;
 						newSqueezeDimensions = false;
 						inputShapeInfo = shape::squeezeDimensions(
-							inputShapeInfo,
-							&dimension,
-							&dimensionLength,
-							&squeezed,
-							&newSqueezeDimensions,
-							wholeRank,
-							numOnes);
+								inputShapeInfo,
+								&dimension,
+								&dimensionLength,
+								&squeezed,
+								&newSqueezeDimensions,
+								wholeRank,
+								numOnes);
 					}
 				}
 
@@ -465,9 +461,6 @@ public:
 
 		}
 		else {
-			if(tid == 0) {
-				printf("Scalar!\n");
-			}
 			this->execScalarCuda(
 					dx,
 					xShapeInfo,
