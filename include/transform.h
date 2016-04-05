@@ -3811,6 +3811,11 @@ public:
 	 *  normally negative indices are bad, OK here because of other checks on input indices
 	 *  Uses unrolled loop specifically for length 4
 	 */
+#ifdef __CUDACC__
+	inline __host__ __device__
+#elif defined(__GNUC__)
+
+#endif
 	int getOffsetUnsafe4(int baseOffset, int *shape, int *stride, int *indices) {
 		int offset = baseOffset;
 		if (shape[0] != 1) offset += indices[0] * stride[0];
@@ -3824,6 +3829,11 @@ public:
 	 * normally negative indices are bad, OK here because of other checks on input indices
 	 * Uses unrolled loop specifically for length 6, where indices[2] and indices[3] are zero (always are here)
 	 */
+#ifdef __CUDACC__
+	inline __host__ __device__
+#elif defined(__GNUC__)
+
+#endif
 	int getOffsetUnsafe6(int baseOffset, int *shape, int *stride, int *indices) {
 		int offset = baseOffset;
 		if (shape[0] != 1) offset += indices[0] * stride[0];
@@ -3854,6 +3864,8 @@ public:
 			T *result,
 			int *resultShapeBuffer,
 			T *extraParams) {
+		int *shape = shape::shapeOf(xShapeBuffer);
+		int *stride = shape::stride(xShapeBuffer);
 
 		__shared__ functions::reduce::ops::Max<T> *max;
 		__shared__ functions::transform::ops::Exp<T> *exp;
@@ -3872,8 +3884,6 @@ public:
 				maxResult[i] = 0.0;
 
 		}
-		int *shape = shape::shapeOf(xShapeBuffer);
-		int *stride = shape::stride(xShapeBuffer);
 		//iterate along rows
 		int dimension[1] = {0};
 		int maxDimension[1] = {1};
