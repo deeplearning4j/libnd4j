@@ -1563,7 +1563,7 @@ void   NativeOps::execReduce3Float(
 
 	dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[7], deviceProperties[(int) extraPointers[2]]);
 
-	reduce3Float<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
+	reduce3Float<<<1,launchDims.y,launchDims.z, *stream>>>(
 			opNum,
 			xPointer,
 			xShapeInfoPointer,
@@ -1610,7 +1610,7 @@ float   NativeOps::execReduce3ScalarFloat(
 
 	dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[7], deviceProperties[(int) extraPointers[2]]);
 
-	reduce3Float<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
+	reduce3Float<<<1,launchDims.y,launchDims.z, *stream>>>(
 			opNum,
 			xPointer,
 			xShapeInfoPointer,
@@ -1668,7 +1668,7 @@ void   NativeOps::execReduce3Float(
 
 	dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[7], deviceProperties[(int) extraPointers[2]]);
 
-	reduce3Float<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
+	reduce3Float<<<1,launchDims.y,launchDims.z, *stream>>>(
 			opNum,
 			xPointer,
 			xShapeInfoPointer,

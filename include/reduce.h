@@ -182,7 +182,8 @@ public:
 #pragma unroll
 			for(int i = blockIdx.x * (blockDim.x) + tid;i < n; i += blockDim.x * gridDim.x) {
 				shape::ind2sub(rank,shape::shapeOf(xShapeInfo),i,&ind2sub);
-				sPartials[tid] = this->update(sPartials[tid],this->op(dx[i],extraParams),extraParams);
+				int offset = shape::getOffset(0,shape::shapeOf(xShapeInfo),shape::stride(xShapeInfo),ind2sub,rank);
+				sPartials[tid] = this->update(sPartials[tid],this->op(dx[offset],extraParams),extraParams);
 				__syncthreads();
 			}
 
