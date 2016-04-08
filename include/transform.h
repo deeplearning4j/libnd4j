@@ -3298,6 +3298,12 @@ public:
 	 *  normally negative indices are bad, OK here because of other checks on input indices
 	 *  Uses unrolled loop specifically for length 4
 	 */
+#ifdef __CUDACC__
+	inline __host__ __device__
+#elif defined(__GNUC__)
+
+
+#endif
 	int getOffsetUnsafe4(int baseOffset, int *shape, int *stride, int *indices) {
 		int offset = baseOffset;
 		if (shape[0] != 1) offset += indices[0] * stride[0];
@@ -3313,6 +3319,12 @@ public:
 	 * normally negative indices are bad, OK here because of other checks on input indices
 	 * Uses unrolled loop specifically for length 6, where indices[2] and indices[3] are zero (always are here)
 	 */
+#ifdef __CUDACC__
+	inline __host__ __device__
+#elif defined(__GNUC__)
+
+
+#endif
 	int getOffsetUnsafe6(int baseOffset, int *shape, int *stride, int *indices) {
 		int offset = baseOffset;
 		if (shape[0] != 1) offset += indices[0] * stride[0];
@@ -3383,7 +3395,6 @@ public:
 
 		T *fIn = dx;
 		T *fOut = result;
-		//#pragma omp parallel for collapse(2)
 		for (int ex = exampleFrom; ex < exampleTo; ex++) {
 			for (int d = depthFrom; d < depthTo; d++) {
 				inIndices[0] = ex;
@@ -3668,6 +3679,12 @@ public:
 	 *  normally negative indices are bad, OK here because of other checks on input indices
 	 *  Uses unrolled loop specifically for length 4
 	 */
+#ifdef __CUDACC__
+	inline __host__ __device__
+#elif defined(__GNUC__)
+
+
+#endif
 	int getOffsetUnsafe4(int baseOffset, int *shape, int *stride, int *indices) {
 		int offset = baseOffset;
 		if (shape[0] != 1) offset += indices[0] * stride[0];
@@ -3681,6 +3698,12 @@ public:
 	 * normally negative indices are bad, OK here because of other checks on input indices
 	 * Uses unrolled loop specifically for length 6, where indices[2] and indices[3] are zero (always are here)
 	 */
+#ifdef __CUDACC__
+	inline __host__ __device__
+#elif defined(__GNUC__)
+
+
+#endif
 	int getOffsetUnsafe6(int baseOffset, int *shape, int *stride, int *indices) {
 		int offset = baseOffset;
 		if (shape[0] != 1) offset += indices[0] * stride[0];
