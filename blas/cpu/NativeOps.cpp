@@ -1468,8 +1468,30 @@ void flattenGeneric(Nd4jPointer *extraPointers,
             }
         }
         free(coord);
+
+    }
+    printf("FINISHED FLATTENED\n");
+    int dimension, dimensionLength;
+    int rank = shape::rank(inputShapeInfoPointer);
+    int *xShape = shape::shapeOf(inputShapeInfoPointer);
+    dimensionLength = 1;
+    if(order == 'f') {
+        dimension = 0;
+    }
+    else {
+        dimension = rank - 1;
+    }
+    int numTads = 1;
+    for ( int i = 0; i < rank; i++ ) {
+        if ( i != dimension )
+            numTads *= xShape[ i ];
     }
 
+    for(int i = 0; i < numTads; i++) {
+        int tadOffset = shape::tadOffset(i,inputShapeInfoPointer,&dimension,dimensionLength);
+        printf ("Inside tadoffset, index %d %f\n",i,inputPointer[tadOffset]);
+    }
+    printf("==================================\n");
 
 
 }
