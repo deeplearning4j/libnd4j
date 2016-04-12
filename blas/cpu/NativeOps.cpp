@@ -1489,7 +1489,7 @@ void flattenGeneric(Nd4jPointer *extraPointers,
 
     for(int i = 0; i < numTads; i++) {
         int tadOffset = shape::tadOffset(i,inputShapeInfoPointer,&dimension,dimensionLength);
-        printf ("Inside tadoffset, index %d %f\n",i,inputPointer[tadOffset]);
+        printf ("Inside tadoffset, index %d %f with offset %d\n",i,inputPointer[tadOffset],tadOffset);
     }
     printf("==================================\n");
 
