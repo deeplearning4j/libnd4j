@@ -1401,6 +1401,38 @@ void flattenGeneric(Nd4jPointer *extraPointers,
     int len = shape::length(inputShapeInfoPointer);
     int resultEleStride = shape::elementWiseStride(resultShapeInfoBufferPointer);
     int inputEleStride = shape::elementWiseStride(inputShapeInfoPointer);
+    int numTads, stride, dimension, dimensionLength;
+    int rank = shape::rank(inputShapeInfoPointer);
+    int *xStride = shape::stride(inputShapeInfoPointer);
+    int *xShape = shape::shapeOf(inputShapeInfoPointer);
+    
+    dimensionLength = 1;
+    if(order == 'f') {
+        dimension = 0;
+    }
+    else {
+        dimension = rank - 1;
+    }
+    stride  = xStride[ dimension ];
+    // numTads is product of length of all dimensions excluding
+    // the one we do the tad on
+    numTads = 1;
+    for ( int i = 0; i < rank; i++ ) {
+        if ( i != dimension )
+            numTads *= xShape[ i ];
+    }
+    /*
+    if (inputOrder == order) {
+         printf("Input == order == %s\n", &order);
+    }
+    else {
+        printf("Input != order.  order = %s\n", &order);
+    }
+    printf( "rank = %d dimension = %d dimensionLength = %d stride = %d numTads = %d\n",
+            rank, dimension, dimensionLength, stride, numTads);
+    for ( int i = 0; i < rank; i++ ) {
+        printf( "shape[%d] = %d.  stride[%d] = %d\n", i, xShape[i], i, xStride[i] );
+    }*/
     if (inputOrder == order) {
         if (resultEleStride == 1 && inputEleStride == 1) {
             memcpy(resultPointer, inputPointer, len* sizeof(T));
@@ -1451,7 +1483,53 @@ void flattenGeneric(Nd4jPointer *extraPointers,
         int *xShape = shape::shapeOf(inputShapeInfoPointer);
         int *xStride = shape::stride(inputShapeInfoPointer);
         int len = shape::length(inputShapeInfoPointer);
-        if(order == 'f') {
+        int tadShape = xShape[ dimension ];
+ #pragma omp  parallel  for
+         for(int i = 0; i < numTads; i++) {
+ 
+             int resultOffset;
+ 
+             if ( order == 'f' ) {
+                 // 1. get c ordering coordinates
+                 int *cIndexCoordinates = (int*)malloc((rank - 1) * sizeof( int ));
+                 int divisor = 1;
+                 for (int dim = rank - 1; dim > 0; dim--) {
+                     cIndexCoordinates[dim-1] = ( i / divisor ) % xShape[dim];
+                     divisor *= xShape[dim];
+                 }
+ 
+                 //printf( "i = %d cIndexCoords = ", i);
+                 /*for (int dim = 0; dim < rank - 1; dim++ ) {
+                     printf("%d ",cIndexCoordinates[dim]);
+                 }*/
+                 //printf( "\n" );
+ 
+                 // 2. convert to f ordering index
+                 int fIndex = 0;
+                 int multiplier = 1;
+                 for (int dim = 1; dim <= rank - 1; dim++) {
+                     fIndex += cIndexCoordinates[dim-1]*multiplier;
+                     multiplier *= xShape[dim];
+                 }
+                 resultOffset = fIndex*tadShape;
+                 free( cIndexCoordinates );
+ 
+             }
+             else {
+                 resultOffset = i*tadShape;
+             }
+ 
+             int tadOffset = shape::tadOffset(i,inputShapeInfoPointer,&dimension,dimensionLength);
+             //printf( "resultOffset = %d tadOffset = %d\n", resultOffset, tadOffset );
+             for( int j = 0; j < tadShape; j++) {
+ 
+                 // TAD are returned in C ordering always
+                 resultPointer[resultOffset + j] = inputPointer[tadOffset + j*stride];
+                 // printf("result index,%d input index, %d\n",i*xShape[ dimension ] + j,tadOffset + j*stride);
+ 
+             }
+         }
+        /*if(order == 'f') {
             for(int i = 0; i < len; i++) {
                 shape::ind2sub(rank, xShape, i, coord);
                 int offset = shape::getOffset(0,xShape,xStride,coord,rank);
@@ -1467,33 +1545,9 @@ void flattenGeneric(Nd4jPointer *extraPointers,
 
             }
         }
-        free(coord);
+        free(coord);*/
 
     }
-    printf("FINISHED FLATTENED\n");
-    int dimension, dimensionLength;
-    int rank = shape::rank(inputShapeInfoPointer);
-    int *xShape = shape::shapeOf(inputShapeInfoPointer);
-    dimensionLength = 1;
-    if(order == 'f') {
-        dimension = 0;
-    }
-    else {
-        dimension = rank - 1;
-    }
-    int numTads = 1;
-    for ( int i = 0; i < rank; i++ ) {
-        if ( i != dimension )
-            numTads *= xShape[ i ];
-    }
-
-    for(int i = 0; i < numTads; i++) {
-        int tadOffset = shape::tadOffset(i,inputShapeInfoPointer,&dimension,dimensionLength);
-        printf ("Inside tadoffset, index %d %f with offset %d\n",i,inputPointer[tadOffset],tadOffset);
-    }
-    printf("==================================\n");
-
-
 }
 
 
