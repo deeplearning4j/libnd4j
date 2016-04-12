@@ -1421,18 +1421,7 @@ void flattenGeneric(Nd4jPointer *extraPointers,
         if ( i != dimension )
             numTads *= xShape[ i ];
     }
-    /*
-    if (inputOrder == order) {
-         printf("Input == order == %s\n", &order);
-    }
-    else {
-        printf("Input != order.  order = %s\n", &order);
-    }
-    printf( "rank = %d dimension = %d dimensionLength = %d stride = %d numTads = %d\n",
-            rank, dimension, dimensionLength, stride, numTads);
-    for ( int i = 0; i < rank; i++ ) {
-        printf( "shape[%d] = %d.  stride[%d] = %d\n", i, xShape[i], i, xStride[i] );
-    }*/
+
     if (inputOrder == order) {
         if (resultEleStride == 1 && inputEleStride == 1) {
             memcpy(resultPointer, inputPointer, len* sizeof(T));
@@ -1498,12 +1487,7 @@ void flattenGeneric(Nd4jPointer *extraPointers,
                      divisor *= xShape[dim];
                  }
  
-                 //printf( "i = %d cIndexCoords = ", i);
-                 /*for (int dim = 0; dim < rank - 1; dim++ ) {
-                     printf("%d ",cIndexCoordinates[dim]);
-                 }*/
-                 //printf( "\n" );
- 
+
                  // 2. convert to f ordering index
                  int fIndex = 0;
                  int multiplier = 1;
@@ -1516,36 +1500,18 @@ void flattenGeneric(Nd4jPointer *extraPointers,
  
              }
              else {
-                 resultOffset = i*tadShape;
+                 resultOffset = i *  tadShape;
              }
  
              int tadOffset = shape::tadOffset(i,inputShapeInfoPointer,&dimension,dimensionLength);
-             //printf( "resultOffset = %d tadOffset = %d\n", resultOffset, tadOffset );
              for( int j = 0; j < tadShape; j++) {
  
                  // TAD are returned in C ordering always
                  resultPointer[resultOffset + j] = inputPointer[tadOffset + j*stride];
-                 // printf("result index,%d input index, %d\n",i*xShape[ dimension ] + j,tadOffset + j*stride);
- 
+
              }
          }
-        /*if(order == 'f') {
-            for(int i = 0; i < len; i++) {
-                shape::ind2sub(rank, xShape, i, coord);
-                int offset = shape::getOffset(0,xShape,xStride,coord,rank);
-                resultPointer[idx++] = inputPointer[offset];
 
-            }
-        }
-        else {
-            for(int i = 0; i < len; i++) {
-                shape::ind2subC(rank, xShape, i, coord);
-                int offset = shape::getOffset(0,xShape,xStride,coord,rank);
-                resultPointer[idx++] = inputPointer[offset];
-
-            }
-        }
-        free(coord);*/
 
     }
 }
