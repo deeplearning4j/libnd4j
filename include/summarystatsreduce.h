@@ -23,8 +23,11 @@
 #include <jni.h>
 #endif
 
+#include "optype.h"
+
 namespace functions {
     namespace summarystats {
+
 
 // This example computes several statistical properties of a data
 // series in a single reduction.  The algorithm is described in detail here:
@@ -588,13 +591,13 @@ struct SharedSummaryStatsData<double> {
 			int *resultShapeInfo,
 			int *dimension,
 			int dimensionLength,
-			int postProcessOrNot) {
+			int postProcessOrNot, int *allocationBuffer, T *reductionBuffer) {
 
 
 		/**
 		 * Gpu information for the problem
 		 */
-		int tid = threadIdx.x;
+		int tid = blockIdx.x * blockDim.x + threadIdx.x;
 		__shared__ volatile int resultScalar;
 
 		__shared__ int xElementWiseStride;
@@ -607,7 +610,7 @@ struct SharedSummaryStatsData<double> {
 		sPartials = holder.getPointer();
 		T startingVal = this->startingValue(dx);
 #pragma unroll
-		for (int i = tid; i < numElements; i += blockDim.x) {
+		for (int i = threadIdx.x; i < numElements; i += blockDim.x) {
 			SummaryStatsData<T> val;
 			val.initWithValue(startingVal);
 			val.n = 0;
@@ -622,17 +625,16 @@ struct SharedSummaryStatsData<double> {
 
 
 
-		//only compute the tad indexes once
-		__shared__
-		shape::TADPermuteInfo xTadInfo;
-
 		SummaryStatsData <T> reduction;
 		reduction.initWithValue(0.0);
 		reduction.n = 0;
-		if (tid == 0) {
-			resultLength = shape::length(resultShapeInfo);
+		if (threadIdx.x == 0) {
+		    if (resultShapeInfo != NULL)
+			    resultLength = shape::length(resultShapeInfo);
+			else resultLength = 1;
+
 			if (dimensionLength == 1) {
-				if (dimension[0] == shape::MAX_DIMENSION)
+				if (dimension == NULL || dimension[0] == MAX_DIMENSION)
 					resultScalar = 1;
 				else
 					resultScalar = 0;
@@ -646,7 +648,7 @@ struct SharedSummaryStatsData<double> {
 			int *xStride = shape::stride(xShapeInfo);
 			char xOrder = shape::order(xShapeInfo);
 
-			if (dimension[0] != shape::MAX_DIMENSION) {
+			if (dimension != NULL && dimension[0] != MAX_DIMENSION) {
 				xElementWiseStride =  xStride[dimension[0]];
 			} else {
 				xElementWiseStride = shape::elementWiseStride(xShapeInfo);
@@ -671,7 +673,7 @@ struct SharedSummaryStatsData<double> {
 
 				__shared__ int *tadShapeShapeInfo;
 
-				if(tid == 0) {
+				if(threadIdx.x == 0) {
 					inputShapeInfo = xShapeInfo;
 				}
 
@@ -681,7 +683,7 @@ struct SharedSummaryStatsData<double> {
 				int *stride = shape::stride(inputShapeInfo);
 				int wholeRank = shape::rank(inputShapeInfo);
 
-				if(tid == 0) {
+				if(threadIdx.x == 0) {
 					numOnes = 0;
 					for(int i = 0; i < wholeRank; i++) {
 						if(shape[i] == 1)
@@ -694,8 +696,8 @@ struct SharedSummaryStatsData<double> {
 						newSqueezeDimensions = false;
 						inputShapeInfo = shape::squeezeDimensions(
 							inputShapeInfo,
-							&dimension,
-							&dimensionLength,
+							dimension,
+							dimensionLength,
 							&squeezed,
 							&newSqueezeDimensions,
 							wholeRank,
@@ -709,7 +711,7 @@ struct SharedSummaryStatsData<double> {
 				//moving all dimensions (in sorted order)
 				//to the back.
 				//permuted version of the x shape info for setting up the tad problem
-				if(tid == 0)
+				if(threadIdx.x == 0)
 					tadShapeShapeInfo = shape::shapeInfoOnlyShapeAndStride(xShapeInfo,dimension,dimensionLength,false);
 				__syncthreads();
 
@@ -759,28 +761,19 @@ struct SharedSummaryStatsData<double> {
 				}
 
 				__syncthreads();
-				if (tid == 0) {
-					free(tadShapeShapeInfo);
+				if (threadIdx.x == 0) {
+					delete tadShapeShapeInfo;
 
 					if(newSqueezeDimensions) {
-						free(dimension);
+						delete dimension;
 					}
 
 					if(numOnes > 0) {
-						free(xShapeInfo);
+						delete xShapeInfo;
 					}
 				}
 		    } else {
-                if(tid == 0) {
-					xTadInfo = shape::tadInfo(xShapeInfo, dimension, dimensionLength);
-				}
-				__syncthreads();
-
-
-				int resultLength = shape::length(resultShapeInfo);
-				if(tid >= resultLength) {
-					return;
-				}
+             	int resultLength = shape::length(resultShapeInfo);
 
 				/**
 				 * The element wise stride belong longs to a reduction index.
@@ -812,15 +805,10 @@ struct SharedSummaryStatsData<double> {
 				}
 
 				__syncthreads();
-				if(tid == 0) {
-					shape::freePermuteInfo(xTadInfo);
-				}
+
 		    }
 		}
 		else if (resultScalar) {
-            if(blockIdx.x >= resultLength)
-			    return;
-
 			if (threadIdx.x == 0)
 			    xElementWiseStride = shape::elementWiseStride(xShapeInfo);
 
@@ -832,14 +820,14 @@ struct SharedSummaryStatsData<double> {
 			if(xElementWiseStride >= 1) {
                 if(xElementWiseStride == 1) {
 #pragma unroll
-				    for(int i = blockIdx.x * (blockDim.x) + tid;i < n; i += blockDim.x * gridDim.x) {
+				    for(int i = tid;i < n; i += blockDim.x * gridDim.x) {
 					    SummaryStatsData <T> indexVal2;
 					    indexVal2.initWithValue(dx[i]);
 						reduction =  update(reduction,indexVal2, extraParams);
 				    }
 			    } else {
 #pragma unroll
-				    for(int i = xElementWiseStride * (blockIdx.x * (blockDim.x) + tid);i < n; i += (blockDim.x * gridDim.x * xElementWiseStride)) {
+				    for(int i = xElementWiseStride * tid;i < n; i += (blockDim.x * gridDim.x * xElementWiseStride)) {
                         SummaryStatsData <T> indexVal2;
 					    indexVal2.initWithValue(dx[i * xElementWiseStride]);
 						reduction =  update(reduction,indexVal2, extraParams);
@@ -847,30 +835,78 @@ struct SharedSummaryStatsData<double> {
 	    		}
             } else {
                 int rank = shape::rank(xShapeInfo);
-    			int *ind2sub = (int *) malloc(sizeof(int) * rank);
+                long allocSize = sizeof(int) * rank;
+    			int *ind2sub = shape::cuMalloc(allocationBuffer, allocSize); //(int *) malloc(sizeof(int) * rank);
 #pragma unroll
-	    		for(int i = blockIdx.x * (blockDim.x) + tid;i < n; i += blockDim.x * gridDim.x) {
-    				shape::ind2sub(rank,shape::shapeOf(xShapeInfo),i,&ind2sub);
+	    		for(int i = tid;i < n; i += blockDim.x * gridDim.x) {
+    				shape::ind2sub(rank,shape::shapeOf(xShapeInfo),i,ind2sub);
                     int offset = shape::getOffset(0,xShapeInfo,shape::stride(xShapeInfo),ind2sub,rank);
     				SummaryStatsData <T> indexVal2;
 					indexVal2.initWithValue(dx[offset]);
     				reduction =  update(reduction,indexVal2, extraParams);
 			    }
 
-                free(ind2sub);
+                if (tid * allocSize > PREALLOC_SIZE - allocSize) {
+                    delete[] ind2sub;
+                }
             }
 
             __syncthreads();
-            sPartials[tid] = reduction;
+            sPartials[threadIdx.x] = reduction;
 
             __syncthreads();
-            if(tid < numElements)
-			    aggregatePartials(&sPartials, tid,numElements ,extraParams);
+            aggregatePartials(&sPartials, threadIdx.x,blockDim.x ,extraParams);
 
 
             __syncthreads();
-            if (tid == 0) {
-				result[0] = getValue(sPartials[0]);
+            if (gridDim.x > 1) {
+				__shared__ bool amLast;
+				unsigned int *tc = (unsigned *) reductionBuffer;
+				int rank = shape::rank(xShapeInfo);
+				tid = threadIdx.x;
+				if (threadIdx.x == 0) {
+					SummaryStatsData<T> *pBuffer = (SummaryStatsData<T> *) reductionBuffer;
+					pBuffer[blockIdx.x] = sPartials[0];
+				}
+				__syncthreads();
+				__threadfence();
+
+				if (tid==0) {
+					unsigned int ticket = atomicInc(&tc[4096], gridDim.x);
+				    amLast = (ticket == gridDim.x-1);
+				}
+
+				__syncthreads();
+
+				if (amLast) {
+					tc[4096] = 0;
+					SummaryStatsData<T> *pBuffer = (SummaryStatsData<T> *) reductionBuffer;
+
+                    T startingVal = this->startingValue(dx);
+
+        			SummaryStatsData<T> val;
+		        	val.initWithValue(startingVal);
+			        val.n = 0;
+                    sPartials[threadIdx.x] =  val;
+
+					if (threadIdx.x < gridDim.x)
+						sPartials[threadIdx.x] =  pBuffer[threadIdx.x];
+
+
+					__syncthreads();
+					aggregatePartials(&sPartials, threadIdx.x,gridDim.x,extraParams);
+
+					__syncthreads();
+					if (tid == 0) {
+						result[0] = result[0] = getValue(sPartials[0]);
+					}
+				}
+			} else {
+				if (tid == 0) {
+					unsigned int *tc = (unsigned *) reductionBuffer;
+					tc[4096] = 0;
+					result[0] = result[0] = getValue(sPartials[0]);
+				}
 			}
 		}
 	}
@@ -1007,7 +1043,6 @@ struct SharedSummaryStatsData<double> {
                 if (dimensionLength > 1) {
                     int numOnes = 0;
                     int *shape = shape::shapeOf(xShapeInfo);
-                    int *stride = shape::stride(xShapeInfo);
                     int wholeRank = shape::rank(xShapeInfo);
                     bool squeezed = false;
                     bool newSqueezeDimensions = false;
@@ -1017,16 +1052,16 @@ struct SharedSummaryStatsData<double> {
                     }
 
                     //squeeze the dimensions
-                        if (numOnes > 0) {
-                            xShapeInfo = shape::squeezeDimensions(
+                    if (numOnes > 0) {
+                        xShapeInfo = shape::squeezeDimensions(
                                 xShapeInfo,
-                                &dimension,
-                                &dimensionLength,
+                                dimension,
+                                dimensionLength,
                                 &squeezed,
                                 &newSqueezeDimensions,
                                 wholeRank,
                                 numOnes);
-                        }
+                    }
 
                     /**
                      * The element wise stride belong longs to a reduction index.
@@ -1043,7 +1078,6 @@ struct SharedSummaryStatsData<double> {
                     int *xShape = shape::shapeOf(tadShapeShapeInfo);
                     int *xStride = shape::stride(tadShapeShapeInfo);
                     int rank = shape::rank(tadShapeShapeInfo);
-                    int tadLength = shape::length(tadShapeShapeInfo);
 #pragma omp  parallel  for
                     for (int i = 0; i < resultLength; i++) {
                         int offset = shape::tadOffset(i,xShapeInfo,dimension,dimensionLength);
@@ -1088,15 +1122,15 @@ struct SharedSummaryStatsData<double> {
                     }
 
 
-                        free(tadShapeShapeInfo);
+                    delete[] tadShapeShapeInfo;
 
-                        if (newSqueezeDimensions) {
-                            free(dimension);
-                        }
+                    if (newSqueezeDimensions) {
+                        delete[] dimension;
+                    }
 
-                        if (numOnes > 0) {
-                            free(xShapeInfo);
-                        }
+                    if (numOnes > 0) {
+                        delete[] xShapeInfo;
+                    }
                 }
 
                 else {
@@ -1467,12 +1501,11 @@ struct SharedSummaryStatsData<double> {
 #ifdef __CUDACC__
             __inline__ __host__ __device__
 #endif
-            functions::summarystats::SummaryStatsReduce<T> * getOp(int op,bool biasCorrected) {
-                if (op == 0) {
-                    return new functions::summarystats::ops::Variance<T>(biasCorrected);
-                } else if (op == 1) {
-                    return new functions::summarystats::ops::StandardDeviation<T>(biasCorrected);
-
+            functions::summarystats::SummaryStatsReduce<T> * getOp(int op, bool biasCorrected) {
+                if (op == op_type::Variance) {
+                    return new ops::Variance<T>(biasCorrected);
+                } else if (op == op_type::StandardDeviation) {
+                    return new ops::StandardDeviation<T>(biasCorrected);
                 }
                 return NULL;
             }
@@ -1513,17 +1546,16 @@ __device__ void summaryStatsReduceGeneric(
 		T *result,
 		int *resultShapeInfo,
 		int *dimension,
-		int dimensionLength, int postProcessOrNot,bool biasCorrected) {
+		int dimensionLength, int postProcessOrNot,bool biasCorrected, int *allocationBuffer, T *reductionBuffer) {
 	__shared__ functions::summarystats::SummaryStatsReduce<T> *indexReduce;
 	__shared__ functions::summarystats::SummaryStatsReduceOpFactory<T> *newOpFactory;
-	if(threadIdx.x == 0)
+	if(threadIdx.x == 0) {
 		newOpFactory = new functions::summarystats::SummaryStatsReduceOpFactory<T>();
-	__syncthreads();
-	if(threadIdx.x == 0)
 		indexReduce = newOpFactory->getOp(op,biasCorrected);
+	}
 	__syncthreads();
 
-	indexReduce->transform(dx,xShapeInfo,extraParams,result,resultShapeInfo,dimension,dimensionLength,postProcessOrNot);
+	indexReduce->transform(dx,xShapeInfo,extraParams,result,resultShapeInfo,dimension,dimensionLength,postProcessOrNot, allocationBuffer, reductionBuffer);
 
 	__syncthreads();
 	if(threadIdx.x == 0) {
@@ -1556,7 +1588,7 @@ __global__ void summaryStatsReduceDouble(
 		int *dimension,
 		int dimensionLength,
 		int postProcessOrNot,
-		bool biasCorrected) {
+		bool biasCorrected, int *allocationBuffer, double *reductionBuffer) {
 	summaryStatsReduceGeneric<double>(
 			op,
 			dx,
@@ -1566,7 +1598,7 @@ __global__ void summaryStatsReduceDouble(
 			resultShapeInfo,
 			dimension,
 			dimensionLength,
-			postProcessOrNot,biasCorrected);
+			postProcessOrNot,biasCorrected, allocationBuffer, reductionBuffer);
 
 }
 
@@ -1593,7 +1625,7 @@ __global__ void summaryStatsReduceDouble(
 		int *resultShapeInfo,
 		int *dimension,
 		int dimensionLength,
-		int postProcessOrNot,bool biasCorrected) {
+		int postProcessOrNot,bool biasCorrected,int *allocationBuffer, float *reductionBuffer) {
 	summaryStatsReduceGeneric<float>(
 			op,
 			dx,
@@ -1603,7 +1635,7 @@ __global__ void summaryStatsReduceDouble(
 			resultShapeInfo,
 			dimension,
 			dimensionLength,
-			postProcessOrNot,biasCorrected);
+			postProcessOrNot,biasCorrected, allocationBuffer, reductionBuffer);
 
 }
 
