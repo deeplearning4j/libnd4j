@@ -1633,7 +1633,7 @@ int NativeOps::ompGetNumThreads() {
 /**
  * Sets the number of openmp threads
  */
-void NativeOps::setOmpNunThreads(int threads) {
+void NativeOps::setOmpNumThreads(int threads) {
     omp_set_num_threads(threads);
 
 }

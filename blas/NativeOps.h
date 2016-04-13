@@ -898,7 +898,7 @@ public:
 
     int ompGetNumThreads();
 
-    void setOmpNunThreads(int threads);
+    void setOmpNumThreads(int threads);
 
 };
 

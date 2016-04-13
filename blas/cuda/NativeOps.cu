@@ -2436,6 +2436,6 @@ int NativeOps::ompGetNumThreads() {
 
 }
 
-void NativeOps::setOmpNunThreads(int threads) {
+void NativeOps::setOmpNumThreads(int threads) {
 
 }
