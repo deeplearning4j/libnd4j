@@ -631,7 +631,7 @@ namespace functions {
 #ifdef __CUDACC__
             __host__
 #endif
-            T execScalar(const T *x,int xElementWiseStride,Nd4jIndex length,T *extraParams) {
+            T execScalar( T *x,int xElementWiseStride,Nd4jIndex length,T *extraParams) {
                 T startingVal = this->startingValue(x);
                 if (xElementWiseStride == 1) {
                     if(length < 8000) {
@@ -656,7 +656,7 @@ namespace functions {
                             T local = this->startingValue(x);
                             for(int i = omp_get_thread_num(); i < info.chunks; i+= info.threads) {
                                 Nd4jIndex newOffset = (i * info.items);
-                                const T *chunk = x + newOffset;
+                                 T *chunk = x + newOffset;
                                 Nd4jIndex itemsToLoop = info.items;
                                 if(newOffset >= length) {
                                     break;
@@ -712,7 +712,7 @@ namespace functions {
                         T local = this->startingValue(x);
                         for(int i = omp_get_thread_num(); i < info.chunks; i+= info.threads) {
                             Nd4jIndex newOffset = (i * info.items) * xElementWiseStride;
-                            const T *chunk = x + newOffset;
+                             T *chunk = x + newOffset;
                             Nd4jIndex itemsToLoop = info.items;
 
 
@@ -753,7 +753,7 @@ namespace functions {
             __host__
 #endif
             T execScalar(T *x, int *xShapeInfo,T *extraParams) {
-                const Nd4jIndex length = shape::length(xShapeInfo);
+                 Nd4jIndex length = shape::length(xShapeInfo);
                 int xElementWiseStride = shape::elementWiseStride(xShapeInfo);
                 if(xElementWiseStride >= 1) {
                     return execScalar(x, xElementWiseStride, length, extraParams);
@@ -780,7 +780,7 @@ namespace functions {
 
                         ND4J_RAW_ITER_START(dim, rank, coord, shapeIter); {
                             /* Process the innermost dimension */
-                            const T *xIter = x;
+                             T *xIter = x;
                             start = update(start,op(xIter[0],extraParams),extraParams);
                         } ND4J_RAW_ITER_ONE_NEXT(dim,
                                                  rank,
@@ -886,14 +886,9 @@ namespace functions {
                     int *xStride = shape::stride(tadShapeShapeInfo);
                     int tadLength = shape::length(tadShapeShapeInfo);
                     int rank = shape::rank(tadShapeShapeInfo);
-                    for(int i = 0; i < rank; i++) {
-                        printf("TAD shape %d TAD stride %d with order %c\n",xShape[i],xStride[i],shape::order(tadShapeShapeInfo));
-                    }
-
-//#pragma omp  parallel  for
+#pragma omp  parallel  for
                     for(int i = 0; i < resultLength; i++) {
                         int offset = shape::tadOffset(i,xShapeInfo,dimension,dimensionLength);
-                        printf("TAD off set for %d is %d\n",i,offset);
                         int shapeIter[MAX_RANK];
                         int coord[MAX_RANK];
                         int dim;
@@ -912,7 +907,6 @@ namespace functions {
                                                      xStridesIter) >= 0) {
                             ND4J_RAW_ITER_START(dim, rank, coord, shapeIter); {
                                 /* Process the innermost dimension */
-                                printf("Value for tad %d after is %f\n",i,xPointer[0]);
                                 start = update(start,op(xPointer[0],extraParams),extraParams);
                             } ND4J_RAW_ITER_ONE_NEXT(dim,
                                                      rank,
@@ -1005,7 +999,7 @@ namespace functions {
 #ifdef __CUDACC__
             __host__ __device__
 #endif
-            T startingValue(const T *input) = 0;
+            T startingValue( T *input) = 0;
 
 
 
@@ -1041,7 +1035,7 @@ __device__ void initializeShared(T *extraParams, T **sPartials, int sMemSize) {
 #ifdef __CUDACC__
                 __host__ __device__
 #endif
-                T startingValue(const T *input) override {
+                T startingValue( T *input) override {
                     (void)input;
                     return (T) 0.0;
                 }
@@ -1177,7 +1171,7 @@ __device__ void initializeShared(T *extraParams, T **sPartials, int sMemSize) {
 #ifdef __CUDACC__
                 __host__ __device__
 #endif
-                T startingValue(const T *input) override {
+                T startingValue( T *input) override {
                     (void)input;
                     return 1.0;
                 }
@@ -1213,7 +1207,7 @@ __device__ void initializeShared(T *extraParams, T **sPartials, int sMemSize) {
 #ifdef __CUDACC__
                 __host__ __device__
 #endif
-                T startingValue(const T *input) override {
+                T startingValue( T *input) override {
                     (void)input;
                     return 0.0;
                 }
@@ -1347,7 +1341,7 @@ __device__ void initializeShared(T *extraParams, T **sPartials, int sMemSize) {
 #ifdef __CUDACC__
                 __host__ __device__
 #endif
-                T startingValue(const T *input) override {
+                T startingValue( T *input) override {
                     return input[0];
                 }
 
@@ -1432,7 +1426,7 @@ __device__ void initializeShared(T *extraParams, T **sPartials, int sMemSize) {
 #ifdef __CUDACC__
                 __host__ __device__
 #endif
-                T startingValue(const T *input) override {
+                T startingValue( T *input) override {
                     return input[0];
                 }
 
@@ -1468,7 +1462,7 @@ __device__ void initializeShared(T *extraParams, T **sPartials, int sMemSize) {
 #ifdef __CUDACC__
                 __host__ __device__
 #endif
-                T startingValue(const T *input) override {
+                T startingValue( T *input) override {
                     (void)input;
                     return 0.0;
                 }
@@ -1542,7 +1536,7 @@ __device__ void initializeShared(T *extraParams, T **sPartials, int sMemSize) {
 #ifdef __CUDACC__
                 __host__ __device__
 #endif
-                T startingValue(const T *input) override {
+                T startingValue( T *input) override {
                     (void)input;
                     return 0.0;
                 }
@@ -1628,7 +1622,7 @@ __device__ void initializeShared(T *extraParams, T **sPartials, int sMemSize) {
 #ifdef __CUDACC__
                 __host__ __device__
 #endif
-                T startingValue(const T *input) {
+                T startingValue( T *input) {
                     (void)input;
                     return 0.0;
                 }
@@ -1713,7 +1707,7 @@ __device__ void initializeShared(T *extraParams, T **sPartials, int sMemSize) {
 #ifdef __CUDACC__
                 __host__ __device__
 #endif
-                T startingValue(const T *input) override {
+                T startingValue( T *input) override {
                     (void)input;
                     return 0.0;
                 }
