@@ -2220,27 +2220,23 @@ namespace shape {
             int newDimensionsLength = dimensionLength;
             int *newDimensions = new int[newDimensionsLength];
             int newDimensionIdx = 0;
-            printf("Before new dimension\n");
             for(int i = 0; i < dimensionLength; i++) {
                 if(shape[dimension[i]] != 1) {
-                    printf("New dimension %d is %d at idx is %d\n",i,newDimensionIdx,dimension[i] - numDimensionsOne);
                     newDimensions[newDimensionIdx++] = dimension[i] - numDimensionsOne;
                 }
             }
 
 
 
-            printf("After neg one found with new dimension length %d\n",newDimensionsLength);
             if(dimensionZeroCollapsed) {
                 //reduce along the new dimensions
                 *dimensionRef = newDimensions;
-                *dimensionLengthRef  = newDimensionsLength - 1;
+                *dimensionLengthRef  = newDimensionsLength - numDimensionsOne;
             }
             else {
-                printf("Non neg one found\n");
                 //reduce along the new dimensions
                 *dimensionRef = newDimensions;
-                *dimensionLengthRef  = newDimensionsLength;
+                *dimensionLengthRef  = newDimensionsLength - numDimensionsOne;
 
             }
 
