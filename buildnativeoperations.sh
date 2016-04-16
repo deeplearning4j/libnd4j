@@ -112,7 +112,7 @@ else
                    rm -rf blasbuild/cuda
                    mkdir -p blasbuild/cuda
                    cd blasbuild/cuda
-                    eval $CMAKE_COMMAND -DCUDA_BLAS=true -DBLAS=TRUE ../..
+                    eval $CMAKE_COMMAND -DCUDA_BLAS=true -DBLAS=TRUE -DCMAKE_BUILD_TYPE=Release../..
                    eval $MAKE_COMMAND && cd ../..
               fi
                   echo "FINISHING BUILD"
@@ -133,7 +133,7 @@ else
 
                         mkdir -p blasbuild/cpu
                     cd blasbuild/cpu
-                    eval $CMAKE_COMMAND -DCPU_BLAS=true -DBLAS=TRUE ../..
+                    eval $CMAKE_COMMAND -DCPU_BLAS=true -DBLAS=TRUE -DCMAKE_BUILD_TYPE=Release ../..
                    eval $MAKE_COMMAND && cd ../..
 
                    echo "FINISHING BUILD"
