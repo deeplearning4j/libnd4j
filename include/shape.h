@@ -220,11 +220,6 @@ namespace shape {
 
 
 
-#ifdef __CUDACC__
-    __host__ __device__
-#endif
-    inline int* squeezeDimensions(int *shapeInfo, int** dimension, int *dimensionLength, bool *squeezedRef, bool *squeezeDimensionsRef,int wholeRank,int numOnes);
-
 /**
  * In place permute swap
  * @param length
@@ -1371,6 +1366,7 @@ namespace shape {
                 if((*dimension)[i] < 0)
                     (*dimension)[i] += shape::rank(shapeInfo);
             }
+
             int *originalDimension = *dimension;
             int *shape = shape::shapeOf(shapeInfo);
             int rank = shape::rank(shapeInfo);
@@ -1452,21 +1448,28 @@ namespace shape {
                         }
                     }
 
+
                     //decrement by the number of dimensions where ones appeared
                     (*dimensionLength) -= onesDecrement;
                     //update to current result
-                    (*dimension) = newIntermediary;
+                    memcpy(*dimension,newIntermediary,sizeof(int) * (*dimensionLength));
                 }
                     //converged: no need to change result
-                else
-                    (*dimension) = intermediaryResult;
+                else {
+                    for(int i = 0; i < *dimensionLength; i++) {
+                        intermediaryResult[i] = (*dimension)[i];
 
+                    }
+
+                    //update to current result
+                    memcpy(*dimension,intermediaryResult,sizeof(int) * (*dimensionLength));
+                }
 
                 //converge when there are no singular dimensions specified in the reduce
                 done = (!oneEncountered && nonOneEncountered) || hitBeginning;
             }
 
-            delete[] originalDimension;
+
         }
     };
 
@@ -1715,6 +1718,7 @@ namespace shape {
         int *retShape = shape::shapeOf(ret);
         int *retStride = shape::stride(ret);
         int len = rank;
+
         if(dimensionLength == 1) {
             if(shape::isMatrix(theShape,shape::rank(shapeInfo))) {
                 if(dimension[0] == 0) {
@@ -2385,97 +2389,6 @@ namespace shape {
 
 
 
-#ifdef __CUDACC__
-    __host__ __device__
-#endif
-    inline int* squeezeDimensions(int *shapeInfo,
-                                  int **dimensionRef,
-                                  int *dimensionLengthRef,
-                                  bool *squeezedRef,
-                                  bool *squeezeDimensionsRef,
-                                  int wholeRank,
-                                  int numOnes) {
-        int *dimension = *dimensionRef;
-        int dimensionLength = *dimensionLengthRef;
-
-        int *squeezeShape = new int[wholeRank - numOnes];
-        int *squeezeStride = new int[wholeRank - numOnes];
-        *squeezedRef = true;
-
-        int *shape = shape::shapeOf(shapeInfo);
-        int *stride = shape::stride(shapeInfo);
-
-        int numEncountered = 0;
-        int numDimensionsOne = 0;
-        bool dimensionZeroCollapsed = false;
-        for(int i = 0; i < wholeRank; i++) {
-            if(shape[i] != 1) {
-                squeezeShape[numEncountered] = shape[i];
-                squeezeStride[numEncountered] = stride[i];
-                numEncountered++;
-            }
-            else {
-                if(i == 0)
-                    dimensionZeroCollapsed = true;
-                numDimensionsOne++;
-            }
-        }
-
-        if(numDimensionsOne > 0) {
-            int newDimensionsLength = dimensionLength;
-            int *newDimensions = new int[newDimensionsLength];
-            int newDimensionIdx = 0;
-            for(int i = 0; i < dimensionLength; i++) {
-                if(shape[dimension[i]] != 1) {
-                    newDimensions[newDimensionIdx++] = dimension[i] - numDimensionsOne;
-                }
-            }
-
-
-
-            if(dimensionZeroCollapsed) {
-                //reduce along the new dimensions
-                *dimensionRef = newDimensions;
-                *dimensionLengthRef  = newDimensionsLength - numDimensionsOne;
-            }
-            else {
-                //reduce along the new dimensions
-                *dimensionRef = newDimensions;
-                *dimensionLengthRef  = newDimensionsLength - numDimensionsOne;
-
-            }
-
-
-        }
-
-
-        //update the stride and shape, note that this will not be a memory leak due to the pointers being declared differently
-        //the previous pointer is just a view of a pointer to be reused that was passed in
-        shape = squeezeShape;
-        stride = squeezeStride;
-        wholeRank -= numOnes;
-        //adjustment happens above
-        if(numDimensionsOne  <= 0) {
-
-            //adjust dimensions
-            for(int i = 0; i < dimensionLength; i++) {
-                dimension[i] -= numOnes;
-            }
-
-            for(int i = 0; i < dimensionLength; i++) {
-                //didn't need to be adjusted
-                if(dimension[i] < 0)
-                    dimension[i] += numDimensionsOne;
-            }
-
-        }
-
-        char order = shape::order(shapeInfo);
-        int *xShapeInfo = shape::createShapeInfo(shape,stride,wholeRank);
-        xShapeInfo[shape::shapeInfoLength(wholeRank) - 1] = order;
-        return xShapeInfo;
-
-    }
 #ifdef __CUDACC__
     __host__ __device__
 #endif

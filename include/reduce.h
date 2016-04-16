@@ -821,6 +821,11 @@ namespace functions {
                       int *dimension,
                       int dimensionLength) {
                 int resultLength = shape::length(resultShapeInfoBuffer);
+                //pre squeezed: this is for keeping the pointer to the original
+                //shape information for tad offset
+                //the squeezed information doesn't render the right strides for
+                //tad offset
+                int *preSqueeze = xShapeInfo;
 
                 if(resultLength == 1 || dimensionLength == shape::rank(xShapeInfo)) {
                     result[0] = execScalar(x,xShapeInfo,extraParams);
@@ -833,7 +838,6 @@ namespace functions {
                     int wholeRank = shape::rank(xShapeInfo);
                     bool squeezed = false;
                     bool newSqueezeDimensions = false;
-
                     for (int i = 0; i < wholeRank; i++) {
                         if (shape[i] == 1)
                             numOnes++;
@@ -856,7 +860,6 @@ namespace functions {
 
                     //Migrates it to be new shape information
                     if(dimensionLength <= 1) {
-                        printf("Dimension length migrated to 1\n");
                         this->exec(x,
                                    xShapeInfo,
                                    extraParams,
@@ -865,9 +868,7 @@ namespace functions {
                                    dimension,
                                    dimensionLength);
 
-                        if (newSqueezeDimensions) {
-                            delete[] dimension;
-                        }
+
 
                         if (numOnes > 0) {
                             delete[] xShapeInfo;
@@ -887,7 +888,7 @@ namespace functions {
                     int rank = shape::rank(tadShapeShapeInfo);
 #pragma omp  parallel  for
                     for(int i = 0; i < resultLength; i++) {
-                        int offset = shape::tadOffset(i,xShapeInfo,dimension,dimensionLength);
+                        int offset = shape::tadOffset(i,preSqueeze,dimension,dimensionLength);
                         int shapeIter[MAX_RANK];
                         int coord[MAX_RANK];
                         int dim;
@@ -944,7 +945,7 @@ namespace functions {
                     int rank = shape::rank(tadShapeShapeInfo);
 #pragma omp  parallel  for
                     for(int i = 0; i < resultLength; i++) {
-                        int offset = shape::tadOffset(i,xShapeInfo,dimension,dimensionLength);
+                        int offset = shape::tadOffset(i,preSqueeze,dimension,dimensionLength);
 
                         int shapeIter[MAX_RANK];
                         int coord[MAX_RANK];
@@ -954,7 +955,6 @@ namespace functions {
                         T *xPointer = x + offset;
 
                         T start = this->startingValue(xPointer);
-                        printf("Value for tad %d start is %f\n",i,start);
                         if(PrepareOneRawArrayIter<T>(rankIter,
                                                      xShape,
                                                      xPointer,
@@ -966,7 +966,6 @@ namespace functions {
                             ND4J_RAW_ITER_START(dim, rank, coord, shapeIter); {
                                 /* Process the innermost dimension */
                                 start = update(start,op(xPointer[0],extraParams),extraParams);
-                                printf("Value for tad %d after is %f\n",i,xPointer[0]);
                             } ND4J_RAW_ITER_ONE_NEXT(dim,
                                                      rank,
                                                      coord,

@@ -295,7 +295,8 @@ namespace functions {
 
 					//squeeze the dimensions
 					if (numOnes > 0) {
-						xShapeInfo = shape::squeezeDimensions(
+						shape::SingularDimensions singularDimension;
+						xShapeInfo = singularDimension.squeezeDimensions(
 								xShapeInfo,
 								&dimension,
 								&dimensionLength,
