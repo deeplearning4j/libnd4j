@@ -1595,8 +1595,6 @@ namespace shape {
                                       bool *squeezeDimensionsRef,
                                       int wholeRank,
                                       int numOnes) {
-            int *dimension = *dimensionRef;
-            int dimensionLength = *dimensionLengthRef;
             int *squeezeShape = new int[wholeRank - numOnes];
             int *squeezeStride = new int[wholeRank - numOnes];
             *squeezedRef = true;
@@ -1606,7 +1604,6 @@ namespace shape {
 
             int numEncountered = 0;
             int numDimensionsOne = 0;
-            bool dimensionZeroCollapsed = false;
             for(int i = 0; i < wholeRank; i++) {
                 if(shape[i] != 1) {
                     squeezeShape[numEncountered] = shape[i];
@@ -1648,14 +1645,7 @@ namespace shape {
                     (*dimension)[i] += shape::rank(shapeInfo);
             }
 
-            int *originalDimension = *dimension;
             int *shape = shape::shapeOf(shapeInfo);
-            int rank = shape::rank(shapeInfo);
-            int result[MAX_RANK];
-            //initial result should be the same as the original dimensions
-            for(int i = 0; i < *dimensionLength; i++) {
-                result[i] = (*dimension)[i];
-            }
 
             //no more singular dimensions specified
             bool done = false;
