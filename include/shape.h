@@ -1629,9 +1629,7 @@ namespace shape {
             shape = squeezeShape;
             stride = squeezeStride;
             wholeRank -= numOnes;
-            for(int i = 0; i < wholeRank; i++) {
-                printf("After collapse %d is Shape %d and stride %d\n",i,shape[i],stride[i]);
-            }
+
 
             char order = shape::order(shapeInfo);
             int *xShapeInfo = shape::createShapeInfo(shape,stride,wholeRank);
