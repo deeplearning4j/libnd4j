@@ -1085,7 +1085,7 @@ struct SharedSummaryStatsData<double> {
 
                     //squeeze the dimensions
                     if (numOnes > 0 && wholeRank > 2) {
-                        shape::SingularDimensions singularDimension;
+                        shape::TAD singularDimension;
                         xShapeInfo = singularDimension.squeezeDimensions(
                                 xShapeInfo,
                                 &dimension,
