@@ -46,7 +46,7 @@ namespace shape {
  * Indexing information
  * for bounds checking
  */
-    struct CurrentIndexing{
+    struct CurrentIndexing {
         int numElementsPerThread;
         int blockStartingIndex;
         int startingThreadIndex;
@@ -81,7 +81,24 @@ namespace shape {
 #endif
     inline bool shapeEquals(int shape1Rank,int *shape1,int shape2Rank,int *shape2);
 
+#ifdef __CUDACC__
+    __host__ __device__
+#endif
+    inline bool shapeEquals(int *shapeInfo1,int *shapeInfo2);
 
+#ifdef __CUDACC__
+    __host__ __device__
+#endif
+    inline bool strideEquals(int shape1Rank,int *shape1,int shape2Rank,int *shape2);
+
+#ifdef __CUDACC__
+    __host__ __device__
+#endif
+    inline bool strideEquals(int *shapeInfo1,int *shapeInfo2);
+#ifdef __CUDACC__
+    __host__ __device__
+#endif
+    inline bool strideEquals(int *stride,int strideRank,int *stride2,int stride2Rank);
 
 #ifdef __CUDACC__
     __host__ __device__
@@ -1266,11 +1283,10 @@ namespace shape {
     int tadOffset(int index, int *shapeInfo, int *dimension, int dimensionLength);
 
 
-
-
-
-
-
+#ifdef __CUDACC__
+    __host__ __device__
+#endif
+    void printShapeInfo(int *shapeInfo);
 
 
 
@@ -1340,6 +1356,7 @@ namespace shape {
             for(int i = 0; i < shape::rank(shapeInfo); i++)
                 if(shape::shapeOf(shapeInfo)[i] == 1)
                     this->numOnes++;
+
         }
 
 
@@ -1564,6 +1581,31 @@ namespace shape {
 
 
 
+        }
+
+#ifdef __CUDACC__
+        __host__ __device__
+#endif
+        void printShapeInfo(int *shapeInfo) {
+            int rank = shape::rank(shapeInfo);
+            int *shape = shape::shapeOf(shapeInfo);
+            printf("Rank %d\n",rank);
+            printf("Shape\n");
+            for(int i = 0; i < rank; i++) {
+               printf(" %d ",shape[i]);
+            }
+
+            printf("\n");
+
+            int *stride = shape::stride(shapeInfo);
+            printf("Stride\n");
+            for(int i = 0; i < rank; i++) {
+                printf(" %d ",stride[i]);
+            }
+
+            printf("\n");
+
+            printf("Order %c\n",shape::order(shapeInfo));
         }
 
 /**
@@ -1925,14 +1967,14 @@ namespace shape {
     * had a stride of 6, we never need to do a major stride jump.
     *
     */
+#ifdef __CUDACC__
+    __host__ __device__
+#endif
     inline int tadOffset(int index, int *shapeInfo, int *dimension, int dimensionLength) {
         if(dimensionLength > 1) {
             int *tad2Sub = shape::tad2Sub(index,dimension,dimensionLength,shapeInfo);
 
             int rank = shape::rank(shapeInfo);
-            for(int i = 0; i < rank; i++) {
-                printf("tad2sub %d is %d\n",i,tad2Sub[i]);
-            }
             int *shape = shape::shapeOf(shapeInfo);
             int *stride = shape::stride(shapeInfo);
             int ret = shape::getOffset(0,shape,stride,tad2Sub,rank);
@@ -1953,9 +1995,6 @@ namespace shape {
             delete[] tad2Sub;
             return ret;
         }
-
-
-
     }
 
 
@@ -1973,6 +2012,38 @@ namespace shape {
 
         return true;
     }
+
+
+#ifdef __CUDACC__
+    __host__ __device__
+#endif
+    inline bool shapeEquals(int *shapeInfo1,int *shapeInfo2) {
+       return shape::shapeEquals(shape::rank(shapeInfo1),shape::shapeOf(shapeInfo1),shape::rank(shapeInfo2),shape::shapeOf(shapeInfo2));
+    }
+
+#ifdef __CUDACC__
+    __host__ __device__
+#endif
+    inline bool strideEquals(int shape1Rank,int *shape1,int shape2Rank,int *shape2) {
+        if(shape1Rank != shape2Rank)
+            return false;
+        //rank not equals
+        for(int i = 0; i < shape1Rank; i++) {
+            if(shape1[i] != shape2[i])
+                return false;
+        }
+
+        return true;
+    }
+
+#ifdef __CUDACC__
+    __host__ __device__
+#endif
+    inline bool strideEquals(int *shapeInfo1,int *shapeInfo2) {
+        return shape::strideEquals(shape::rank(shapeInfo1),shape::stride(shapeInfo1),shape::rank(shapeInfo2),shape::stride(shapeInfo2));
+
+    }
+
 
 
 #ifdef __CUDACC__
