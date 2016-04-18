@@ -1583,30 +1583,7 @@ namespace shape {
 
         }
 
-#ifdef __CUDACC__
-        __host__ __device__
-#endif
-        void printShapeInfo(int *shapeInfo) {
-            int rank = shape::rank(shapeInfo);
-            int *shape = shape::shapeOf(shapeInfo);
-            printf("Rank %d\n",rank);
-            printf("Shape\n");
-            for(int i = 0; i < rank; i++) {
-               printf(" %d ",shape[i]);
-            }
 
-            printf("\n");
-
-            int *stride = shape::stride(shapeInfo);
-            printf("Stride\n");
-            for(int i = 0; i < rank; i++) {
-                printf(" %d ",stride[i]);
-            }
-
-            printf("\n");
-
-            printf("Order %c\n",shape::order(shapeInfo));
-        }
 
 /**
  * Computes the number
@@ -4290,6 +4267,32 @@ __device__ int tadOffset(int *xInfo, int offset) {
         return ret;
     }
 
+
+
+#ifdef __CUDACC__
+    __host__ __device__
+#endif
+    void printShapeInfo(int *shapeInfo) {
+        int rank = shape::rank(shapeInfo);
+        int *shape = shape::shapeOf(shapeInfo);
+        printf("Rank %d\n",rank);
+        printf("Shape\n");
+        for(int i = 0; i < rank; i++) {
+            printf(" %d ",shape[i]);
+        }
+
+        printf("\n");
+
+        int *stride = shape::stride(shapeInfo);
+        printf("Stride\n");
+        for(int i = 0; i < rank; i++) {
+            printf(" %d ",stride[i]);
+        }
+
+        printf("\n");
+
+        printf("Order %c\n",shape::order(shapeInfo));
+    }
 /**
  * Given an linear index, element wise stride
  * and the length of each tad
