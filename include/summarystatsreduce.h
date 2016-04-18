@@ -693,7 +693,8 @@ struct SharedSummaryStatsData<double> {
 					if(numOnes > 0) {
 						squeezed = false;
 						newSqueezeDimensions = false;
-						inputShapeInfo = shape::squeezeDimensions(
+						 shape::TAD tad;
+						inputShapeInfo = tad.squeezeDimensions(
 							inputShapeInfo,
 							&dimension,
 							&dimensionLength,

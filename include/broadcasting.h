@@ -102,7 +102,8 @@ namespace functions {
 
 				//squeeze the dimensions
 				if (numOnes > 0) {
-					xShapeInfo = shape::squeezeDimensions(
+				    shape::TAD tad;
+					xShapeInfo = tad.squeezeDimensions(
 							xShapeInfo,
 							&dimension,
 							&dimensionLength,
