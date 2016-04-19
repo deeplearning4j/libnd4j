@@ -254,12 +254,25 @@ namespace shape {
 #endif
 
     inline int *permuteShapeBuffer(int *shapeBuffer,int *rearrange);
+
 #ifdef __CUDACC__
     __host__ __device__
 #endif
 
-    inline void doPermuteShapeBuffer(int **shapeBuffer,int *rearrange);
+    inline void permuteShapeBufferInPlace(int *shapeBuffer,int *rearrange,int *out);
 
+
+#ifdef __CUDACC__
+    __host__ __device__
+#endif
+
+    inline void doPermuteShapeBuffer(int *shapeBuffer,int *rearrange);
+
+#ifdef __CUDACC__
+    __host__ __device__
+#endif
+
+    inline void doPermuteShapeBuffer(int rank,int *shapeBuffer,int *rearrange);
     /**
      * Rearrange the permute indexes
      * according to which  dimensions are specified.
@@ -1364,7 +1377,11 @@ namespace shape {
         __host__ __device__
 #endif
         void createTadOnlyShapeInfo() {
-            this->tadOnlyShapeInfo = this->shapeInfoOnlyShapeAndStride(shapeInfo,dimension,dimensionLength,false);
+            this->tadOnlyShapeInfo = this->shapeInfoOnlyShapeAndStride(
+                    shapeInfo,
+                    dimension,
+                    dimensionLength,
+                    (dimensionLength > 1 && shape::order(shapeInfo) == 'c' && this->numOnes > 0));
             this->tadLength = shape::length(this->tadOnlyShapeInfo);
             this->tadShape = shape::shapeOf(this->tadOnlyShapeInfo);
             this->tadStride = shape::stride(this->tadOnlyShapeInfo);
@@ -1384,16 +1401,53 @@ namespace shape {
                 delete[] this->tadOffsets;
             }
 
-            if(this->tadOnlyShapeInfo != NULL) {
+            if(this->tadOnlyShapeInfo != NULL && this->tadOnlyShapeInfo != shapeInfo) {
                 delete[] this->tadOnlyShapeInfo;
             }
 
         }
 
+
 #ifdef __CUDACC__
         __host__ __device__
 #endif
-        void squeezeDimensionsAndShapeIfNeccessary() {
+        inline  int* permuteDims() {
+            //permute dimensions for tad
+            int dimIdx = 0;
+            //loop backwards assuming dimension is sorted
+            int *permuteDims = new int[rank];
+            for(int i = 0; i < rank; i++) {
+                bool found = false;
+                for(int j = 0; j < dimensionLength; j++) {
+                    if(i == dimension[j]) {
+                        found = true;
+                        break;
+                    }
+
+
+                }
+
+                //not found, append it to the end for permute
+                if(!found)
+                    permuteDims[dimIdx++] = i;
+            }
+
+
+            for(int i = dimensionLength - 1; i >= 0; i--) {
+                permuteDims[dimIdx++] = dimension[i];
+            }
+
+
+            //permute dimensions for tad
+            return permuteDims;
+
+        }
+
+
+#ifdef __CUDACC__
+        __host__ __device__
+#endif
+        inline void squeezeDimensionsAndShapeIfNeccessary() {
             if (this->numOnes > 0) {
                 //note here dimension length can shrinken on the edge case where 0 is also a dimension that is a singular dimension
                 this->shapeInfo = this->squeezeDimensions(
@@ -1405,6 +1459,7 @@ namespace shape {
                         this->rank,
                         this->numOnes);
             }
+
         }
 #ifdef __CUDACC__
         __host__ __device__
@@ -1412,7 +1467,7 @@ namespace shape {
         void createOffsets() {
             this->tadOffsets = new int[this->numTads];
             for(int i = 0; i < this->numTads; i++) {
-               this->tadOffsets[i] = this->tadOffset(i,shapeInfo,dimension,dimensionLength);
+                this->tadOffsets[i] = this->tadOffset(i,shapeInfo,dimension,dimensionLength);
             }
         }
 
@@ -1420,6 +1475,9 @@ namespace shape {
         __host__ __device__
 #endif
         inline int *shapeInfoOnlyShapeAndStride(int *shapeInfo, int *dimension, int dimensionLength,bool reverseCopyStride) {
+            if(dimensionLength >= shape::rank(shapeInfo))
+                return shapeInfo;
+
             int *theShape = shape::shapeOf(shapeInfo);
             int *theStride = shape::stride(shapeInfo);
             int rank = dimensionLength == 1 ? 2 : dimensionLength;
@@ -1428,7 +1486,6 @@ namespace shape {
             ret[0] = rank;
             int *retShape = shape::shapeOf(ret);
             int *retStride = shape::stride(ret);
-            int len = rank;
 
             if(dimensionLength == 1) {
                 if(shape::isMatrix(theShape,shape::rank(shapeInfo))) {
@@ -1462,17 +1519,25 @@ namespace shape {
 
             }
             else {
-                int *newIndexes = dimension;
-                if(reverseCopyStride)
-                    shape::reverseCopyTo(theStride, retStride, newIndexes, len);
-                else
-                    shape::copyTo(len, theStride, retStride, newIndexes);
-                shape::copyTo(len, theShape, retShape, newIndexes);
+                int shapeInfoLen = shape::shapeInfoLength(shape::rank(shapeInfo));
+                int *permuteIndexes = this->permuteDims();
+                int toPermute[shapeInfoLen];
+                shape::permuteShapeBufferInPlace(shapeInfo,permuteIndexes,toPermute);
+                //copy starting from the tad shapes/strides that got permuted to the back
+                int shapeOffset = shape::rank(shapeInfo) - dimensionLength;
+                int *permutedShape = shape::shapeOf(toPermute) + shapeOffset;
+                int *permutedStride = shape::stride(toPermute) + shapeOffset;
+                //now that the dimensions are permuted, all of the tad shapes/strides are in the back
+                //all we need to do is copy from the start of the tad dimensions to the end since they are
+                //arranged in the right order
+                shape::copyTo(dimensionLength, permutedShape, retStride);
+                shape::copyTo(dimensionLength, permutedStride, retShape);
+                delete[] permuteIndexes;
 
             }
 
+            ret[shape::shapeInfoLength(rank) - 1] = shape::getOrder(rank,shape::shapeOf(ret),shape::stride(ret),1);
 
-            ret[shape::shapeInfoLength(rank) - 1] = shape::order(shapeInfo);
             return ret;
         }
         /**
@@ -1634,9 +1699,11 @@ namespace shape {
                 }
             }
 
-            if(numDimensionsOne > 0) {
+            //move dimension ones where dimensions + 1 s overlap
+            if(numOnes > 0) {
                 this->collapse(shapeInfo,dimensionRef,dimensionLengthRef);
             }
+
 
 
 
@@ -1650,6 +1717,8 @@ namespace shape {
             char order = shape::order(shapeInfo);
             int *xShapeInfo = shape::createShapeInfo(shape,stride,wholeRank);
             xShapeInfo[shape::shapeInfoLength(wholeRank) - 1] = order;
+
+
             return xShapeInfo;
 
         }
@@ -1669,6 +1738,7 @@ namespace shape {
             //no more singular dimensions specified
             bool done = false;
             int onesDecrement = 0;
+            bool changed = false;
             while(!done) {
                 //terminate early: only singular dimensions specified for reduce
                 if((*dimensionLength) < 1) {
@@ -1700,6 +1770,7 @@ namespace shape {
                             collapseMiddleDimensions = false;
                             //intermediary result just needs to have the results copied from dimension since we're just removing the tail
                             memcpy(intermediaryResult,*dimension,sizeof(int) * (*dimensionLength));
+                            changed = true;
                             //break the for loop and force it to go back around starting from the new index
                             break;
                         }
@@ -1743,6 +1814,8 @@ namespace shape {
                     (*dimensionLength) -= onesDecrement;
                     //update to current result
                     memcpy(*dimension,newIntermediary,sizeof(int) * (*dimensionLength));
+                    changed = true;
+
                 }
                     //converged: no need to change result
                 else {
@@ -1754,8 +1827,17 @@ namespace shape {
                 done = (!oneEncountered && nonOneEncountered) || hitBeginning;
             }
 
+            //nothing changed but need to collapse dimension
+            if(!changed && this->numOnes > 0) {
+                for(int i = 0; i < *dimensionLength ;i++) {
+                    (*dimension)[i] -= numOnes;
+                }
+            }
+
 
         }
+
+
     };
 
 
@@ -1995,7 +2077,7 @@ namespace shape {
     __host__ __device__
 #endif
     inline bool shapeEquals(int *shapeInfo1,int *shapeInfo2) {
-       return shape::shapeEquals(shape::rank(shapeInfo1),shape::shapeOf(shapeInfo1),shape::rank(shapeInfo2),shape::shapeOf(shapeInfo2));
+        return shape::shapeEquals(shape::rank(shapeInfo1),shape::shapeOf(shapeInfo1),shape::rank(shapeInfo2),shape::shapeOf(shapeInfo2));
     }
 
 #ifdef __CUDACC__
@@ -2706,6 +2788,14 @@ namespace shape {
     }
 
 
+#ifdef __CUDACC__
+    __host__ __device__
+#endif
+
+    inline void permuteShapeBufferInPlace(int *shapeBuffer,int *rearrange,int *out) {
+        memcpy(out,shapeBuffer,sizeof(int) * shape::shapeInfoLength(shape::rank(shapeBuffer)));
+        doPermuteShapeBuffer(shape::rank(shapeBuffer),out,rearrange);
+    }
 
 #ifdef __CUDACC__
     __host__ __device__
@@ -2714,15 +2804,15 @@ namespace shape {
     inline int *permuteShapeBuffer(int *shapeBuffer,int *rearrange) {
         int len = shape::shapeInfoLength(shape::rank(shapeBuffer));
         int *copy = shape::copyOf(len,shapeBuffer);
-        doPermuteShapeBuffer(&copy,rearrange);
+        doPermuteShapeBuffer(copy,rearrange);
         return copy;
     }
 #ifdef __CUDACC__
     __host__ __device__
 #endif
 
-    inline void doPermuteShapeBuffer(int **shapeBuffer,int *rearrange) {
-        int *shapeRef = *shapeBuffer;
+    inline void doPermuteShapeBuffer(int *shapeBuffer,int *rearrange) {
+        int *shapeRef = shapeBuffer;
         //rank of the rearrange array == rank of shape buffer
         int rearrageRank = shape::rank(shapeRef);
         int *shape = shape::shapeOf(shapeRef);
@@ -2734,6 +2824,25 @@ namespace shape {
         shape::doPermuteSwap(rearrageRank,&stride,rearrangeCopy2);
         delete[] rearrangeCopy2;
     }
+#ifdef __CUDACC__
+    __host__ __device__
+#endif
+
+    inline void doPermuteShapeBuffer(int rank,int *shapeBuffer,int *rearrange) {
+        int *shapeRef = shapeBuffer;
+        //rank of the rearrange array == rank of shape buffer
+        int rearrageRank = rank;
+        int *shape = shape::shapeOf(shapeRef);
+        int *stride = shape::stride(shapeRef);
+        int *rearrangeCopy1 = shape::copyOf(rearrageRank,rearrange);
+        shape::doPermuteSwap(rearrageRank,&shape,rearrangeCopy1);
+        delete[] rearrangeCopy1;
+        int *rearrangeCopy2 = shape::copyOf(rearrageRank,rearrange);
+        shape::doPermuteSwap(rearrageRank,&stride,rearrangeCopy2);
+        shapeBuffer[shape::shapeInfoLength(rank) - 1] = shape::getOrder(rank,shape,stride,1);
+        delete[] rearrangeCopy2;
+    }
+
 
 #ifdef __CUDACC__
     __host__ __device__
@@ -4276,7 +4385,7 @@ __device__ int tadOffset(int *xInfo, int offset) {
         int rank = shape::rank(shapeInfo);
         int *shape = shape::shapeOf(shapeInfo);
         printf("Rank %d\n",rank);
-        printf("Shape\n");
+        printf("Shape:\n");
         for(int i = 0; i < rank; i++) {
             printf(" %d ",shape[i]);
         }
@@ -4284,7 +4393,7 @@ __device__ int tadOffset(int *xInfo, int offset) {
         printf("\n");
 
         int *stride = shape::stride(shapeInfo);
-        printf("Stride\n");
+        printf("Stride:\n");
         for(int i = 0; i < rank; i++) {
             printf(" %d ",stride[i]);
         }

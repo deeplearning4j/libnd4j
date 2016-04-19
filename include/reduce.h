@@ -842,9 +842,9 @@ namespace functions {
                 }
 
                 shape::TAD tad(xShapeInfo, dimension, dimensionLength);
+                tad.squeezeDimensionsAndShapeIfNeccessary();
                 tad.createTadOnlyShapeInfo();
                 tad.createOffsets();
-                tad.squeezeDimensionsAndShapeIfNeccessary();
 
 
 #pragma omp  parallel  for
