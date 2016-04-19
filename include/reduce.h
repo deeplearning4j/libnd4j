@@ -30,7 +30,7 @@ namespace functions {
  * elements.
  */
         template<typename T>
-        class ReduceFunction : public functions::ops::Op<T> {
+        class ReduceFunction: public functions::ops::Op<T> {
         protected:
             int extraParamsLength = 0;
             int indexBased = 1;
@@ -48,8 +48,7 @@ namespace functions {
 #ifdef __CUDACC__
             __host__ __device__
 #endif
-            ReduceFunction<T> **extraParamsFunctions() = 0;
-
+            ReduceFunction<T> ** extraParamsFunctions() = 0;
             virtual
 #ifdef __CUDACC__
             __host__ __device__
@@ -62,7 +61,7 @@ namespace functions {
 #ifdef __CUDACC__
             __host__ __device__
 #endif
-            T *createExtraParams() {
+            T * createExtraParams() {
                 T *ret = (T *) malloc(sizeof(T) * this->getExtraParamsLength());
                 return ret;
             }
@@ -70,9 +69,9 @@ namespace functions {
 
 #ifdef __CUDACC__
             virtual __host__ __device__
-    T * generateExtraParamsCuda(T *input,int *shapeInfo) {
-        return NULL;
-    }
+	T * generateExtraParamsCuda(T *input,int *shapeInfo) {
+		return NULL;
+	}
 #endif
 
             /**
