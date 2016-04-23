@@ -1363,6 +1363,7 @@ namespace shape {
         bool squeezed = false;
         bool newSqueezeDimensions = false;
         int numOnesInMiddle = 0;
+        bool wholeThing = false;
 
 #ifdef __CUDACC__
         __host__ __device__
@@ -1383,13 +1384,52 @@ namespace shape {
             this->dimension = dimension;
             this->rank = shape::rank(shapeInfo);
             this->numTads = this->tensorsAlongDimension(shapeInfo,dimension,dimensionLength);
-            for(int i = 0; i < shape::rank(shapeInfo); i++)
-                if(shape::shapeOf(shapeInfo)[i] == 1) {
+            wholeThing = this->numTads == 1 || this->dimensionLength == this->rank;
+            //ensure we get rid of trailing ones in the dimensions
+            //we can do this with a simple decrement of the dimension length for trailing ones
+            bool nonOneEncountered = false;
+            int trailingDimensionDecrement = 0;
+            int firstNonOneIndex = -1;
+            for(int i = shape::rank(shapeInfo) - 1; i >= 0; i--) {
+                if (shape::shapeOf(shapeInfo)[i] == 1) {
                     this->numOnes++;
-                    if(i > 0 && i < shape::rank(shapeInfo) - 1)
+                    if (i > 0 && i < shape::rank(shapeInfo) - 1)
                         this->numOnesInMiddle++;
-                }
 
+                }
+            }
+
+
+            //note here that we need to keep the original rank shape info for properly permuting strides and shapes
+            //this->rank -= trailingDimensionDecrement;
+            //this->dimensionLength -= trailingDimensionDecrement;
+            //move dimension ones where dimensions + 1 s overlap
+            if(numOnes > 0) {
+                this->collapse();
+            }
+
+
+        }
+
+
+#ifdef __CUDACC__
+        __host__ __device__
+#endif
+
+        inline void permuteShapeBufferInPlace(int *shapeBuffer,int *rearrange,int *out) {
+            memcpy(out,shapeBuffer,sizeof(int) * shape::shapeInfoLength(this->rank));
+            doPermuteShapeBuffer(this->rank,out,rearrange);
+        }
+
+#ifdef __CUDACC__
+        __host__ __device__
+#endif
+
+        inline int *permuteShapeBuffer(int *shapeBuffer,int *rearrange) {
+            int len = shape::shapeInfoLength(this->rank);
+            int *copy = shape::copyOf(len,shapeBuffer);
+            doPermuteShapeBuffer(rank,shapeBuffer,rearrange);
+            return copy;
         }
 
 
@@ -1508,10 +1548,9 @@ namespace shape {
                 this->createTadOnlyShapeInfo();
             }
 
-            //singular dimensions wil mess with it
-            if(shape::oneDimEqualToLength(tadOnlyShapeInfo)) {
-                return index * tadLength;
-            }
+            if(wholeThing)
+                return index;
+
 
             if(dimensionLength > 1) {
                 int *tad2Sub = shape::tad2Sub(index,dimension,dimensionLength,shapeInfo);
@@ -1575,7 +1614,7 @@ namespace shape {
         __host__ __device__
 #endif
         inline int *shapeInfoOnlyShapeAndStride() {
-            if(dimensionLength >= shape::rank(shapeInfo))
+            if(dimensionLength >= this->rank)
                 return shapeInfo;
 
             int *theShape = shape::shapeOf(shapeInfo);
@@ -1591,18 +1630,30 @@ namespace shape {
             int shapeInfoLen = shape::shapeInfoLength(shape::rank(shapeInfo));
             int *permuteIndexes = this->permuteDims();
             int toPermute[MAX_RANK];
-            shape::permuteShapeBufferInPlace(shapeInfo,permuteIndexes,toPermute);
-
+            this->permuteShapeBufferInPlace(shapeInfo,permuteIndexes,toPermute);
 
 
             if(dimensionLength == 1) {
-                if(numOnes < 1 && !shape::isMatrix(shapeInfo) || shape::isMatrix(shapeInfo)) {
-                    int newStride[2] = {1,theStride[dimension[0]]};
-                    int newShape[2] = {1,theShape[dimension[0]]};
-                    retShape[0] = newShape[0];
-                    retShape[1] = newShape[1];
-                    retStride[0] = newStride[0];
-                    retStride[1] = newStride[1];
+                if(numOnes < 1 && !shape::isMatrix(shapeInfo) || this->rank == 2) {
+                    int *permuteShape = shape::shapeOf(toPermute);
+                    int *permuteStride = shape::stride(toPermute);
+                    if(dimension[0] == 0) {
+                        int newStride[2] = {1,theStride[dimension[0]]};
+                        int newShape[2] = {1,theShape[dimension[0]]};
+                        retShape[0] = newShape[0];
+                        retShape[1] = newShape[1];
+                        retStride[0] = newStride[0];
+                        retStride[1] = newStride[1];
+                    }
+                    else {
+                        int newStride[2] = {permuteStride[dimension[0]],1};
+                        int newShape[2] = {theStride[dimension[0]],1};
+                        retShape[0] = newShape[0];
+                        retShape[1] = newShape[1];
+                        retStride[0] = newStride[0];
+                        retStride[1] = newStride[1];
+                    }
+
                 }
                 else {
                     if(shape::rank(toPermute) > 2) {
@@ -1663,7 +1714,10 @@ namespace shape {
 
             delete[] permuteIndexes;
             ret[shape::shapeInfoLength(rank) - 1] = shape::getOrder(rank,shape::shapeOf(ret),shape::stride(ret),1);
-            ret[shape::shapeInfoLength(rank) - 2] = shape::tadElementWiseStride(shapeInfo,dimension,dimensionLength);
+            if(wholeThing)
+                ret[shape::shapeInfoLength(rank) - 2] = 1;
+            else
+                ret[shape::shapeInfoLength(rank) - 2] = shape::computeElementWiseStride(rank,theShape,theStride,shape::order(ret),dimension,dimensionLength);
             return ret;
         }
 
@@ -1796,7 +1850,7 @@ namespace shape {
 
             //move dimension ones where dimensions + 1 s overlap
             if(numOnes > 0) {
-                this->collapse(shapeInfo,dimensionRef,dimensionLengthRef);
+                this->collapse();
             }
 
 
@@ -1821,11 +1875,11 @@ namespace shape {
 #ifdef __CUDACC__
         __host__ __device__
 #endif
-        inline void collapse(int *shapeInfo,int **dimension,int *dimensionLength) {
+        inline void collapse() {
             //handle negative dimensions/backwards indexing
-            for(int i = 0; i < (*dimensionLength); i++) {
-                if((*dimension)[i] < 0)
-                    (*dimension)[i] += shape::rank(shapeInfo);
+            for(int i = 0; i < dimensionLength; i++) {
+                if((dimension)[i] < 0)
+                    (dimension)[i] += shape::rank(this->shapeInfo);
             }
 
             int *shape = shape::shapeOf(shapeInfo);
@@ -1836,16 +1890,16 @@ namespace shape {
             bool changed = false;
             while(!done) {
                 //terminate early: only singular dimensions specified for reduce
-                if((*dimensionLength) < 1) {
+                if((dimensionLength) < 1) {
                     done = true;
                     //signal as a no op
-                    *dimension[0] = -1;
+                    dimension[0] = -1;
                     break;
                 }
                 //captures intermediary result from the for loop
                 int intermediaryResult[MAX_RANK];
-                for(int i = 0; i < *dimensionLength; i++) {
-                    intermediaryResult[i] = (*dimension)[i];
+                for(int i = 0; i < dimensionLength; i++) {
+                    intermediaryResult[i] = (dimension)[i];
                 }
 
                 bool oneEncountered = false;
@@ -1854,17 +1908,17 @@ namespace shape {
                 //assume intermediate collapsing of dimensions
                 bool collapseMiddleDimensions = true;
                 //note here that dimension length MAY end up being zero
-                for(int i = (*dimensionLength) - 1; i >= 0; i--) {
-                    if(shape[(*dimension)[i]] == 1) {
+                for(int i = (dimensionLength) - 1; i >= 0; i--) {
+                    if(shape[(dimension)[i]] == 1) {
                         oneEncountered = true;
                         //trailing ones
                         if(!nonOneEncountered) {
                             //just drop trailing ones
-                            (*dimensionLength)--;
+                            dimensionLength--;
                             nonOneEncountered = false;
                             collapseMiddleDimensions = false;
                             //intermediary result just needs to have the results copied from dimension since we're just removing the tail
-                            memcpy(intermediaryResult,*dimension,sizeof(int) * (*dimensionLength));
+                            memcpy(intermediaryResult,dimension,sizeof(int) * dimensionLength);
                             changed = true;
                             //break the for loop and force it to go back around starting from the new index
                             break;
@@ -1884,7 +1938,7 @@ namespace shape {
                         }
                     }
                     else {
-                        intermediaryResult[i] = (*dimension)[i];
+                        intermediaryResult[i] = (dimension)[i];
                         nonOneEncountered = true;
                     }
                 }
@@ -1893,7 +1947,7 @@ namespace shape {
                     //collapse dimensions
                     int newIntermediary[MAX_RANK];
                     int idx = 0;
-                    for(int i = 0; i < *dimensionLength; i++) {
+                    for(int i = 0; i < dimensionLength; i++) {
                         //of note: dimension will decrease by the number of ones encountered
                         if(intermediaryResult[i] >= 0) {
                             //dimension 0 doesn't need to be decremented
@@ -1906,16 +1960,16 @@ namespace shape {
 
 
                     //decrement by the number of dimensions where ones appeared
-                    (*dimensionLength) -= onesDecrement;
+                    (dimensionLength) -= onesDecrement;
                     //update to current result
-                    memcpy(*dimension,newIntermediary,sizeof(int) * (*dimensionLength));
+                    memcpy(dimension,newIntermediary,sizeof(int) * (dimensionLength));
                     changed = true;
 
                 }
                     //converged: no need to change result
                 else {
                     //update to current result
-                    memcpy(*dimension,intermediaryResult,sizeof(int) * (*dimensionLength));
+                    memcpy(dimension,intermediaryResult,sizeof(int) * dimensionLength);
                 }
 
                 //converge when there are no singular dimensions specified in the reduce
@@ -1924,8 +1978,8 @@ namespace shape {
 
             //nothing changed but need to collapse dimension
             if(!changed && this->numOnes > 0) {
-                for(int i = 0; i < *dimensionLength ;i++) {
-                    (*dimension)[i] -= numOnes;
+                for(int i = 0; i < dimensionLength ;i++) {
+                    dimension[i] -= numOnes;
                 }
             }
 
