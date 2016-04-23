@@ -1614,7 +1614,7 @@ namespace shape {
         __host__ __device__
 #endif
         inline int *shapeInfoOnlyShapeAndStride() {
-            if(dimensionLength >= this->rank)
+            if(wholeThing)
                 return shapeInfo;
 
             int *theShape = shape::shapeOf(shapeInfo);
@@ -1716,8 +1716,30 @@ namespace shape {
             ret[shape::shapeInfoLength(rank) - 1] = shape::getOrder(rank,shape::shapeOf(ret),shape::stride(ret),1);
             if(wholeThing)
                 ret[shape::shapeInfoLength(rank) - 2] = 1;
+            else if(shape::isVector(ret)) {
+                if(shape::order(ret) == 'f') {
+                    if(retShape[0] == 1) {
+                        ret[shape::shapeInfoLength(rank) - 2] = retStride[1];
+                    }
+                    else if(retShape[1] == 1) {
+                        ret[shape::shapeInfoLength(rank) - 2] = retStride[0];
+
+                    }
+
+                }
+                else {
+                    if(retShape[0] == 1) {
+                        ret[shape::shapeInfoLength(rank) - 2] = retStride[0];
+                    }
+                    else if(retShape[1] == 1) {
+                        ret[shape::shapeInfoLength(rank) - 2] = retStride[1];
+
+                    }
+                }
+
+            }
             else
-                ret[shape::shapeInfoLength(rank) - 2] = shape::computeElementWiseStride(rank,theShape,theStride,shape::order(ret),dimension,dimensionLength);
+                ret[shape::shapeInfoLength(rank) - 2] = shape::computeElementWiseStride(rank,retShape,retStride,shape::order(ret));
             return ret;
         }
 
