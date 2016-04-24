@@ -1364,6 +1364,9 @@ namespace shape {
         bool newSqueezeDimensions = false;
         int numOnesInMiddle = 0;
         bool wholeThing = false;
+        //need to track whether we create a new dimension array or not, we could have just moved the pointer forward
+        //due to leading ones
+        bool createdNewDimension = false;
 
 #ifdef __CUDACC__
         __host__ __device__
@@ -1383,8 +1386,6 @@ namespace shape {
             this->dimensionLength = dimensionLength;
             this->dimension = dimension;
             this->rank = shape::rank(shapeInfo);
-            this->numTads = this->tensorsAlongDimension(shapeInfo,dimension,dimensionLength);
-            wholeThing = this->numTads == 1 || this->dimensionLength == this->rank;
             //ensure we get rid of trailing ones in the dimensions
             //we can do this with a simple decrement of the dimension length for trailing ones
             bool nonOneEncountered = false;
@@ -1407,6 +1408,9 @@ namespace shape {
             if(numOnes > 0) {
                 this->collapse();
             }
+
+            this->numTads = this->tensorsAlongDimension(this->shapeInfo,this->dimension,this->dimensionLength);
+            wholeThing = this->numTads == 1 || this->dimensionLength == this->rank;
 
 
         }
@@ -1447,7 +1451,8 @@ namespace shape {
         __host__ __device__
 #endif
         ~TAD() {
-            if(originalDimension != this->dimension) {
+            //we may have just moved the pointer forward, we may not need to delete the pointer here
+            if(originalDimension != this->dimension && createdNewDimension) {
                 delete[] this->dimension;
             }
             if(this->originalShapeInfo != this->shapeInfo) {
@@ -1646,8 +1651,8 @@ namespace shape {
                         retStride[1] = newStride[1];
                     }
                     else {
-                        int newStride[2] = {permuteStride[dimension[0]],1};
-                        int newShape[2] = {theStride[dimension[0]],1};
+                        int newStride[2] = {theStride[dimension[0]],1};
+                        int newShape[2] = {theShape[dimension[0]],1};
                         retShape[0] = newShape[0];
                         retShape[1] = newShape[1];
                         retStride[0] = newStride[0];
@@ -1716,7 +1721,7 @@ namespace shape {
             ret[shape::shapeInfoLength(rank) - 1] = shape::getOrder(rank,shape::shapeOf(ret),shape::stride(ret),1);
             if(wholeThing)
                 ret[shape::shapeInfoLength(rank) - 2] = 1;
-            ret[shape::shapeInfoLength(rank) - 2] = shape::computeElementWiseStride(rank,retShape,retStride,shape::order(ret));
+            ret[shape::shapeInfoLength(rank) - 2] = shape::tadElementWiseStride(shapeInfo,dimension,dimensionLength);
             return ret;
         }
 
@@ -1808,12 +1813,11 @@ namespace shape {
 #endif
 
         inline int tensorsAlongDimension(int *shapeInfo, int *dimension, int dimensionLength) {
-            int *keepShape = shape::shapeOf(shapeInfo);
-            int *tensorShape = shape::keep(keepShape, dimension, dimensionLength, shape::rank(shapeInfo));
-            int ret = shape::length(shapeInfo)
-                      / shape::prodLong(tensorShape, dimensionLength);
-            delete[] tensorShape;
-            return ret;
+            int tadLength = 1;
+            for(int i = 0; i < dimensionLength; i++)
+                tadLength *= shape::shapeOf(shapeInfo)[dimension[i]];
+            int wholeLength = shape::length(shapeInfo);
+            return wholeLength / tadLength;
         }
 
 
@@ -1891,8 +1895,8 @@ namespace shape {
             //shape: 4,1,1,2
             //dimension: 0,1
             //when this happens there are other dimensions (eg: at the end) that matter
-            bool nonSingularEncountered = false;
             int trailingOneDimensions = 0;
+            //trailing ones
             for(int i = dimensionLength - 1; i >= 0; i--) {
                 if(shape[dimension[i]] != 1) {
                     break;
@@ -1902,6 +1906,23 @@ namespace shape {
             }
 
             dimensionLength -= trailingOneDimensions;
+
+            int leadingOneDimensions = 0;
+            //trailing ones
+            for(int i = 0; i < dimensionLength; i++) {
+                if(shape[dimension[i]] != 1) {
+                    break;
+                }
+                else if(shape[dimension[i]] == 1)
+                    leadingOneDimensions++;
+            }
+
+            //bump the dimension pointer forward for however many leadingones there are
+            dimension += leadingOneDimensions;
+            //decrease the dimension length by the amount of leading ones
+            dimensionLength -= leadingOneDimensions;
+
+
             bool preConverged = true;
             for(int i = 0; i < dimensionLength; i++) {
                 if(shape[dimension[i]] == 1) {
@@ -2478,13 +2499,9 @@ namespace shape {
 #endif
     inline int computeElementWiseStride(int rank, int *shape, int *stride, int isFOrder) {
         if(shape::isVector(shape,rank)) {
-            for (int i = 0; i < rank; i++) {
-                if (stride[i] != 1)
-                    return stride[i];
-            }
-            return 1;
-
+            return stride[rank - 1];
         }
+
         else {
             int oldnd;
             int *olddims = shape::copyOf(rank, shape);
@@ -2520,16 +2537,16 @@ namespace shape {
                 op *= olddims[oi];
             }
             if (np != op) {
-                /* different total sizes; no hope */
+/* different total sizes; no hope */
                 return -1;
             }
 
             if (np == 0) {
-                /* the current code does not handle 0-sized arrays, so give up */
+/* the current code does not handle 0-sized arrays, so give up */
                 return -1;
             }
 
-            /* oi to oj and ni to nj give the axis ranges currently worked with */
+/* oi to oj and ni to nj give the axis ranges currently worked with */
             oi = 0;
             oj = 1;
             ni = 0;
@@ -2540,37 +2557,37 @@ namespace shape {
 
                 while (np != op) {
                     if (np < op) {
-                        /* Misses trailing 1s, these are handled later */
+/* Misses trailing 1s, these are handled later */
                         np *= newShape[nj++];
                     } else {
                         op *= olddims[oj++];
                     }
                 }
 
-                /* Check whether the original axes can be combined */
+/* Check whether the original axes can be combined */
                 for (ok = oi; ok < oj - 1; ok++) {
                     if (isFOrder) {
                         if (oldstrides[ok + 1] != olddims[ok] * oldstrides[ok]) {
-                            /* not contiguous enough */
+/* not contiguous enough */
                             return -1;
                         }
                     } else {
-                        /* C order */
+/* C order */
                         if (oldstrides[ok] != olddims[ok + 1] * oldstrides[ok + 1]) {
-                            /* not contiguous enough */
+/* not contiguous enough */
                             return -1;
                         }
                     }
                 }
 
-                /* Calculate new strides for all axes currently worked with */
+/* Calculate new strides for all axes currently worked with */
                 if (isFOrder) {
                     newStrides[ni] = oldstrides[oi];
                     for (nk = ni + 1; nk < nj; nk++) {
                         newStrides[nk] = newStrides[nk - 1] * newShape[nk - 1];
                     }
                 } else {
-                    /* C order */
+/* C order */
                     newStrides[nj - 1] = oldstrides[oj - 1];
                     for (nk = nj - 1; nk > ni; nk--) {
                         newStrides[nk - 1] = newStrides[nk] * newShape[nk];
@@ -2580,9 +2597,9 @@ namespace shape {
                 oi = oj++;
             }
 
-            /*
-             * Set strides corresponding to trailing 1s of the new shape.
-             */
+/*
+ * Set strides corresponding to trailing 1s of the new shape.
+ */
             if (ni >= 1) {
                 last_stride = newStrides[ni - 1];
             } else {
@@ -2595,7 +2612,7 @@ namespace shape {
             for (nk = ni; nk < newShapeRank; nk++) {
                 newStrides[nk] = last_stride;
             }
-            //returns the last element of the new stride array
+//returns the last element of the new stride array
             int ret = last_stride;
             delete[] newStrides;
             delete[] newShape;
@@ -2642,10 +2659,10 @@ namespace shape {
         return shapeInfoBuffer;
     }
 
-    /**
- * Get the shape info buffer
- * for the given rank and shape.
- */
+/**
+* Get the shape info buffer
+* for the given rank and shape.
+*/
 #ifdef __CUDACC__
     __host__ __device__
 #endif
@@ -2666,9 +2683,9 @@ namespace shape {
     }
 
 
-    /**
-     * Compute the real linear indices for the given shape and stride
-     */
+/**
+ * Compute the real linear indices for the given shape and stride
+ */
 #ifdef __CUDACC__
     __host__ __device__
 #endif
@@ -2684,9 +2701,9 @@ namespace shape {
         return ret;
     }
 
-    /**
-  * Compute the real linear indices for the given shape and stride
-  */
+/**
+* Compute the real linear indices for the given shape and stride
+*/
 #ifdef __CUDACC__
     __host__ __device__
 #endif
@@ -2695,14 +2712,14 @@ namespace shape {
     }
 
 
-    /**
- * Convert the given index (such as 1,1)
- * to a linear index
- * @param shape the shape of the indexes to convert
- * @param indices the index to convert
- * @return the linear index given the shape
- * and indices
- */
+/**
+* Convert the given index (such as 1,1)
+* to a linear index
+* @param shape the shape of the indexes to convert
+* @param indices the index to convert
+* @return the linear index given the shape
+* and indices
+*/
 #ifdef __CUDACC__
     __host__ __device__
 #endif
@@ -2717,14 +2734,14 @@ namespace shape {
         return index;
     }
 
-    /**
-     * Convert a linear index to
-     * the equivalent nd index
-     * @param shape the shape of the dimensions
-     * @param index the index to map
-     * @param numIndices the number of total indices (typically prod of shape(
-     * @return the mapped indexes along each dimension
-     */
+/**
+ * Convert a linear index to
+ * the equivalent nd index
+ * @param shape the shape of the dimensions
+ * @param index the index to map
+ * @param numIndices the number of total indices (typically prod of shape(
+ * @return the mapped indexes along each dimension
+ */
 #ifdef __CUDACC__
     __host__ __device__
 #endif
@@ -2741,15 +2758,15 @@ namespace shape {
         return ret;
     }
 
-    /**
-     * Convert a linear index to
-     * the equivalent nd index.
-     * Infers the number of indices from the specified shape.
-     *
-     * @param shape the shape of the dimensions
-     * @param index the index to map
-     * @return the mapped indexes along each dimension
-     */
+/**
+ * Convert a linear index to
+ * the equivalent nd index.
+ * Infers the number of indices from the specified shape.
+ *
+ * @param shape the shape of the dimensions
+ * @param index the index to map
+ * @return the mapped indexes along each dimension
+ */
 #ifdef __CUDACC__
     __host__ __device__
 #endif
@@ -2757,14 +2774,14 @@ namespace shape {
         return ind2sub(rank,shape, index,shape::prodLong(shape,rank));
     }
 
-    /**
- * Convert a linear index to
- * the equivalent nd index
- * @param shape the shape of the dimensions
- * @param index the index to map
- * @param numIndices the number of total indices (typically prod of shape(
- * @return the mapped indexes along each dimension
- */
+/**
+* Convert a linear index to
+* the equivalent nd index
+* @param shape the shape of the dimensions
+* @param index the index to map
+* @param numIndices the number of total indices (typically prod of shape(
+* @return the mapped indexes along each dimension
+*/
 #ifdef __CUDACC__
     __host__ __device__
 #endif
@@ -2794,14 +2811,14 @@ namespace shape {
         ind2sub(rank,shape, index,shape::prodLong(shape,rank),out);
     }
 
-    /**
-     * Convert a linear index to
-     * the equivalent nd index
-     * @param shape the shape of the dimensions
-     * @param index the index to map
-     * @param numIndices the number of total indices (typically prod of shape(
-     * @return the mapped indexes along each dimension
-     */
+/**
+ * Convert a linear index to
+ * the equivalent nd index
+ * @param shape the shape of the dimensions
+ * @param index the index to map
+ * @param numIndices the number of total indices (typically prod of shape(
+ * @return the mapped indexes along each dimension
+ */
 #ifdef __CUDACC__
     __host__ __device__
 #endif
@@ -2818,15 +2835,15 @@ namespace shape {
         return ret;
     }
 
-    /**
-     * Convert a linear index to
-     * the equivalent nd index.
-     * Infers the number of indices from the specified shape.
-     *
-     * @param shape the shape of the dimensions
-     * @param index the index to map
-     * @return the mapped indexes along each dimension
-     */
+/**
+ * Convert a linear index to
+ * the equivalent nd index.
+ * Infers the number of indices from the specified shape.
+ *
+ * @param shape the shape of the dimensions
+ * @param index the index to map
+ * @return the mapped indexes along each dimension
+ */
 #ifdef __CUDACC__
     __host__ __device__
 #endif
@@ -2834,14 +2851,14 @@ namespace shape {
         return ind2subC(rank,shape, index, shape::prodLong(shape,rank));
     }
 
-    /**
-     * Convert a linear index to
-     * the equivalent nd index
-     * @param shape the shape of the dimensions
-     * @param index the index to map
-     * @param numIndices the number of total indices (typically prod of shape(
-     * @return the mapped indexes along each dimension
-     */
+/**
+ * Convert a linear index to
+ * the equivalent nd index
+ * @param shape the shape of the dimensions
+ * @param index the index to map
+ * @param numIndices the number of total indices (typically prod of shape(
+ * @return the mapped indexes along each dimension
+ */
 #ifdef __CUDACC__
     __host__ __device__
 #endif
@@ -2871,14 +2888,14 @@ namespace shape {
         ind2subC(rank,shape, index,shape::prodLong(shape,rank),out);
     }
 
-    /**
- * Convert a linear index to
- * the equivalent nd index
- * @param shape the shape of the dimensions
- * @param index the index to map
- * @param numIndices the number of total indices (typically prod of shape(
- * @return the mapped indexes along each dimension
- */
+/**
+* Convert a linear index to
+* the equivalent nd index
+* @param shape the shape of the dimensions
+* @param index the index to map
+* @param numIndices the number of total indices (typically prod of shape(
+* @return the mapped indexes along each dimension
+*/
 #ifdef __CUDACC__
     __host__ __device__
 #endif
@@ -2902,14 +2919,14 @@ namespace shape {
         }
     }
 
-    /**
- * Convert a linear index to
- * the equivalent nd index
- * @param shape the shape of the dimensions
- * @param index the index to map
- * @param numIndices the number of total indices (typically prod of shape(
- * @return the mapped indexes along each dimension
- */
+/**
+* Convert a linear index to
+* the equivalent nd index
+* @param shape the shape of the dimensions
+* @param index the index to map
+* @param numIndices the number of total indices (typically prod of shape(
+* @return the mapped indexes along each dimension
+*/
 #ifdef __CUDACC__
     __host__ __device__
 #endif
@@ -3217,12 +3234,12 @@ namespace shape {
         return oneDimEqualToLength(shape::shapeOf(shapeInfo),shape::rank(shapeInfo));
     }
 
-    /**
- * Returns whether the
- * given shape is a vector or not
- * @param shape the shape of the array
- * @param rank the rank of the shape
- */
+/**
+* Returns whether the
+* given shape is a vector or not
+* @param shape the shape of the array
+* @param rank the rank of the shape
+*/
 #ifdef __CUDACC__
     __host__ __device__
 #endif
@@ -3273,7 +3290,7 @@ namespace shape {
         return ret;
     }
 
-    /**
+/**
 * Return a copy of a buffer.
 * This buffer allocates memory
 * that must be freed elsewhere.
@@ -3285,7 +3302,7 @@ namespace shape {
         memcpy(to, from, sizeof(int)*length);
     }
 
-    /**
+/**
 * Return a copy of a buffer.
 * This buffer allocates memory
 * that must be freed elsewhere.
@@ -3456,7 +3473,7 @@ namespace shape {
         return buffer[length2 - 2];
     }
 
-    /**
+/**
 * Returns the element wise stride for this information
 * buffer relative to a dimension and reduction index
 */
@@ -4390,17 +4407,17 @@ __device__ int tadOffset(int *xInfo, int offset) {
     }
 
 
-    /**
- * Get an offset for retrieval
- * from a data buffer
- * based on the given
- * shape stride and given indices
- * @param baseOffset the offset to start from
- * @param shape the shape of the array
- * @param stride the stride of the array
- * @param indices the indices to iterate over
- * @return the double at the specified index
- */
+/**
+* Get an offset for retrieval
+* from a data buffer
+* based on the given
+* shape stride and given indices
+* @param baseOffset the offset to start from
+* @param shape the shape of the array
+* @param stride the stride of the array
+* @param indices the indices to iterate over
+* @return the double at the specified index
+*/
 #ifdef __CUDACC__
     __host__ __device__
 #endif
