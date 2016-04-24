@@ -1716,30 +1716,7 @@ namespace shape {
             ret[shape::shapeInfoLength(rank) - 1] = shape::getOrder(rank,shape::shapeOf(ret),shape::stride(ret),1);
             if(wholeThing)
                 ret[shape::shapeInfoLength(rank) - 2] = 1;
-            else if(shape::isVector(ret)) {
-                if(shape::order(ret) == 'f') {
-                    if(retShape[0] == 1) {
-                        ret[shape::shapeInfoLength(rank) - 2] = retStride[1];
-                    }
-                    else if(retShape[1] == 1) {
-                        ret[shape::shapeInfoLength(rank) - 2] = retStride[0];
-
-                    }
-
-                }
-                else {
-                    if(retShape[0] == 1) {
-                        ret[shape::shapeInfoLength(rank) - 2] = retStride[0];
-                    }
-                    else if(retShape[1] == 1) {
-                        ret[shape::shapeInfoLength(rank) - 2] = retStride[1];
-
-                    }
-                }
-
-            }
-            else
-                ret[shape::shapeInfoLength(rank) - 2] = shape::computeElementWiseStride(rank,retShape,retStride,shape::order(ret));
+            ret[shape::shapeInfoLength(rank) - 2] = shape::computeElementWiseStride(rank,retShape,retStride,shape::order(ret));
             return ret;
         }
 
@@ -1898,13 +1875,44 @@ namespace shape {
         __host__ __device__
 #endif
         inline void collapse() {
+            int *shape = shape::shapeOf(shapeInfo);
             //handle negative dimensions/backwards indexing
             for(int i = 0; i < dimensionLength; i++) {
                 if((dimension)[i] < 0)
                     (dimension)[i] += shape::rank(this->shapeInfo);
             }
 
-            int *shape = shape::shapeOf(shapeInfo);
+
+            //we can drop trailing dimensions where it's all singular for example:
+            // shape: 4,3,1,2
+            //dimension: 0,2
+            // the problem for 0,2 is equivalent to: 0
+            //the rest of the algorithm handles cases suchas
+            //shape: 4,1,1,2
+            //dimension: 0,1
+            //when this happens there are other dimensions (eg: at the end) that matter
+            bool nonSingularEncountered = false;
+            int trailingOneDimensions = 0;
+            for(int i = dimensionLength - 1; i >= 0; i--) {
+                if(shape[dimension[i]] != 1) {
+                    break;
+                }
+                else if(shape[dimension[i]] == 1)
+                    trailingOneDimensions++;
+            }
+
+            dimensionLength -= trailingOneDimensions;
+            bool preConverged = true;
+            for(int i = 0; i < dimensionLength; i++) {
+                if(shape[dimension[i]] == 1) {
+                    preConverged = false;
+                    break;
+                }
+            }
+
+            //we took away all the singular dimensions, we can just return
+            if(preConverged)
+                return;
 
             //no more singular dimensions specified
             bool done = false;
@@ -2469,122 +2477,134 @@ namespace shape {
     __host__ __device__
 #endif
     inline int computeElementWiseStride(int rank, int *shape, int *stride, int isFOrder) {
-        int oldnd;
-        int *olddims = shape::copyOf(rank, shape);
-        int *oldstrides = shape::copyOf(rank, stride);
-        int np, op, last_stride;
-        int oi, oj, ok, ni, nj, nk;
-        int *newStrides = new int[rank];
-        oldnd = 0;
-        //set the shape to be 1 x length
-        int newShapeRank = 2;
-        int *newShape = new int[newShapeRank];
-        newShape[0] = 1;
-        newShape[1] = shape::prodLong(shape, rank);
-
-        /*
-         * Remove axes with dimension 1 from the old array. They have no effect
-         * but would need special cases since their strides do not matter.
-         */
-        for (oi = 0; oi < rank; oi++) {
-            if (shape[oi] != 1) {
-                olddims[oldnd] = shape[oi];
-                oldstrides[oldnd] = stride[oi];
-                oldnd++;
+        if(shape::isVector(shape,rank)) {
+            for (int i = 0; i < rank; i++) {
+                if (stride[i] != 1)
+                    return stride[i];
             }
-        }
+            return 1;
 
-        np = 1;
-        for (ni = 0; ni < newShapeRank; ni++) {
-            np *= newShape[ni];
         }
-        op = 1;
-        for (oi = 0; oi < oldnd; oi++) {
-            op *= olddims[oi];
-        }
-        if (np != op) {
-            /* different total sizes; no hope */
-            return -1;
-        }
+        else {
+            int oldnd;
+            int *olddims = shape::copyOf(rank, shape);
+            int *oldstrides = shape::copyOf(rank, stride);
+            int np, op, last_stride;
+            int oi, oj, ok, ni, nj, nk;
+            int *newStrides = new int[rank];
+            oldnd = 0;
+            //set the shape to be 1 x length
+            int newShapeRank = 2;
+            int *newShape = new int[newShapeRank];
+            newShape[0] = 1;
+            newShape[1] = shape::prodLong(shape, rank);
 
-        if (np == 0) {
-            /* the current code does not handle 0-sized arrays, so give up */
-            return -1;
-        }
-
-        /* oi to oj and ni to nj give the axis ranges currently worked with */
-        oi = 0;
-        oj = 1;
-        ni = 0;
-        nj = 1;
-        while (ni < newShapeRank && oi < oldnd) {
-            np = newShape[ni];
-            op = olddims[oi];
-
-            while (np != op) {
-                if (np < op) {
-                    /* Misses trailing 1s, these are handled later */
-                    np *= newShape[nj++];
-                } else {
-                    op *= olddims[oj++];
+            /*
+             * Remove axes with dimension 1 from the old array. They have no effect
+             * but would need special cases since their strides do not matter.
+             */
+            for (oi = 0; oi < rank; oi++) {
+                if (shape[oi] != 1) {
+                    olddims[oldnd] = shape[oi];
+                    oldstrides[oldnd] = stride[oi];
+                    oldnd++;
                 }
             }
 
-            /* Check whether the original axes can be combined */
-            for (ok = oi; ok < oj - 1; ok++) {
+            np = 1;
+            for (ni = 0; ni < newShapeRank; ni++) {
+                np *= newShape[ni];
+            }
+            op = 1;
+            for (oi = 0; oi < oldnd; oi++) {
+                op *= olddims[oi];
+            }
+            if (np != op) {
+                /* different total sizes; no hope */
+                return -1;
+            }
+
+            if (np == 0) {
+                /* the current code does not handle 0-sized arrays, so give up */
+                return -1;
+            }
+
+            /* oi to oj and ni to nj give the axis ranges currently worked with */
+            oi = 0;
+            oj = 1;
+            ni = 0;
+            nj = 1;
+            while (ni < newShapeRank && oi < oldnd) {
+                np = newShape[ni];
+                op = olddims[oi];
+
+                while (np != op) {
+                    if (np < op) {
+                        /* Misses trailing 1s, these are handled later */
+                        np *= newShape[nj++];
+                    } else {
+                        op *= olddims[oj++];
+                    }
+                }
+
+                /* Check whether the original axes can be combined */
+                for (ok = oi; ok < oj - 1; ok++) {
+                    if (isFOrder) {
+                        if (oldstrides[ok + 1] != olddims[ok] * oldstrides[ok]) {
+                            /* not contiguous enough */
+                            return -1;
+                        }
+                    } else {
+                        /* C order */
+                        if (oldstrides[ok] != olddims[ok + 1] * oldstrides[ok + 1]) {
+                            /* not contiguous enough */
+                            return -1;
+                        }
+                    }
+                }
+
+                /* Calculate new strides for all axes currently worked with */
                 if (isFOrder) {
-                    if (oldstrides[ok + 1] != olddims[ok] * oldstrides[ok]) {
-                        /* not contiguous enough */
-                        return -1;
+                    newStrides[ni] = oldstrides[oi];
+                    for (nk = ni + 1; nk < nj; nk++) {
+                        newStrides[nk] = newStrides[nk - 1] * newShape[nk - 1];
                     }
                 } else {
                     /* C order */
-                    if (oldstrides[ok] != olddims[ok + 1] * oldstrides[ok + 1]) {
-                        /* not contiguous enough */
-                        return -1;
+                    newStrides[nj - 1] = oldstrides[oj - 1];
+                    for (nk = nj - 1; nk > ni; nk--) {
+                        newStrides[nk - 1] = newStrides[nk] * newShape[nk];
                     }
                 }
+                ni = nj++;
+                oi = oj++;
             }
 
-            /* Calculate new strides for all axes currently worked with */
-            if (isFOrder) {
-                newStrides[ni] = oldstrides[oi];
-                for (nk = ni + 1; nk < nj; nk++) {
-                    newStrides[nk] = newStrides[nk - 1] * newShape[nk - 1];
-                }
+            /*
+             * Set strides corresponding to trailing 1s of the new shape.
+             */
+            if (ni >= 1) {
+                last_stride = newStrides[ni - 1];
             } else {
-                /* C order */
-                newStrides[nj - 1] = oldstrides[oj - 1];
-                for (nk = nj - 1; nk > ni; nk--) {
-                    newStrides[nk - 1] = newStrides[nk] * newShape[nk];
-                }
+                last_stride = stride[rank - 1];
             }
-            ni = nj++;
-            oi = oj++;
+            if (isFOrder) {
+                if (ni >= 1)
+                    last_stride *= newShape[ni - 1];
+            }
+            for (nk = ni; nk < newShapeRank; nk++) {
+                newStrides[nk] = last_stride;
+            }
+            //returns the last element of the new stride array
+            int ret = last_stride;
+            delete[] newStrides;
+            delete[] newShape;
+            delete[] oldstrides;
+            delete[] olddims;
+            return ret;
         }
 
-        /*
-         * Set strides corresponding to trailing 1s of the new shape.
-         */
-        if (ni >= 1) {
-            last_stride = newStrides[ni - 1];
-        } else {
-            last_stride = stride[rank - 1];
-        }
-        if (isFOrder) {
-            if (ni >= 1)
-                last_stride *= newShape[ni - 1];
-        }
-        for (nk = ni; nk < newShapeRank; nk++) {
-            newStrides[nk] = last_stride;
-        }
-        //returns the last element of the new stride array
-        int ret = last_stride;
-        delete[] newStrides;
-        delete[] newShape;
-        delete[] oldstrides;
-        delete[] olddims;
-        return ret;
+
     }
 
 #ifdef __CUDACC__
