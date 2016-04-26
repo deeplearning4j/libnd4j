@@ -33,6 +33,7 @@ see windows.md
 
 
 1. Set a LIBND4J_HOME as an environment variable to the libnd4j folder you've obtained from GIT
+
 This is required for building nd4j as well.
 
 2. For cpu followed by gpu run:
