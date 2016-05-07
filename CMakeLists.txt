@@ -10,6 +10,7 @@ option(DEV ON)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 #ensure we create lib files
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS OFF)
+
 find_path(STDIO_INCLUDE_PATH stdio.h)
 
 set(CMAKE_CXX_FLAGS_RELEASE  "-Wall -fopenmp -std=c++11 -fassociative-math -funsafe-math-optimizations")
