@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-#export OMP_NUM_THREADS=1
 
 export CMAKE_COMMAND="cmake"
 export MAKE_COMMAND="make"
@@ -105,12 +104,25 @@ if [ "$LIBTYPE" == "dynamic" ]; then
          SHARED_LIBS_ARG="-DBUILD_SHARED_LIBS=ON"
 fi
 
-if ["$BUILD" == "release" ]; then
+if [ "$BUILD" == "release" ]; then
     BUILD_TYPE="-DCMAKE_BUILD_TYPE=Release"
     else
         BUILD_TYPE="-DCMAKE_BUILD_TYPE=Debug"
 
 fi
+
+if [ "$PACKAGING" == "none" ]; then
+    PACKAGING_ARG="-DPACKAGING=none"
+fi
+
+if [ "$PACKAGING" == "rpm" ]; then
+    PACKAGING_ARG="-DPACKAGING=rpm"
+fi
+
+if [ "$PACKAGING" == "deb" ]; then
+    PACKAGING_ARG="-DPACKAGING=deb"
+ fi
+
 
 mkbuilddir() {
 if [ "$CHIP" == "cpu" ]; then
@@ -132,7 +144,7 @@ echo CHIP     = "${CHIP}"
 echo LIBRARY TYPE    = "${LIBTYPE}"
 mkbuilddir
 pwd
-eval $CMAKE_COMMAND  "$BLAS_ARG" "$SHARED_LIBS_ARG"  "$BUILD_TYPE" -DDEV=FALSE ../..
+eval $CMAKE_COMMAND  "$BLAS_ARG" "$SHARED_LIBS_ARG"  "$BUILD_TYPE" "$PACKAGING_ARG" -DDEV=FALSE ../..
 eval $MAKE_COMMAND && cd ../../..
 
 
