@@ -379,7 +379,7 @@ struct SharedIndexValue<double> {
 					}
 				} else {
 #pragma unroll
-					for(int i = xElementWiseStride * tid;i < n; i += (blockDim.x * gridDim.x * xElementWiseStride)) {
+					for(int i = tid;i < n; i += (blockDim.x * gridDim.x * xElementWiseStride)) {
 						IndexValue <T> indexVal = {dx[i * xElementWiseStride], i};
 						reduction = update(reduction, indexVal, extraParams);
 					}
