@@ -30,7 +30,7 @@
 //IT DEFINES THE EXPORT MACRO FOR THE EDITOR AND THEN
 //RE ADDS THE DEFINITION VIA dll.h
 #ifdef  _WIN32
-#define ND4J_EXPORT ND4J_EXPORT
+#define ND4J_EXPORT __declspec(dllexport)
 #else
 #define ND4J_EXPORT
 #endif
@@ -854,6 +854,31 @@ public:
             Nd4jPointer input,
             Nd4jPointer inputShapeInfo);
 
+   /**
+    * Concatneate multi array of the same shape together
+    * along a particular dimension
+    */
+    void concatFloat(
+            Nd4jPointer *extraPointers,
+            int dimension,
+            int numArrays,
+            Nd4jPointer *data,
+            Nd4jPointer *inputShapeInfo,
+            Nd4jPointer result,
+            Nd4jPointer resultShapeInfo);
+/**
+    * Concatneate multi array of the same shape together
+    * along a particular dimension
+    */
+    void concatDouble(
+            Nd4jPointer *extraPointers,
+            int dimension,
+            int numArrays,
+            Nd4jPointer *data,
+            Nd4jPointer *inputShapeInfo,
+            Nd4jPointer result,
+            Nd4jPointer resultShapeInfo);
+
     /**
      * This method implementation exists only for cuda.
      * The other backends should have dummy method for JNI compatibility reasons.
@@ -934,6 +959,8 @@ public:
     Nd4jPointer getAvailableDevices();
 
     void enableDebugMode(bool reallyEnable);
+
+    void enableVerboseMode(bool reallyEnable);
 
     void setGridLimit(int gridSize);
 };

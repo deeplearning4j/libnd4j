@@ -23,7 +23,7 @@ libnd4j and nd4j go hand in hand, and libnd4j is required for two out of the thr
 
 Now clone this repository, and in that directory run the following to build the dll for the cpu backend:
 
-    bash ./buildnativeoperations.sh blas cpu
+    ./buildnativeoperations.sh
 
 ### Building the CUDA Backend
 
@@ -38,7 +38,7 @@ But first, set the system environment variable `SET_FULL_PATH` to `true`, so all
 1. Inside a normal cmd.exe command prompt, run `C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\amd64\vcvars64.bat`
 2. Run `c:\msys64\mingw64_shell.bat` inside that
 3. Change to your libnd4j folder
-4. `bash buildnativeoperations.sh blas cuda` (note the `bash` at the beginning, for some reason it doesn't work to directly start the script)
+4. `./buildnativeoperations.sh -c cuda`
 
 This builds the CUDA nd4j.dll.
 
@@ -59,9 +59,9 @@ Now leave the libnd4j directory and clone the [nd4j repository](https://github.c
 
 If you don't want the cuda backend, e.g. because you didn't or can't build it, you can skip it:
 
-    mvn clean install -DskipTests -Dmaven.javadoc.skip=true -pl '!org.nd4j:nd4j-cuda-7.5'
+    mvn clean install -DskipTests -Dmaven.javadoc.skip=true -pl '!org.nd4j:nd4j-cuda-7.5,!org.nd4j:nd4j-tests'
 
-Please notice the single quotes around the last parameter, if you leave them out or use double quotes you will get an error about `event not found` from your shell.
+Please notice the single quotes around the last parameter, if you leave them out or use double quotes you will get an error about `event not found` from your shell. If this doesn't work, make sure you have a current version of maven installed.
 
 
 ## Using the Native Backend
@@ -213,3 +213,41 @@ If you want to set your PATH temporarily, you can do so with:
 ```
     export PATH=... # Replace ... with what ever you want to have there
 ```
+
+### CUDA build is failing with cmake/nmake errors
+
+Some errors such as the following can appear if the visual studio vcvars64.bat file is run before attempting the cuda build.
+
+```
+  The parameter is incorrectRC Pass 1 failed to run.
+  NMAKE : fatal error U1077: 'C:\msys64\mingw64\bin\cmake.exe' : return code '0xffffffff'
+  NMAKE : fatal error U1077: '"C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\amd64\nmake.exe"' : return code '0x2'
+```
+
+To resolve this, ensure that you haven't run vcvars64/vcvarsall in the msys2 shell before building.
+
+#MSI Installer
+
+To build an MSI Installer run:
+./buildnativeoperations.sh -p msi
+
+For gpu run:
+./buildnativeoperations.sh -p msi -c cuda
+
+
+#BLAS Impls
+
+Openblas: Ensure that you set up $MSYSROOT/opt/OpenBLAS/lib. If you built OpenBLAS in msys2 (make, make install), then you should not need to do anything else.
+
+Note: our informal/unscientific testing suggests that Intel MKL can be about equal with, and up to about 40% faster than OpenBLAS on some matrix multiply (gemm) operations, on some machines. Installing MKL is recommended but not required.
+
+### MKL Setup
+
+To build libnd4j with MKL:
+
+- Download MKL from [https://software.intel.com/en-us/articles/free_mkl](https://software.intel.com/en-us/articles/free_mkl) and install. Registration is required (free).
+- Add the \redist\intel64_win\mkl\ directory to your system PATH environment variable. This will be in a location such as C:\Program Files (x86)\IntelSWTools\compilers_and_libraries_2016.3.207\windows\redist\intel64_win\mkl\
+
+Then build libnd4j as before. You may have to be careful about having multiple BLAS implementations on your path. Ideally, have only MKL on the path while building libnd4j.
+
+Note: you may be able to get some additional performance on hyperthreaded processors by setting the system/environment variable MKL_DYNAMIC to have the value 'false'.
