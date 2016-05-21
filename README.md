@@ -30,7 +30,7 @@ sudo apt-get install cuda
 sudo apt-get install libopenblas-dev
 sudo apt-get install cmake
 sudo apt-get install gcc-4.9
-sudo apt install g++-4.9
+sudo apt-get install g++-4.9
 sudo apt-get install git
 git clone https://github.com/deeplearning4j/libnd4j
 cd libnd4j/
