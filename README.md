@@ -44,9 +44,11 @@ sudo ln -s /usr/bin/g++-4.9 /usr/bin/g++
 ```
 #### Ubuntu Linux 16.04
 
-> sudo apt install libopenblas-dev
-> sudo apt install cmake
-> Installation of CUDA currently not supported by NVIDIA, working on a fix... 
+```bash
+sudo apt install libopenblas-dev
+sudo apt install cmake
+Installation of CUDA currently not supported by NVIDIA, working on a fix... 
+```
 
 The standard development headers are needed.
 
