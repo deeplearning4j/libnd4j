@@ -509,7 +509,7 @@ for (Nd4jIndex i = 0; i < xShape[0]; i++) {
 
                     int *resultShape = shape::shapeOf(resultShapeBuffer);
                     if(dx == result) {
-#pragma omp parallel for schedule(guided)
+#pragma omp parallel for schedule(guided) private(xCoord, yCoord, resultCoord)
                         for (Nd4jIndex i = 0; i < len; i++) {
                             shape::ind2subC(xRank,xShape, i, xCoord);
                             shape::ind2subC(yRank,yShape, i, yCoord);
@@ -526,7 +526,7 @@ for (Nd4jIndex i = 0; i < xShape[0]; i++) {
                         int yCoord[MAX_RANK];
                         int resultCoord[MAX_RANK];
 
-#pragma omp parallel for schedule(guided)
+#pragma omp parallel for schedule(guided)  private(xCoord, yCoord, resultCoord)
                         for (Nd4jIndex i = 0; i < len; i++) {
                             shape::ind2subC(xRank,xShape, i, xCoord);
                             shape::ind2subC(yRank,yShape, i, yCoord);
