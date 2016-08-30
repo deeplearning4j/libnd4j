@@ -376,6 +376,7 @@ template<typename OpType>
                               int resultStride,
                               T *extraParams,
                               const int n) {
+
                 int elementsPerThread = n / 2048;
                 int num_threads = nd4j::math::nd4j_max<int>(1, elementsPerThread);
                 num_threads = nd4j::math::nd4j_min<int>(num_threads, omp_get_max_threads());

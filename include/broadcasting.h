@@ -187,7 +187,6 @@ template<typename OpType>
                 int num_threads = nd4j::math::nd4j_max<int>(1, tadsPerThread);
                 num_threads = nd4j::math::nd4j_min<int>(num_threads, omp_get_max_threads());
 
-
 				if (result == x) {
 #pragma omp parallel for schedule(guided) num_threads(num_threads) if (num_threads > 1)
 					for (int i = 0; i < tads; i++) {
