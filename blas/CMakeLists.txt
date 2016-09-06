@@ -111,7 +111,7 @@ if(CUDA_BLAS)
 elseif(CPU_BLAS)
     message("CPU BLAS")
     add_definitions(-D__CPUBLAS__=true)
-    add_library(nd4j SHARED cpu/NativeBlas.cpp cpu/NativeOps.cpp ../include/nd4jmemset.h ../include/nd4jmalloc.h)
+    add_library(nd4j SHARED cpu/NativeBlas.cpp cpu/NativeOps.cpp ../include/nd4jmemset.h ../include/nd4jmalloc.h NativeLapack.h)
 
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND "${CMAKE_CXX_COMPILER_VERSION}" VERSION_LESS 4.9)
       message(FATAL_ERROR "You need at least GCC 4.9")
