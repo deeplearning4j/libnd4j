@@ -2048,6 +2048,12 @@ Nd4jPointer NativeOps::createEvent() {
 Nd4jPointer NativeOps::createBlasHandle() {
     return 0L;
 }
+Nd4jPointer NativeOps::createSolverHandle() {
+    return 0L;
+}
+int NativeOps::setSolverStream(Nd4jPointer handle, Nd4jPointer stream) {
+    return 0L;
+}
 
 int NativeOps::getDeviceMajor(Nd4jPointer ptrToDeviceId) {
     return 0;

@@ -10,6 +10,7 @@ int element_threshold = 32;
 #include <shape.h>
 
 #include <cublas_v2.h>
+#include <cusolverDn.h>
 #include <reduce3.h>
 #include <reduce.h>
 #include <indexreduce.h>
@@ -5089,6 +5090,25 @@ int NativeOps::setBlasStream(Nd4jPointer handle, Nd4jPointer stream) {
 	else return 1L;
 }
 
+Nd4jPointer NativeOps::createSolverHandle() {
+        Nd4jPointer nativeHandle= 0;
+        cusolverStatus_t result = cusolverDnCreate((cusolverDnHandle_t *) &nativeHandle);
+        if (result != 0) {
+        printf("cusolverDn errorCode: [%i] from cusolverDnCreate()\n", result);
+                return 0L;
+    }
+        else return nativeHandle;
+}
+
+int NativeOps::setSolverStream(Nd4jPointer handle, Nd4jPointer stream) {
+        cusolverDnHandle_t *pHandle = reinterpret_cast<cusolverDnHandle_t *>(&handle);
+        cudaStream_t *pStream = reinterpret_cast<cudaStream_t *>(&stream);
+
+        cusolverStatus_t result = cusolverDnSetStream(*pHandle, *pStream);
+        if (result != 0)
+                return 0L;
+        else return 1L;
+}
 int NativeOps::setDevice(Nd4jPointer ptrToDeviceId) {
 	int deviceId = getDeviceId(ptrToDeviceId);
 	cudaError_t result = cudaSetDevice(deviceId);
