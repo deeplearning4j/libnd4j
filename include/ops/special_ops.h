@@ -56,8 +56,10 @@ namespace simdOps {
 			int kernelHeight = (int)extraParams[1];
 			int strideX = (int)extraParams[2];
 			int strideY = (int)extraParams[3];
-			int padWidth = (int)extraParams[4];
-			int padHeight = (int)extraParams[5];
+			int padTop = (int)extraParams[4];
+			int padBottom = (int)extraParams[5];
+			int padLeft = (int)extraParams[6];
+			int padRight = (int)extraParams[7];
 			int kSize = kernelWidth * kernelHeight;
 
 			int *outShape = shape::shapeOf(resultShapeBuffer);
@@ -101,8 +103,8 @@ namespace simdOps {
 
 				int depth_im = c_im % depth;
 				int num_im = c_im / depth;
-				int h_offset = h_col * strideY - padHeight;
-				int w_offset = w_col * strideX - padWidth;
+				int h_offset = h_col * strideY - padTop - padBottom;
+				int w_offset = w_col * strideX - padLeft - padRight;
 
 				T* data_col_ptr = result;
 
@@ -148,8 +150,10 @@ namespace simdOps {
 			int kernelHeight = (int)extraParams[1];
 			int strideX = (int)extraParams[2];
 			int strideY = (int)extraParams[3];
-			int padWidth = (int)extraParams[4];
-			int padHeight = (int)extraParams[5];
+			int padTop = (int)extraParams[4];
+			int padBottom = (int)extraParams[5];
+			int padLeft = (int)extraParams[6];
+			int padRight = (int)extraParams[7];
 			bool coverAll = extraParams[6] > 0.0;
 
 			int outArrayOffset = 0;
@@ -166,9 +170,9 @@ namespace simdOps {
 			int depthFrom = 0;
 			int depthTo = inShape[1];
 			int yOutFrom = 0;
-			int yOutTo = outSize(inShape[2], kernelHeight, strideY, padHeight, coverAll);
+			int yOutTo = outSize(inShape[2], kernelHeight, strideY, padTop+padBottom, coverAll);
 			int xOutFrom = 0;
-			int xOutTo = outSize(inShape[3], kernelWidth, strideX, padWidth, coverAll);
+			int xOutTo = outSize(inShape[3], kernelWidth, strideX, padLeft+padRight, coverAll);
 
 			T *dIn = dx;
 			T *dOut = result;
@@ -190,7 +194,7 @@ namespace simdOps {
 					int inShape2 = inShape[2];
 					int inShape3 = inShape[3];
 
-					bool padding = padHeight > 0 || padWidth > 0;
+					bool padding = padTop > 0 || padBottom > 0 || padLeft > 0 || padRight > 0;
 					inIndices[0] = ex;
 					inIndices[1] = d;
 					outIndices[0] = ex;
@@ -205,9 +209,9 @@ namespace simdOps {
 
 							if (padding) {
 								int i = y * strideY -
-									padHeight;    //index along height of first element of patch in original img
+									padTop - padBottom;    //index along height of first element of patch in original img
 								int j = x * strideX -
-									padWidth;     //index along width of first element in patch in original img
+									padLeft - padRight;     //index along width of first element in patch in original img
 								inIndices[2] = i;   //along height
 								inIndices[3] = j;   //along width
 
@@ -547,10 +551,12 @@ namespace simdOps {
 
 			int strideX = (int)extraParams[0];
 			int strideY = (int)extraParams[1];
-			int padWidth = (int)extraParams[2];
-			int padHeight = (int)extraParams[3];
-			int imgHeight = (int)extraParams[4];
-			int imgWidth = (int)extraParams[5];
+			int padTop = (int)extraParams[2];
+			int padBottom = (int)extraParams[3];
+			int padLeft = (int)extraParams[4];
+			int padRight = (int)extraParams[5];
+			int imgHeight = (int)extraParams[6];
+			int imgWidth = (int)extraParams[7];
 
 			int *outShape = shape::shapeOf(resultShapeBuffer);
 			char resultOrder = shape::order(resultShapeBuffer);
@@ -574,8 +580,8 @@ namespace simdOps {
 
 			for (int i = (blockDim.x * blockIdx.x) + threadIdx.x; i < n; i += blockDim.x * gridDim.x) {
 				T val = 0;
-				int w_im = i % imgWidth + padWidth;
-				int h_im = (i / imgWidth) % imgHeight + padHeight;
+				int w_im = i % imgWidth + padLeft + padRight;
+				int h_im = (i / imgWidth) % imgHeight + padTop + padBottom;
 				int c_im = i / (imgWidth * imgWidth);
 
 				int num_im = c_im / depth;
@@ -623,11 +629,13 @@ namespace simdOps {
 
 			int kernelHeight = inShape[2];
 			int kernelWidth = inShape[3];
-			/* int strideY, int strideX, int padHeight, int padWidth, int imgHeight, int imgWidth, */
+			/* int strideY, int strideX, int padTop, int padBottom, int padLeft, int padRight, int imgHeight, int imgWidth, */
 			int strideX = (int)extraParams[0];
 			int strideY = (int)extraParams[1];
-			int padWidth = (int)extraParams[2];
-			int padHeight = (int)extraParams[3];
+			int padTop = (int)extraParams[2];
+			int padBottom = (int)extraParams[3];
+			int padLeft = (int)extraParams[4];
+			int padRight = (int)extraParams[5];
 
 
 			int exampleFrom = 0;
@@ -663,7 +671,7 @@ namespace simdOps {
 					int xOutTo = inShape[5];
 
 
-					bool padding = padHeight > 0 || padWidth > 0;
+					bool padding = padTop > 0 || padBottom > 0 || padLeft > 0 || padRight > 0;
 					inIndices[0] = ex;
 					inIndices[1] = d;
 					outIndices[0] = ex;
@@ -677,9 +685,9 @@ namespace simdOps {
 
 							if (padding) {
 								int i = y * strideY -
-									padHeight;    //index along height of first element of patch in original img
+									padTop - padBottom;    //index along height of first element of patch in original img
 								int j = x * strideX -
-									padWidth;     //index along width of first element in patch in original img
+									padLeft - padRight;     //index along width of first element in patch in original img
 								outIndices[2] = i;  //along height
 								outIndices[3] = j;  //along width
 
