@@ -32,8 +32,6 @@ private:
     int xOutTo;
     bool coverAll;
 
-    bool isSame;
-
     int opSize() {
         return (exampleTo - exampleFrom) * (depthTo - depthFrom) * (xOutTo - xOutFrom) * (yOutTo - yOutFrom) * kernelHeight * kernelWidth;
     }
@@ -79,39 +77,35 @@ private:
                         int baseOffsetOut = getOffsetUnsafe6(outArrayOffset, outShape, outStride, outIndices);
 
                         if(padding) {
-                            if(isSame) {
+                            int i = y * strideY - padTop - padBottom;    //index along height of first element of patch in original img
+                            int j = x * strideX - padLeft - padRight;     //index along width of first element in patch in original img
+                            inIndices[2] = i;   //along height
+                            inIndices[3] = j;   //along width
 
-                            } else {
-                                int i = y * strideY - padTop - padBottom;    //index along height of first element of patch in original img
-                                int j = x * strideX - padLeft - padRight;     //index along width of first element in patch in original img
-                                inIndices[2] = i;   //along height
-                                inIndices[3] = j;   //along width
-
-                                int baseOffsetIn = getOffsetUnsafe4(inArrayOffset, inShape, inStride, inIndices);
-                                if (outStride2 <= outStride3) {
-                                    //Want dimension 2 (along height) in inner loop for cache reasons
-                                    for (int patchX = 0; patchX < kernelWidth; patchX++) {
-                                        int outBufferIdxX = baseOffsetOut + patchX * outStride3;
-                                        int inBufferIdxX = baseOffsetIn + patchX * inStride3;
-                                        for (int patchY = 0; patchY < kernelHeight; patchY++) {
-                                            if (i + patchY < 0 || j + patchX < 0 || i + patchY >= inShape2 || j + patchX >= inShape3)
-                                                dOut[outBufferIdxX + patchY * outStride2] = 0; //padding
-                                            else {
-                                                dOut[outBufferIdxX + patchY * outStride2] = dIn[inBufferIdxX + patchY * inStride2];
-                                            }
+                            int baseOffsetIn = getOffsetUnsafe4(inArrayOffset, inShape, inStride, inIndices);
+                            if (outStride2 <= outStride3) {
+                                //Want dimension 2 (along height) in inner loop for cache reasons
+                                for (int patchX = 0; patchX < kernelWidth; patchX++) {
+                                    int outBufferIdxX = baseOffsetOut + patchX * outStride3;
+                                    int inBufferIdxX = baseOffsetIn + patchX * inStride3;
+                                    for (int patchY = 0; patchY < kernelHeight; patchY++) {
+                                        if (i + patchY < 0 || j + patchX < 0 || i + patchY >= inShape2 || j + patchX >= inShape3)
+                                            dOut[outBufferIdxX + patchY * outStride2] = 0; //padding
+                                        else {
+                                            dOut[outBufferIdxX + patchY * outStride2] = dIn[inBufferIdxX + patchY * inStride2];
                                         }
                                     }
-                                } else {
-                                    //Want dimension 3 in inner loop for cache reasons
-                                    for (int patchY = 0; patchY < kernelHeight; patchY++) {
-                                        int outBufferIdxY = baseOffsetOut + patchY * outStride2;
-                                        int inBufferIdxY = baseOffsetIn + patchY * inStride2;
-                                        for (int patchX = 0; patchX < kernelWidth; patchX++) {
-                                            if (i + patchY < 0 || j + patchX < 0 || i + patchY >= inShape[2] || j + patchX >= inShape[3])
-                                                dOut[outBufferIdxY + patchX * outStride3] = 0f; //padding
-                                            else {
-                                                dOut[outBufferIdxY + patchX * outStride3] = dIn[inBufferIdxY + patchX * inStride3];
-                                            }
+                                }
+                            } else {
+                                //Want dimension 3 in inner loop for cache reasons
+                                for (int patchY = 0; patchY < kernelHeight; patchY++) {
+                                    int outBufferIdxY = baseOffsetOut + patchY * outStride2;
+                                    int inBufferIdxY = baseOffsetIn + patchY * inStride2;
+                                    for (int patchX = 0; patchX < kernelWidth; patchX++) {
+                                        if (i + patchY < 0 || j + patchX < 0 || i + patchY >= inShape[2] || j + patchX >= inShape[3])
+                                            dOut[outBufferIdxY + patchX * outStride3] = 0f; //padding
+                                        else {
+                                            dOut[outBufferIdxY + patchX * outStride3] = dIn[inBufferIdxY + patchX * inStride3];
                                         }
                                     }
                                 }
@@ -188,8 +182,6 @@ private:
     int exampleTo;
     int depthFrom;
     int depthTo;
-
-    bool isSame;
 
     void exec() {
         T * dbCol = col;
