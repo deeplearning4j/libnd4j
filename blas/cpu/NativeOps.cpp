@@ -2,8 +2,10 @@
 // Created by agibsonccc on 2/21/16.
 //
 
-int tad_threshold = 1;
-int element_threshold = 32;
+int tad_threshold = 32;
+int element_threshold = 16384;
+
+#define __STDC_CONSTANT_MACROS
 
 #include "../NativeOps.h"
 #include "../NativeOpExcutioner.h"
@@ -11,9 +13,9 @@ int element_threshold = 32;
 #include <pairwise_util.h>
 #include <templatemath.h>
 #include <types/float8.h>
-#include <type_conversions.h>
-#include <aggregates.h>
-#include <helper_ptrmap.h>
+#include <loops/type_conversions.h>
+#include <loops/aggregates.h>
+#include <helpers/helper_ptrmap.h>
 
 char *name;
 bool nameSet = false;
@@ -2166,10 +2168,11 @@ void pullRowsGeneric(T *x,
 
 #pragma omp parallel for num_threads(_threads) if (n > 1) schedule(guided) default(shared)
     for (int idx = 0; idx < n; idx++) {
-        int tadOffsetForBlock = tadOffsets[indexes[idx]];
+        int xTadOffsetForBlock = tadOffsets[indexes[idx]];
+        int zTadOffsetForBlock = zTadOffsets[idx];
 
-        T *rX = x + tadOffsetForBlock;
-        T *rZ = z + zTadOffsets[idx];
+        T *rX = x + xTadOffsetForBlock;
+        T *rZ = z + zTadOffsetForBlock;
 
         if (xEWS == 1 && zEWS == 1) {
 
@@ -2177,11 +2180,29 @@ void pullRowsGeneric(T *x,
             for (int i = 0; i < tadLength; i++ ) {
                 rZ[i] = rX[i];
             }
-        } else {
+        } else if (xEWS >= 1 && zEWS >= 1) {
 
 #pragma omp simd
             for (int i = 0; i < tadLength; i++ ) {
                 rZ[i * zEWS] = rX[i * xEWS];
+            }
+        } else {
+            int *zShape = shape::shapeOf(zTadShapeInfo);
+            int *zStride = shape::stride(zTadShapeInfo);
+            int *xShape = shape::shapeOf(tadShapeInfo);
+            int *xStride = shape::stride(tadShapeInfo);
+            int zRank = shape::rank(zTadShapeInfo);
+            int tadRank = shape::rank(tadShapeInfo);
+
+            int xCoord[MAX_RANK];
+            int zCoord[MAX_RANK];
+
+            for (int i = 0; i < tadLength; i++) {
+                shape::ind2subC(tadRank,xShape, i, xCoord);
+                shape::ind2subC(zRank,zShape, i, zCoord);
+                Nd4jIndex xOffset = shape::getOffset(xTadOffsetForBlock, xShape, xStride, xCoord, tadRank);
+                Nd4jIndex zOffset = shape::getOffset(zTadOffsetForBlock, zShape, zStride, zCoord, zRank);
+                z[zOffset] = x[xOffset];
             }
         }
     }
@@ -2202,6 +2223,12 @@ void NativeOps::pullRowsDouble(Nd4jPointer *extraPointers, double *x, int *xShap
 
 template<typename T>
 void averageGeneric(T **x, T *z, int n, const Nd4jIndex length, bool propagate) {
+
+    bool tempZ = false;
+    if (z == nullptr) {
+        z = new T[length];
+        tempZ = true;
+    }
 
 // aggregation step
 // TODO: this step should be improved, to exploit SIMD
@@ -2239,6 +2266,9 @@ void averageGeneric(T **x, T *z, int n, const Nd4jIndex length, bool propagate) 
             }
         }
     }
+
+    if (tempZ)
+        delete[] z;
 }
 
 void NativeOps::averageHalf(Nd4jPointer *extras, Nd4jPointer *dx, float16 *dz, int n, Nd4jIndex length, bool propagate) {
@@ -2590,3 +2620,76 @@ void NativeOps::execAggregateBatchDouble(Nd4jPointer *extraPointers, int numAggr
 void NativeOps::execAggregateBatchHalf(Nd4jPointer *extraPointers, int numAggregates, int opNum, int maxArgs, int maxShapes, int maxIntArrays, int maxIntArraySize, int maxIdx, int maxReals, void *ptrToArguments) {
     // TODO: add support for fp16
 }
+
+void NativeOps::execRandomFloat(Nd4jPointer *extraPointers, int opNum, Nd4jPointer state, float *z, int *zShapeBuffer, float *extraArguments) {
+    NativeOpExcutioner<float>::execRandom(opNum, state, z, zShapeBuffer, extraArguments);
+}
+
+void NativeOps::execRandomFloat(Nd4jPointer *extraPointers, int opNum, Nd4jPointer state, float *x, int *xShapeBuffer, float *y, int *yShapeBuffer, float *z, int *zShapeBuffer, float *extraArguments) {
+	NativeOpExcutioner<float>::execRandom(opNum, state, x, xShapeBuffer, y, yShapeBuffer, z, zShapeBuffer, extraArguments);
+}
+
+void NativeOps::execRandomFloat(Nd4jPointer *extraPointers, int opNum, Nd4jPointer state, float *x, int *xShapeBuffer, float *z, int *zShapeBuffer, float *extraArguments) {
+	NativeOpExcutioner<float>::execRandom(opNum, state, x, xShapeBuffer, z, zShapeBuffer, extraArguments);
+}
+
+
+void NativeOps::execRandomDouble(Nd4jPointer *extraPointers, int opNum, Nd4jPointer state, double *z, int *zShapeBuffer, double *extraArguments) {
+	NativeOpExcutioner<double>::execRandom(opNum, state, z, zShapeBuffer, extraArguments);
+}
+
+void NativeOps::execRandomDouble(Nd4jPointer *extraPointers, int opNum, Nd4jPointer state, double *x, int *xShapeBuffer, double *y, int *yShapeBuffer, double *z, int *zShapeBuffer, double *extraArguments) {
+	NativeOpExcutioner<double>::execRandom(opNum, state, x, xShapeBuffer, y, yShapeBuffer, z, zShapeBuffer, extraArguments);
+}
+
+void NativeOps::execRandomDouble(Nd4jPointer *extraPointers, int opNum, Nd4jPointer state, double *x, int *xShapeBuffer, double *z, int *zShapeBuffer, double *extraArguments) {
+	NativeOpExcutioner<double>::execRandom(opNum, state, x, xShapeBuffer, z, zShapeBuffer, extraArguments);
+}
+
+
+void NativeOps::execRandomHalf(Nd4jPointer *extraPointers, int opNum, Nd4jPointer state, float16 *z, int *zShapeBuffer, float16 *extraArguments) {
+	//NativeOpExcutioner<float16>::execRandom(opNum, state, z, zShapeBuffer, extraArguments);
+}
+
+void NativeOps::execRandomHalf(Nd4jPointer *extraPointers, int opNum, Nd4jPointer state, float16 *x, int *xShapeBuffer, float16 *y, int *yShapeBuffer, float16 *z, int *zShapeBuffer, float16 *extraArguments) {
+	//NativeOpExcutioner<float16>::execRandom(opNum, state, x, xShapeBuffer, y, yShapeBuffer, z, zShapeBuffer, extraArguments);
+}
+
+void NativeOps::execRandomHalf(Nd4jPointer *extraPointers, int opNum, Nd4jPointer state, float16 *x, int *xShapeBuffer, float16 *z, int *zShapeBuffer, float16 *extraArguments) {
+	//NativeOpExcutioner<float16>::execRandom(opNum, state, x, xShapeBuffer, z, zShapeBuffer, extraArguments);
+}
+
+
+
+Nd4jPointer NativeOps::initRandom(Nd4jPointer *extraPointers, long seed, long bufferSize, Nd4jPointer ptrToBuffer) {
+    long *ptrBuf = reinterpret_cast<long *>(ptrToBuffer);
+    nd4j::random::RandomBuffer *buffer = new nd4j::random::RandomBuffer(seed, bufferSize, (uint64_t *) ptrBuf);
+
+    nd4j::random::Xoroshiro128 generator(buffer);
+    generator.refreshBuffer();
+
+    return (Nd4jPointer) buffer;
+}
+
+void NativeOps::refreshBuffer(Nd4jPointer *extraPointers, long seed, Nd4jPointer ptrRandom) {
+	nd4j::random::RandomBuffer *buffer = reinterpret_cast<nd4j::random::RandomBuffer *> (ptrRandom);
+
+	buffer->setSeed(seed);
+    buffer->setOffset(0);
+	nd4j::random::Xoroshiro128 generator(buffer);
+	generator.refreshBuffer();
+}
+
+void NativeOps::reSeedBuffer(Nd4jPointer *extraPointers, long seed, Nd4jPointer ptrRandom) {
+    nd4j::random::RandomBuffer *buffer = reinterpret_cast<nd4j::random::RandomBuffer *> (ptrRandom);
+
+    buffer->reSeed(seed);
+}
+
+
+void NativeOps::destroyRandom(Nd4jPointer ptrBuffer) {
+    nd4j::random::RandomBuffer *buffer = reinterpret_cast<nd4j::random::RandomBuffer *>(ptrBuffer);
+
+    delete buffer;
+}
+
