@@ -801,6 +801,30 @@ namespace simdOps {
 		}
 	};
 
+    template<typename T>
+    class PRELU {
+    public:
+        no_op_exec_special
+        no_op_exec_special_cuda
+
+        op_def static T op(T d1, T d2) {
+            return nd4j::math::nd4j_leakyrelu<T>(d1, d2);
+        }
+
+        op_def static T op(T d1, T d2, T *params) {
+            return nd4j::math::nd4j_leakyrelu<T>(d1, d2);
+        }
+
+		//FIXME
+        op_def static T op(T d1) {
+            return d1;
+        }
+
+        //FIXME
+        op_def static T op(T d1, T *params) {
+            return d1;
+        }
+    };
 
 	template<typename T>
 	class ASin {
