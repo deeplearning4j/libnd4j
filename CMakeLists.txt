@@ -6,7 +6,6 @@ option(PTX "Compile ptx" OFF)
 option(CUBIN "Compile cubin" OFF)
 option(ECLIPSE "Generate eclipse files" OFF)
 option(BLAS "Compile blas shared library for either cuda or cpu" ON)
-option(DEV ON)
 option(NATIVE "Optimize for build machine (might not work on others)" OFF)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 #ensure we create lib files
@@ -29,36 +28,16 @@ endif()
 
 
 
-include_directories(include)
 add_subdirectory(include)
-add_subdirectory(src)
 
 find_package(CUDA)
 
-if(DEV)
-    if (CUDA_FOUND)
-        add_definitions(-D__CUDACC__)
-        message("CUDA found!")
-        set( CUDA_ARCHITECTURE_MINIMUM "3.5" CACHE STRING "Minimum required CUDA compute capability" )
-        include_directories(/usr/local/cuda/include)
-        SET(CUDA_VERBOSE_BUILD ON)
-        SET(CUDA_SEPARABLE_COMPILATION OFF)
-        set(CUDA_COMPUTE_CAPABILITY "35")
-        if (FATBIN)
-            list(APPEND CUDA_NVCC_FLAGS "-DVERBOSE;-G;-g; -gencode arch=compute_20,code=sm_20 -gencode arch=compute_30,code=sm_30 -gencode arch=compute_35,code=sm_35 -gencode arch=compute_37,code=sm_37 -gencode arch=compute_50,code=sm_50 -gencode arch=compute_52,code=sm_52")
-        else()
-            list(APPEND CUDA_NVCC_FLAGS "-DVERBOSE;-G;-g; -gencode arch=compute_35,code=sm_35")
-        endif()
-    endif(CUDA_FOUND)
+include_directories(include/ include/helpers/ include/loops/ include/ops/ include/types/)
+add_executable(main main.cpp include/helpers/files.h tests/TadTest.cpp tests/TadTest.h)
 
-    set(CUDA_BLAS TRUE)
-    add_executable(main main.cpp include/helpers/files.h)
-endif(DEV)
+target_link_libraries(main gtest gtest_main)
 
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    include_directories("/usr/include")
-    include_directories("/usr/local/include")
-ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+
 
 
 if(ECLIPSE)
