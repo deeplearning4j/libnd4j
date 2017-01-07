@@ -44,6 +44,17 @@ namespace {
         int dims[3][2] = {
                 {0,1},{0,2},{1,2}
         };
+
+        int shape[3] {rows,cols,dim2};
+
+        //Along dimension 0,1: expect matrix with shape [rows,cols]
+        //Along dimension 0,2: expect matrix with shape [rows,dim2]
+        //Along dimension 1,2: expect matrix with shape [cols,dim2]
+        int expectedShapes[3][2] = {
+                {rows,cols},
+                {rows,dim2},
+                {cols,dim2}
+        };
     };
 
     class TensorTwoFromFourDDimTest : public testing::Test {
@@ -53,6 +64,7 @@ namespace {
         int cols = 4;
         int dim2 = 5;
         int dim3 = 6;
+        int shape[4] = {rows,cols,dim2,dim3};
         int dimensionLength = 2;
         //Along dimension 0,1: expect matrix with shape [rows,cols]
         //Along dimension 0,2: expect matrix with shape [rows,dim2]
@@ -62,11 +74,32 @@ namespace {
         //Along dimension 2,3: expect matrix with shape [dim2,dim3]
 
         int dims[6][2] = {
-                {0,1},{0,2},{0,3},{1,2},{1,3},{2,3}
+                {0,1},
+                {0,2},
+                {0,3},
+                {1,2},
+                {1,3},
+                {2,3}
+        };
+
+        int expectedShapes[6][2] = {
+                 {rows,cols},
+                 {rows,dim2},
+                 {rows,dim3},
+                 {cols,dim2},
+                 {cols,dim3}
+                ,{dim2,dim3}
         };
     };
 
 
+    class TestRemoveIndex : public testing::Test {};
+
+    class TestReverseCopy : public testing::Test {};
+
+    class TestConcat : public testing::Test {};
+
+    class SliceTest : public testing::Test {};
 
 }
 
@@ -81,6 +114,46 @@ namespace {
 }
 
 
+TEST_F(SliceTest,TestSlice) {
+    int shape[2] = {3,2};
+    int *shapeBuffer = shape::shapeBuffer(2,shape);
+    int sliceShape[2] = {1,2};
+    int *sliceShapeBuffer = shape::shapeBuffer(2,sliceShape);
+    int *testSlice = shape::sliceOfShapeBuffer(0,shapeBuffer);
+    EXPECT_TRUE(arrsEquals(2,sliceShapeBuffer,testSlice));
+    delete[] testSlice;
+    delete[] shapeBuffer;
+    delete[] sliceShapeBuffer;
+
+}
+
+
+TEST_F(TestConcat,ConcatTest) {
+    int firstArr[2] = {1,2};
+    int secondConcat[2] = {3,4};
+    int concatAssertion[4] = {1,2,3,4};
+    int *concatTest = shape::concat(firstArr,2,secondConcat,2);
+    EXPECT_TRUE(arrsEquals(4,concatAssertion,concatTest));
+    delete[] concatTest;
+}
+
+TEST_F(TestReverseCopy,ReverseCopyTest) {
+    int toCopy[5] = {0,1,2,3,4};
+    int reverseAssertion[5] = {4,3,2,1,0};
+    int *reverseCopyTest = shape::reverseCopy(toCopy,5);
+    EXPECT_TRUE(arrsEquals(5,reverseAssertion,reverseCopyTest));
+    delete[] reverseCopyTest;
+}
+
+TEST_F(TestRemoveIndex,Remove) {
+    int input[5] = {0,1,2,3,4};
+    int indexesToRemove[3] = {0,1,2};
+    int indexesToRemoveAssertion[2] = {3,4};
+    int *indexesToRemoveTest = shape::removeIndex(input,indexesToRemove,5,3);
+    EXPECT_TRUE(arrsEquals(2,indexesToRemoveAssertion,indexesToRemoveTest));
+    delete[] indexesToRemoveTest;
+}
+
 TEST_F(TensorTwoFromFourDDimTest,TadTwoFromFourDimTest) {
     //Along dimension 0,1: expect matrix with shape [rows,cols]
     //Along dimension 0,2: expect matrix with shape [rows,dim2]
@@ -88,24 +161,43 @@ TEST_F(TensorTwoFromFourDDimTest,TadTwoFromFourDimTest) {
     //Along dimension 1,2: expect matrix with shape [cols,dim2]
     //Along dimension 1,3: expect matrix with shape [cols,dim3]
     //Along dimension 2,3: expect matrix with shape [dim2,dim3]
-
+    int *baseShapeBuffer = shape::shapeBuffer(4,shape);
     for(int i = 0; i <  3; i++) {
         int *dimArr = dims[i];
-
-
+        int *expectedShape = expectedShapes[i];
+        shape::TAD *tad = new shape::TAD(baseShapeBuffer,dimArr,dimensionLength);
+        int *expectedShapeBuffer = shape::shapeBuffer(dimensionLength,expectedShape);
+        int *testShapeBuffer = tad->shapeInfoOnlyShapeAndStride();
+        EXPECT_TRUE(arrsEquals(shape::shapeInfoLength(dimensionLength),expectedShapeBuffer,testShapeBuffer));
+        delete[] testShapeBuffer;
+        delete[] expectedShapeBuffer;
+        delete tad;
     }
 
+    delete[] baseShapeBuffer;
 }
 
 TEST_F(TensorTwoDimTest,TadTwoDimTest) {
     //Along dimension 0,1: expect matrix with shape [rows,cols]
     //Along dimension 0,2: expect matrix with shape [rows,dim2]
     //Along dimension 1,2: expect matrix with shape [cols,dim2]
+    int *baseShapeBuffer = shape::shapeBuffer(3,shape);
+
     for(int i = 0; i <  3; i++) {
         int *dimArr = dims[i];
-
+        int *expectedShape = expectedShapes[i];
+        shape::TAD *tad = new shape::TAD(baseShapeBuffer,dimArr,dimensionLength);
+        int *expectedShapeBuffer = shape::shapeBuffer(dimensionLength,expectedShape);
+        int *testShapeBuffer = tad->shapeInfoOnlyShapeAndStride();
+        EXPECT_TRUE(arrsEquals(shape::shapeInfoLength(dimensionLength),expectedShapeBuffer,testShapeBuffer));
+        delete[] testShapeBuffer;
+        delete[] expectedShapeBuffer;
+        delete tad;
 
     }
+
+    delete[] baseShapeBuffer;
+
 
 }
 
