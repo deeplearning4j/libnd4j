@@ -33,7 +33,7 @@ add_subdirectory(include)
 find_package(CUDA)
 
 include_directories(include/ include/helpers/ include/loops/ include/ops/ include/types/)
-add_executable(main main.cpp include/helpers/files.h tests/TadTest.cpp)
+add_executable(main main.cpp include/helpers/files.h tests/TadTest.cpp include/helpers/data_gen.h)
 
 target_link_libraries(main gtest gtest_main)
 

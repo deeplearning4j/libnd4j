@@ -269,7 +269,6 @@ namespace shape {
 
 
 
-
 /**
  * In place permute swap
  * @param length
