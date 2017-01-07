@@ -492,7 +492,7 @@ namespace shape {
     __host__ __device__
 #endif
 
-    INLINEDEF int *slices(int *shapeBuffer);
+    INLINEDEF int slices(int *shapeBuffer);
 
 #ifdef __CUDACC__
     __host__ __device__
@@ -1895,7 +1895,7 @@ namespace shape {
             int *ret2 = shape::sliceOfShapeBuffer(sliceIndex,permuted);
 
             if(dimensionLength == tadRank && shape::prod(tensorShape,tadRank) == shape::length(ret2)) {
-                if(dimensionLength = 1 && shape::isVector(ret2) && shape::shapeOf(ret2) == 1) {
+                if(dimensionLength = 1 && shape::isVector(ret2) && shape::shapeOf(ret2)[0] == 1) {
                     shape::permuteShapeBufferInPlace(ret2,finalPermuteDims,ret2);
                     return ret2;
                 }
@@ -1904,7 +1904,7 @@ namespace shape {
 
             int tensorLength = shape::prod(tensorShape,tadRank);
             int length = tensorLength;
-            int lengthPerSlice =  shape::lengthPerSlice(shape::rank(shapeBuffer),shape::shapeOf(shapeBuffer),dimension,dimensionLength)
+            int lengthPerSlice =  shape::lengthPerSlice(shape::rank(shapeInfo),shape::shapeOf(shapeInfo),dimension,dimensionLength);
             int offset = tadIndex * tensorLength /lengthPerSlice;
             if(sliceIndex == 0 && length == lengthPerSlice) {
                 int *newRet2 = shape::sliceOfShapeBuffer(offset,ret2);
@@ -3044,9 +3044,7 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
 #endif
 
     INLINEDEF int *doPermuteSwap(int length, int *shape, int *rearrange) {
-
         traceNew(16);
-
         int *ret = new int[length];
         for (int i = 0; i < length; i++) {
             ret[i] = shape[rearrange[i]];
@@ -3066,7 +3064,27 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
 #endif
 
     INLINEDEF void doPermuteSwap(int length, int **shape, int *rearrange) {
+        bool inOrder = true;
+        for(int i = 0; i < length - 1; i++) {
+            inOrder = inOrder && rearrange[i] < rearrange[i + 1];
+
+        }
+
+        //all in order, nothing to do
+        if(inOrder)
+            return;
+
+
         int *shapeDeref = *shape;
+        //we know they are just reversed, dimension length of 2
+        if(length == 2) {
+            int shapeFirst = shapeDeref[0];
+            int shapeSecond = shapeDeref[1];
+            shapeDeref[0] = shapeSecond;
+            shapeDeref[1] = shapeFirst;
+            return;
+        }
+
         for (int i = 0; i < length; i++) {
             int x = shapeDeref[i];
             int j = i;
@@ -3491,7 +3509,7 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
     __host__ __device__
 #endif
 
-    INLINEDEF int *slices(int *shapeBuffer) {
+    INLINEDEF int slices(int *shapeBuffer) {
         return shape::shapeOf(shapeBuffer)[0];
     }
 
