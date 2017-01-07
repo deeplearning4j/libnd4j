@@ -99,7 +99,11 @@ namespace {
 
     class TestConcat : public testing::Test {};
 
-    class SliceTest : public testing::Test {};
+    class SliceMatrixTest : public testing::Test {};
+
+    class SliceTensorTest : public testing::Test {};
+
+    class ElementWiseStrideTest : public testing::Test{};
 
 }
 
@@ -114,7 +118,24 @@ namespace {
 }
 
 
-TEST_F(SliceTest,TestSlice) {
+TEST_F(ElementWiseStrideTest,ElementWiseStrideTest) {
+
+}
+
+TEST_F(SliceTensorTest,TestSlice) {
+    int shape[3] = {3,3,2};
+    int *shapeBuffer = shape::shapeBuffer(3,shape);
+    int sliceShape[2] = {3,2};
+    int *sliceShapeBuffer = shape::shapeBuffer(2,sliceShape);
+    int *testSlice = shape::sliceOfShapeBuffer(0,shapeBuffer);
+    EXPECT_TRUE(arrsEquals(2,sliceShapeBuffer,testSlice));
+    delete[] testSlice;
+    delete[] shapeBuffer;
+    delete[] sliceShapeBuffer;
+
+}
+
+TEST_F(SliceMatrixTest,TestSlice) {
     int shape[2] = {3,2};
     int *shapeBuffer = shape::shapeBuffer(2,shape);
     int sliceShape[2] = {1,2};

@@ -488,7 +488,11 @@ namespace shape {
 #endif
 
     INLINEDEF int *slice(int *shape);
+#ifdef __CUDACC__
+    __host__ __device__
+#endif
 
+    INLINEDEF int *slices(int *shapeBuffer);
 
 #ifdef __CUDACC__
     __host__ __device__
@@ -1262,6 +1266,7 @@ namespace shape {
         int *shapeInfo = nullptr;
         int *tadOnlyShapeInfo = nullptr;
         int numTads = 0;
+        int tadRank = 0;
         int *tadShape = nullptr;
         int *tadStride = nullptr;
         int *tadOffsets = nullptr;
@@ -1727,6 +1732,7 @@ namespace shape {
             int *theShape = shape::shapeOf(shapeInfo);
             int *tensorShape = shape::keep(theShape,dimension,dimensionLength,shape::rank(shapeInfo));
             this->tadShape = tensorShape;
+            this->tadRank = dimensionLength;
             return tensorShape;
         }
 #ifdef __CUDACC__
@@ -1875,7 +1881,50 @@ namespace shape {
 
 
 
+            int *ret2 = shape::sliceOfShapeBuffer(sliceIndex,permuted);
 
+            if(dimensionLength == tadRank && shape::prod(tensorShape,tadRank) == shape::length(ret2)) {
+                if(dimensionLength = 1 && shape::isVector(ret2) && shape::shapeOf(ret2) == 1) {
+                    shape::permuteShapeBufferInPlace(ret2,finalPermuteDims,ret2);
+                    return ret2;
+                }
+            }
+
+
+            int tensorLength = shape::prod(tensorShape,tadRank);
+            int length = tensorLength;
+            int lengthPerSlice =  shape::lengthPerSlice(shape::rank(shapeBuffer),shape::shapeOf(shapeBuffer),dimension,dimensionLength)
+            int offset = tadIndex * tensorLength /lengthPerSlice;
+            if(sliceIndex == 0 && length == lengthPerSlice) {
+                int *newRet2 = shape::sliceOfShapeBuffer(offset,ret2);
+                delete[] ret2;
+                ret2 = newRet2;
+                shape::permuteShapeBufferInPlace(ret2,finalPermuteDims,ret2);
+
+            }
+            else if(length == lengthPerSlice) {
+                offset -= shape::slices(ret2) * (offset / shape::slices(ret2));
+                int *newRet2 = shape::sliceOfShapeBuffer(offset,ret2);
+                delete[] ret2;
+                ret2 = newRet2;
+                if(dimensionLength == 1 && shape::isVector(ret2) && shape::shapeOf(ret2)[0] == 1)
+                    return ret2;
+                shape::permuteShapeBufferInPlace(ret2,finalPermuteDims,ret2);
+                return ret2;
+            }
+
+
+            while(shape::length(ret2) > length) {
+               // sliceIndex = shape::sliceOffsetForTensor()
+                sliceIndex -= shape::slices(ret2) * (sliceIndex / shape::slices(ret2));
+                int *newRet2 = shape::sliceOfShapeBuffer(sliceIndex,ret2);
+                delete[] ret2;
+                ret2 = newRet2;
+            }
+
+            if(dimensionLength == 1 &&  shape::isVector(ret2) && shape::shapeOf(ret2)[0] == 1)
+                return ret2;
+            
 
             delete[] finalPermuteDims;
             delete[] permuted;
@@ -1883,7 +1932,8 @@ namespace shape {
             delete[] rankRange;
             delete[] remove;
             delete[] reverseDimensions;
-            return ret;
+            shape::permuteShapeBufferInPlace(ret2,finalPermuteDims,ret2);
+            return ret2;
         }
 
 
@@ -3429,9 +3479,19 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
     __host__ __device__
 #endif
 
+    INLINEDEF int *slices(int *shapeBuffer) {
+        return shape::shapeOf(shapeBuffer)[0];
+    }
+
+#ifdef __CUDACC__
+    __host__ __device__
+#endif
+
     INLINEDEF int *sliceOfShapeBuffer(int sliceIdx,int *shapeBuffer) {
         int rank = shape::rank(shapeBuffer);
         int newRank = rank - 1;
+        if(newRank < 2)
+            newRank = 2;
         int *newShapeBuffer = new int[shape::shapeInfoLength(newRank)];
         newShapeBuffer[0] = newRank;
         int *currShape = shape::shapeOf(shapeBuffer);
@@ -3442,13 +3502,22 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
         //of the shape and stride
         int *newShape = shape::shapeOf(newShapeBuffer);
         int *newStride = shape::stride(newShapeBuffer);
-        for(int i = 0; i < newRank; i++) {
-            newShape[i] = currShape[i + 1];
-            newStride[i] = currStride[i + 1];
+        if(shape::isMatrix(shapeBuffer)) {
+            newShape[0] = 1;
+            newShape[1] = currShape[1];
+            newStride[0] = shape::elementWiseStride(shapeBuffer);
+            newStride[1] = currStride[1];
+        }
+        else {
+            for(int i = 0; i < newRank; i++) {
+                newShape[i] = currShape[i + 1];
+                newStride[i] = currStride[i + 1];
+            }
         }
 
+
         int *indices = new int[rank];
-        memset((void *) indices,0,sizeof(indices));
+        memset((void *) indices,0,rank * sizeof(int));
         indices[0] = sliceIdx;
         int offset = shape::getOffset(0,newShape,newStride,indices,rank);
         newShapeBuffer[shape::shapeInfoLength(newRank) - 3] = offset;
