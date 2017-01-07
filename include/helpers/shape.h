@@ -821,7 +821,18 @@ namespace shape {
     INLINEDEF int sliceOffsetForTensor(int rank, int index, int *shape, int *tensorShape,
                                        int tensorShapeLength, int *dimension, int dimensionLength);
 
+/**
+ * calculates the offset for a tensor
+ * @param index
+ * @param arr
+ * @param tensorShape
+ * @return
+ */
+#ifdef __CUDACC__
+    __host__ __device__
+#endif
 
+    INLINEDEF int sliceOffsetForTensor(int index,int tensorLength,int lengthPerSlice2);
 /**
  * Computes the tensor along dimension
  * offset
@@ -1913,9 +1924,10 @@ namespace shape {
                 return ret2;
             }
 
-
+            int sliceDimension = 0;
             while(shape::length(ret2) > length) {
-               // sliceIndex = shape::sliceOffsetForTensor()
+                int lengthPerSlice2 = shape::lengthPerSlice(shape::rank(ret2),shape::shapeOf(ret2),&sliceDimension,1);
+                sliceIndex =    sliceOffsetForTensor(sliceIndex,shape::length(ret2),lengthPerSlice2);
                 sliceIndex -= shape::slices(ret2) * (sliceIndex / shape::slices(ret2));
                 int *newRet2 = shape::sliceOfShapeBuffer(sliceIndex,ret2);
                 delete[] ret2;
@@ -1924,7 +1936,7 @@ namespace shape {
 
             if(dimensionLength == 1 &&  shape::isVector(ret2) && shape::shapeOf(ret2)[0] == 1)
                 return ret2;
-            
+
 
             delete[] finalPermuteDims;
             delete[] permuted;
@@ -4166,6 +4178,24 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
         int offset = index * tensorLength / lengthPerSlice2;
         return offset;
     }
+
+    /**
+ * calculates the offset for a tensor
+ * @param index
+ * @param arr
+ * @param tensorShape
+ * @return
+ */
+#ifdef __CUDACC__
+    __host__ __device__
+#endif
+
+    INLINEDEF int sliceOffsetForTensor(int index,int tensorLength,int lengthPerSlice2) {
+        int offset = index * tensorLength / lengthPerSlice2;
+        return offset;
+    }
+
+
 #ifdef __CUDACC__
 
     /**
