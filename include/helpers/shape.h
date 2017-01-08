@@ -1866,13 +1866,8 @@ namespace shape {
             int *theShape = shape::shapeOf(shapeInfo);
             int *theStride = shape::stride(shapeInfo);
             int rank = this->originalDimensionLength <= 1 ? 2 : originalDimensionLength;
-            int *ret = new int[shape::shapeInfoLength(rank)];
 
 
-            //set the rank
-            ret[0] = rank;
-            int *retShape = shape::shapeOf(ret);
-            int *retStride = shape::stride(ret);
 
             int *tensorShape = this->tensorShape();
             int *reverseDimensions = shape::reverseCopy(dimension,dimensionLength);
@@ -1881,7 +1876,6 @@ namespace shape {
             int *newPermuteDims = shape::concat(remove,rank - dimensionLength,reverseDimensions,dimensionLength);
             int *permuted = shape::permuteShapeBuffer(shapeInfo,newPermuteDims);
             int *finalPermuteDims = shape::reverseCopy(dimension,dimensionLength);
-
             int sliceIndex = shape::sliceOffsetForTensor(shape::rank(permuted),
                                                          this->tadIndex,
                                                          shape::shapeOf(shapeInfo),
@@ -1893,12 +1887,15 @@ namespace shape {
 
 
             int *ret2 = shape::sliceOfShapeBuffer(sliceIndex,permuted);
-
             if(dimensionLength == tadRank && shape::prod(tensorShape,tadRank) == shape::length(ret2)) {
                 if(dimensionLength = 1 && shape::isVector(ret2) && shape::shapeOf(ret2)[0] == 1) {
+                    return ret2;
+                }
+                else {
                     shape::permuteShapeBufferInPlace(ret2,finalPermuteDims,ret2);
                     return ret2;
                 }
+
             }
 
 
@@ -3532,7 +3529,27 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
         //of the shape and stride
         int *newShape = shape::shapeOf(newShapeBuffer);
         int *newStride = shape::stride(newShapeBuffer);
-        if(shape::isMatrix(shapeBuffer)) {
+        if(shape::isVector(shapeBuffer)) {
+            int *currShape = shape::shapeOf(shapeBuffer);
+            //row vector: slice index 0 is a valid index, just copy the whole thing
+            if(currShape[0] == 1) {
+                if(sliceIdx == 0) {
+                    memcpy(newShapeBuffer,shapeBuffer,shape::shapeInfoLength(shape::rank(shapeBuffer) * sizeof(int)));
+                    return newShapeBuffer;
+                }
+            }
+                //column vector: this will be a scalar
+            else {
+                delete[] newShapeBuffer;
+                int *scalar = shape::createScalarShapeInfo();
+                int offset = shape::offset(shapeBuffer);
+                scalar[shape::shapeInfoLength(2) - 3] = offset + sliceIdx;
+                return scalar;
+
+            }
+
+        }
+        else if(shape::isMatrix(shapeBuffer)) {
             newShape[0] = 1;
             newShape[1] = currShape[1];
             newStride[0] = shape::elementWiseStride(shapeBuffer);

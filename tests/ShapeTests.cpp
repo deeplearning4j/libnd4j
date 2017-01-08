@@ -99,11 +99,15 @@ namespace {
 
     class TestConcat : public testing::Test {};
 
+    class SliceVectorTest : public testing::Test {};
+
     class SliceMatrixTest : public testing::Test {};
 
     class SliceTensorTest : public testing::Test {};
 
     class ElementWiseStrideTest : public testing::Test{};
+
+    class PermuteTest : public testing::Test{};
 
 }
 
@@ -117,9 +121,50 @@ namespace {
 
 }
 
+TEST_F(PermuteTest,PermuteShapeBufferTest) {
+    int permuteOrder[4] = {3,2,1,0};
+    int normalOrder[4] = {0,1,2,3};
+    int shapeToPermute[4] = {5,3,2,6};
+    int permutedOrder[4] = {6,2,3,5};
+    int *shapeBufferOriginal = shape::shapeBuffer(4,shapeToPermute);
+    int *assertionShapeBuffer = shape::shapeBuffer(4,shapeToPermute);
+    shape::permuteShapeBufferInPlace(shapeBufferOriginal,normalOrder,shapeBufferOriginal);
+    EXPECT_TRUE(arrsEquals(4,assertionShapeBuffer,shapeBufferOriginal));
+
+    int *backwardsAssertion = shape::shapeBuffer(4,permutedOrder);
+    int *permuted = shape::permuteShapeBuffer(assertionShapeBuffer,permuteOrder);
+    EXPECT_TRUE(arrsEquals(4,backwardsAssertion,permuted));
+
+
+    delete[] permuted;
+    delete[] backwardsAssertion;
+    delete[] shapeBufferOriginal;
+    delete[] assertionShapeBuffer;
+}
 
 TEST_F(ElementWiseStrideTest,ElementWiseStrideTest) {
 
+}
+
+TEST_F(SliceVectorTest,RowColumnVectorTest) {
+    int rowVectorShape[2] = {1,5};
+    int *rowVectorShapeInfo = shape::shapeBuffer(2,rowVectorShape);
+    int colVectorShape[2] = {5,1};
+    int *colVectorShapeInfo = shape::shapeBuffer(2,colVectorShape);
+    int *sliceRow = shape::sliceOfShapeBuffer(0,rowVectorShapeInfo);
+    EXPECT_TRUE(arrsEquals(2,rowVectorShapeInfo,sliceRow));
+    int *scalarSliceInfo = shape::createScalarShapeInfo();
+    int *scalarColumnAssertion = shape::createScalarShapeInfo();
+    scalarColumnAssertion[shape::shapeInfoLength(2) - 3] = 1;
+    int *scalarColumnTest = shape::sliceOfShapeBuffer(1,colVectorShapeInfo);
+    EXPECT_TRUE(arrsEquals(2,scalarColumnAssertion,scalarColumnTest));
+
+    delete[] scalarColumnTest;
+    delete[] scalarColumnAssertion;
+    delete[] scalarSliceInfo;
+    delete[] sliceRow;
+    delete[] rowVectorShapeInfo;
+    delete[] colVectorShapeInfo;
 }
 
 TEST_F(SliceTensorTest,TestSlice) {
@@ -282,7 +327,7 @@ TEST_F(VectorTest,VectorTadShape) {
     shape::TAD *colTad = new shape::TAD(colShapeBuffer,&colDimension,1);
     int *colTadShapeBuffer = colTad->shapeInfoOnlyShapeAndStride();
     int *colTadShape = shape::shapeOf(colTadShapeBuffer);
-    int assertionShape[2] = {1,5};
+    int assertionShape[2] = {1,2};
     EXPECT_TRUE(arrsEquals(2,assertionShape,rowTadShape));
     EXPECT_TRUE(arrsEquals(2,assertionShape,colTadShape));
 
