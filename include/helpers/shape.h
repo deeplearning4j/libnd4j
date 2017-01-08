@@ -1863,11 +1863,20 @@ namespace shape {
             if(dimensionLength < 1 && !shape::isVector(shapeInfo))
                 return shapeInfo;
 
+
             int *theShape = shape::shapeOf(shapeInfo);
             int *theStride = shape::stride(shapeInfo);
             int rank = shape::rank(shapeInfo);
 
-
+            if(dimensionLength == 1) {
+                if(dimension[0] == 0 && shape::isVector(shapeInfo) && theShape[1] == 1) {
+                    int permuted[2] = {1,0};
+                    shape::permuteShapeBufferInPlace(shapeInfo,permuted,shapeInfo);
+                    return shapeInfo;
+                } else if(dimension[0] == 1 && shape::isVector(shapeInfo) && theShape[0] == 1) {
+                    return shapeInfo;
+                }
+            }
 
             int *tensorShape = this->tensorShape();
             int *reverseDimensions = shape::reverseCopy(dimension,dimensionLength);
@@ -1888,7 +1897,12 @@ namespace shape {
 
 
             int *ret2 = shape::sliceOfShapeBuffer(sliceIndex,permuted);
-            if(dimensionLength == tadRank && shape::prod(tensorShape,tadRank) == shape::length(ret2)) {
+            int ret2SliceLength = shape::lengthPerSlice(shape::rank(ret2),shape::shapeOf(ret2),dimension,dimensionLength);
+            int tensorLength = shape::prod(tensorShape,tadRank);
+            int offset = tadIndex * tensorLength / ret2SliceLength;
+
+            int compLength = shape::isVector(ret2) ? shape::length(ret2)  : shape::prod(tensorShape,tadRank);
+            if(dimensionLength == tadRank && compLength == ret2SliceLength) {
                 if(dimensionLength == 1 && shape::isVector(ret2) && shape::shapeOf(ret2)[0] == 1) {
                     //go to the bottom and return ret2 after proper freeing of pointers
                     //basic idea; we *don't* permute row vectors
@@ -1900,7 +1914,6 @@ namespace shape {
 
             }
             else {
-                int tensorLength = shape::prod(tensorShape,tadRank);
                 int length = tensorLength;
                 int lengthPerSlice =  shape::lengthPerSlice(shape::rank(shapeInfo),shape::shapeOf(shapeInfo),dimension,dimensionLength);
                 int offset = tadIndex * tensorLength /lengthPerSlice;
@@ -3569,7 +3582,7 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
         else if(shape::isMatrix(shapeBuffer)) {
             newShape[0] = 1;
             newShape[1] = currShape[1];
-            newStride[0] = shape::elementWiseStride(shapeBuffer);
+            newStride[0] = 1;
             newStride[1] = currStride[1];
         }
         else {
@@ -4198,14 +4211,18 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
 #endif
 
     INLINEDEF int lengthPerSlice(int rank, int *shape, int *dimension, int dimensionLength) {
+        if(shape::isVector(shape,rank)) {
+            //return total length for row vectors
+            if(dimensionLength == 1 && shape[0] == 1) {
+                return shape::prod(shape,rank);
+            }
+        }
+        else if(rank == dimensionLength)
+            return shape::prod(shape,rank);
         int absSelta = nd4j::math::nd4j_abs<int>(rank - dimensionLength);
-
         traceNew(27);
-
-        int *ret2 = new int[absSelta];
-        removeIndex(shape, dimension, rank, dimensionLength, ret2);
-        int length = rank - dimensionLength;
-        int ret = prod(ret2, length);
+        int *ret2 = shape::removeIndex(shape,dimension,rank,dimensionLength);
+        int ret = prod(ret2, absSelta);
         delete[] ret2;
         return ret;
     }

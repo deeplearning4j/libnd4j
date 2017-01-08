@@ -23,6 +23,14 @@ namespace {
         int cols = 4;
         int rank = 2;
         int dims[2] = {0,1};
+        int expectedShapes[2][2] = {
+                {1,3},
+                {1,4}
+        };
+        int expectedStrides[2][2] = {
+                {1,4},
+                {1,1}
+        };
     };
 
     class TensorOneDimTest : public testing::Test {
@@ -32,6 +40,16 @@ namespace {
         int dim2 = 5;
         int rank = 3;
         int dims[3] = {0,1,2};
+        int expectedShapes[3][2] = {
+                {1,3},
+                {1,4},
+                {1,5}
+        };
+        int expectedStrides[3][2] = {
+                {1,20},
+                {1,5},
+                {1,1}
+        };
     };
 
     class TensorTwoDimTest : public testing::Test {
@@ -125,6 +143,8 @@ namespace {
 
     class PermuteTest : public testing::Test{};
 
+    class LengthPerSliceTest : public testing::Test{};
+
 }
 
 //http://stackoverflow.com/questions/228005/alternative-to-itoa-for-converting-integer-to-string-c
@@ -149,6 +169,15 @@ std::string int_array_to_string(int int_array[], int size_of_array) {
     }
     return ::testing::AssertionSuccess();
 
+}
+
+
+TEST_F(LengthPerSliceTest,TestLengthPerSlice) {
+    int firstShape[2] = {5,3};
+    int lengthPerSliceAssertionFirst = 3;
+    int firstDimension = 0;
+    int lengthPerSliceTest = shape::lengthPerSlice(2,firstShape,&firstDimension,1);
+    ASSERT_EQ(lengthPerSliceAssertionFirst,lengthPerSliceTest);
 }
 
 TEST_F(PermuteTest,PermuteShapeBufferTest) {
@@ -308,14 +337,14 @@ TEST_F(TensorOneDimTest,TadDimensionsForTensor) {
     int *shapeBuffer = shape::shapeBuffer(rank,shape);
 
     for(int i = 0; i < rank; i++) {
-        int expectedDimZeroShape[2] = {1,shape[i]};
-        int *expectedDimZeroShapeBuffer = shape::shapeBuffer(2,expectedDimZeroShape);
         //Along dimension 0: expect row vector with length 'dims[i]'
         shape::TAD *zero = new shape::TAD(shapeBuffer,&dims[i],1);
         int *testDimZeroShapeBuffer = zero->shapeInfoOnlyShapeAndStride();
-        EXPECT_TRUE(arrsEquals(shape::shapeInfoLength(2),expectedDimZeroShape,testDimZeroShapeBuffer));
+        int *testShape = shape::shapeOf(testDimZeroShapeBuffer);
+        int *testStride = shape::stride(testDimZeroShapeBuffer);
+        EXPECT_TRUE(arrsEquals(2,expectedShapes[i],testShape));
+        EXPECT_TRUE(arrsEquals(2,expectedStrides[i],testStride));
         delete[] testDimZeroShapeBuffer;
-        delete[] expectedDimZeroShapeBuffer;
 
     }
 
@@ -332,14 +361,16 @@ TEST_F(MatrixTest,TadDimensionsForMatrix) {
     int rowVectorShape[2] = {1,rows};
     int *expectedDimZeroShape = shape::shapeBuffer(2,rowVectorShape);
     int *testDimZero = dimZero->shapeInfoOnlyShapeAndStride();
-    EXPECT_TRUE(arrsEquals(shape::shapeInfoLength(2),expectedDimZeroShape,testDimZero));
+    EXPECT_TRUE(arrsEquals(2,expectedShapes[0],shape::shapeOf(testDimZero)));
+    EXPECT_TRUE(arrsEquals(2,expectedStrides[0],shape::stride(testDimZero)));
     delete[] testDimZero;
     delete[] expectedDimZeroShape;
     //Along dimension 1: expect row vector with length 'cols'
     int rowVectorColShape[2] {1,cols};
     int *expectedDimOneShape = shape::shapeBuffer(2,rowVectorColShape);
     int *testDimOneShape = dimOne->shapeInfoOnlyShapeAndStride();
-    EXPECT_TRUE(arrsEquals(shape::shapeInfoLength(2),expectedDimOneShape,testDimOneShape));
+    EXPECT_TRUE(arrsEquals(2,expectedShapes[1],shape::shapeOf(testDimOneShape)));
+    EXPECT_TRUE(arrsEquals(2,expectedStrides[1],shape::stride(testDimOneShape)));
     delete[] testDimOneShape;
     delete[] expectedDimOneShape;
     delete dimOne;
@@ -364,7 +395,9 @@ TEST_F(VectorTest,VectorTadShape) {
     int *colTadShapeBuffer = colTad->shapeInfoOnlyShapeAndStride();
     int *colTadShape = shape::shapeOf(colTadShapeBuffer);
     int assertionShape[2] = {1,2};
+    int assertionStride[2] = {1,1};
     EXPECT_TRUE(arrsEquals(2,assertionShape,rowTadShape));
+    EXPECT_TRUE(arrsEquals(2,assertionStride,shape::stride(rowTadShapeBuffer)));
     EXPECT_TRUE(arrsEquals(2,assertionShape,colTadShape));
 
     delete[] rowBuffer;
