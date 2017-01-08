@@ -1902,7 +1902,7 @@ namespace shape {
             int offset = tadIndex * tensorLength / ret2SliceLength;
 
             int compLength = shape::isVector(ret2) ? shape::length(ret2)  : shape::prod(tensorShape,tadRank);
-            if(dimensionLength == tadRank && compLength == ret2SliceLength) {
+            if(dimensionLength == tadRank && compLength == shape::length(ret2)) {
                 if(dimensionLength == 1 && shape::isVector(ret2) && shape::shapeOf(ret2)[0] == 1) {
                     //go to the bottom and return ret2 after proper freeing of pointers
                     //basic idea; we *don't* permute row vectors
