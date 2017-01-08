@@ -1865,7 +1865,7 @@ namespace shape {
 
             int *theShape = shape::shapeOf(shapeInfo);
             int *theStride = shape::stride(shapeInfo);
-            int rank = this->originalDimensionLength <= 1 ? 2 : originalDimensionLength;
+            int rank = shape::rank(shapeInfo);
 
 
 
@@ -1873,6 +1873,7 @@ namespace shape {
             int *reverseDimensions = shape::reverseCopy(dimension,dimensionLength);
             int *rankRange = shape::range(0,rank);
             int *remove  = shape::removeIndex(rankRange,dimension,rank,dimensionLength);
+            //concat is wrong here with the length
             int *newPermuteDims = shape::concat(remove,rank - dimensionLength,reverseDimensions,dimensionLength);
             int *permuted = shape::permuteShapeBuffer(shapeInfo,newPermuteDims);
             int *finalPermuteDims = shape::reverseCopy(dimension,dimensionLength);
@@ -1888,51 +1889,68 @@ namespace shape {
 
             int *ret2 = shape::sliceOfShapeBuffer(sliceIndex,permuted);
             if(dimensionLength == tadRank && shape::prod(tensorShape,tadRank) == shape::length(ret2)) {
-                if(dimensionLength = 1 && shape::isVector(ret2) && shape::shapeOf(ret2)[0] == 1) {
-                    return ret2;
+                if(dimensionLength == 1 && shape::isVector(ret2) && shape::shapeOf(ret2)[0] == 1) {
+                    //go to the bottom and return ret2 after proper freeing of pointers
+                    //basic idea; we *don't* permute row vectors
                 }
                 else {
+                    //permute *then* return ret2
                     shape::permuteShapeBufferInPlace(ret2,finalPermuteDims,ret2);
-                    return ret2;
                 }
 
             }
+            else {
+                int tensorLength = shape::prod(tensorShape,tadRank);
+                int length = tensorLength;
+                int lengthPerSlice =  shape::lengthPerSlice(shape::rank(shapeInfo),shape::shapeOf(shapeInfo),dimension,dimensionLength);
+                int offset = tadIndex * tensorLength /lengthPerSlice;
+                if(sliceIndex == 0 && length == lengthPerSlice) {
+                    int *newRet2 = shape::sliceOfShapeBuffer(offset,ret2);
+                    delete[] ret2;
+                    ret2 = newRet2;
+                    shape::permuteShapeBufferInPlace(ret2,finalPermuteDims,ret2);
 
+                }
+                else if(length == lengthPerSlice) {
+                    offset -= shape::slices(ret2) * (offset / shape::slices(ret2));
+                    int *newRet2 = shape::sliceOfShapeBuffer(offset,ret2);
+                    delete[] ret2;
+                    ret2 = newRet2;
+                    if(dimensionLength == 1 && shape::isVector(ret2) && shape::shapeOf(ret2)[0] == 1) {
+                        //go to the bottom and return ret2 after proper freeing of pointers
+                        //basic idea; we *don't* permute row vectors
+                    }
+                    else {
+                        shape::permuteShapeBufferInPlace(ret2,finalPermuteDims,ret2);
 
-            int tensorLength = shape::prod(tensorShape,tadRank);
-            int length = tensorLength;
-            int lengthPerSlice =  shape::lengthPerSlice(shape::rank(shapeInfo),shape::shapeOf(shapeInfo),dimension,dimensionLength);
-            int offset = tadIndex * tensorLength /lengthPerSlice;
-            if(sliceIndex == 0 && length == lengthPerSlice) {
-                int *newRet2 = shape::sliceOfShapeBuffer(offset,ret2);
-                delete[] ret2;
-                ret2 = newRet2;
-                shape::permuteShapeBufferInPlace(ret2,finalPermuteDims,ret2);
+                    }
+
+                }
+                else {
+                    //execute final part, note that this is mainly so delete[] gets called
+                    //at the bottom of the method
+                    int sliceDimension = 0;
+                    while(shape::length(ret2) > length) {
+                        int lengthPerSlice2 = shape::lengthPerSlice(shape::rank(ret2),shape::shapeOf(ret2),&sliceDimension,1);
+                        sliceIndex =    sliceOffsetForTensor(sliceIndex,shape::length(ret2),lengthPerSlice2);
+                        sliceIndex -= shape::slices(ret2) * (sliceIndex / shape::slices(ret2));
+                        int *newRet2 = shape::sliceOfShapeBuffer(sliceIndex,ret2);
+                        delete[] ret2;
+                        ret2 = newRet2;
+                    }
+
+                    //don't permute on a row vector
+                    if(dimensionLength == 1 &&  shape::isVector(ret2) && shape::shapeOf(ret2)[0] == 1) {
+                        //go to the bottom and return ret2 after proper freeing of pointers
+                        //basic idea; we *don't* permute row vectors
+                    }
+                    else {
+                        shape::permuteShapeBufferInPlace(ret2,finalPermuteDims,ret2);
+                    }
+
+                }
 
             }
-            else if(length == lengthPerSlice) {
-                offset -= shape::slices(ret2) * (offset / shape::slices(ret2));
-                int *newRet2 = shape::sliceOfShapeBuffer(offset,ret2);
-                delete[] ret2;
-                ret2 = newRet2;
-                if(dimensionLength == 1 && shape::isVector(ret2) && shape::shapeOf(ret2)[0] == 1)
-                    return ret2;
-                shape::permuteShapeBufferInPlace(ret2,finalPermuteDims,ret2);
-                return ret2;
-            }
-
-            int sliceDimension = 0;
-            while(shape::length(ret2) > length) {
-                int lengthPerSlice2 = shape::lengthPerSlice(shape::rank(ret2),shape::shapeOf(ret2),&sliceDimension,1);
-                sliceIndex =    sliceOffsetForTensor(sliceIndex,shape::length(ret2),lengthPerSlice2);
-                sliceIndex -= shape::slices(ret2) * (sliceIndex / shape::slices(ret2));
-                int *newRet2 = shape::sliceOfShapeBuffer(sliceIndex,ret2);
-                delete[] ret2;
-                ret2 = newRet2;
-            }
-
-            if(dimensionLength == 1 &&  shape::isVector(ret2) && shape::shapeOf(ret2)[0] == 1)
-                return ret2;
 
 
             delete[] finalPermuteDims;
@@ -1941,7 +1959,6 @@ namespace shape {
             delete[] rankRange;
             delete[] remove;
             delete[] reverseDimensions;
-            shape::permuteShapeBufferInPlace(ret2,finalPermuteDims,ret2);
             return ret2;
         }
 
@@ -3063,7 +3080,7 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
     INLINEDEF void doPermuteSwap(int length, int **shape, int *rearrange) {
         bool inOrder = true;
         for(int i = 0; i < length - 1; i++) {
-            inOrder = inOrder && rearrange[i] < rearrange[i + 1];
+            inOrder = inOrder && rearrange[i] +1 == rearrange[i + 1];
 
         }
 
@@ -3875,7 +3892,11 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
 #endif
 
     INLINEDEF int * removeIndex(int *data, int *indexes, int dataLength, int indexesLength) {
-        int *ret = new int[dataLength - indexesLength];
+        int lengthOfArr = dataLength - indexesLength;
+        if(lengthOfArr <= 0) {
+            printf("Remove index call created a <= 0 length array. This was likely not intended.");
+        }
+        int *ret = new int[lengthOfArr];
         removeIndex(data,indexes,dataLength,indexesLength,ret);
         return ret;
     }
@@ -3899,7 +3920,6 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
                     found = true;
                     break;
                 }
-
             }
 
             if(!found) {

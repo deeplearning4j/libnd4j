@@ -6,7 +6,7 @@
 #include <gmock/gmock.h>
 #include <shape.h>
 #include <data_gen.h>
-
+#include <cstdlib>
 namespace {
     class VectorTest : public testing::Test {
 
@@ -55,6 +55,13 @@ namespace {
                 {rows,dim2},
                 {cols,dim2}
         };
+
+        int expectedStrides[3][2] = {
+                {20,5},
+                {20,1},
+                {5,1}
+        };
+
     };
 
     class TensorTwoFromFourDDimTest : public testing::Test {
@@ -90,6 +97,15 @@ namespace {
                  {cols,dim3}
                 ,{dim2,dim3}
         };
+
+        int expectedStrides[6][2] = {
+                {120,30},
+                {120,6},
+                {120,1},
+                {30,6},
+                {30,1},
+                {6,1}
+        };
     };
 
 
@@ -111,10 +127,24 @@ namespace {
 
 }
 
+//http://stackoverflow.com/questions/228005/alternative-to-itoa-for-converting-integer-to-string-c
+std::string int_array_to_string(int int_array[], int size_of_array) {
+    std::string returnstring = "[";
+    for (int temp = 0; temp < size_of_array; temp++) {
+        returnstring += std::to_string(int_array[temp]);
+        if(temp < size_of_array - 1)
+            returnstring += ",";
+    }
+    returnstring += "]";
+    return returnstring;
+}
+
 ::testing::AssertionResult arrsEquals(int n,int *assertion,int *other) {
     for(int i = 0; i < n; i++) {
-        if(assertion[i] != other[i])
-            return ::testing::AssertionFailure()  << i << "  is not equal";
+        if(assertion[i] != other[i]) {
+            std::string message = std::string("Failure at index  ") + std::to_string(i)  + std::string(" assertion: ") +  int_array_to_string(assertion,n) + std::string(" and test array ") + int_array_to_string(other,n) + std::string("  is not equal");
+            return ::testing::AssertionFailure() << message;
+        }
 
     }
     return ::testing::AssertionSuccess();
@@ -234,7 +264,9 @@ TEST_F(TensorTwoFromFourDDimTest,TadTwoFromFourDimTest) {
         shape::TAD *tad = new shape::TAD(baseShapeBuffer,dimArr,dimensionLength);
         int *expectedShapeBuffer = shape::shapeBuffer(dimensionLength,expectedShape);
         int *testShapeBuffer = tad->shapeInfoOnlyShapeAndStride();
-        EXPECT_TRUE(arrsEquals(shape::shapeInfoLength(dimensionLength),expectedShapeBuffer,testShapeBuffer));
+        EXPECT_TRUE(arrsEquals(shape::rank(expectedShapeBuffer),expectedShape,shape::shapeOf(testShapeBuffer)));
+        EXPECT_TRUE(arrsEquals(shape::rank(expectedShapeBuffer),expectedStrides[i],shape::stride(testShapeBuffer)));
+
         delete[] testShapeBuffer;
         delete[] expectedShapeBuffer;
         delete tad;
@@ -255,7 +287,11 @@ TEST_F(TensorTwoDimTest,TadTwoDimTest) {
         shape::TAD *tad = new shape::TAD(baseShapeBuffer,dimArr,dimensionLength);
         int *expectedShapeBuffer = shape::shapeBuffer(dimensionLength,expectedShape);
         int *testShapeBuffer = tad->shapeInfoOnlyShapeAndStride();
-        EXPECT_TRUE(arrsEquals(shape::shapeInfoLength(dimensionLength),expectedShapeBuffer,testShapeBuffer));
+        int *expectedStride = expectedStrides[i];
+        int *testShape = shape::shapeOf(testShapeBuffer);
+        int *testStride = shape::stride(testShapeBuffer);
+        EXPECT_TRUE(arrsEquals(shape::rank(expectedShapeBuffer),expectedShape,testShape));
+        EXPECT_TRUE(arrsEquals(shape::rank(testShapeBuffer),expectedStride,testStride));
         delete[] testShapeBuffer;
         delete[] expectedShapeBuffer;
         delete tad;
