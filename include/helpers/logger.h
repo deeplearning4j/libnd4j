@@ -44,7 +44,7 @@ namespace nd4j {
 
         __device__
         static void infoBlock(const char *format, ...) {
-            if (threadIdx.x != 0 && blockIdx.x != 0)
+            if (threadIdx.x != 0)
                 return;
 
             va_list args;
