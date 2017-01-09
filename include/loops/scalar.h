@@ -15,6 +15,7 @@
 #include <templatemath.h>
 #include <ops/ops.h>
 #include <op_boilerplate.h>
+#include "helpers/logger.h"
 
 #ifdef __CUDACC__
 #include <cuda.h>
@@ -442,6 +443,10 @@ template<typename OpType>
                 char xOrdering = shape::order(xShapeInfo);
                 char resultOrdering = shape::order(resultShapeInfo);
                 int xElementWiseStride = shape::elementWiseStride(xShapeInfo);
+
+                if (debug && verbose)
+                    nd4j::Logger::info("Launching scalar: xOrder: %i; zOrder: %i; xEWS: %i\n", xOrdering, resultOrdering, xElementWiseStride);
+
                 int resultElementWiseStride = shape::elementWiseStride(resultShapeInfo);
                 if(xOrdering != resultOrdering || xElementWiseStride < 1 || resultElementWiseStride < 0) {
                     int shapeIter[MAX_RANK];
@@ -486,7 +491,6 @@ template<typename OpType>
                 }
                 else {
                     const Nd4jIndex n = shape::length(xShapeInfo);
-
 
                     if(xElementWiseStride >= 1 && resultElementWiseStride >= 1) {
                         transform<OpType>(x,xElementWiseStride,result,resultElementWiseStride,scalar,extraParams,n);

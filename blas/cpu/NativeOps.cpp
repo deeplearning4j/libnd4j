@@ -4,6 +4,8 @@
 
 int tad_threshold = 32;
 int element_threshold = 16384;
+bool debug = false;
+bool verbose = false;
 
 #define __STDC_CONSTANT_MACROS
 
@@ -16,6 +18,7 @@ int element_threshold = 16384;
 #include <loops/type_conversions.h>
 #include <loops/aggregates.h>
 #include <helpers/helper_ptrmap.h>
+#include <helpers/logger.h>
 
 char *name;
 bool nameSet = false;
@@ -2104,11 +2107,11 @@ int NativeOps::getAvailableDevices() {
 }
 
 void NativeOps::enableDebugMode(bool reallyEnable) {
-    // no-op?
+    debug = reallyEnable;
 }
 
 void NativeOps::enableVerboseMode(bool reallyEnable) {
-    // no-op?
+    verbose = reallyEnable;
 }
 
 void NativeOps::setGridLimit(int gridSize) {
