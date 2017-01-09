@@ -13,7 +13,7 @@ namespace nd4j {
     public:
 
 #ifdef __CUDACC__
-        __host__ __device__
+        __host__
 #endif
         static void info(const char *format, ...) {
             va_list args;
@@ -22,39 +22,9 @@ namespace nd4j {
             vprintf(format, args);
 
             va_end(args);
+
+            fflush(stdout);
         }
-
-
-#ifdef __CUDACC__
-        /**
-        * These 2 methods are special loggers for CUDA
-        */
-        __device__
-        static void infoGrid(const char *format, ...) {
-            if (threadIdx.x != 0 && blockIdx.x != 0)
-                return;
-
-            va_list args;
-            va_start(args, format);
-
-            vprintf(format, args);
-
-            va_end(args);
-        }
-
-        __device__
-        static void infoBlock(const char *format, ...) {
-            if (threadIdx.x != 0)
-                return;
-
-            va_list args;
-            va_start(args, format);
-
-            vprintf(format, args);
-
-            va_end(args);
-        }
-#endif
     };
 }
 

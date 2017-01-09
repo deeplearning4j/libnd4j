@@ -2,6 +2,9 @@
 int tad_threshold = 1;
 int element_threshold = 32;
 
+bool debug = false;
+bool verbose = true;
+
 #include "../NativeOps.h"
 #include <cuda.h>
 #include <cuda_launch_config.h>
@@ -40,8 +43,6 @@ cudaDeviceProp *deviceProperties;
 cudaFuncAttributes *funcAttributes = new cudaFuncAttributes[64];
 int blockLimit = 128;
 int maxThreads = 512;
-bool debug = false;
-bool verbose = true;
 bool allowedP2P = false;
 bool supportedP2P = false;
 #ifdef __EXPERIMENTAL__
@@ -64,7 +65,7 @@ typedef __syncInfo SyncInfo;
 void CUDART_CB syncCallback(cudaStream_t stream, cudaError_t status, void *data){
     SyncInfo *sync = (SyncInfo *) data;
 
-    printf("Finished stream: [%i], kernel call: [%i]\n", sync->streamId, sync->callId);
+	nd4j::Logger::info("Finished stream: [%i], kernel call: [%i]\n", sync->streamId, sync->callId);
 }
 
 int getDeviceId(Nd4jPointer ptrToDeviceId) {
@@ -154,7 +155,7 @@ dim3 getBasicLaunchParams(int deviceId, long problemLength, int sharedMemoryPerT
 	dim3 launchDims = dim3(num_blocks, num_threads, memory_limit);
 
 	if (debug && verbose)
-		printf("Preliminary basic launch params: gridSize: [%i], blockSize: [%i], base shmem: [%i]\n", num_blocks, num_threads, memory_limit);
+		nd4j::Logger::info("Preliminary basic launch params: gridSize: [%i], blockSize: [%i], base shmem: [%i]\n", num_blocks, num_threads, memory_limit);
 
 
 	return launchDims;
@@ -213,7 +214,7 @@ dim3 getBetterDimensions(int deviceId, int numTads, int tadLength, int xRank, cu
 	int desiredShared = shmemThreshold / nd4j::math::nd4j_max<int>((num_blocks / countMP), 1);
 
 	if (debug && verbose)
-		printf("Launch context: numBlocks: [%i], numThreads: [%i], countMap: [%i], shmemThreshold: [%i], desiredShared: [%i], elementSize: [%i]\n", num_blocks, num_threads, countMP, shmemThreshold, desiredShared, elementSize);
+		nd4j::Logger::info("Launch context: numBlocks: [%i], numThreads: [%i], countMap: [%i], shmemThreshold: [%i], desiredShared: [%i], elementSize: [%i]\n", num_blocks, num_threads, countMP, shmemThreshold, desiredShared, elementSize);
 
 	// at this moment we've stored all required information for things. time to count in reduction multipliers
 	int reduction_per_block = 0;
@@ -238,7 +239,7 @@ dim3 getBetterDimensions(int deviceId, int numTads, int tadLength, int xRank, cu
 	int max_active_blocks = shmemThreshold / nd4j::math::nd4j_max<int>(memory_limit, 1);
 
 	if (debug && verbose)
-		printf("MAB: [%i], memory_floor: [%i], memory_limit: [%i], reductionPerBlock: [%i]\n", max_active_blocks, memory_floor, memory_limit, reduction_per_block);
+		nd4j::Logger::info("MAB: [%i], memory_floor: [%i], memory_limit: [%i], reductionPerBlock: [%i]\n", max_active_blocks, memory_floor, memory_limit, reduction_per_block);
 
 	// we don't want to spawn more blocks, that gpu can actually handle without queue
 
@@ -269,7 +270,7 @@ dim3 getBetterDimensions(int deviceId, int numTads, int tadLength, int xRank, cu
 
 
 	if (debug && verbose)
-		printf("Preliminary reduce launch params: gridSize: [%i], blockSize: [%i], base shmem: [%i], reduction_per_block: [%i], blocksPerMP: [%i]\n", num_blocks, num_threads, memory_limit, reduction_per_block, targetBlocksPerMP);
+		nd4j::Logger::info("Preliminary reduce launch params: gridSize: [%i], blockSize: [%i], base shmem: [%i], reduction_per_block: [%i], blocksPerMP: [%i]\n", num_blocks, num_threads, memory_limit, reduction_per_block, targetBlocksPerMP);
 
 	return dim3(num_blocks,num_threads, memory_limit);
 }
@@ -322,7 +323,7 @@ dim3 getFlatLaunchParams(int deviceId, int *xShapeInfo, int *yShapeInfo, cudaFun
 	dim3 launchDims = dim3(num_blocks, num_threads, memory_limit);
 
 	if (debug && verbose)
-		printf("Preliminary scalar launch params: gridSize: [%i], blockSize: [%i], base shmem: [%i], blocksPerMP: [%i], problemLength: [%i], effectiveBlockLimit: [%i]\n", num_blocks, num_threads, memory_limit, targetBlocksPerMP, xLength, effective_block_limit);
+		nd4j::Logger::info("Preliminary scalar launch params: gridSize: [%i], blockSize: [%i], base shmem: [%i], blocksPerMP: [%i], problemLength: [%i], effectiveBlockLimit: [%i]\n", num_blocks, num_threads, memory_limit, targetBlocksPerMP, xLength, effective_block_limit);
 
 
 	return launchDims;
@@ -338,7 +339,7 @@ dim3 getReduceLaunchParams(int deviceId, int *xShapeInfo, int *tadShapeInfo, cud
 
 		if (tadLength == 1) {
 			if (debug && verbose)
-				printf("A xLength: [%i], zLength: [%i]\n", shape::length(xShapeInfo), shape::length(tadShapeInfo));
+				nd4j::Logger::info("A xLength: [%i], zLength: [%i]\n", shape::length(xShapeInfo), shape::length(tadShapeInfo));
 		}
 	} else{
 		// we have special case - reduction along all dimensions
@@ -352,7 +353,7 @@ dim3 getReduceLaunchParams(int deviceId, int *xShapeInfo, int *tadShapeInfo, cud
 	dim3 launchDims = getBetterDimensions(deviceId, numTads, tadLength, xRank, funcAttr, dimensionLength, elementSize, reductionSize);
 
 	if ((debug && verbose ) ) { //|| launchDims.x == 1
-		printf("Reduce LaunchParams: xLength: [%i], numTads: [%i], tadLength: [%i], launchDims.x: [%i], launchDims.y: [%i], launchDims.z: [%i]\n", shape::length(xShapeInfo), numTads, tadLength, launchDims.x, launchDims.y, launchDims.z);
+		nd4j::Logger::info("Reduce LaunchParams: xLength: [%i], numTads: [%i], tadLength: [%i], launchDims.x: [%i], launchDims.y: [%i], launchDims.z: [%i]\n", shape::length(xShapeInfo), numTads, tadLength, launchDims.x, launchDims.y, launchDims.z);
 	}
 
 	return launchDims;
@@ -376,7 +377,7 @@ dim3 getOptimalLaunchParameters(Nd4jPointer *extraPointers, cudaFuncAttributes a
 	dim3 launchDims = getOptimalDimensions<T>(n,attributes, properties);
 
 	if (debug && verbose)
-		printf("Params: gridSize: [%i], blockSize: [%i], shMem: [%i], problemLength: [%i], totalThreads:[%i]\n", launchDims.x, launchDims.y, launchDims.z, n, (launchDims.x * launchDims.y));
+		nd4j::Logger::info("Params: gridSize: [%i], blockSize: [%i], shMem: [%i], problemLength: [%i], totalThreads:[%i]\n", launchDims.x, launchDims.y, launchDims.z, n, (launchDims.x * launchDims.y));
 
 	return launchDims;
 }
@@ -502,7 +503,7 @@ double   NativeOps::execIndexReduceScalarDouble(Nd4jPointer *extraPointers,int o
 	int *deviceTADOffsets = reinterpret_cast<int *>(extraPointers[11]);
 
 	if (debug && verbose)
-		printf("D1 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("D1 opNum:[%i]\n", opNum);
 
 	//dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[27], deviceProperties[getDeviceId(extraPointers[2])]);
 
@@ -560,7 +561,7 @@ void   NativeOps::execIndexReduceDouble(
 	int *deviceTADOffsets = reinterpret_cast<int *>(extraPointers[11]);
 
 	if (debug && verbose)
-		printf("D2 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("D2 opNum:[%i]\n", opNum);
 
 	dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[27], dimensionLength, sizeof(double), 2);
 
@@ -618,7 +619,7 @@ void   NativeOps::execBroadcastDouble(Nd4jPointer *extraPointers,
 
 
 	if (debug && verbose)
-		printf("D3 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("D3 opNum:[%i]\n", opNum);
 
 //	dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[26], deviceProperties[getDeviceId(extraPointers[2])]);
 
@@ -673,7 +674,7 @@ void   NativeOps::execPairwiseTransformDouble(
 	int *deviceTADShapeInfo = reinterpret_cast<int *>(extraPointers[10]);
 
 	if (debug && verbose)
-		printf("D4 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("D4 opNum:[%i]\n", opNum);
 
 	//dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[25], deviceProperties[getDeviceId(extraPointers[2])]);
 
@@ -733,7 +734,7 @@ void NativeOps::execPairwiseTransformDouble(
 	int *deviceTADShapeInfo = reinterpret_cast<int *>(extraPointers[10]);
 
 	if (debug && verbose)
-		printf("D5 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("D5 opNum:[%i]\n", opNum);
 
 
 	dim3 launchDims = getFlatLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostZShapeInfo, funcAttributes[24]);
@@ -781,7 +782,7 @@ void NativeOps::execPairwiseTransformDouble(
 	cudaStream_t *stream = reinterpret_cast<cudaStream_t *>(&extraPointers[1]);
 
 	if (debug && verbose)
-		printf("D6 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("D6 opNum:[%i]\n", opNum);
 
 	int *hostXShapeInfo = reinterpret_cast<int *>(extraPointers[0]);
 	int *hostYShapeInfo = reinterpret_cast<int *>(extraPointers[7]);
@@ -827,7 +828,7 @@ void   NativeOps::execReduceDouble(
 	cudaStream_t *stream = reinterpret_cast<cudaStream_t *>(&extraPointers[1]);
 
 	if (debug && verbose)
-		printf("D7 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("D7 opNum:[%i]\n", opNum);
 
 
 	int *hostXShapeInfo = reinterpret_cast<int *>(extraPointers[0]);
@@ -883,7 +884,7 @@ void   NativeOps::execReduceDouble(
 	int *deviceTADOffsets = reinterpret_cast<int *>(extraPointers[11]);
 
 	if (debug && verbose)
-		printf("D8 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("D8 opNum:[%i]\n", opNum);
 
 	//dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[22], deviceProperties[getDeviceId(extraPointers[2])]);
 
@@ -968,7 +969,7 @@ double NativeOps::execReduceScalarDouble(
 	int *deviceTADShapeInfo = reinterpret_cast<int *>(extraPointers[10]);
 
 	if (debug && verbose)
-		printf("D9 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("D9 opNum:[%i]\n", opNum);
 
 	double *resultPointer = reinterpret_cast<double *>(extraPointers[5]);
 
@@ -1028,7 +1029,7 @@ void   NativeOps::execReduce3Double(
     int *yDeviceTADOffsets = reinterpret_cast<int *>(extraPointers[13]);
 
 	if (debug && verbose)
-		printf("D10 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("D10 opNum:[%i]\n", opNum);
 
 	//dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[21], deviceProperties[getDeviceId(extraPointers[2])]);
 
@@ -1071,7 +1072,7 @@ double   NativeOps::execReduce3ScalarDouble(
 		double *y,
 		int *yShapeInfo){
 	if (debug && verbose)
-		printf("D11 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("D11 opNum:[%i]\n", opNum);
 
 	cudaStream_t *stream = reinterpret_cast<cudaStream_t *>(&extraPointers[1]);
 
@@ -1137,7 +1138,7 @@ void   NativeOps::execReduce3Double(
 	cudaStream_t *stream = reinterpret_cast<cudaStream_t *>(&extraPointers[1]);
 
 	if (debug && verbose)
-		printf("D12 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("D12 opNum:[%i]\n", opNum);
 
 	int *hostXShapeInfo = reinterpret_cast<int *>(extraPointers[0]);
 
@@ -1195,7 +1196,7 @@ void   NativeOps::execScalarDouble(
 	cudaStream_t *stream = reinterpret_cast<cudaStream_t *>(&extraPointers[1]);
 
 	if (debug && verbose)
-		printf("D13 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("D13 opNum:[%i]\n", opNum);
 
 	//dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[20], deviceProperties[getDeviceId(extraPointers[2])]);
 
@@ -1247,7 +1248,7 @@ void NativeOps::execScalarDouble(
 	int *hostZShapeInfo = reinterpret_cast<int *>(extraPointers[8]);
 
 	if (debug && verbose)
-		printf("D14 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("D14 opNum:[%i]\n", opNum);
 
 //	dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[19], deviceProperties[getDeviceId(extraPointers[2])]);
 	int *allocPointer = reinterpret_cast<int *>(extraPointers[3]);
@@ -1301,7 +1302,7 @@ void NativeOps::execScalarDouble(
 	int *hostZShapeInfo = reinterpret_cast<int *>(extraPointers[8]);
 
 	if (debug && verbose)
-		printf("D15 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("D15 opNum:[%i]\n", opNum);
 
 	//dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[18], deviceProperties[getDeviceId(extraPointers[2])]);
 	int *allocPointer = reinterpret_cast<int *>(extraPointers[3]);
@@ -1342,7 +1343,7 @@ double   NativeOps::execSummaryStatsScalarDouble(
 	int *deviceTADOffsets = reinterpret_cast<int *>(extraPointers[11]);
 
 	if (debug && verbose)
-		printf("D16 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("D16 opNum:[%i]\n", opNum);
 
 //	dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[17], deviceProperties[getDeviceId(extraPointers[2])]);
 
@@ -1390,7 +1391,7 @@ void   NativeOps::execSummaryStatsDouble(
 		double *result,
 		int *resultShapeInfo,bool biasCorrected) {
 	if (debug && verbose)
-		printf("D17 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("D17 opNum:[%i]\n", opNum);
 
 	//dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[17], deviceProperties[getDeviceId(extraPointers[2])]);
 
@@ -1456,7 +1457,7 @@ void   NativeOps::execSummaryStatsDouble(
 	int *deviceTADOffsets = reinterpret_cast<int *>(extraPointers[11]);
 
 	if (debug && verbose)
-		printf("D18 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("D18 opNum:[%i]\n", opNum);
 
 	//dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[17], deviceProperties[getDeviceId(extraPointers[2])]);
 
@@ -1505,7 +1506,7 @@ void   NativeOps::execTransformDouble(
 	int *hostXShapeInfo = reinterpret_cast<int *>(extraPointers[0]);
 
 	if (debug && verbose)
-		printf("D19 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("D19 opNum:[%i]\n", opNum);
 
 	int *allocPointer = reinterpret_cast<int *>(extraPointers[3]);
 	double *reductionPointer = reinterpret_cast<double *>(extraPointers[4]);
@@ -1549,7 +1550,7 @@ void   NativeOps::execTransformDouble(
 	cudaStream_t *stream = reinterpret_cast<cudaStream_t *>(&extraPointers[1]);
 
 	if (debug && verbose)
-		printf("D20 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("D20 opNum:[%i]\n", opNum);
 
 	int *hostXShapeInfo = reinterpret_cast<int *>(extraPointers[0]);
 	int *hostYShapeInfo = reinterpret_cast<int *>(extraPointers[7]);
@@ -1597,7 +1598,7 @@ void   NativeOps::execTransformDouble(
 			//float *xpf = reinterpret_cast<float *>(dx);
 
 			int *shape = shape::shapeOf(hostXShapeInfo);
-			//printf("Rows num: %i\n", shape[0]);
+			//nd4j::Logger::info("Rows num: %i\n", shape[0]);
 			switch (opNum) {
 				case 40: // LogSoftMax
 				case 39: // SoftMax Derivative
@@ -1696,7 +1697,7 @@ void   NativeOps::execTransformDouble(
 					}
 
 					if (scalarCheat) {
-						//printf("Going for scalar IsMax\n");
+						//nd4j::Logger::info("Going for scalar IsMax\n");
 						int maxIdx = (int) execIndexReduceScalarDouble(extraPointers, 0, dx, xShapeInfo, extraParams);
 						int targetIdx = 0;
 
@@ -1708,7 +1709,7 @@ void   NativeOps::execTransformDouble(
 						fillIsMaxDouble<<< 1, 128, 0, *stream >>>(result, shape::length(hostXShapeInfo), targetIdx);
 					} else {
 						// going for dimension-based IsMax
-						//printf("Going for dimension-based IsMax\n");
+						//nd4j::Logger::info("Going for dimension-based IsMax\n");
 
 						int *tadMaxShapeInfo = reinterpret_cast<int *> (extraPointers[10]);
 						int *tadMaxOffsets = reinterpret_cast<int *> (extraPointers[11]);
@@ -1732,7 +1733,7 @@ void   NativeOps::execTransformDouble(
 					break;
 				}
 				default: {
-					printf("Bad case for transformDouble\n");
+					nd4j::Logger::info("Bad case for transformDouble\n");
 					break;
 				}
 			}
@@ -1790,7 +1791,7 @@ void   NativeOps::execTransformDouble(
 	int *hostZShapeInfo = reinterpret_cast<int *>(extraPointers[8]);
 
 	if (debug && verbose)
-		printf("D21 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("D21 opNum:[%i]\n", opNum);
 
 	//dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[14], deviceProperties[getDeviceId(extraPointers[2])]);
 
@@ -1826,7 +1827,7 @@ float   NativeOps::execIndexReduceScalarFloat(
 		int *xShapeInfo,
 		float *extraParams){
 	if (debug && verbose)
-		printf("F1 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("F1 opNum:[%i]\n", opNum);
 
 //	dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[13], deviceProperties[getDeviceId(extraPointers[2])]);
 
@@ -1848,7 +1849,7 @@ float   NativeOps::execIndexReduceScalarFloat(
 	dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[13], 1, sizeof(float), 2);
 
 	if (debug && verbose && launchDims.x == 1)
-		printf("AF1 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("AF1 opNum:[%i]\n", opNum);
 
 	indexReduceFloat<<<launchDims.x,launchDims.y, launchDims.z, *stream>>>(
 			opNum,
@@ -1875,7 +1876,7 @@ float   NativeOps::execIndexReduceScalarHalf(
 		int *xShapeInfo,
 		float16 *extraParams){
 	if (debug && verbose)
-		printf("H1 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("H1 opNum:[%i]\n", opNum);
 
 //	dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[13], deviceProperties[getDeviceId(extraPointers[2])]);
 
@@ -1895,7 +1896,7 @@ float   NativeOps::execIndexReduceScalarHalf(
 	dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[13], 1, sizeof(float16), 2);
 
 	if (debug && verbose && launchDims.x == 1)
-		printf("AH1 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("AH1 opNum:[%i]\n", opNum);
 
 	indexReduceHalf<<<launchDims.x,launchDims.y, launchDims.z, *stream>>>(
 			opNum,
@@ -1946,7 +1947,7 @@ void   NativeOps::execIndexReduceFloat(
 	int *deviceTADOffsets = reinterpret_cast<int *>(extraPointers[11]);
 
 	if (debug && verbose)
-		printf("F2 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("F2 opNum:[%i]\n", opNum);
 
 	// dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[13], deviceProperties[getDeviceId(extraPointers[2])]);
 	int *allocationPointer = reinterpret_cast<int *>(extraPointers[3]);
@@ -1955,7 +1956,7 @@ void   NativeOps::execIndexReduceFloat(
 	dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[13], dimensionLength, sizeof(float), 2);
 
 	if (verbose && launchDims.x == 1)
-		printf("AF2 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("AF2 opNum:[%i]\n", opNum);
 
 	indexReduceFloat<<<launchDims.x, launchDims.y,launchDims.z, *stream>>>(
 			opNum,
@@ -1994,7 +1995,7 @@ void   NativeOps::execIndexReduceHalf(
 	int *deviceTADOffsets = reinterpret_cast<int *>(extraPointers[11]);
 
 	if (debug && verbose)
-		printf("H2 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("H2 opNum:[%i]\n", opNum);
 
 	// dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[13], deviceProperties[getDeviceId(extraPointers[2])]);
 	int *allocationPointer = reinterpret_cast<int *>(extraPointers[3]);
@@ -2003,7 +2004,7 @@ void   NativeOps::execIndexReduceHalf(
 	dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[13], dimensionLength, sizeof(float16), 2);
 
 	if (verbose && launchDims.x == 1)
-		printf("AH2 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("AH2 opNum:[%i]\n", opNum);
 
 	indexReduceHalf<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
 			opNum,
@@ -2066,7 +2067,7 @@ void   NativeOps::execBroadcastFloat(
 
 
 	if (debug && verbose)
-		printf("F3 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("F3 opNum:[%i]\n", opNum);
 
 	//dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[12], deviceProperties[getDeviceId(extraPointers[2])]);
 
@@ -2108,10 +2109,10 @@ void   NativeOps::execBroadcastFloat(
 /*
     clock_gettime(CLOCK_REALTIME, &tsY);
 
-    printf("Execution time: %i\n", (ts2.tv_nsec - ts1.tv_nsec));
-    printf("Overall time: %i\n", (tsY.tv_nsec - tsX.tv_nsec));
-    printf("Callback setup time: %i\n", (tsY.tv_nsec - ts2.tv_nsec));
-    printf("-------------------------------------\n");
+    nd4j::Logger::info("Execution time: %i\n", (ts2.tv_nsec - ts1.tv_nsec));
+    nd4j::Logger::info("Overall time: %i\n", (tsY.tv_nsec - tsX.tv_nsec));
+    nd4j::Logger::info("Callback setup time: %i\n", (tsY.tv_nsec - ts2.tv_nsec));
+    nd4j::Logger::info("-------------------------------------\n");
     */
 }
 
@@ -2140,7 +2141,7 @@ void   NativeOps::execBroadcastHalf(
 
 
 	if (debug && verbose)
-		printf("H3 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("H3 opNum:[%i]\n", opNum);
 
 	//dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[12], deviceProperties[getDeviceId(extraPointers[2])]);
 
@@ -2196,7 +2197,7 @@ void   NativeOps::execPairwiseTransformFloat(
 	int *deviceTADShapeInfo = reinterpret_cast<int *>(extraPointers[10]);
 
 	if (debug && verbose)
-		printf("F4 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("F4 opNum:[%i]\n", opNum);
 
 	//dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[11], deviceProperties[getDeviceId(extraPointers[2])]);
 
@@ -2206,7 +2207,7 @@ void   NativeOps::execPairwiseTransformFloat(
 	dim3 launchDims = getFlatLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, nullptr, funcAttributes[11]);
 
 	if (verbose && launchDims.x == 1)
-		printf("AF4 opNum:[%i], xLength: [%i]\n", opNum, shape::length(hostXShapeInfo));
+		nd4j::Logger::info("AF4 opNum:[%i], xLength: [%i]\n", opNum, shape::length(hostXShapeInfo));
 
 	pairWiseTransformStridedFloat<<<launchDims.x,launchDims.y, launchDims.z, *stream>>>(
 			opNum,
@@ -2241,7 +2242,7 @@ void   NativeOps::execPairwiseTransformHalf(
 	int *deviceTADShapeInfo = reinterpret_cast<int *>(extraPointers[10]);
 
 	if (debug && verbose)
-		printf("H4 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("H4 opNum:[%i]\n", opNum);
 
 	//dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[11], deviceProperties[getDeviceId(extraPointers[2])]);
 
@@ -2251,7 +2252,7 @@ void   NativeOps::execPairwiseTransformHalf(
 	dim3 launchDims = getFlatLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, nullptr, funcAttributes[11]);
 
 	if (verbose && launchDims.x == 1)
-		printf("AH4 opNum:[%i], xLength: [%i]\n", opNum, shape::length(hostXShapeInfo));
+		nd4j::Logger::info("AH4 opNum:[%i], xLength: [%i]\n", opNum, shape::length(hostXShapeInfo));
 
 	pairWiseTransformStridedHalf<<<launchDims.x,launchDims.y, launchDims.z, *stream>>>(
 			opNum,
@@ -2306,7 +2307,7 @@ void NativeOps::execPairwiseTransformFloat(
 	int *deviceTADShapeInfo = reinterpret_cast<int *>(extraPointers[10]);
 
 	if (debug && verbose)
-		printf("F5 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("F5 opNum:[%i]\n", opNum);
 
 	//dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[10], deviceProperties[getDeviceId(extraPointers[2])]);
 
@@ -2315,7 +2316,7 @@ void NativeOps::execPairwiseTransformFloat(
 	dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[10], 1, sizeof(float), 0);
 
 	if (verbose && launchDims.x == 1)
-		printf("AF5 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("AF5 opNum:[%i]\n", opNum);
 
 	pairWiseTransformFloatIndex<<<launchDims.x,launchDims.y, launchDims.z, *stream>>>(
 			opNum,
@@ -2358,7 +2359,7 @@ void NativeOps::execPairwiseTransformHalf(
 	int *deviceTADShapeInfo = reinterpret_cast<int *>(extraPointers[10]);
 
 	if (debug && verbose)
-		printf("H5 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("H5 opNum:[%i]\n", opNum);
 
 	//dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[10], deviceProperties[getDeviceId(extraPointers[2])]);
 
@@ -2367,7 +2368,7 @@ void NativeOps::execPairwiseTransformHalf(
 	dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[10], 1, sizeof(float16), 0);
 
 	if (verbose && launchDims.x == 1)
-		printf("AH5 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("AH5 opNum:[%i]\n", opNum);
 
 	pairWiseTransformHalfIndex<<<launchDims.x,launchDims.y, launchDims.z, *stream>>>(
 			opNum,
@@ -2418,7 +2419,7 @@ void NativeOps::execPairwiseTransformFloat(
 	int *deviceTADShapeInfo = reinterpret_cast<int *>(extraPointers[10]);
 
 	if (debug && verbose)
-		printf("F6 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("F6 opNum:[%i]\n", opNum);
 
 //	dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[9], deviceProperties[getDeviceId(extraPointers[2])]);
 
@@ -2428,7 +2429,7 @@ void NativeOps::execPairwiseTransformFloat(
 	dim3 launchDims = getFlatLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, nullptr, funcAttributes[9]);
 
 	if (verbose && launchDims.x == 1) {
-		printf("AF6 opNum:[%i], launchDims.x: [%i], launchDims.y: [%i]\n", opNum, launchDims.x, launchDims.y);
+		nd4j::Logger::info("AF6 opNum:[%i], launchDims.x: [%i], launchDims.y: [%i]\n", opNum, launchDims.x, launchDims.y);
 		shape::printShapeInfoLinear(hostXShapeInfo);
 	}
 
@@ -2465,7 +2466,7 @@ void NativeOps::execPairwiseTransformHalf(
 	int *deviceTADShapeInfo = reinterpret_cast<int *>(extraPointers[10]);
 
 	if (debug && verbose)
-		printf("H6 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("H6 opNum:[%i]\n", opNum);
 
 //	dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[9], deviceProperties[getDeviceId(extraPointers[2])]);
 
@@ -2475,7 +2476,7 @@ void NativeOps::execPairwiseTransformHalf(
 	dim3 launchDims = getFlatLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, nullptr, funcAttributes[9]);
 
 	if (verbose && launchDims.x == 1) {
-		printf("HF6 opNum:[%i], launchDims.x: [%i], launchDims.y: [%i]\n", opNum, launchDims.x, launchDims.y);
+		nd4j::Logger::info("HF6 opNum:[%i], launchDims.x: [%i], launchDims.y: [%i]\n", opNum, launchDims.x, launchDims.y);
 		shape::printShapeInfoLinear(hostXShapeInfo);
 	}
 
@@ -2518,14 +2519,14 @@ void   NativeOps::execReduceFloat(
 	int *deviceTADShapeInfo = reinterpret_cast<int *>(extraPointers[10]);
 
 	if (debug && verbose)
-		printf("F7 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("F7 opNum:[%i]\n", opNum);
 
 	float *reductionPointer = reinterpret_cast<float *>(extraPointers[4]);
 
 	dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[8], 1, sizeof(float), 1);
 
 	if (verbose && launchDims.x == 1)
-		printf("AF7 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("AF7 opNum:[%i]\n", opNum);
 
     DISPATCH_SIMPLE(reduceScalarSimple, float, PARAMS(x, xShapeInfo, extraParams, result, resultShapeInfo, nullptr,1 , reductionPointer, deviceTADShapeInfo), OPS_A(REDUCE_OPS))
 
@@ -2561,14 +2562,14 @@ void   NativeOps::execReduceHalf(
 	int *deviceTADShapeInfo = reinterpret_cast<int *>(extraPointers[10]);
 
 	if (debug && verbose)
-		printf("H7 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("H7 opNum:[%i]\n", opNum);
 
 	float16 *reductionPointer = reinterpret_cast<float16 *>(extraPointers[4]);
 
 	dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[8], 1, sizeof(float16), 1);
 
 	if (verbose && launchDims.x == 1)
-		printf("AH7 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("AH7 opNum:[%i]\n", opNum);
 
     DISPATCH_SIMPLE(reduceScalarSimple, float16, PARAMS(x, xShapeInfo, extraParams, result, resultShapeInfo, nullptr,1 , reductionPointer, deviceTADShapeInfo), OPS_A(REDUCE_OPS))
 
@@ -2614,7 +2615,7 @@ void   NativeOps::execReduceFloat(
 	int *deviceTADOffsets = reinterpret_cast<int *>(extraPointers[11]);
 
 	if (debug && verbose)
-		printf("F8 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("F8 opNum:[%i]\n", opNum);
 
 	float *reductionPointer = reinterpret_cast<float *>(extraPointers[4]);
 
@@ -2622,7 +2623,7 @@ void   NativeOps::execReduceFloat(
 	dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[8], dimensionLength, sizeof(float), 1);
 
 	if (verbose && launchDims.x == 1)
-		printf("AF8 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("AF8 opNum:[%i]\n", opNum);
 
 	if (dimensionLength == 1) {
 
@@ -2686,7 +2687,7 @@ void   NativeOps::execReduceHalf(
 	int *deviceTADOffsets = reinterpret_cast<int *>(extraPointers[11]);
 
 	if (debug && verbose)
-		printf("H8 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("H8 opNum:[%i]\n", opNum);
 
 //	dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[8], deviceProperties[getDeviceId(extraPointers[2])]);
 
@@ -2696,7 +2697,7 @@ void   NativeOps::execReduceHalf(
 	dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[8], dimensionLength, sizeof(float16), 1);
 
 	if (verbose && launchDims.x == 1)
-		printf("AH8 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("AH8 opNum:[%i]\n", opNum);
 
 	if (dimensionLength == 1) {
 
@@ -2773,7 +2774,7 @@ float NativeOps::execReduceScalarFloat(
 	int *deviceTADShapeInfo = reinterpret_cast<int *>(extraPointers[10]);
 
 	if (debug && verbose)
-		printf("F9 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("F9 opNum:[%i]\n", opNum);
 
 	//dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[8], deviceProperties[getDeviceId(extraPointers[2])]);
 
@@ -2785,11 +2786,11 @@ float NativeOps::execReduceScalarFloat(
 	dim3 launchDims = getBasicLaunchParams(getDeviceId(extraPointers[2]), shape::length(hostXShapeInfo), 8, funcAttributes[8]);
 
 	if (verbose && launchDims.x == 1)
-		printf("AF9 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("AF9 opNum:[%i]\n", opNum);
 
-    //printf("Launch params: {x: %i, y: %i, z: %i}\n", launchDims.x,launchDims.y, launchDims.z);
+    //nd4j::Logger::info("Launch params: {x: %i, y: %i, z: %i}\n", launchDims.x,launchDims.y, launchDims.z);
 
-	//printf("reduceScalarFloat is going to start...\n");
+	//nd4j::Logger::info("reduceScalarFloat is going to start...\n");
 
     DISPATCH_SIMPLE(reduceScalarSimple, float, PARAMS(x, xShapeInfo, extraParams, resultPointer, nullptr, nullptr,1 , reductionPointer, deviceTADShapeInfo), OPS_A(REDUCE_OPS))
 
@@ -2806,7 +2807,7 @@ float NativeOps::execReduceScalarFloat(
 			reductionPointer, deviceTADShapeInfo
 	);
 */
-	//printf("kernel fired...\n");
+	//nd4j::Logger::info("kernel fired...\n");
 
 
 	checkCudaErrors(cudaStreamSynchronize(*stream));
@@ -2828,7 +2829,7 @@ float NativeOps::execReduceScalarHalf(
 	int *deviceTADShapeInfo = reinterpret_cast<int *>(extraPointers[10]);
 
 	if (debug && verbose)
-		printf("H9 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("H9 opNum:[%i]\n", opNum);
 
 	float16 *resultPointer = reinterpret_cast<float16 *>(extraPointers[5]);
 	float16 *reductionPointer = reinterpret_cast<float16 *>(extraPointers[4]);
@@ -2836,7 +2837,7 @@ float NativeOps::execReduceScalarHalf(
 	dim3 launchDims = getBasicLaunchParams(getDeviceId(extraPointers[2]), shape::length(hostXShapeInfo), 2, funcAttributes[8]);
 
 	if (verbose && launchDims.x == 1)
-		printf("AH9 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("AH9 opNum:[%i]\n", opNum);
 
 
     DISPATCH_SIMPLE(reduceScalarSimple, float16, PARAMS(x, xShapeInfo, extraParams, resultPointer, nullptr, nullptr,1 , reductionPointer, deviceTADShapeInfo), OPS_A(REDUCE_OPS))
@@ -2879,7 +2880,7 @@ void   NativeOps::execReduce3Float(
     int *yDeviceTADOffsets = reinterpret_cast<int *>(extraPointers[13]);
 
 	if (debug && verbose)
-		printf("F10 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("F10 opNum:[%i]\n", opNum);
 
 	//dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[7], deviceProperties[getDeviceId(extraPointers[2])]);
 
@@ -2891,7 +2892,7 @@ void   NativeOps::execReduce3Float(
 	dim3 launchDims = getBasicLaunchParams(getDeviceId(extraPointers[2]), shape::length(hostXShapeInfo), 16, funcAttributes[7]);
 
 	if (verbose && launchDims.x == 1)
-		printf("AF10 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("AF10 opNum:[%i]\n", opNum);
 
 	reduce3ScalarFloat<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
 			opNum,
@@ -2931,7 +2932,7 @@ void   NativeOps::execReduce3Half(
     int *yDeviceTADOffsets = reinterpret_cast<int *>(extraPointers[13]);
 
 	if (debug && verbose)
-		printf("H10 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("H10 opNum:[%i]\n", opNum);
 
 	//dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[7], deviceProperties[getDeviceId(extraPointers[2])]);
 
@@ -2943,7 +2944,7 @@ void   NativeOps::execReduce3Half(
 	dim3 launchDims = getBasicLaunchParams(getDeviceId(extraPointers[2]), shape::length(hostXShapeInfo), 8, funcAttributes[7]);
 
 	if (verbose && launchDims.x == 1)
-		printf("AH10 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("AH10 opNum:[%i]\n", opNum);
 
 	reduce3ScalarHalf<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
 			opNum,
@@ -2990,7 +2991,7 @@ float   NativeOps::execReduce3ScalarFloat(
     int *yDeviceTADOffsets = reinterpret_cast<int *>(extraPointers[13]);
 
 	if (debug && verbose)
-		printf("F11 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("F11 opNum:[%i]\n", opNum);
 
 	//dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[7], deviceProperties[getDeviceId(extraPointers[2])]);
 
@@ -3003,7 +3004,7 @@ float   NativeOps::execReduce3ScalarFloat(
 	dim3 launchDims = getBasicLaunchParams(getDeviceId(extraPointers[2]), shape::length(hostXShapeInfo), 32, funcAttributes[7]);
 
 	if (verbose && launchDims.x == 1)
-		printf("AF11 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("AF11 opNum:[%i]\n", opNum);
 
 	reduce3ScalarFloat<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
 			opNum,
@@ -3043,7 +3044,7 @@ float   NativeOps::execReduce3ScalarHalf(
     int *yDeviceTADOffsets = reinterpret_cast<int *>(extraPointers[13]);
 
 	if (debug && verbose)
-		printf("H11 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("H11 opNum:[%i]\n", opNum);
 
 	float16 *resultPointer = reinterpret_cast<float16 *>(extraPointers[5]);
     float16 *reductionPointer = reinterpret_cast<float16 *>(extraPointers[4]);
@@ -3052,7 +3053,7 @@ float   NativeOps::execReduce3ScalarHalf(
 	dim3 launchDims = getBasicLaunchParams(getDeviceId(extraPointers[2]), shape::length(hostXShapeInfo), 16, funcAttributes[7]);
 
 	if (verbose && launchDims.x == 1)
-		printf("AH11 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("AH11 opNum:[%i]\n", opNum);
 
 	reduce3ScalarHalf<<<launchDims.x,launchDims.y,launchDims.z + 2048, *stream>>>(
 			opNum,
@@ -3112,7 +3113,7 @@ void   NativeOps::execReduce3Float(
 	//dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[7], deviceProperties[getDeviceId(extraPointers[2])]);
 
 	if (debug && verbose)
-		printf("F12 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("F12 opNum:[%i]\n", opNum);
 
 	int *allocationPointer = reinterpret_cast<int *>(extraPointers[3]);
     float *reductionPointer = reinterpret_cast<float *>(extraPointers[4]);
@@ -3122,7 +3123,7 @@ void   NativeOps::execReduce3Float(
 	dim3 launchDims = getBasicLaunchParams(getDeviceId(extraPointers[2]), shape::length(hostXShapeInfo), 16, funcAttributes[7]);
 
 	if (verbose && launchDims.x == 1)
-		printf("AF12 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("AF12 opNum:[%i]\n", opNum);
 	if (shape::isScalar(hostZShapeInfo) || dimension == nullptr) {
 		reduce3ScalarFloat << < launchDims.x, launchDims.y, launchDims.z, *stream >> > (
 				opNum,
@@ -3181,7 +3182,7 @@ void   NativeOps::execReduce3Half(
 	//dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[7], deviceProperties[getDeviceId(extraPointers[2])]);
 
 	if (debug && verbose)
-		printf("H12 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("H12 opNum:[%i]\n", opNum);
 
 	int *allocationPointer = reinterpret_cast<int *>(extraPointers[3]);
     float16 *reductionPointer = reinterpret_cast<float16 *>(extraPointers[4]);
@@ -3189,7 +3190,7 @@ void   NativeOps::execReduce3Half(
 	dim3 launchDims = getBasicLaunchParams(getDeviceId(extraPointers[2]), shape::length(hostXShapeInfo), 8, funcAttributes[7]);
 
 	if (verbose && launchDims.x == 1)
-		printf("AH12 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("AH12 opNum:[%i]\n", opNum);
 
 	if (shape::isScalar(hostZShapeInfo) || dimension == nullptr) {
 		reduce3ScalarHalf<< < launchDims.x, launchDims.y, launchDims.z, *stream >> > (
@@ -3251,12 +3252,12 @@ void   NativeOps::execScalarFloat(
 	int *allocPointer = reinterpret_cast<int *>(extraPointers[3]);
 
 	if (debug && verbose)
-		printf("F13 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("F13 opNum:[%i]\n", opNum);
 
 	dim3 launchDims = getFlatLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, nullptr, funcAttributes[6]);
 
 	if (verbose && launchDims.x == 1)
-		printf("AF13 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("AF13 opNum:[%i]\n", opNum);
 
     DISPATCH_SIMPLE(scalarSimpleStrided, float, PARAMS(n, scalar, x, xStride, extraParams, result, resultStride, allocPointer), OPS_A(SCALAR_OPS))
 
@@ -3292,12 +3293,12 @@ void   NativeOps::execScalarHalf(
     int *allocPointer = reinterpret_cast<int *>(extraPointers[3]);
 
     if (debug && verbose)
-        printf("F13 opNum:[%i]\n", opNum);
+        nd4j::Logger::info("F13 opNum:[%i]\n", opNum);
 
     dim3 launchDims = getFlatLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, nullptr, funcAttributes[6]);
 
     if (verbose && launchDims.x == 1)
-        printf("AF13 opNum:[%i]\n", opNum);
+        nd4j::Logger::info("AF13 opNum:[%i]\n", opNum);
 
     DISPATCH_SIMPLE(scalarSimpleStrided, float16, PARAMS(n, scalar, x, xStride, extraParams, result, resultStride, allocPointer), OPS_A(SCALAR_OPS))
 
@@ -3343,7 +3344,7 @@ void NativeOps::execScalarFloat(
 	Nd4jIndex n = shape::length(hostXShapeInfo);
 
 	if (debug && verbose)
-		printf("F14 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("F14 opNum:[%i]\n", opNum);
 
 	//dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[5], deviceProperties[getDeviceId(extraPointers[2])]);
 	int *allocPointer = reinterpret_cast<int *>(extraPointers[3]);
@@ -3351,7 +3352,7 @@ void NativeOps::execScalarFloat(
 	dim3 launchDims = getFlatLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostZShapeInfo, funcAttributes[5]);
 
 	if (verbose && launchDims.x == 1)
-		printf("AF14 opNum:[%i], xLength:[%i]\n", opNum, shape::length(hostXShapeInfo));
+		nd4j::Logger::info("AF14 opNum:[%i], xLength:[%i]\n", opNum, shape::length(hostXShapeInfo));
 
     DISPATCH_SIMPLE(scalarSimpleShaped, float, PARAMS(scalar, x, xShapeInfo, extraParams, result, resultShapeInfo, allocPointer), OPS_A(SCALAR_OPS))
 
@@ -3385,7 +3386,7 @@ void NativeOps::execScalarHalf(
 	Nd4jIndex n = shape::length(hostXShapeInfo);
 
 	if (debug && verbose)
-		printf("H14 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("H14 opNum:[%i]\n", opNum);
 
 	//dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[5], deviceProperties[getDeviceId(extraPointers[2])]);
 	int *allocPointer = reinterpret_cast<int *>(extraPointers[3]);
@@ -3395,7 +3396,7 @@ void NativeOps::execScalarHalf(
     float16 scalar = (float16) scalarF;
 
 	if (verbose && launchDims.x == 1)
-		printf("AH14 opNum:[%i], xLength:[%i]\n", opNum, shape::length(hostXShapeInfo));
+		nd4j::Logger::info("AH14 opNum:[%i], xLength:[%i]\n", opNum, shape::length(hostXShapeInfo));
 
     DISPATCH_SIMPLE(scalarSimpleShaped, float16, PARAMS(scalar, x, xShapeInfo, extraParams, result, resultShapeInfo, allocPointer), OPS_A(SCALAR_OPS))
     /*
@@ -3442,7 +3443,7 @@ void NativeOps::execScalarFloat(
 	Nd4jIndex n = shape::length(hostXShapeInfo);
 
 	if (debug && verbose)
-		printf("F15 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("F15 opNum:[%i]\n", opNum);
 
 	//dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[4], deviceProperties[getDeviceId(extraPointers[2])]);
 	int *allocPointer = reinterpret_cast<int *>(extraPointers[3]);
@@ -3450,7 +3451,7 @@ void NativeOps::execScalarFloat(
 	dim3 launchDims = getFlatLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, nullptr, funcAttributes[4]);
 
 	if (verbose && launchDims.x == 1)
-		printf("AF15 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("AF15 opNum:[%i]\n", opNum);
 
 	scalarFloatIndexes<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
 			opNum,
@@ -3486,7 +3487,7 @@ float   NativeOps::execSummaryStatsScalarFloat(
 	int *deviceTADShapeInfo = reinterpret_cast<int *>(extraPointers[10]);
 
 	if (debug && verbose)
-		printf("F16 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("F16 opNum:[%i]\n", opNum);
 
 	float *resultPointer = reinterpret_cast<float *>(extraPointers[5]);
 	int *allocationPointer = reinterpret_cast<int *>(extraPointers[3]);
@@ -3497,7 +3498,7 @@ float   NativeOps::execSummaryStatsScalarFloat(
 	dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[3], 1, sizeof(float), 8);
 
 	if (verbose && launchDims.x == 1)
-		printf("AF16 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("AF16 opNum:[%i]\n", opNum);
 
     launchDims.x = nd4j::math::nd4j_min<int>(512, launchDims.x);
 
@@ -3533,7 +3534,7 @@ float   NativeOps::execSummaryStatsScalarHalf(
 	int *deviceTADShapeInfo = reinterpret_cast<int *>(extraPointers[10]);
 
 	if (debug && verbose)
-		printf("H16 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("H16 opNum:[%i]\n", opNum);
 
 	float16 *resultPointer = reinterpret_cast<float16 *>(extraPointers[5]);
 	int *allocationPointer = reinterpret_cast<int *>(extraPointers[3]);
@@ -3544,7 +3545,7 @@ float   NativeOps::execSummaryStatsScalarHalf(
 	dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[3], 1, sizeof(float16), 8);
 
 	if (verbose && launchDims.x == 1)
-		printf("AH16 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("AH16 opNum:[%i]\n", opNum);
 
     launchDims.x = nd4j::math::nd4j_min<int>(512, launchDims.x);
 
@@ -3593,7 +3594,7 @@ void   NativeOps::execSummaryStatsFloat(
 	int *deviceTADOffsets = reinterpret_cast<int *>(extraPointers[11]);
 
 	if (debug && verbose)
-		printf("F17 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("F17 opNum:[%i]\n", opNum);
 
 	int *allocationPointer = reinterpret_cast<int *>(extraPointers[3]);
 	float *reductionPointer = reinterpret_cast<float *>(extraPointers[4]);
@@ -3601,7 +3602,7 @@ void   NativeOps::execSummaryStatsFloat(
 	dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[3], 1, sizeof(float), 8);
 
 	if (verbose && launchDims.x == 1)
-		printf("AF17 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("AF17 opNum:[%i]\n", opNum);
 
     launchDims.x = nd4j::math::nd4j_min<int>(512, launchDims.x);
 
@@ -3639,7 +3640,7 @@ void   NativeOps::execSummaryStatsHalf(
 	int *deviceTADOffsets = reinterpret_cast<int *>(extraPointers[11]);
 
 	if (debug && verbose)
-		printf("H17 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("H17 opNum:[%i]\n", opNum);
 
 	//dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[3], deviceProperties[getDeviceId(extraPointers[2])]);
 
@@ -3649,7 +3650,7 @@ void   NativeOps::execSummaryStatsHalf(
 	dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[3], 1, sizeof(float16), 8);
 
 	if (verbose && launchDims.x == 1)
-		printf("AH17 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("AH17 opNum:[%i]\n", opNum);
 
     launchDims.x = nd4j::math::nd4j_min<int>(512, launchDims.x);
 
@@ -3700,7 +3701,7 @@ void   NativeOps::execSummaryStatsFloat(
 	int *deviceTADOffsets = reinterpret_cast<int *>(extraPointers[11]);
 
 	if (debug && verbose)
-		printf("F18 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("F18 opNum:[%i]\n", opNum);
 
 	int *allocationPointer = reinterpret_cast<int *>(extraPointers[3]);
 	float *reductionPointer = reinterpret_cast<float *>(extraPointers[4]);
@@ -3708,7 +3709,7 @@ void   NativeOps::execSummaryStatsFloat(
 	dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[3], dimensionLength, sizeof(float), 8);
 
 	if (verbose && launchDims.x == 1)
-		printf("AF18 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("AF18 opNum:[%i]\n", opNum);
 
     launchDims.x = nd4j::math::nd4j_min<int>(512, launchDims.x);
 
@@ -3749,7 +3750,7 @@ void   NativeOps::execSummaryStatsHalf(
 	int *deviceTADOffsets = reinterpret_cast<int *>(extraPointers[11]);
 
 	if (debug && verbose)
-		printf("H18 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("H18 opNum:[%i]\n", opNum);
 
 	//	dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[3], deviceProperties[getDeviceId(extraPointers[2])]);
 
@@ -3759,7 +3760,7 @@ void   NativeOps::execSummaryStatsHalf(
 	dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[3], dimensionLength, sizeof(float16), 8);
 
 	if (verbose && launchDims.x == 1)
-		printf("AH18 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("AH18 opNum:[%i]\n", opNum);
 
     launchDims.x = nd4j::math::nd4j_min<int>(512, launchDims.x);
 
@@ -3804,7 +3805,7 @@ void   NativeOps::execTransformFloat(
 	int *hostXShapeInfo = reinterpret_cast<int *>(extraPointers[0]);
 
 	if (debug && verbose)
-		printf("F19 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("F19 opNum:[%i]\n", opNum);
 
 	//dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[2], deviceProperties[getDeviceId(extraPointers[2])]);
 
@@ -3814,7 +3815,7 @@ void   NativeOps::execTransformFloat(
 	dim3 launchDims = getFlatLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, nullptr, funcAttributes[2]);
 
 	if (verbose && launchDims.x == 1)
-		printf("AF19 opNum:[%i], xLength: [%i]\n", opNum, shape::length(hostXShapeInfo));
+		nd4j::Logger::info("AF19 opNum:[%i], xLength: [%i]\n", opNum, shape::length(hostXShapeInfo));
 
     DISPATCH_SIMPLE(transformStrided, float, PARAMS(n, dx, xStride, extraParams, z, zStride, allocPointer, reductionPointer), OPS_A(TRANSFORM_OPS))
 /*
@@ -3845,7 +3846,7 @@ void   NativeOps::execTransformHalf(
 	int *hostXShapeInfo = reinterpret_cast<int *>(extraPointers[0]);
 
 	if (debug && verbose)
-		printf("H19 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("H19 opNum:[%i]\n", opNum);
 
 	//dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[2], deviceProperties[getDeviceId(extraPointers[2])]);
 
@@ -3855,7 +3856,7 @@ void   NativeOps::execTransformHalf(
 	dim3 launchDims = getFlatLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, nullptr, funcAttributes[2]);
 
 	if (verbose && launchDims.x == 1)
-		printf("AH19 opNum:[%i], xLength: [%i]\n", opNum, shape::length(hostXShapeInfo));
+		nd4j::Logger::info("AH19 opNum:[%i], xLength: [%i]\n", opNum, shape::length(hostXShapeInfo));
 
     DISPATCH_SIMPLE(transformStrided, float16, PARAMS(n, dx, xStride, extraParams, z, zStride, allocPointer, reductionPointer), OPS_A(TRANSFORM_OPS))
 /*
@@ -3893,7 +3894,7 @@ void   NativeOps::execTransformFloat(Nd4jPointer *extraPointers,int opNum,
 	int *hostZShapeInfo = reinterpret_cast<int *>(extraPointers[8]);
 
 	if (debug && verbose)
-		printf("F20 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("F20 opNum:[%i]\n", opNum);
 
 	int *allocPointer = reinterpret_cast<int *>(extraPointers[3]);
 	float *reductionPointer = reinterpret_cast<float *>(extraPointers[4]);
@@ -3911,7 +3912,7 @@ void   NativeOps::execTransformFloat(Nd4jPointer *extraPointers,int opNum,
 	dim3 launchDims = getFlatLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostZShapeInfo, funcAttributes[1]);
 
 	if (verbose && launchDims.x == 1)
-		printf("AF20 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("AF20 opNum:[%i]\n", opNum);
 
 	// simple trick to get workaround over reductions into scalar
 	if (opNum >= 38 && opNum <= 41) {
@@ -4054,7 +4055,7 @@ void   NativeOps::execTransformFloat(Nd4jPointer *extraPointers,int opNum,
 					}
 
 					if (scalarCheat) {
-						//printf("Going for scalar IsMax\n");
+						//nd4j::Logger::info("Going for scalar IsMax\n");
 						int maxIdx = (int) execIndexReduceScalarFloat(extraPointers, 0, dx, xShapeInfo, extraParams);
 						int targetIdx = 0;
 
@@ -4068,7 +4069,7 @@ void   NativeOps::execTransformFloat(Nd4jPointer *extraPointers,int opNum,
                         checkCudaErrors(cudaStreamSynchronize(*stream));
 					} else {
 						// going for dimension-based IsMax
-						//printf("Going for dimension-based IsMax\n");
+						//nd4j::Logger::info("Going for dimension-based IsMax\n");
 
 						int *tadMaxShapeInfo = reinterpret_cast<int *> (extraPointers[10]);
 						int *tadMaxOffsets = reinterpret_cast<int *> (extraPointers[11]);
@@ -4091,7 +4092,7 @@ void   NativeOps::execTransformFloat(Nd4jPointer *extraPointers,int opNum,
 					break;
 				}
 				default: {
-					printf("Bad case for transformFloat\n");
+					nd4j::Logger::info("Bad case for transformFloat\n");
 					break;
 				}
 			}
@@ -4141,7 +4142,7 @@ void   NativeOps::execTransformHalf(Nd4jPointer *extraPointers,int opNum,
 	int *hostZShapeInfo = reinterpret_cast<int *>(extraPointers[8]);
 
 	if (debug && verbose)
-		printf("H20 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("H20 opNum:[%i]\n", opNum);
 
 	//dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[1], deviceProperties[getDeviceId(extraPointers[2])]);
 
@@ -4160,7 +4161,7 @@ void   NativeOps::execTransformHalf(Nd4jPointer *extraPointers,int opNum,
 	dim3 launchDims = getFlatLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostZShapeInfo, funcAttributes[1]);
 
 	if (verbose && launchDims.x == 1)
-		printf("AH20 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("AH20 opNum:[%i]\n", opNum);
 
 	// simple trick to get workaround over reductions into scalar
 	if (opNum >= 38 && opNum <= 41) {
@@ -4310,7 +4311,7 @@ void   NativeOps::execTransformHalf(Nd4jPointer *extraPointers,int opNum,
 					}
 
 					if (scalarCheat) {
-						//printf("Going for scalar IsMax\n");
+						//nd4j::Logger::info("Going for scalar IsMax\n");
 						int maxIdx = (int) execIndexReduceScalarHalf(extraPointers, 0, dx, xShapeInfo, extraParams);
 						int targetIdx = 0;
 
@@ -4322,7 +4323,7 @@ void   NativeOps::execTransformHalf(Nd4jPointer *extraPointers,int opNum,
 						fillIsMaxHalf<<< 1, 128, 1536, *stream >>>(result, shape::length(hostXShapeInfo), targetIdx);
 					} else {
 						// going for dimension-based IsMax
-						//printf("Going for dimension-based IsMax\n");
+						//nd4j::Logger::info("Going for dimension-based IsMax\n");
 
 						int *tadMaxShapeInfo = reinterpret_cast<int *> (extraPointers[10]);
 						int *tadMaxOffsets = reinterpret_cast<int *> (extraPointers[11]);
@@ -4345,7 +4346,7 @@ void   NativeOps::execTransformHalf(Nd4jPointer *extraPointers,int opNum,
 					break;
 				}
 				default: {
-					printf("Bad case for transformHalf\n");
+					nd4j::Logger::info("Bad case for transformHalf\n");
 					break;
 				}
 			}
@@ -4404,7 +4405,7 @@ void   NativeOps::execTransformFloat(
 	int *hostXShapeInfo = reinterpret_cast<int *>(extraPointers[0]);
 
 	if (debug && verbose)
-		printf("F21 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("F21 opNum:[%i]\n", opNum);
 
 	//dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[0], deviceProperties[getDeviceId(extraPointers[2])]);
 
@@ -4414,7 +4415,7 @@ void   NativeOps::execTransformFloat(
 	dim3 launchDims = getFlatLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, nullptr, funcAttributes[0]);
 
 	if (verbose && launchDims.x == 1)
-		printf("AF21 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("AF21 opNum:[%i]\n", opNum);
 
 	transformFloatIndexes<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
 			opNum,
@@ -4446,7 +4447,7 @@ void   NativeOps::execTransformHalf(
 	int *hostXShapeInfo = reinterpret_cast<int *>(extraPointers[0]);
 
 	if (debug && verbose)
-		printf("H21 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("H21 opNum:[%i]\n", opNum);
 
 	int *allocPointer = reinterpret_cast<int *>(extraPointers[3]);
 	float16 *reductionPointer = reinterpret_cast<float16 *>(extraPointers[4]);
@@ -4454,7 +4455,7 @@ void   NativeOps::execTransformHalf(
 	dim3 launchDims = getFlatLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, nullptr, funcAttributes[0]);
 
 	if (verbose && launchDims.x == 1)
-		printf("AH21 opNum:[%i]\n", opNum);
+		nd4j::Logger::info("AH21 opNum:[%i]\n", opNum);
 
 	transformHalfIndexes<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
 			opNum,
@@ -4641,14 +4642,14 @@ void NativeOps::flattenFloat(
 	//dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[5], deviceProperties[getDeviceId(extraPointers[2])]);
 
 	if (debug && verbose)
-		printf("F22 opNum:[7]\n");
+		nd4j::Logger::info("F22 opNum:[7]\n");
 
 	int *allocPointer = reinterpret_cast<int *>(extraPointers[3]);
 
 	dim3 launchDims = getBasicLaunchParams(getDeviceId(extraPointers[2]), shape::length(hostYShapeInfo), 2, funcAttributes[30]);
 
 	if (verbose && launchDims.x == 1)
-		printf("AF222 opNum:[7]\n");
+		nd4j::Logger::info("AF222 opNum:[7]\n");
 
 	flattenKernelFloat<<<launchDims.x,launchDims.y, launchDims.z, *stream>>>(offset, order, result, resultShapeInfo, input, inputShapeInfo, allocPointer);
 
@@ -4670,14 +4671,14 @@ void NativeOps::flattenHalf(
 	int *hostYShapeInfo = reinterpret_cast<int *>(extraPointers[7]);
 
 	if (debug && verbose)
-		printf("H22 opNum:[7]\n");
+		nd4j::Logger::info("H22 opNum:[7]\n");
 
 	int *allocPointer = reinterpret_cast<int *>(extraPointers[3]);
 
 	dim3 launchDims = getBasicLaunchParams(getDeviceId(extraPointers[2]), shape::length(hostYShapeInfo), 2, funcAttributes[30]);
 
 	if (verbose && launchDims.x == 1)
-		printf("AH222 opNum:[7]\n");
+		nd4j::Logger::info("AH222 opNum:[7]\n");
 
 	flattenKernelHalf<<<launchDims.x,launchDims.y, launchDims.z, *stream>>>(offset, order, result, resultShapeInfo, input, inputShapeInfo, allocPointer);
 
@@ -4709,7 +4710,7 @@ void NativeOps::flattenDouble(
 	int *hostYShapeInfo = reinterpret_cast<int *>(extraPointers[7]);
 
 	if (debug && verbose)
-		printf("D30 opNum:[7]\n");
+		nd4j::Logger::info("D30 opNum:[7]\n");
 
 	//dim3 launchDims = getOptimalLaunchParameters<float>(&extraPointers[0], funcAttributes[5], deviceProperties[getDeviceId(extraPointers[2])]);
 
@@ -4795,7 +4796,7 @@ void NativeOps::enableP2P(bool enable) {
                         cudaDeviceDisablePeerAccess(y);
                     }
                 } else {
-					if (verbose) printf("Peer access [%i] -> [%i] isn't possible\n", x, y);
+					if (verbose) nd4j::Logger::info("Peer access [%i] -> [%i] isn't possible\n", x, y);
 				}
             }
         }
@@ -4855,13 +4856,13 @@ void NativeOps::initializeDevicesAndFunctions() {
 	cudaFuncGetAttributes(&funcAttributes[7], reduce3Float);
 
 	cudaFuncGetAttributes(&funcAttributes[8], reduceSimpleGenericXD_0_float);
-//	printf("reduceFloat regs: [%i], static shmem: [%i]\n", funcAttributes[8].numRegs, funcAttributes[8].sharedSizeBytes);
+//	nd4j::Logger::info("reduceFloat regs: [%i], static shmem: [%i]\n", funcAttributes[8].numRegs, funcAttributes[8].sharedSizeBytes);
 
 	cudaFuncGetAttributes(&funcAttributes[28], reduceSimpleGeneric1D_0_float); // 1D
-//	printf("reduceFloat1D regs: [%i], static shmem: [%i]\n", funcAttributes[28].numRegs, funcAttributes[28].sharedSizeBytes);
+//	nd4j::Logger::info("reduceFloat1D regs: [%i], static shmem: [%i]\n", funcAttributes[28].numRegs, funcAttributes[28].sharedSizeBytes);
 
 	cudaFuncGetAttributes(&funcAttributes[29], reduceSimpleGeneric3D_0_float); // 6D
-//	printf("reduceFloat6D regs: [%i], static shmem: [%i]\n", funcAttributes[29].numRegs, funcAttributes[29].sharedSizeBytes);
+//	nd4j::Logger::info("reduceFloat6D regs: [%i], static shmem: [%i]\n", funcAttributes[29].numRegs, funcAttributes[29].sharedSizeBytes);
 
 	cudaFuncGetAttributes(&funcAttributes[30], flattenKernelFloat);
 
@@ -5130,7 +5131,7 @@ int NativeOps::memcpyAsync(Nd4jPointer dst, Nd4jPointer src, Nd4jIndex size, int
 			break;
 		default: {
 
-			printf("UNDEFINED MEMCPY!\n");
+			nd4j::Logger::info("UNDEFINED MEMCPY!\n");
 			break;
 		}
 	}
@@ -5138,7 +5139,7 @@ int NativeOps::memcpyAsync(Nd4jPointer dst, Nd4jPointer src, Nd4jIndex size, int
 	cudaError_t result = cudaMemcpyAsync((void *) dst, (const void *) src, (size_t) size, kind, *pStream);
 	if (result != 0) {
         checkCudaErrors(result);
-		printf("Failed on [%lu] -> [%lu], size: [%i], direction: [%i], result: [%i]\n", src, dst, size, flags, (int) result );
+		nd4j::Logger::info("Failed on [%lu] -> [%lu], size: [%i], direction: [%i], result: [%i]\n", src, dst, size, flags, (int) result );
         fflush(stdout);
         fflush(stderr);
 		return 0L;
@@ -5307,32 +5308,32 @@ const char * NativeOps::getDeviceName(Nd4jPointer ptrToDeviceId) {
 
 	if (isScalar) {
 		if (debug && verbose)
-			printf("Going scalar concat\n");
+			nd4j::Logger::info("Going scalar concat\n");
 
 		smem = funcAttributes[38].sharedSizeBytes;
 		concatKernelScalarFloat<<< 128, 128, smem, *stream>>> (dimension, numArrays, (Nd4jPointer *) data[0], (Nd4jPointer *) inputShapeInfo[0], result, resultShapeInfo, (Nd4jPointer *) tadPointers[0], (Nd4jPointer *) offsetPointers[0]);
 	} else if (isVstack) {
 		if (debug && verbose)
-			printf("Going VStack concat\n");
+			nd4j::Logger::info("Going VStack concat\n");
 
 		smem = funcAttributes[40].sharedSizeBytes;
 		concatKernelVStackFloat<<< 128, 128, smem, *stream>>> (dimension, numArrays, (Nd4jPointer *) data[0], (Nd4jPointer *) inputShapeInfo[0], result, resultShapeInfo, (Nd4jPointer *) tadPointers[0], (Nd4jPointer *) offsetPointers[0]);
 	} else if (isHstack) {
 		if (debug && verbose)
-			printf("Going HStack concat\n");
+			nd4j::Logger::info("Going HStack concat\n");
 		smem = funcAttributes[42].sharedSizeBytes;
 
 		concatKernelHStackFloat<<< 128, 128, smem, *stream>>> (dimension, numArrays, (Nd4jPointer *) data[0], (Nd4jPointer *) inputShapeInfo[0], result, resultShapeInfo, (Nd4jPointer *) tadPointers[0], (Nd4jPointer *) offsetPointers[0]);
 	} else {
 		if (debug && verbose)
-			printf("Going generic concat\n");
+			nd4j::Logger::info("Going generic concat\n");
 
 		smem = nd4j::math::nd4j_max<int>(funcAttributes[31].sharedSizeBytes + 768, 1280);
 
 		concatKernelFloat<<< 128, 128, smem, *stream>>> (dimension, numArrays, (Nd4jPointer *) data[0], (Nd4jPointer *) inputShapeInfo[0], result, resultShapeInfo, (Nd4jPointer *) tadPointers[0], (Nd4jPointer *) offsetPointers[0]);
 	}
 	if (debug && verbose)
-		printf("sharedMemory requested for concatFloat: [%i], registers: [%i]\n", smem, funcAttributes[31].numRegs);
+		nd4j::Logger::info("sharedMemory requested for concatFloat: [%i], registers: [%i]\n", smem, funcAttributes[31].numRegs);
 
 	if (debug)
 		checkCudaErrors(cudaStreamSynchronize(*stream));
@@ -5393,32 +5394,32 @@ void NativeOps::concatHalf(
 
 	if (isScalar) {
 		if (debug && verbose)
-			printf("Going scalar concat\n");
+			nd4j::Logger::info("Going scalar concat\n");
 
 		smem = funcAttributes[38].sharedSizeBytes;
 		concatKernelScalarHalf<<< 128, 128, smem, *stream>>> (dimension, numArrays, (Nd4jPointer *) data[0], (Nd4jPointer *) inputShapeInfo[0], result, resultShapeInfo, (Nd4jPointer *) tadPointers[0], (Nd4jPointer *) offsetPointers[0]);
 	} else if (isVstack) {
 		if (debug && verbose)
-			printf("Going VStack concat\n");
+			nd4j::Logger::info("Going VStack concat\n");
 
 		smem = funcAttributes[40].sharedSizeBytes;
 		concatKernelVStackHalf<<< 128, 128, smem, *stream>>> (dimension, numArrays, (Nd4jPointer *) data[0], (Nd4jPointer *) inputShapeInfo[0], result, resultShapeInfo, (Nd4jPointer *) tadPointers[0], (Nd4jPointer *) offsetPointers[0]);
 	} else if (isHstack) {
 		if (debug && verbose)
-			printf("Going HStack concat\n");
+			nd4j::Logger::info("Going HStack concat\n");
 		smem = funcAttributes[42].sharedSizeBytes;
 
 		concatKernelHStackHalf<<< 128, 128, smem, *stream>>> (dimension, numArrays, (Nd4jPointer *) data[0], (Nd4jPointer *) inputShapeInfo[0], result, resultShapeInfo, (Nd4jPointer *) tadPointers[0], (Nd4jPointer *) offsetPointers[0]);
 	} else {
 		if (debug && verbose)
-			printf("Going generic concat\n");
+			nd4j::Logger::info("Going generic concat\n");
 
 		smem = nd4j::math::nd4j_max<int>(funcAttributes[31].sharedSizeBytes + 768, 1280);
 
 		concatKernelHalf<<< 128, 128, smem, *stream>>> (dimension, numArrays, (Nd4jPointer *) data[0], (Nd4jPointer *) inputShapeInfo[0], result, resultShapeInfo, (Nd4jPointer *) tadPointers[0], (Nd4jPointer *) offsetPointers[0]);
 	}
 	if (debug && verbose)
-		printf("sharedMemory requested for concatHalf: [%i], registers: [%i]\n", smem, funcAttributes[31].numRegs);
+		nd4j::Logger::info("sharedMemory requested for concatHalf: [%i], registers: [%i]\n", smem, funcAttributes[31].numRegs);
 
 	if (debug)
 		checkCudaErrors(cudaStreamSynchronize(*stream));
@@ -5482,32 +5483,32 @@ void NativeOps::concatDouble(
 
 	if (isScalar) {
 		if (debug && verbose)
-			printf("Going scalar concat\n");
+			nd4j::Logger::info("Going scalar concat\n");
 
 		smem = funcAttributes[39].sharedSizeBytes;
 		concatKernelScalarDouble<<< 128, 128, smem, *stream>>> (dimension, numArrays, (Nd4jPointer *) data[0], (Nd4jPointer *) inputShapeInfo[0], result, resultShapeInfo, (Nd4jPointer *) tadPointers[0], (Nd4jPointer *) offsetPointers[0]);
 	} else if (isVstack) {
 		if (debug && verbose)
-			printf("Going VStack concat\n");
+			nd4j::Logger::info("Going VStack concat\n");
 
 		smem = funcAttributes[41].sharedSizeBytes;
 		concatKernelVStackDouble<<< 128, 128, smem, *stream>>> (dimension, numArrays, (Nd4jPointer *) data[0], (Nd4jPointer *) inputShapeInfo[0], result, resultShapeInfo, (Nd4jPointer *) tadPointers[0], (Nd4jPointer *) offsetPointers[0]);
 	} else if (isHstack) {
 		if (debug && verbose)
-			printf("Going HStack concat\n");
+			nd4j::Logger::info("Going HStack concat\n");
 		smem = funcAttributes[43].sharedSizeBytes;
 
 		concatKernelHStackDouble<<< 128, 128, smem, *stream>>> (dimension, numArrays, (Nd4jPointer *) data[0], (Nd4jPointer *) inputShapeInfo[0], result, resultShapeInfo, (Nd4jPointer *) tadPointers[0], (Nd4jPointer *) offsetPointers[0]);
 	} else {
 		if (debug && verbose)
-			printf("Going generic concat\n");
+			nd4j::Logger::info("Going generic concat\n");
 
 		smem = nd4j::math::nd4j_max<int>(funcAttributes[35].sharedSizeBytes + 768, 1280);
 
 		concatKernelDouble<<< 128, 128, smem, *stream>>> (dimension, numArrays, (Nd4jPointer *) data[0], (Nd4jPointer *) inputShapeInfo[0], result, resultShapeInfo, (Nd4jPointer *) tadPointers[0], (Nd4jPointer *) offsetPointers[0]);
 	}
 	if (debug && verbose)
-		printf("sharedMemory requested for concatFloat: [%i], registers: [%i]\n", smem, funcAttributes[31].numRegs);
+		nd4j::Logger::info("sharedMemory requested for concatFloat: [%i], registers: [%i]\n", smem, funcAttributes[31].numRegs);
 
 	if (debug)
 		checkCudaErrors(cudaStreamSynchronize(*stream));
@@ -5563,7 +5564,7 @@ int NativeOps::memcpyConstantAsync(Nd4jIndex dst, Nd4jPointer src, Nd4jIndex siz
 	cudaError_t result = cudaMemcpyToSymbolAsync(deviceConstantMemory, (const void *) src, size, dst, kind, *pStream);
 	checkCudaErrors(result);
 	if (result != 0) {
-		printf("Symbol failed on [%lu] -> [%lu], size: [%i], direction: [%i]\n", src, dst, size, flags );
+		nd4j::Logger::info("Symbol failed on [%lu] -> [%lu], size: [%i], direction: [%i]\n", src, dst, size, flags );
 		return 0L;
 	}
 	else return 1;
@@ -5612,7 +5613,7 @@ void NativeOps::averageHalf(Nd4jPointer *extras, Nd4jPointer *dx, float16 *dz, i
     float16 **x = reinterpret_cast<float16 **>(dx);
 
     if (debug && verbose)
-        printf("averageHalf called\n");
+        nd4j::Logger::info("averageHalf called\n");
 
     dim3 launchDims = getBasicLaunchParams(getDeviceId(extras[2]), length, sizeof(float16), funcAttributes[44]);
 
@@ -5627,7 +5628,7 @@ void NativeOps::averageFloat(Nd4jPointer *extras, Nd4jPointer *dx, float *dz, in
     float **x = reinterpret_cast<float **>(dx);
 
     if (debug && verbose)
-        printf("averageFloat called\n");
+        nd4j::Logger::info("averageFloat called\n");
 
     dim3 launchDims = getBasicLaunchParams(getDeviceId(extras[2]), length, sizeof(float), funcAttributes[45]);
 
@@ -5642,7 +5643,7 @@ void NativeOps::averageDouble(Nd4jPointer *extras, Nd4jPointer *dx, double *dz, 
     double **x = reinterpret_cast<double **>(dx);
 
     if (debug && verbose)
-        printf("averageDouble called\n");
+        nd4j::Logger::info("averageDouble called\n");
 
     dim3 launchDims = getBasicLaunchParams(getDeviceId(extras[2]), length, sizeof(double), funcAttributes[46]);
 
@@ -5861,7 +5862,7 @@ void NativeOps::execScalarFloat(Nd4jPointer *extraPointers,int opNum,
     //dim3 launchDims = dim3(512, 32, 512);
     dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]),hostXShapeInfo, hostTadShapeInfo, funcAttributes[47] ,dimensionLength, sizeof(float), 0);
 
-//    printf("ProblemLength: %i; tadLength: %i; .x: %i; .y: %i\n", shape::length(hostXShapeInfo), shape::length(hostTadShapeInfo), launchDims.x, launchDims.y);
+//    nd4j::Logger::info("ProblemLength: %i; tadLength: %i; .x: %i; .y: %i\n", shape::length(hostXShapeInfo), shape::length(hostTadShapeInfo), launchDims.x, launchDims.y);
 //    fflush(stdout);
 
     DISPATCH_SIMPLE(scalarAlongDimension, float, PARAMS(x, xShapeInfo, extraParams, z, zShapeInfo, scalars, dimension, dimensionLength, tadShapeInfo, tadOffsets, tadShapeInfoZ, tadOffsetsZ), OPS_A(SCALAR_OPS))
@@ -6002,7 +6003,7 @@ void NativeOps::execAggregateBatchFloat(Nd4jPointer *extraPointers, int numAggre
     // TODO: fix this, we want something better then fixed number of threads per block
     dim3 launchDims = dim3(numAggregates, numThreads, shmem);
 
-    //printf("Launch params: .X: %i; .Y: %i; .Z: %i\n", numBlocks, numThreads, shmem);
+    //nd4j::Logger::info("Launch params: .X: %i; .Y: %i; .Z: %i\n", numBlocks, numThreads, shmem);
 
     DISPATCH_SIMPLE(aggregateBatchSimple, float, PARAMS(numAggregates, opNum, maxArgs, maxShapes, maxIntArrays, maxIntArraySize, maxIdx, maxReals, ptrToArguments), OPS_A(AGGREGATE_OPS))
 
@@ -6020,7 +6021,7 @@ void NativeOps::execAggregateBatchDouble(Nd4jPointer *extraPointers, int numAggr
     // TODO: fix this, we want something better then fixed number of threads per block
     dim3 launchDims = dim3(numAggregates, numThreads, shmem);
 
-    //printf("Launch params: .X: %i; .Y: %i; .Z: %i\n", numBlocks, numThreads, shmem);
+    //nd4j::Logger::info("Launch params: .X: %i; .Y: %i; .Z: %i\n", numBlocks, numThreads, shmem);
 
     DISPATCH_SIMPLE(aggregateBatchSimple, double, PARAMS(numAggregates, opNum, maxArgs, maxShapes, maxIntArrays, maxIntArraySize, maxIdx, maxReals, ptrToArguments), OPS_A(AGGREGATE_OPS))
 
@@ -6038,7 +6039,7 @@ void NativeOps::execAggregateBatchHalf(Nd4jPointer *extraPointers, int numAggreg
     // TODO: fix this, we want something better then fixed number of threads per block
     dim3 launchDims = dim3(numAggregates, numThreads, shmem);
 
-    //printf("Launch params: .X: %i; .Y: %i; .Z: %i\n", numBlocks, numThreads, shmem);
+    //nd4j::Logger::info("Launch params: .X: %i; .Y: %i; .Z: %i\n", numBlocks, numThreads, shmem);
 
     DISPATCH_SIMPLE(aggregateBatchSimple, float16, PARAMS(numAggregates, opNum, maxArgs, maxShapes, maxIntArrays, maxIntArraySize, maxIdx, maxReals, ptrToArguments), OPS_A(AGGREGATE_OPS))
 
