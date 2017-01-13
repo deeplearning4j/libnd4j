@@ -13,7 +13,7 @@
 #include "../dll.h"
 #include "../nd4jmalloc.h"
 #include "../templatemath.h"
-
+#include "../helpers/logger.h"
 #include "../pointercast.h"
 #define MAX_DIMENSION 0x7fffffff
 #define MAX_NUM_THREADS  1024
@@ -34,7 +34,7 @@
 #endif
 
 #include "../pairwise_util.h"
-
+#include "../../blas/NativeOps.h"
 namespace shape {
 
 /**
@@ -1423,7 +1423,6 @@ namespace shape {
             else {
                 for (int i = 0; i <  numTads; i++) {
                     int offset = tadOffsets[i];
-                    // printf("Offsets for %d is %d\n",i,offset);
                     int shapeIter[MAX_RANK];
                     int coord[MAX_RANK];
                     int dim;
@@ -1477,7 +1476,7 @@ namespace shape {
         INLINEDEF int *permuteShapeBuffer(int *shapeBuffer,int *rearrange) {
             int len = shape::shapeInfoLength(this->rank);
             int *copy = shape::copyOf(len,shapeBuffer);
-            doPermuteShapeBuffer(rank,shapeBuffer,rearrange);
+            doPermuteShapeBuffer(rank,copy,rearrange);
             return copy;
         }
 
@@ -1940,10 +1939,14 @@ namespace shape {
 
                 }
                 else {
+                    if(debug && verbose)
+                        nd4j::Logger::info("In slice.\n");
                     //execute final part, note that this is mainly so delete[] gets called
                     //at the bottom of the method
                     int sliceDimension = 0;
                     while(shape::length(ret2) > length) {
+                        if(debug && verbose)
+                            nd4j::Logger::info("In slice loop.\n");
                         int lengthPerSlice2 = shape::lengthPerSlice(shape::rank(ret2),shape::shapeOf(ret2),&sliceDimension,1);
                         sliceIndex =    sliceOffsetForTensor(sliceIndex,shape::length(ret2),lengthPerSlice2);
                         sliceIndex -= shape::slices(ret2) * (sliceIndex / shape::slices(ret2));
@@ -3093,7 +3096,7 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
     INLINEDEF void doPermuteSwap(int length, int **shape, int *rearrange) {
         bool inOrder = true;
         for(int i = 0; i < length - 1; i++) {
-            inOrder = inOrder && rearrange[i] +1 == rearrange[i + 1];
+            inOrder = inOrder && rearrange[i] + 1 == rearrange[i + 1];
 
         }
 
@@ -3112,21 +3115,25 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
             return;
         }
 
+        bool *done = new bool[length];
         for (int i = 0; i < length; i++) {
-            int x = shapeDeref[i];
-            int j = i;
-            while (1) {
-                int k = rearrange[j];
-                rearrange[j] = j;
-                if (k == i)
-                    break;
-                shapeDeref[j] = shapeDeref[k];
-                j = k;
+            if (!done[i]) {
+                int t = shapeDeref[i];
+                for (int j = i;;) {
+                    done[j] = true;
 
+                    if (rearrange[j] != i) {
+                        shapeDeref[j] = shapeDeref[rearrange[j]];
+                        j = rearrange[j];
+                    } else {
+                        shapeDeref[j] = t;
+                        break;
+                    }
+                }
             }
-
-            shapeDeref[j] = x;
         }
+
+        delete[] done;
 
     }
 
@@ -3202,6 +3209,9 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
         int *rearrangeCopy2 = shape::copyOf(rearrageRank,rearrange);
         shape::doPermuteSwap(rearrageRank,&stride,rearrangeCopy2);
         shapeBuffer[shape::shapeInfoLength(rank) - 1] = shape::getOrder(rank,shape,stride,1);
+        shapeBuffer[shape::shapeInfoLength(rank) - 2] = -1;
+        if(debug && verbose)
+            nd4j::Logger::info("Performed permute");
         delete[] rearrangeCopy2;
     }
 
@@ -3220,7 +3230,8 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
 
         shape::copyOf(rearrageRank,rearrange, tmpBuffer);
         shape::doPermuteSwap(rearrageRank,&stride,tmpBuffer);
-        shapeBuffer[shape::shapeInfoLength(rank) - 1] = shape::getOrder(rank,shape,stride,1);
+        shapeRef[shapeInfoLength(rank) - 2] = -1;
+        shapeRef[shape::shapeInfoLength(rank) - 1] = shape::getOrder(rank,shape,stride,1);
     }
 
 
@@ -3598,8 +3609,8 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
         indices[0] = sliceIdx;
         int offset = shape::getOffset(0,newShape,newStride,indices,rank);
         newShapeBuffer[shape::shapeInfoLength(newRank) - 3] = offset;
-        newShapeBuffer[shape::shapeInfoLength(newRank) - 2] = shape::computeElementWiseStride(newRank,newShape,newStride,0);
-        newShapeBuffer[shape::shapeInfoLength(newRank) - 1] = shape::getOrder(newRank,newShape,newStride,shape::elementWiseStride(shapeBuffer));
+        newShapeBuffer[shape::shapeInfoLength(newRank) - 2] = shape::elementWiseStride(shapeBuffer);
+        newShapeBuffer[shape::shapeInfoLength(newRank) - 1] = shape::getOrder(newRank,newShape,newStride,1);
 
 
         delete[] indices;

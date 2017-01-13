@@ -6,10 +6,28 @@
 #include <gmock/gmock.h>
 #include <shape.h>
 #include <data_gen.h>
-#include <cstdlib>
 namespace {
+
+    class ThreeDTest : public testing::Test {
+    public:
+        int shape[3] = {3,4,5};
+        int *shapeBuffer;
+        ThreeDTest() {
+            shapeBuffer = shape::shapeBuffer(3,shape);
+        }
+        ~ThreeDTest() {
+            delete[] shapeBuffer;
+        }
+    };
+
     class VectorTest : public testing::Test {
 
+    };
+
+    class NumTadTests : public testing::Test {
+    public:
+        int shape[3] = {3,4,5};
+        int dimension = 0;
     };
 
     class ShapeTest :  public testing::Test {
@@ -31,6 +49,12 @@ namespace {
                 {1,4},
                 {1,1}
         };
+    };
+
+    class TADStall : public testing::Test {
+    public:
+        int shape[4] = {3,3,4,5};
+        int dimensions[3]  = {1,2,3};
     };
 
     class TensorOneDimTest : public testing::Test {
@@ -127,6 +151,13 @@ namespace {
     };
 
 
+    class OrderTest : public testing::Test {
+    public:
+        int expected[8] = {2,3,4,1,3,0,-1,102};
+        int test[8] = {2,3,4,1,3,0,-1,102};
+
+    };
+
     class TestRemoveIndex : public testing::Test {};
 
     class TestReverseCopy : public testing::Test {};
@@ -139,11 +170,23 @@ namespace {
 
     class SliceTensorTest : public testing::Test {};
 
-    class ElementWiseStrideTest : public testing::Test{};
+    class ElementWiseStrideTest : public testing::Test {
+    public:
+        int shape[3] = {3,4,5};
+        int stride[2] = {20,5};
+        int elementWiseStrideAssertion = -1;
+    };
 
     class PermuteTest : public testing::Test{};
 
     class LengthPerSliceTest : public testing::Test{};
+
+    class ExpectedValuesTest : public testing::Test {
+    public:
+        int mainShape[3] = {2,3,4};
+        int expectedShapeBuffer[8] = {2,2,4,12,1,0,-1,99};
+        
+    };
 
 }
 
@@ -169,6 +212,53 @@ std::string int_array_to_string(int int_array[], int size_of_array) {
     }
     return ::testing::AssertionSuccess();
 
+}
+
+TEST_F(ExpectedValuesTest,TadTest) {
+    int *shapeBuffer = shape::shapeBuffer(3,mainShape);
+    shape::TAD *tad;
+    delete[] shapeBuffer;
+}
+
+TEST_F(OrderTest,testOrder) {
+    int rank = shape::rank(expected);
+    int *expectedShape = shape::shapeOf(expected);
+    int *expectedStride = shape::stride(expected);
+    int realOrder = shape::getOrder(rank,expectedShape,expectedStride,1);
+    int expectedOrder = 102;
+    ASSERT_EQ(expectedOrder,realOrder);
+}
+
+
+TEST_F(ThreeDTest,TensorAlongDimensionTest) {
+    int dimension[2] = {0,2};
+    int tadShapeAssertion[2] = {3,5};
+    int strideAssertion[2] = {20,1};
+    shape::TAD *tad = new shape::TAD(0,this->shapeBuffer,dimension,2);
+    int *shapeBufferTest = tad->shapeInfoOnlyShapeAndStride();
+    int *shapeTest = shape::shapeOf(shapeBufferTest);
+    int *strideTest = shape::stride(shapeBufferTest);
+    ASSERT_TRUE(arrsEquals(2,tadShapeAssertion,shapeTest));
+    ASSERT_TRUE(arrsEquals(2,strideAssertion,strideTest));
+
+}
+
+
+TEST_F(NumTadTests,TadTest) {
+    int *shape = shape::shapeBuffer(3,this->shape);
+    shape::TAD *tad = new shape::TAD(shape,&dimension,1);
+    int numTads = shape::tensorsAlongDimension(shape,&dimension,1);
+    ASSERT_EQ(20,numTads);
+    delete[] shape;
+    delete tad;
+}
+
+TEST_F(TADStall,TestStall) {
+    int *shapeInfo = shape::shapeBuffer(4,shape);
+    shape::TAD *tad = new shape::TAD(0,shapeInfo,this->dimensions,3);
+    int *test = tad->shapeInfoOnlyShapeAndStride();
+    delete[] test;
+    delete[] shapeInfo;
 }
 
 
