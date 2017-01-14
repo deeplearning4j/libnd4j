@@ -3115,26 +3115,13 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
             return;
         }
 
-        bool *done = new bool[length];
+        int *temp = new int[length];
+        memcpy(temp,shapeDeref,sizeof(int) * length);
         for (int i = 0; i < length; i++) {
-            if (!done[i]) {
-                int t = shapeDeref[i];
-                for (int j = i;;) {
-                    done[j] = true;
-
-                    if (rearrange[j] != i) {
-                        shapeDeref[j] = shapeDeref[rearrange[j]];
-                        j = rearrange[j];
-                    } else {
-                        shapeDeref[j] = t;
-                        break;
-                    }
-                }
-            }
+            shapeDeref[i] = temp[rearrange[i]];
         }
 
-        delete[] done;
-
+        delete[] temp;
     }
 
 

@@ -183,9 +183,9 @@ namespace {
 
     class ExpectedValuesTest : public testing::Test {
     public:
-        int mainShape[3] = {2,3,4};
-        int expectedShapeBuffer[8] = {2,2,4,12,1,0,-1,99};
-        
+        int mainShape[4] = {9,7,5,3};
+        int testDimensions[3] = {0,2,3};
+
     };
 
 }
@@ -215,8 +215,11 @@ std::string int_array_to_string(int int_array[], int size_of_array) {
 }
 
 TEST_F(ExpectedValuesTest,TadTest) {
-    int *shapeBuffer = shape::shapeBuffer(3,mainShape);
-    shape::TAD *tad;
+    int *shapeBuffer = shape::shapeBuffer(4,mainShape);
+    shape::TAD *tad = new shape::TAD(shapeBuffer,testDimensions,3);
+    int *shapeInfo = tad->shapeInfoOnlyShapeAndStride();
+    delete[] shapeInfo;
+    delete tad;
     delete[] shapeBuffer;
 }
 
