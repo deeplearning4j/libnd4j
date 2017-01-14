@@ -1859,9 +1859,9 @@ namespace shape {
                 return shape::createScalarShapeInfo();
             }
             //ensure tad shapes get setup right for vectors
-            if(dimensionLength < 1 && !shape::isVector(shapeInfo))
-                return shapeInfo;
-
+            if(dimensionLength < 1 && !shape::isVector(shapeInfo)) {
+                return shape::copyOf(shape::shapeInfoLength(shape::rank(shapeInfo)),shapeInfo);
+            }
 
             int *theShape = shape::shapeOf(shapeInfo);
             int *theStride = shape::stride(shapeInfo);
@@ -1870,10 +1870,10 @@ namespace shape {
             if(dimensionLength == 1) {
                 if(dimension[0] == 0 && shape::isVector(shapeInfo) && theShape[1] == 1) {
                     int permuted[2] = {1,0};
-                    shape::permuteShapeBufferInPlace(shapeInfo,permuted,shapeInfo);
-                    return shapeInfo;
+                    int *permutedRet2 = shape::permuteShapeBuffer(shapeInfo,permuted);
+                    return permutedRet2;
                 } else if(dimension[0] == 1 && shape::isVector(shapeInfo) && theShape[0] == 1) {
-                    return shapeInfo;
+                    return shape::copyOf(shape::shapeInfoLength(shape::rank(shapeInfo)),shapeInfo);
                 }
             }
 
