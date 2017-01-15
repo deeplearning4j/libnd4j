@@ -3638,7 +3638,12 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
         indices[0] = sliceIdx;
         int offset = shape::getOffset(0,newShape,newStride,indices,rank);
         newShapeBuffer[shape::shapeInfoLength(newRank) - 3] = offset;
-        newShapeBuffer[shape::shapeInfoLength(newRank) - 2] = shape::elementWiseStride(shapeBuffer);
+        if(shape::isMatrix(shapeBuffer)) {
+            newShapeBuffer[shape::shapeInfoLength(newRank) - 2] = currStride[1];
+        }
+        else {
+            newShapeBuffer[shape::shapeInfoLength(newRank) - 2] = shape::elementWiseStride(shapeBuffer);
+        }
         newShapeBuffer[shape::shapeInfoLength(newRank) - 1] = shape::getOrder(newRank,newShape,newStride,1);
 
 

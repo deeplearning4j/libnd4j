@@ -27,6 +27,8 @@ TEST_F(ReduceTest,MatrixTest) {
     float none[1] = {0};
     tad->createTadOnlyShapeInfo();
     tad->createOffsets();
+    int tadElementWiseStride = shape::elementWiseStride(tad->tadOnlyShapeInfo);
+    ASSERT_EQ(3,tadElementWiseStride);
     functions::reduce::ReduceFunction<float>::exec(
             opNum,
             x,
@@ -38,6 +40,9 @@ TEST_F(ReduceTest,MatrixTest) {
             dimensionLength,
             tad->tadOnlyShapeInfo,
             tad->tadOffsets);
+
+    for(int i = 0; i < shape::length(resultShapeInfo); i++)
+        printf("%f\n",result[i]);
 
     delete[] resultShapeInfo;
     delete tad;
