@@ -21,6 +21,8 @@ TEST_F(ReduceTest,MatrixTest) {
     int opNum = 4;
     int *xShapeInfo = shape::shapeBuffer(2,shape);
     int *resultShapeInfo = shape::computeResultShape(xShapeInfo,dimension,dimensionLength);
+    int resultLengthAssertion = 3;
+    ASSERT_EQ(resultLengthAssertion,shape::length(resultShapeInfo));
     shape::TAD *tad = new shape::TAD(xShapeInfo,dimension,dimensionLength);
     float none[1] = {0};
     tad->createTadOnlyShapeInfo();

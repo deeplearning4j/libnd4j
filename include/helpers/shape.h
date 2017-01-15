@@ -2352,7 +2352,7 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
         else {
             retShape = shape::removeIndex(shape::shapeOf(originalShapeBuffer), dimension,
                                           shape::shapeInfoLength(shape::rank(originalShapeBuffer)), dimensionLength);
-            retShapeLength =   shape::shapeInfoLength(shape::rank(originalShapeBuffer)) - dimensionLength;
+            retShapeLength =   shape::rank(originalShapeBuffer) - dimensionLength;
         }
         //ensure vector is proper shape
         if (retShapeLength == 1) {
@@ -2360,19 +2360,25 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
                 int *newRetShape = new int[2]{1, retShape[0]};
                 delete[] retShape;
                 retShape = newRetShape;
+                retShapeLength = 2;
             }
             else {
                 int *newRetShape = new int[2]{retShape[0], 1};
                 delete[] retShape;
                 retShape = newRetShape;
+                retShapeLength = 2;
             }
         } else if (retShapeLength == 0) {
             int *newRetShape = new int[2]{1, 1};
             delete[] retShape;
             retShape = newRetShape;
+            retShapeLength = 2;
         }
 
-        return retShape;
+        int *ret = shape::shapeBuffer(retShapeLength,retShape);
+        delete[] retShape;
+
+        return ret;
 
     }
 
