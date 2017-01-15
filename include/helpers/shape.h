@@ -324,6 +324,11 @@ namespace shape {
 #endif
     INLINEDEF int *createPermuteIndexes(int originalRank,int *dimension,int dimensionLength);
 
+#ifdef __CUDACC__
+    __host__ __device__
+#endif
+    INLINEDEF int *computeResultShape(int *originalShapeBuffer,int *dimension,int dimensionLength);
+
 
 /**
  * Get the ordering for the device
@@ -1939,14 +1944,10 @@ namespace shape {
 
                 }
                 else {
-                    if(debug && verbose)
-                        nd4j::Logger::info("In slice.\n");
                     //execute final part, note that this is mainly so delete[] gets called
                     //at the bottom of the method
                     int sliceDimension = 0;
                     while(shape::length(ret2) > length) {
-                        if(debug && verbose)
-                            nd4j::Logger::info("In slice loop.\n");
                         int lengthPerSlice2 = shape::lengthPerSlice(shape::rank(ret2),shape::shapeOf(ret2),&sliceDimension,1);
                         sliceIndex =    sliceOffsetForTensor(sliceIndex,shape::length(ret2),lengthPerSlice2);
                         sliceIndex -= shape::slices(ret2) * (sliceIndex / shape::slices(ret2));
@@ -2336,7 +2337,44 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
 
     }
 
+#ifdef __CUDACC__
+    __host__ __device__
+#endif
+    INLINEDEF int *computeResultShape(int *originalShapeBuffer,int *dimension,int dimensionLength) {
+        int *retShape;
+        int retShapeLength;
+        if(dimensionLength == 1 && dimension[0] == 2147483647) {
+            retShape = new int[2];
+            retShape[0] = 1;
+            retShape[1] = 1;
+            retShapeLength = 2;
+        }
+        else {
+            retShape = shape::removeIndex(shape::shapeOf(originalShapeBuffer), dimension,
+                                          shape::shapeInfoLength(shape::rank(originalShapeBuffer)), dimensionLength);
+            retShapeLength =   shape::shapeInfoLength(shape::rank(originalShapeBuffer)) - dimensionLength;
+        }
+        //ensure vector is proper shape
+        if (retShapeLength == 1) {
+            if (dimension[0] == 0) {
+                int *newRetShape = new int[2]{1, retShape[0]};
+                delete[] retShape;
+                retShape = newRetShape;
+            }
+            else {
+                int *newRetShape = new int[2]{retShape[0], 1};
+                delete[] retShape;
+                retShape = newRetShape;
+            }
+        } else if (retShapeLength == 0) {
+            int *newRetShape = new int[2]{1, 1};
+            delete[] retShape;
+            retShape = newRetShape;
+        }
 
+        return retShape;
+
+    }
 
 #ifdef __CUDACC__
     __host__ __device__
@@ -3197,8 +3235,6 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
         shape::doPermuteSwap(rearrageRank,&stride,rearrangeCopy2);
         shapeBuffer[shape::shapeInfoLength(rank) - 1] = shape::getOrder(rank,shape,stride,1);
         shapeBuffer[shape::shapeInfoLength(rank) - 2] = -1;
-        if(debug && verbose)
-            nd4j::Logger::info("Performed permute");
         delete[] rearrangeCopy2;
     }
 

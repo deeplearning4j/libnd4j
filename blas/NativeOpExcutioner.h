@@ -56,8 +56,20 @@ public:
                                 T *extraParams,
                                 T *result,
                                 int *resultShapeInfoBuffer,
-                                int *dimension, int dimensionLength, int *tadShapeInfo, int *tadOffsets) {
-        functions::indexreduce::IndexReduce<T>::exec(opNum, x,xShapeInfo,extraParams,result,resultShapeInfoBuffer,dimension,dimensionLength, tadShapeInfo, tadOffsets);
+                                int *dimension,
+                                int dimensionLength,
+                                int *tadShapeInfo,
+                                int *tadOffsets) {
+        functions::indexreduce::IndexReduce<T>::exec(opNum,
+                                                     x,
+                                                     xShapeInfo,
+                                                     extraParams,
+                                                     result,
+                                                     resultShapeInfoBuffer,
+                                                     dimension,
+                                                     dimensionLength,
+                                                     tadShapeInfo,
+                                                     tadOffsets);
     }
 
     /**
@@ -78,8 +90,25 @@ public:
                               T *y,
                               int *yShapeInfo,
                               T *result, int *resultShapeInfo,
-                              int *dimension, int dimensionLength, int *tadOnlyShapeInfo, int *tadOffsets, int *tadOnlyShapeInfoZ, int *tadOffsetsZ) {
-        functions::broadcast::Broadcast<T>::exec(opNum, x, xShapeInfo, y, yShapeInfo, result, resultShapeInfo, dimension, dimensionLength, tadOnlyShapeInfo, tadOffsets, tadOnlyShapeInfoZ, tadOffsetsZ);
+                              int *dimension,
+                              int dimensionLength,
+                              int *tadOnlyShapeInfo,
+                              int *tadOffsets,
+                              int *tadOnlyShapeInfoZ,
+                              int *tadOffsetsZ) {
+        functions::broadcast::Broadcast<T>::exec(opNum,
+                                                 x,
+                                                 xShapeInfo,
+                                                 y,
+                                                 yShapeInfo,
+                                                 result,
+                                                 resultShapeInfo,
+                                                 dimension,
+                                                 dimensionLength,
+                                                 tadOnlyShapeInfo,
+                                                 tadOffsets,
+                                                 tadOnlyShapeInfoZ,
+                                                 tadOffsetsZ);
     }
 
 
@@ -198,7 +227,9 @@ public:
                            T *result,
                            int *resultShapeInfo,
                            int *dimension,
-                           int dimensionLength, int *tadShapeInfo, int *tadOffsets) {
+                           int dimensionLength,
+                           int *tadShapeInfo,
+                           int *tadOffsets) {
         functions::reduce::ReduceFunction<T>::exec(
                 opNum,
                 x,
@@ -504,8 +535,12 @@ public:
                                  T *extraParams,
                                  T *result,
                                  int *resultShapeInfoBuffer,
-                                 int *dimension, int dimensionLength, bool biasCorrected) {
-        functions::summarystats::SummaryStatsReduce<T>::exec(opNum, biasCorrected, x,
+                                 int *dimension,
+                                 int dimensionLength,
+                                 bool biasCorrected) {
+        functions::summarystats::SummaryStatsReduce<T>::exec(opNum,
+                                                             biasCorrected,
+                                                             x,
                                                              xShapeInfo,
                                                              extraParams,
                                                              result,
@@ -565,7 +600,9 @@ public:
                                                  xShapeInfo,
                                                  result,
                                                  resultShapeInfo,
-                                                 extraParams, tadShapeInfo, tadOffsets);
+                                                 extraParams,
+                                                 tadShapeInfo,
+                                                 tadOffsets);
     }
 
     /**
@@ -596,7 +633,9 @@ public:
                 resultShapeInfo,
                 extraParams,
                 xIndexes,
-                resultIndexes, tadShapeInfo, tadOffsets);
+                resultIndexes,
+                tadShapeInfo,
+                tadOffsets);
 
     }
 
@@ -660,7 +699,14 @@ public:
                            T *z, int *zShapeBuffer,
                            T *extraArguments) {
         functions::random::RandomFunction<T>::execTransform(opNum,
-                                                            state, x, xShapeBuffer, y, yShapeBuffer, z, zShapeBuffer, extraArguments);
+                                                            state,
+                                                            x,
+                                                            xShapeBuffer,
+                                                            y,
+                                                            yShapeBuffer,
+                                                            z,
+                                                            zShapeBuffer,
+                                                            extraArguments);
     }
 };
 

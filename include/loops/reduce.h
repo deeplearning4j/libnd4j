@@ -458,7 +458,9 @@ template<typename OpType>
                              T *result,
                              int *resultShapeInfoBuffer,
                              int *dimension,
-                             int dimensionLength, int *tadShapeInfo, int *tadOffset) {
+                             int dimensionLength,
+                             int *tadShapeInfo,
+                             int *tadOffset) {
 
                 int resultLength = shape::length(resultShapeInfoBuffer);
 
