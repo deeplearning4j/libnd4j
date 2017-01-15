@@ -20,7 +20,8 @@ if(NATIVE)
 endif()
 
 
-if (!$ENV{CLION_IDE})
+if (NOT DEFINED ENV{CLION_IDE})
+    message("NOT CLION")
     include_directories(include/ include/helpers include/loops include/ops include/types)
     add_subdirectory(blas)
 endif ()
