@@ -1889,7 +1889,12 @@ namespace shape {
             //concat is wrong here with the length
             int *newPermuteDims = shape::concat(remove,rank - dimensionLength,reverseDimensions,dimensionLength);
             int *permuted = shape::permuteShapeBuffer(shapeInfo,newPermuteDims);
-            int *finalPermuteDims = shape::reverseCopy(dimension,dimensionLength);
+            int *finalPermuteDims = new int[dimensionLength];
+            int forward = 0;
+            for(int i = dimensionLength - 1; i >= 0; i--) {
+                finalPermuteDims[forward++] = i;
+            }
+
             int sliceIndex = shape::sliceOffsetForTensor(shape::rank(permuted),
                                                          this->tadIndex,
                                                          shape::shapeOf(shapeInfo),
@@ -1913,7 +1918,9 @@ namespace shape {
                 }
                 else {
                     //permute *then* return ret2
-                    shape::permuteShapeBufferInPlace(ret2,finalPermuteDims,ret2);
+                    int *newPermute = shape::permuteShapeBuffer(ret2,finalPermuteDims);
+                    delete[] ret2;
+                    ret2 = newPermute;
                 }
 
             }
@@ -1938,7 +1945,10 @@ namespace shape {
                         //basic idea; we *don't* permute row vectors
                     }
                     else {
-                        shape::permuteShapeBufferInPlace(ret2,finalPermuteDims,ret2);
+                        int *newRet = shape::copyOf(shape::shapeInfoLength(shape::rank(ret2)),ret2);
+                        shape::permuteShapeBufferInPlace(ret2,finalPermuteDims,newRet);
+                        delete[] ret2;
+                        ret2 = newRet;
 
                     }
 
@@ -1962,8 +1972,10 @@ namespace shape {
                         //basic idea; we *don't* permute row vectors
                     }
                     else {
-                        shape::permuteShapeBufferInPlace(ret2,finalPermuteDims,ret2);
-                    }
+                        //permute *then* return ret2
+                        int *newPermute = shape::permuteShapeBuffer(ret2,finalPermuteDims);
+                        delete[] ret2;
+                        ret2 = newPermute;                    }
 
                 }
 
@@ -3174,7 +3186,8 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
 #endif
 
     INLINEDEF void permuteShapeBufferInPlace(int *shapeBuffer,int *rearrange,int *out) {
-        memcpy(out,shapeBuffer,sizeof(int) * shape::shapeInfoLength(shape::rank(shapeBuffer)));
+        if(shapeBuffer != out)
+            memcpy(out,shapeBuffer,sizeof(int) * shape::shapeInfoLength(shape::rank(shapeBuffer)));
         doPermuteShapeBuffer(shape::rank(shapeBuffer),out,rearrange);
     }
 
@@ -3204,6 +3217,9 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
         int *rearrangeCopy2 = shape::copyOf(rearrageRank,rearrange);
         shape::doPermuteSwap(rearrageRank,&stride,rearrangeCopy2);
         delete[] rearrangeCopy2;
+        shapeRef[shapeInfoLength(rearrageRank) - 2] = -1;
+        shapeRef[shape::shapeInfoLength(rearrageRank) - 1] = shape::getOrder(rearrageRank,shape,stride,1);
+
     }
 
 #ifdef __CUDACC__
@@ -3222,6 +3238,8 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
 
         shape::copyOf(rearrageRank,rearrange, tmpBuffer);
         shape::doPermuteSwap(rearrageRank,&stride,tmpBuffer);
+        shapeRef[shapeInfoLength(rearrageRank) - 2] = -1;
+        shapeRef[shape::shapeInfoLength(rearrageRank) - 1] = shape::getOrder(rearrageRank,shape,stride,1);
     }
 
 #ifdef __CUDACC__
