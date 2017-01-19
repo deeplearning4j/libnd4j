@@ -3,186 +3,212 @@
 //
 #include "testinclude.h"
 
+class OnesTest : public testing::Test {
+public:
+    int shapeBuffer[12] = {4,4,3,1,1,3,1,1,1,0,1,99};
+    int dimension[3] = {0,2,3};
+    int tadAssertionShape[10] = {3,1,1,4,1,1,3,0,3,99};
+    int dimensionLength = 3;
+};
 
-    class ThreeDTest : public testing::Test {
-    public:
-        int shape[3] = {3,4,5};
-        int *shapeBuffer;
-        ThreeDTest() {
-            shapeBuffer = shape::shapeBuffer(3,shape);
-        }
-        ~ThreeDTest() {
-            delete[] shapeBuffer;
-        }
+class LabelTest : public testing::Test {
+public:
+    float labels[450] = {1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0};
+    int shapeInfo[8] = {2,150,3,1,150,0,1,102};
+    int dimension[1] = {1};
+    int dimensionLength = 1;
+    int tadShapeInfoAssert[8] = {2,1,3,1,150,0,150,99};
+};
+class ThreeDTest : public testing::Test {
+public:
+    int shape[3] = {3,4,5};
+    int *shapeBuffer;
+    ThreeDTest() {
+        shapeBuffer = shape::shapeBuffer(3,shape);
+    }
+    ~ThreeDTest() {
+        delete[] shapeBuffer;
+    }
+};
+
+class VectorTest : public testing::Test {
+
+};
+
+class NumTadTests : public testing::Test {
+public:
+    int shape[3] = {3,4,5};
+    int dimension = 0;
+};
+
+class ShapeTest :  public testing::Test {
+public:
+    int vectorShape[2] = {1,2};
+};
+
+class MatrixTest : public testing::Test {
+public:
+    int rows = 3;
+    int cols = 4;
+    int rank = 2;
+    int dims[2] = {0,1};
+    int expectedShapes[2][2] = {
+            {1,3},
+            {1,4}
+    };
+    int expectedStrides[2][2] = {
+            {1,4},
+            {1,1}
+    };
+};
+
+class TADStall : public testing::Test {
+public:
+    int shape[4] = {3,3,4,5};
+    int dimensions[3]  = {1,2,3};
+};
+
+class TensorOneDimTest : public testing::Test {
+public:
+    int rows = 3;
+    int cols = 4;
+    int dim2 = 5;
+    int rank = 3;
+    int dims[3] = {0,1,2};
+    int expectedShapes[3][2] = {
+            {1,3},
+            {1,4},
+            {1,5}
+    };
+    int expectedStrides[3][2] = {
+            {1,20},
+            {1,5},
+            {1,1}
+    };
+};
+
+class TensorTwoDimTest : public testing::Test {
+public:
+    //From a 3d array:
+    int rows = 3;
+    int cols = 4;
+    int dim2 = 5;
+    int dimensionLength = 2;
+    int dims[3][2] = {
+            {0,1},{0,2},{1,2}
     };
 
-    class VectorTest : public testing::Test {
+    int shape[3] {rows,cols,dim2};
 
+    //Along dimension 0,1: expect matrix with shape [rows,cols]
+    //Along dimension 0,2: expect matrix with shape [rows,dim2]
+    //Along dimension 1,2: expect matrix with shape [cols,dim2]
+    int expectedShapes[3][2] = {
+            {rows,cols},
+            {rows,dim2},
+            {cols,dim2}
     };
 
-    class NumTadTests : public testing::Test {
-    public:
-        int shape[3] = {3,4,5};
-        int dimension = 0;
+    int expectedStrides[3][2] = {
+            {20,5},
+            {20,1},
+            {5,1}
     };
 
-    class ShapeTest :  public testing::Test {
-    public:
-        int vectorShape[2] = {1,2};
+};
+
+class TensorTwoFromFourDDimTest : public testing::Test {
+public:
+    //From a 3d array:
+    int rows = 3;
+    int cols = 4;
+    int dim2 = 5;
+    int dim3 = 6;
+    int shape[4] = {rows,cols,dim2,dim3};
+    int dimensionLength = 2;
+    //Along dimension 0,1: expect matrix with shape [rows,cols]
+    //Along dimension 0,2: expect matrix with shape [rows,dim2]
+    //Along dimension 0,3: expect matrix with shape [rows,dim3]
+    //Along dimension 1,2: expect matrix with shape [cols,dim2]
+    //Along dimension 1,3: expect matrix with shape [cols,dim3]
+    //Along dimension 2,3: expect matrix with shape [dim2,dim3]
+
+    int dims[6][2] = {
+            {0,1},
+            {0,2},
+            {0,3},
+            {1,2},
+            {1,3},
+            {2,3}
     };
 
-    class MatrixTest : public testing::Test {
-    public:
-        int rows = 3;
-        int cols = 4;
-        int rank = 2;
-        int dims[2] = {0,1};
-        int expectedShapes[2][2] = {
-                {1,3},
-                {1,4}
-        };
-        int expectedStrides[2][2] = {
-                {1,4},
-                {1,1}
-        };
+    int expectedShapes[6][2] = {
+             {rows,cols},
+             {rows,dim2},
+             {rows,dim3},
+             {cols,dim2},
+             {cols,dim3}
+            ,{dim2,dim3}
     };
 
-    class TADStall : public testing::Test {
-    public:
-        int shape[4] = {3,3,4,5};
-        int dimensions[3]  = {1,2,3};
+    int expectedStrides[6][2] = {
+            {120,30},
+            {120,6},
+            {120,1},
+            {30,6},
+            {30,1},
+            {6,1}
     };
-
-    class TensorOneDimTest : public testing::Test {
-    public:
-        int rows = 3;
-        int cols = 4;
-        int dim2 = 5;
-        int rank = 3;
-        int dims[3] = {0,1,2};
-        int expectedShapes[3][2] = {
-                {1,3},
-                {1,4},
-                {1,5}
-        };
-        int expectedStrides[3][2] = {
-                {1,20},
-                {1,5},
-                {1,1}
-        };
-    };
-
-    class TensorTwoDimTest : public testing::Test {
-    public:
-        //From a 3d array:
-        int rows = 3;
-        int cols = 4;
-        int dim2 = 5;
-        int dimensionLength = 2;
-        int dims[3][2] = {
-                {0,1},{0,2},{1,2}
-        };
-
-        int shape[3] {rows,cols,dim2};
-
-        //Along dimension 0,1: expect matrix with shape [rows,cols]
-        //Along dimension 0,2: expect matrix with shape [rows,dim2]
-        //Along dimension 1,2: expect matrix with shape [cols,dim2]
-        int expectedShapes[3][2] = {
-                {rows,cols},
-                {rows,dim2},
-                {cols,dim2}
-        };
-
-        int expectedStrides[3][2] = {
-                {20,5},
-                {20,1},
-                {5,1}
-        };
-
-    };
-
-    class TensorTwoFromFourDDimTest : public testing::Test {
-    public:
-        //From a 3d array:
-        int rows = 3;
-        int cols = 4;
-        int dim2 = 5;
-        int dim3 = 6;
-        int shape[4] = {rows,cols,dim2,dim3};
-        int dimensionLength = 2;
-        //Along dimension 0,1: expect matrix with shape [rows,cols]
-        //Along dimension 0,2: expect matrix with shape [rows,dim2]
-        //Along dimension 0,3: expect matrix with shape [rows,dim3]
-        //Along dimension 1,2: expect matrix with shape [cols,dim2]
-        //Along dimension 1,3: expect matrix with shape [cols,dim3]
-        //Along dimension 2,3: expect matrix with shape [dim2,dim3]
-
-        int dims[6][2] = {
-                {0,1},
-                {0,2},
-                {0,3},
-                {1,2},
-                {1,3},
-                {2,3}
-        };
-
-        int expectedShapes[6][2] = {
-                 {rows,cols},
-                 {rows,dim2},
-                 {rows,dim3},
-                 {cols,dim2},
-                 {cols,dim3}
-                ,{dim2,dim3}
-        };
-
-        int expectedStrides[6][2] = {
-                {120,30},
-                {120,6},
-                {120,1},
-                {30,6},
-                {30,1},
-                {6,1}
-        };
-    };
+};
 
 
-    class OrderTest : public testing::Test {
-    public:
-        int expected[8] = {2,3,4,1,3,0,-1,102};
-        int test[8] = {2,3,4,1,3,0,-1,102};
+class OrderTest : public testing::Test {
+public:
+    int expected[8] = {2,3,4,1,3,0,-1,102};
+    int test[8] = {2,3,4,1,3,0,-1,102};
 
-    };
+};
 
-    class TestRemoveIndex : public testing::Test {};
+class TestRemoveIndex : public testing::Test {};
 
-    class TestReverseCopy : public testing::Test {};
+class TestReverseCopy : public testing::Test {};
 
-    class TestConcat : public testing::Test {};
+class TestConcat : public testing::Test {};
 
-    class SliceVectorTest : public testing::Test {};
+class SliceVectorTest : public testing::Test {};
 
-    class SliceMatrixTest : public testing::Test {};
+class SliceMatrixTest : public testing::Test {};
 
-    class SliceTensorTest : public testing::Test {};
+class SliceTensorTest : public testing::Test {};
 
-    class ElementWiseStrideTest : public testing::Test {
-    public:
-        int shape[3] = {3,4,5};
-        int stride[2] = {20,5};
-        int elementWiseStrideAssertion = -1;
-    };
+class ElementWiseStrideTest : public testing::Test {
+public:
+    int shape[3] = {3,4,5};
+    int stride[2] = {20,5};
+    int elementWiseStrideAssertion = -1;
+};
 
-    class PermuteTest : public testing::Test{};
+class PermuteTest : public testing::Test{};
 
-    class LengthPerSliceTest : public testing::Test{};
+class LengthPerSliceTest : public testing::Test{};
 
-    class ExpectedValuesTest : public testing::Test {
-    public:
-        int mainShape[4] = {9,7,5,3};
-        int testDimensions[3] = {0,2,3};
+class ExpectedValuesTest : public testing::Test {
+public:
+    int mainShape[4] = {9,7,5,3};
+    int testDimensions[3] = {0,2,3};
 
-    };
+};
+
+class BeginOneTadTest : public testing::Test {
+public:
+    int assertionShapeBuffer[8] = {2,3,5,1,3,0,-1,102};
+    int inputShapeBuffer[10] = {3,1,3,5,1,1,3,0,1,102};
+    int dimensionLength = 2;
+    int dimension[2] = {1,2};
+    //error: [2,1,1,1,1,0,1,97]
+};
+
+
 
 
 
@@ -207,6 +233,34 @@ std::string int_array_to_string(int int_array[], int size_of_array) {
 
     }
     return ::testing::AssertionSuccess();
+
+}
+
+
+
+
+
+TEST_F(BeginOneTadTest,TadTest) {
+    shape::TAD *tad = new shape::TAD(inputShapeBuffer,dimension,dimensionLength);
+    int *tadShapeBuffer = tad->shapeInfoOnlyShapeAndStride();
+    //[2,1,1,1,1,0,1,97]
+    ASSERT_TRUE(arrsEquals(8,assertionShapeBuffer,tadShapeBuffer));
+    delete[] tadShapeBuffer;
+}
+
+
+TEST_F(OnesTest,OnesTadTest) {
+    shape::TAD *tad = new shape::TAD(shapeBuffer,dimension,dimensionLength);
+    int *tadShapeBuffer = tad->shapeInfoOnlyShapeAndStride();
+    ASSERT_TRUE(arrsEquals(10,tadAssertionShape,tadShapeBuffer));
+    delete[] tadShapeBuffer;
+}
+
+TEST_F(LabelTest,LabelTad) {
+    shape::TAD *tad = new shape::TAD(shapeInfo,dimension,dimensionLength);
+    int *tadShapeInfo = tad->shapeInfoOnlyShapeAndStride();
+    ASSERT_TRUE(arrsEquals(8,tadShapeInfoAssert,tadShapeInfo));
+    delete[] tadShapeInfo;
 
 }
 

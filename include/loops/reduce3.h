@@ -567,7 +567,7 @@ template<typename OpType>
 
 				T extraParamsVals[3] = {(T) 0.0, (T) 0.0, (T) 0.0};
                 // it's possible case for EqualsWithEps op
-				if (extraParams != NULL) {
+				if (extraParams != nullptr) {
                     extraParamsVals[2] = extraParams[0];
                 }
 
@@ -579,7 +579,10 @@ template<typename OpType>
 
 // TODO:: proper reduction required here
 						for(int i = 0; i < length; i++) {
-							startingVal = OpType::update(startingVal, OpType::op(x[i],y[i], extraParamsVals), extraParamsVals);
+							startingVal = OpType::update(startingVal,
+														 OpType::op(x[i],y[i],
+                                                                    extraParamsVals),
+                                                         extraParamsVals);
 						}
 
 						return  OpType::postProcess(startingVal, length, extraParamsVals);
@@ -624,9 +627,7 @@ template<typename OpType>
 												 yStridesIter) >= 0) {
 						ND4J_RAW_ITER_START(dim, rank, coord, shapeIter); {
 								/* Process the innermost dimension */
-								T *xIter = x;
-								T *yIter = y;
-								startingVal = OpType::update(startingVal, OpType::op(xIter[0],yIter[0], extraParamsVals), extraParamsVals);
+								startingVal = OpType::update(startingVal, OpType::op(x[0],y[0], extraParamsVals), extraParamsVals);
 							} ND4J_RAW_ITER_TWO_NEXT(dim,
 													 rank,
 													 coord,

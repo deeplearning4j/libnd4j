@@ -26,6 +26,8 @@ public:
 };
 
 
+
+
 TEST_F(StdTest,MultiDimTest) {
     int *xShapeInfo = shape::shapeBuffer(4,examplesShape);
     int *resultShapeInfo = shape::computeResultShape(xShapeInfo,dimensionsForStd,dimensionLength);
@@ -58,6 +60,9 @@ TEST_F(StdTest,MultiDimTest) {
     delete tad;
     delete[] xShapeInfo;
 }
+
+
+
 
 
 TEST_F(ReduceTest,MatrixTest) {

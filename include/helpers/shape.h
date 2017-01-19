@@ -1860,7 +1860,7 @@ namespace shape {
         __host__ __device__
 #endif
         INLINEDEF int *shapeInfoOnlyShapeAndStride() {
-            if(wholeThing) {
+            if(wholeThing && dimensionLength == 1 && dimension[0] == MAX_DIMENSION) {
                 return shape::createScalarShapeInfo();
             }
             //ensure tad shapes get setup right for vectors
@@ -1916,8 +1916,12 @@ namespace shape {
                     //go to the bottom and return ret2 after proper freeing of pointers
                     //basic idea; we *don't* permute row vectors
                 }
-                else {
+                else if(dimensionLength > 1) {
                     //permute *then* return ret2
+                    /**
+                     * BUG HAPPENS HERE WITH SHAPE 4,3,1,1.
+                     * NEED TO FIND WHY PERMUTE IS A BUG HERE.
+                     */
                     int *newPermute = shape::permuteShapeBuffer(ret2,finalPermuteDims);
                     delete[] ret2;
                     ret2 = newPermute;
@@ -1945,8 +1949,7 @@ namespace shape {
                         //basic idea; we *don't* permute row vectors
                     }
                     else {
-                        int *newRet = shape::copyOf(shape::shapeInfoLength(shape::rank(ret2)),ret2);
-                        shape::permuteShapeBufferInPlace(ret2,finalPermuteDims,newRet);
+                        int *newRet = shape::permuteShapeBuffer(ret2,finalPermuteDims);
                         delete[] ret2;
                         ret2 = newRet;
 
@@ -1971,14 +1974,14 @@ namespace shape {
                         //go to the bottom and return ret2 after proper freeing of pointers
                         //basic idea; we *don't* permute row vectors
                     }
-                    else {
-                        //permute *then* return ret2
+                    else if(dimensionLength > 1){
+                        //permute *then* return ret
                         int *newPermute = shape::permuteShapeBuffer(ret2,finalPermuteDims);
                         delete[] ret2;
-                        ret2 = newPermute;                    }
+                        ret2 = newPermute;
+                    }
 
                 }
-
             }
 
 
