@@ -142,17 +142,17 @@ namespace functions {
                 for (Nd4jIndex i = threadIdx.x; i < tadLength; i+= blockDim.x) {
 
                     if (shape::order(tadOnlyShapeInfo) == 'c') {
-                        shape::ind2sub(tadRank,tadShape, i, xCoord);
+                        shape::ind2subC(tadRank,tadShape, i, xCoord);
                         shape::ind2subC(yRank, yShape, i, yCoord);
                     } else {
-                        shape::ind2subC(tadRank,tadShape, i, xCoord);
+                        shape::ind2sub(tadRank,tadShape, i, xCoord);
                         shape::ind2sub(yRank, yShape, i, yCoord);
                     }
 
                     if (shape::order(tadOnlyShapeInfoZ) == 'c')
-                        shape::ind2sub(zRank,zShape, i, zCoord);
-                    else
                         shape::ind2subC(zRank,zShape, i, zCoord);
+                    else
+                        shape::ind2sub(zRank,zShape, i, zCoord);
 
                     Nd4jIndex xOffset = shape::getOffset(tadOffsetForBlock, tadShape, tadStride, xCoord, tadRank);
                     Nd4jIndex zOffset = shape::getOffset(tadOffsetForBlockZ, zShape, zStride, zCoord, zRank);
