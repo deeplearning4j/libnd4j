@@ -87,7 +87,8 @@
         (52,simdOps::HardSigmoidDerivative) ,\
         (53,simdOps::RationalTanh) ,\
         (54,simdOps::RationalTanhDerivative) ,\
-        (55,simdOps::LogX)
+        (55,simdOps::LogX) ,\
+        (59,simdOps::Not)
 
 
 
@@ -1000,6 +1001,8 @@ __device__ void concatKernelGeneric(int dimension,
 //			if (threadIdx.x == 0)
 //				delete inputTAD;
 		}
+
+		__syncthreads();
 
 		if (threadIdx.x == 0 && tad != NULL)
 			delete tad;
