@@ -208,33 +208,48 @@ public:
     //error: [2,1,1,1,1,0,1,97]
 };
 
+class FourDTest : public testing::Test {
+    /**
+     * INDArray array3d = Nd4j.ones(1, 10, 10);
+array3d.sum(1);
 
-
-
-
-//http://stackoverflow.com/questions/228005/alternative-to-itoa-for-converting-integer-to-string-c
-std::string int_array_to_string(int int_array[], int size_of_array) {
-    std::string returnstring = "[";
-    for (int temp = 0; temp < size_of_array; temp++) {
-        returnstring += std::to_string(int_array[temp]);
-        if(temp < size_of_array - 1)
-            returnstring += ",";
+INDArray array4d = Nd4j.ones(1, 10, 10, 10);
+INDArray sum40 = array4d.sum(0);
+     */
+public:
+    int threeDShape[3] = {1,10,10};
+    int fourDShape[4] = {1,10,10,10};
+    int *threeDShapeBuffer = nullptr,*fourDShapeBuffer = nullptr;
+    int dimensionThree = 1;
+    int dimensionFour = 0;
+    int dimensionLength = 1;
+    FourDTest() {
+        threeDShapeBuffer = shape::shapeBuffer(3,threeDShape);
+        fourDShapeBuffer = shape::shapeBuffer(4,fourDShape);
     }
-    returnstring += "]";
-    return returnstring;
+    ~FourDTest() {
+        if(threeDShapeBuffer != nullptr)
+            delete[] threeDShapeBuffer;
+        if(fourDShapeBuffer != nullptr)
+            delete[] fourDShapeBuffer;
+    }
+
+
+
+};
+
+
+
+TEST_F(FourDTest,ThreeDFourDTest) {
+    shape::TAD *threeTad = new shape::TAD(threeDShapeBuffer,&dimensionThree,dimensionLength);
+    threeTad->createTadOnlyShapeInfo();
+    threeTad->createOffsets();
+    shape::TAD *fourTad = new shape::TAD(fourDShapeBuffer,&dimensionFour,dimensionLength);
+    fourTad->createTadOnlyShapeInfo();
+    fourTad->createOffsets();
+
 }
 
-::testing::AssertionResult arrsEquals(int n,int *assertion,int *other) {
-    for(int i = 0; i < n; i++) {
-        if(assertion[i] != other[i]) {
-            std::string message = std::string("Failure at index  ") + std::to_string(i)  + std::string(" assertion: ") +  int_array_to_string(assertion,n) + std::string(" and test array ") + int_array_to_string(other,n) + std::string("  is not equal");
-            return ::testing::AssertionFailure() << message;
-        }
-
-    }
-    return ::testing::AssertionSuccess();
-
-}
 
 
 
