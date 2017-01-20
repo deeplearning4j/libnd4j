@@ -221,6 +221,7 @@ public:
     int fourDShape[4] = {1,10,10,10};
     int *threeDShapeBuffer = nullptr,*fourDShapeBuffer = nullptr;
     int dimensionThree = 1;
+    int dimensionThreeTwo = 0;
     int dimensionFour = 0;
     int dimensionLength = 1;
     FourDTest() {
@@ -241,9 +242,17 @@ public:
 
 
 TEST_F(FourDTest,ThreeDFourDTest) {
+    shape::TAD *threeTadTwo = new shape::TAD(threeDShapeBuffer,&dimensionThreeTwo,dimensionLength);
+    threeTadTwo->createTadOnlyShapeInfo();
+    threeTadTwo->createOffsets();
+
     shape::TAD *threeTad = new shape::TAD(threeDShapeBuffer,&dimensionThree,dimensionLength);
     threeTad->createTadOnlyShapeInfo();
     threeTad->createOffsets();
+
+
+
+
     shape::TAD *fourTad = new shape::TAD(fourDShapeBuffer,&dimensionFour,dimensionLength);
     fourTad->createTadOnlyShapeInfo();
     fourTad->createOffsets();
