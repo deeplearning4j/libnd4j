@@ -225,8 +225,8 @@ public:
     int dimensionFour = 0;
     int dimensionLength = 1;
     FourDTest() {
-        threeDShapeBuffer = shape::shapeBuffer(3,threeDShape);
-        fourDShapeBuffer = shape::shapeBuffer(4,fourDShape);
+        threeDShapeBuffer = shape::shapeBufferFortran(3,threeDShape);
+        fourDShapeBuffer = shape::shapeBufferFortran(4,fourDShape);
     }
     ~FourDTest() {
         if(threeDShapeBuffer != nullptr)
@@ -261,7 +261,40 @@ TEST_F(FourDTest,ThreeDFourDTest) {
 
 
 
+class RowVectorOnesTest : public testing::Test {
+public:
+    int shapeBuffer[12] = {4,4,3,1,1,3,1,1,1,0,1,99};
+    float data[12] = {1,2,3,4,5,6,7,8,9,10,11,12};
+    int assertionBuffer[10] = {3,4,1,1,3,1,1,0,-1,99};
+    int dimensionLength = 3;
+    int dimension[3] = {0,2,3};
+};
 
+TEST_F(RowVectorOnesTest,TadShape) {
+    shape::TAD *tad = new shape::TAD(shapeBuffer,dimension,dimensionLength);
+    tad->createTadOnlyShapeInfo();
+    tad ->createOffsets();
+    ASSERT_TRUE(arrsEquals(10,assertionBuffer,tad->tadOnlyShapeInfo));
+    delete tad;
+}
+
+
+
+class SixDTest : public testing::Test {
+public:
+    int inputShapeBuffer[16] = {6,1,1,4,4,4,4,1,1,1,4,16,64,0,1,102};
+    int dimensionLength = 2;
+    int dimension[2] = {2,3};
+    int assertionShapeBuffer[8] = {2,4,4,1,4,0,-1,102};
+};
+
+TEST_F(SixDTest,SixDWithOnes) {
+    shape::TAD *tad = new shape::TAD(inputShapeBuffer,dimension,dimensionLength);
+    tad->createTadOnlyShapeInfo();
+    tad ->createOffsets();
+    //[2,1,1,1,1,0,1,97]
+    ASSERT_TRUE(arrsEquals(8,assertionShapeBuffer,tad->tadOnlyShapeInfo));
+}
 
 
 TEST_F(BeginOneTadTest,TadTest) {

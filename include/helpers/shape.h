@@ -1378,28 +1378,6 @@ namespace shape {
             this->rank = shape::rank(shapeInfo);
             this->numTads = this->tensorsAlongDimension(this->shapeInfo, this->dimension, this->dimensionLength);
 
-            //ensure we get rid of trailing ones in the dimensions
-            //we can do this with a simple decrement of the dimension length for trailing ones
-            //ensure we only do this for non column vectors
-            if(shape::rank(shapeInfo) > 2)
-                for (int i = shape::rank(shapeInfo) - 1; i >= 0; i--) {
-                    if (shape::shapeOf(shapeInfo)[i] == 1) {
-                        this->numOnes++;
-                        if (i > 0 && i < shape::rank(shapeInfo) - 1)
-                            this->numOnesInMiddle++;
-
-                    }
-                }
-
-
-            //note here that we need to keep the original rank shape info for properly permuting strides and shapes
-            //this->rank -= trailingDimensionDecrement;
-            //this->dimensionLength -= trailingDimensionDecrement;
-            //move dimension ones where dimensions + 1 s overlap
-            if (numOnes > 0) {
-                this->collapse();
-            }
-
             if(!shape::isVector(shapeInfo))
                 wholeThing = this->numTads == 1 || this->dimensionLength == this->rank || this->numTads == shape::length(shapeInfo);
             else if(shape::isScalar(shapeInfo))
@@ -1496,7 +1474,16 @@ namespace shape {
         }
 
 
-
+#ifdef __CUDACC__
+        __host__ __device__
+#endif
+        int lengthPerSlice(int *shapeBuffer) {
+            int dimension = 0;
+            int *remove = shape::removeIndex(shape::shapeOf(shapeBuffer),&dimension,shape::rank(shapeBuffer),1);
+            int prod = shape::prod(remove,shape::rank(shapeBuffer) - 1);
+            delete[] remove;
+            return prod;
+        }
 
 
 #ifdef __CUDACC__
@@ -1930,7 +1917,7 @@ namespace shape {
             }
             else {
                 int length = tensorLength;
-                int lengthPerSlice =  shape::lengthPerSlice(shape::rank(shapeInfo),shape::shapeOf(shapeInfo),dimension,dimensionLength);
+                int lengthPerSlice = this->lengthPerSlice(ret2);
                 int offset = tadIndex * tensorLength /lengthPerSlice;
                 if(sliceIndex == 0 && length == lengthPerSlice) {
                     int *newRet2 = shape::sliceOfShapeBuffer(offset,ret2);
@@ -1961,7 +1948,7 @@ namespace shape {
                     //at the bottom of the method
                     int sliceDimension = 0;
                     while(shape::length(ret2) > length) {
-                        int lengthPerSlice2 = shape::lengthPerSlice(shape::rank(ret2),shape::shapeOf(ret2),&sliceDimension,1);
+                        int lengthPerSlice2 = this->lengthPerSlice(ret2);
                         sliceIndex =    sliceOffsetForTensor(sliceIndex,shape::length(ret2),lengthPerSlice2);
                         sliceIndex -= shape::slices(ret2) * (sliceIndex / shape::slices(ret2));
                         int *newRet2 = shape::sliceOfShapeBuffer(sliceIndex,ret2);
