@@ -403,7 +403,17 @@ namespace shape {
 #endif
 
     INLINEDEF int isVector(int *shapeInfo);
+#ifdef __CUDACC__
+    __host__ __device__
+#endif
 
+    INLINEDEF bool isRowVector(int *shapeInfo);
+
+#ifdef __CUDACC__
+    __host__ __device__
+#endif
+
+    INLINEDEF bool isColumnVector(int *shapeInfo);
     /**
  * Returns whether the
  * given shape is a vector or not
@@ -1923,8 +1933,10 @@ namespace shape {
                     int *newRet2 = shape::sliceOfShapeBuffer(offset,ret2);
                     delete[] ret2;
                     ret2 = newRet2;
-                    shape::permuteShapeBufferInPlace(ret2,finalPermuteDims,ret2);
-
+                    bool isRowVector2 = shape::isRowVector(ret2);
+                    if(isRowVector2 == false) {
+                        shape::permuteShapeBufferInPlace(ret2, finalPermuteDims, ret2);
+                    }
                 }
                 else if(length == lengthPerSlice) {
                     offset -= shape::slices(ret2) * (offset / shape::slices(ret2));
@@ -3435,6 +3447,26 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
         return isVector(shape::shapeOf(shapeInfo),shape::rank(shapeInfo));
     }
 
+
+#ifdef __CUDACC__
+    __host__ __device__
+#endif
+
+    INLINEDEF bool isRowVector(int *shapeInfo) {
+        bool isVector = shape::isVector(shapeInfo) == 1;
+        bool shapeFirstOne = shape::shapeOf(shapeInfo)[0] == 1;
+        return isVector && shapeFirstOne;
+    }
+
+#ifdef __CUDACC__
+    __host__ __device__
+#endif
+
+    INLINEDEF bool isColumnVector(int *shapeInfo) {
+        bool isVector = shape::isVector(shapeInfo) == 1;
+        bool shapeFirstOne = shape::shapeOf(shapeInfo)[0] == 1;
+        return isVector && !shapeFirstOne;
+    }
 #ifdef __CUDACC__
     __host__ __device__
 #endif
