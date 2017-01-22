@@ -1877,6 +1877,11 @@ namespace shape {
                 } else if(dimension[0] == 1 && shape::isVector(shapeInfo) && theShape[0] == 1) {
                     return shape::copyOf(shape::shapeInfoLength(shape::rank(shapeInfo)),shapeInfo);
                 }
+                else if(shape::shapeOf(shapeInfo)[dimension[0]] == 1) {
+                    int *scalarInfo = shape::createScalarShapeInfo();
+                    scalarInfo[shape::shapeInfoLength(shape::rank(scalarInfo)) - 3] = this->tadIndex;
+                    return scalarInfo;
+                }
             }
 
             int *tensorShape = this->tensorShape();
@@ -1915,10 +1920,6 @@ namespace shape {
                 }
                 else if(dimensionLength > 1) {
                     //permute *then* return ret2
-                    /**
-                     * BUG HAPPENS HERE WITH SHAPE 4,3,1,1.
-                     * NEED TO FIND WHY PERMUTE IS A BUG HERE.
-                     */
                     int *newPermute = shape::permuteShapeBuffer(ret2,finalPermuteDims);
                     delete[] ret2;
                     ret2 = newPermute;
@@ -4660,6 +4661,7 @@ __device__ int tadOffset(int *xInfo, int offset) {
         shapeInformation2->stride = stride;
         shapeInformation2->shape = shape;
         shapeInformation2->elementWiseStride = 1;
+        shapeInformation2->order = 97;
         int *ret = shape::toShapeBuffer(shapeInformation2);
         delete shapeInformation2;
         return ret;

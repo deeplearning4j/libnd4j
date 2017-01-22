@@ -5,6 +5,7 @@
 #ifndef LIBND4J_TESTINCLUDE_H
 #define LIBND4J_TESTINCLUDE_H
 #include <reduce.h>
+#include <reduce3.h>
 #include <shape.h>
 #include <data_gen.h>
 #include <gtest/gtest.h>

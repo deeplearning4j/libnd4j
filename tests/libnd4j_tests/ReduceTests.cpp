@@ -26,6 +26,35 @@ public:
 };
 
 
+class EuclideanDistanceTest : public testing::Test {
+public:
+    float x[16] = {1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8};
+    float y[16] = {2,3,4,5,6,7,8,9,2,3,4,5,6,7,8,9};
+    float result[9] = {0};
+    int shapeBuffer[12] = {4,2,2,2,2,8,4,2,1,0,1,99};
+    int dimensionLength = 3;
+    int dimension[3] = {1,2,3};
+    float extraVals[2] = {0,0};
+    int opNum = 1;
+};
+
+
+TEST_F(EuclideanDistanceTest,Test1) {
+    int *tadShapeBuffer = shape::computeResultShape(shapeBuffer,dimension,dimensionLength);
+    functions::reduce3::Reduce3<float>::exec(opNum,
+                                             x,
+                                             shapeBuffer,
+                                             extraVals,
+                                             y,
+                                             shapeBuffer,
+                                             result,
+                                             tadShapeBuffer,
+                                             dimension,
+                                             dimensionLength);
+
+    ASSERT_EQ(result[1],result[0]);
+    delete[] tadShapeBuffer;
+}
 
 
 TEST_F(StdTest,MultiDimTest) {

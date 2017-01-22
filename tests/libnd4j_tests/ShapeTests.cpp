@@ -312,6 +312,25 @@ TEST_F(TrailingTest,TrailingTest2) {
     ASSERT_TRUE(arrsEquals(8,assertionShapeBuffer,tad->tadOnlyShapeInfo));
 }
 
+
+class ScalarTest : public testing::Test {
+public:
+    int inputShapeBuffer[12] = {3,2,1,4,4,4,1,0,1,99};
+    int dimensionLength = 1;
+    int dimension[1] = {1};
+    int assertionShapeBuffer[8] = {2,1,1,1,1,0,1,97};
+};
+
+TEST_F(ScalarTest,ScalarTest2) {
+    shape::TAD *tad = new shape::TAD(inputShapeBuffer,dimension,dimensionLength);
+    tad->createTadOnlyShapeInfo();
+    tad ->createOffsets();
+    //[2,1,1,1,1,0,1,97]
+    ASSERT_TRUE(arrsEquals(8,assertionShapeBuffer,tad->tadOnlyShapeInfo));
+}
+
+
+
 class ThreeTest : public testing::Test {
 public:
     int inputShapeBuffer[10] = {3,4,3,2,6,2,1,0,1,99};
