@@ -805,57 +805,36 @@ template<typename OpType>
                         shape::TAD yTad(yShapeInfo, dimension, dimensionLength);
                         yTad.createTadOnlyShapeInfo();
                         yTad.createOffsets();
-                        int *xShape = shape::shapeOf(xShapeInfo);
-
-                        int *xStride = shape::stride(xShapeInfo);
-                        int *yStride = shape::stride(yShapeInfo);
-                        T *xIter = x;
-                        T *yIter = y;
-                        int rank = shape::rank(xShapeInfo);
-                        if (PrepareTwoRawArrayIter<T>(rank,
-                                                      xShape,
-                                                      xIter,
-                                                      xStride,
-                                                      yIter,
-                                                      yStride,
-                                                      &rank,
-                                                      shapeIter,
-                                                      &xIter,
-                                                      xStridesIter,
-                                                      &yIter,
-                                                      yStridesIter) >= 0) {
-
-                            Nd4jIndex resultLength = shape::length(resultShapeInfoBuffer);
-                            Nd4jIndex tadLength = shape::length(xTad.shapeInfo);
-                            ND4J_RAW_ITER_START(dim, rank, coord, shapeIter) ;
-                                {
-                                    Nd4jIndex xOffset = shape::getOffset(0, xShape, xStride, coord, rank);
-                                    Nd4jIndex yOffset = shape::getOffset(0, xShape, yStride, coord, rank);
-                                    int reductionIndex = xOffset / resultLength;
-                                    result[reductionIndex] = OpType::update(result[reductionIndex],
-                                                                            OpType::op(xIter[0], yIter[0], extraParamsVals),
-                                                                            extraParamsVals);
-                                }
-                            ND4J_RAW_ITER_TWO_NEXT(dim,
-                                                   rank,
-                                                   coord,
-                                                   shapeIter,
-                                                   xIter,
-                                                   xStridesIter,
-                                                   yIter,
-                                                   yStridesIter);
+                        int tads = shape::tensorsAlongDimension(xShapeInfo,dimension,dimensionLength);
+                        int idx[MAX_RANK];
+                        int tadsPerThread = resultLength / TAD_THRESHOLD;
+                        int num_threads = nd4j::math::nd4j_max<int>(1, tadsPerThread);
+                        num_threads = nd4j::math::nd4j_min<int>(num_threads, omp_get_max_threads());
 
 
-#pragma  omp parallel for proc_bind(AFFINITY) default(shared)
-                            for (Nd4jIndex i = 0; i < resultLength; i++) {
-                                result[i] = OpType::postProcess(result[i], tadLength, extraParamsVals);
+#pragma omp  parallel for schedule(guided) num_threads(num_threads) if (num_threads > 1) proc_bind(AFFINITY) default(shared)
+                        for (int i = 0; i < resultLength; i++) {
+                            Nd4jIndex xOffset = xTad.tadOffsets[i];
+                            Nd4jIndex yOffset = yTad.tadOffsets[i];
+                            int coord[MAX_RANK];
+
+                            T start = OpType::startingValue(x + xOffset);
+
+                            for (int j = 0; j < shape::length(xTad.tadOnlyShapeInfo); j++) {
+                                shape::ind2subC(shape::rank(xTad.tadOnlyShapeInfo), shape::shapeOf(xTad.tadOnlyShapeInfo), j, coord);
+                                int xOffset2 = shape::getOffset(xOffset,shape::shapeOf(xTad.tadOnlyShapeInfo),shape::stride(xTad.tadOnlyShapeInfo),coord,shape::rank(xTad.tadOnlyShapeInfo));
+                                int yOffset2 = shape::getOffset(yOffset,shape::shapeOf(yTad.tadOnlyShapeInfo),shape::stride(yTad.tadOnlyShapeInfo),coord,shape::rank(yTad.tadOnlyShapeInfo));
+                                start = OpType::update(start, OpType::op(x[xOffset2], y[yOffset2],extraParams), extraParams);
                             }
+
+                            result[i] = OpType::postProcess(start, shape::length(xTad.tadOnlyShapeInfo), extraParams);
                         }
-
-
                     }
+
+
                 }
             }
+
 
         };
     }
