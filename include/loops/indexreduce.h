@@ -34,7 +34,7 @@
 		(3, simdOps::IndexAbsoluteMin) , \
 		(4, simdOps::FirstIndex) , \
 		(5, simdOps::LastIndex)
-        
+
 
 namespace functions {
 	namespace indexreduce {
@@ -82,7 +82,7 @@ struct SharedIndexValue<double> {
 		public:
 #ifdef __CUDACC__
 
-		static inline __device__ void transform(
+			static inline __device__ void transform(
 			const int opNum,
 			T *x,
 			int *xShapeInfo,
@@ -374,24 +374,24 @@ template<typename OpType>
 
 
 #endif
-		static T execScalar(
-			const int opNum,
-			T *x,
-			int *xShapeInfo,
-			T *extraParams) {
-                    RETURNING_DISPATCH_BY_OPNUM(execScalar, PARAMS(x, xShapeInfo, extraParams), INDEX_REDUCE_OPS);
-		}
+			static T execScalar(
+					const int opNum,
+					T *x,
+					int *xShapeInfo,
+					T *extraParams) {
+				RETURNING_DISPATCH_BY_OPNUM(execScalar, PARAMS(x, xShapeInfo, extraParams), INDEX_REDUCE_OPS);
+			}
 
-		static void exec(const int opNum,
-			T *x,
-			int *xShapeInfo,
-			T *extraParams,
-			T *result,
-			int *resultShapeInfoBuffer,
-			int *dimension,
-			int dimensionLength, int *tadShapeInfo, int *tadOffset) {
-                    DISPATCH_BY_OPNUM(exec, PARAMS(x, xShapeInfo, extraParams, result, resultShapeInfoBuffer, dimension, dimensionLength, tadShapeInfo, tadOffset), INDEX_REDUCE_OPS);
-		}
+			static void exec(const int opNum,
+							 T *x,
+							 int *xShapeInfo,
+							 T *extraParams,
+							 T *result,
+							 int *resultShapeInfoBuffer,
+							 int *dimension,
+							 int dimensionLength, int *tadShapeInfo, int *tadOffset) {
+				DISPATCH_BY_OPNUM(exec, PARAMS(x, xShapeInfo, extraParams, result, resultShapeInfoBuffer, dimension, dimensionLength, tadShapeInfo, tadOffset), INDEX_REDUCE_OPS);
+			}
 
 
 			template<typename OpType>
@@ -401,8 +401,8 @@ template<typename OpType>
 
 #endif
 			static inline T execScalar(T *x,
-						 int *xShapeInfo,
-						 T *extraParams) {
+									   int *xShapeInfo,
+									   T *extraParams) {
 
 				//T startingVal = OpType::startingValue(x);
 				IndexValue<T> startingIndex = OpType::startingIndexValue(x);
@@ -410,28 +410,28 @@ template<typename OpType>
 				int length = shape::length(xShapeInfo);
 				int xElementWiseStride = shape::elementWiseStride(xShapeInfo);
 				if(xElementWiseStride < 1) {
-                    int *xShape = shape::shapeOf(xShapeInfo);
-                    int *xStride = shape::stride(xShapeInfo);
-                    int tadRank = shape::rank(xShapeInfo);
-                    int xCoord[MAX_RANK];
+					int *xShape = shape::shapeOf(xShapeInfo);
+					int *xStride = shape::stride(xShapeInfo);
+					int tadRank = shape::rank(xShapeInfo);
+					int xCoord[MAX_RANK];
 
-                    for (Nd4jIndex i = 0; i < length; i++) {
-                        shape::ind2subC(tadRank,xShape, i, xCoord);
-                        Nd4jIndex xOffset = shape::getOffset(0, xShape, xStride, xCoord, tadRank);
+					for (Nd4jIndex i = 0; i < length; i++) {
+						shape::ind2subC(tadRank,xShape, i, xCoord);
+						Nd4jIndex xOffset = shape::getOffset(0, xShape, xStride, xCoord, tadRank);
 
-                        IndexValue<T> curr;
-                        curr.value = x[xOffset];
-                        curr.index = i;
+						IndexValue<T> curr;
+						curr.value = x[xOffset];
+						curr.index = i;
 
-                        startingIndex = OpType::update(startingIndex, curr, extraParams);
-                    }
-                    return startingIndex.index;
+						startingIndex = OpType::update(startingIndex, curr, extraParams);
+					}
+					return startingIndex.index;
 				}
 				else {
 
 					if (xElementWiseStride == 1) {
 						if(length < ELEMENT_THRESHOLD) {
-                            printf("branch A\n");
+							printf("branch A\n");
 // FIXME: proper reduction to be used here
 //#pragma omp simd
 							for (Nd4jIndex i = 0; i < length; i++) {
@@ -441,12 +441,12 @@ template<typename OpType>
 								startingIndex = OpType::update(startingIndex, curr, extraParams);
 
 							}
-                            printf("Final index: %i;\n", startingIndex.index);
+							printf("Final index: %i;\n", startingIndex.index);
 							return startingIndex.index;
 						}
 						else {
 							BlockInformation info(length, ELEMENT_THRESHOLD);
-                            printf("branch B\n");
+							printf("branch B\n");
 
 #pragma omp parallel num_threads(info.threads) if (info.threads > 1) default(shared)
 
@@ -478,7 +478,7 @@ template<typename OpType>
 #pragma omp critical
 									{
 										startingIndex = OpType::update(startingIndex, local,
-															   extraParams);
+																	   extraParams);
 									}
 
 
@@ -496,7 +496,7 @@ template<typename OpType>
 							curr.value = x[i * xElementWiseStride];
 							curr.index = i;
 							startingIndex = OpType::update(startingIndex, curr,
-												   extraParams);
+														   extraParams);
 						}
 					}
 				}
@@ -504,7 +504,7 @@ template<typename OpType>
 				return  startingIndex.index;
 			}
 
-			
+
 			template<typename OpType>
 #ifdef __CUDACC__
 			__host__
@@ -513,12 +513,12 @@ template<typename OpType>
 
 #endif
 			static inline void exec(T *x,
-					  int *xShapeInfo,
-					  T *extraParams,
-					  T *result,
-					  int *resultShapeInfoBuffer,
-					  int *dimension,
-					  int dimensionLength, int *tadShapeInfo, int *tadOffset) {
+									int *xShapeInfo,
+									T *extraParams,
+									T *result,
+									int *resultShapeInfoBuffer,
+									int *dimension,
+									int dimensionLength, int *tadShapeInfo, int *tadOffset) {
 
 				if(shape::isScalar(resultShapeInfoBuffer)) {
 					result[0] = execScalar<OpType>(x,xShapeInfo,extraParams);
@@ -593,17 +593,17 @@ template<typename OpType>
 													 &xPointer,
 													 xStridesIter) >= 0) {
 							ND4J_RAW_ITER_START(dim, rank, coord, shapeIter); {
-								/* Process the innermost dimension */
-								IndexValue<T> comp;
-								comp.index = shape::sub2Ind(rank,xShape,coord);
-								comp.value = xPointer[0];
-								indexValue = OpType::update(indexValue,comp,extraParams);
-							} ND4J_RAW_ITER_ONE_NEXT(dim,
-													 rank,
-													 coord,
-													 shapeIter,
-													 xPointer,
-													 xStridesIter);
+									/* Process the innermost dimension */
+									IndexValue<T> comp;
+									comp.index = shape::sub2Ind(rank,xShape,coord);
+									comp.value = xPointer[0];
+									indexValue = OpType::update(indexValue,comp,extraParams);
+								} ND4J_RAW_ITER_ONE_NEXT(dim,
+														 rank,
+														 coord,
+														 shapeIter,
+														 xPointer,
+														 xStridesIter);
 						}
 						else {
 							printf("Unable to prepare array\n");
@@ -799,4 +799,3 @@ __global__ void indexReduceHalf(
 #endif
 
 #endif /* INDEXREDUCE_H_ */
-
