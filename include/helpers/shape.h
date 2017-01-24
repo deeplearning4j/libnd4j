@@ -1891,11 +1891,7 @@ namespace shape {
             //concat is wrong here with the length
             int *newPermuteDims = shape::concat(remove,rank - dimensionLength,reverseDimensions,dimensionLength);
             int *permuted = shape::permuteShapeBuffer(shapeInfo,newPermuteDims);
-            int *finalPermuteDims = new int[dimensionLength];
-            int forward = 0;
-            for(int i = dimensionLength - 1; i >= 0; i--) {
-                finalPermuteDims[forward++] = i;
-            }
+
 
             int sliceIndex = shape::sliceOffsetForTensor(shape::rank(permuted),
                                                          this->tadIndex,
@@ -1920,9 +1916,14 @@ namespace shape {
                 }
                 else if(dimensionLength > 1) {
                     //permute *then* return ret2
-                    int *newPermute = shape::permuteShapeBuffer(ret2,finalPermuteDims);
-                    delete[] ret2;
-                    ret2 = newPermute;
+                    int *finalPermuteDims = new int[shape::rank(ret2)];
+                    int forward = 0;
+                    for(int i = shape::rank(ret2) - 1; i >= 0; i--) {
+                        finalPermuteDims[forward++] = i;
+                    }
+                    shape::permuteShapeBufferInPlace(ret2,finalPermuteDims,ret2);
+                    delete[] finalPermuteDims;
+
                 }
 
             }
@@ -1934,10 +1935,18 @@ namespace shape {
                     int *newRet2 = shape::sliceOfShapeBuffer(offset,ret2);
                     delete[] ret2;
                     ret2 = newRet2;
+                    int *finalPermuteDims = new int[shape::rank(ret2)];
+                    int forward = 0;
+                    for(int i = shape::rank(ret2) - 1; i >= 0; i--) {
+                        finalPermuteDims[forward++] = i;
+                    }
                     bool isRowVector2 = shape::isRowVector(ret2);
                     if(isRowVector2 == false) {
                         shape::permuteShapeBufferInPlace(ret2, finalPermuteDims, ret2);
                     }
+
+                    delete[] finalPermuteDims;
+
                 }
                 else if(length == lengthPerSlice) {
                     offset -= shape::slices(ret2) * (offset / shape::slices(ret2));
@@ -1949,8 +1958,14 @@ namespace shape {
                         //basic idea; we *don't* permute row vectors
                     }
                     else {
+                        int *finalPermuteDims = new int[shape::rank(ret2)];
+                        int forward = 0;
+                        for(int i = shape::rank(ret2) - 1; i >= 0; i--) {
+                            finalPermuteDims[forward++] = i;
+                        }
                         int *newRet = shape::permuteShapeBuffer(ret2,finalPermuteDims);
                         delete[] ret2;
+                        delete[] finalPermuteDims;
                         ret2 = newRet;
 
                     }
@@ -1976,8 +1991,14 @@ namespace shape {
                     }
                     else if(dimensionLength > 1){
                         //permute *then* return ret
+                        int *finalPermuteDims = new int[shape::rank(ret2)];
+                        int forward = 0;
+                        for(int i = shape::rank(ret2) - 1; i >= 0; i--) {
+                            finalPermuteDims[forward++] = i;
+                        }
                         int *newPermute = shape::permuteShapeBuffer(ret2,finalPermuteDims);
                         delete[] ret2;
+                        delete[] finalPermuteDims;
                         ret2 = newPermute;
                     }
 
@@ -1985,7 +2006,6 @@ namespace shape {
             }
 
 
-            delete[] finalPermuteDims;
             delete[] permuted;
             delete[] newPermuteDims;
             delete[] rankRange;
@@ -3191,7 +3211,7 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
     INLINEDEF void permuteShapeBufferInPlace(int *shapeBuffer,int *rearrange,int *out) {
         if(shapeBuffer != out)
             memcpy(out,shapeBuffer,sizeof(int) * shape::shapeInfoLength(shape::rank(shapeBuffer)));
-        doPermuteShapeBuffer(shape::rank(shapeBuffer),out,rearrange);
+        doPermuteShapeBuffer(shape::rank(shapeBuffer),shapeBuffer,rearrange,out);
     }
 
 #ifdef __CUDACC__
@@ -3214,12 +3234,8 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
         int rearrageRank = shape::rank(shapeRef);
         int *shape = shape::shapeOf(shapeRef);
         int *stride = shape::stride(shapeRef);
-        int *rearrangeCopy1 = shape::copyOf(rearrageRank,rearrange);
-        shape::doPermuteSwap(rearrageRank,&shape,rearrangeCopy1);
-        delete[] rearrangeCopy1;
-        int *rearrangeCopy2 = shape::copyOf(rearrageRank,rearrange);
-        shape::doPermuteSwap(rearrageRank,&stride,rearrangeCopy2);
-        delete[] rearrangeCopy2;
+        shape::doPermuteSwap(rearrageRank,&shape,rearrange);
+        shape::doPermuteSwap(rearrageRank,&stride,rearrange);
         shapeRef[shapeInfoLength(rearrageRank) - 2] = -1;
         shapeRef[shape::shapeInfoLength(rearrageRank) - 1] = shape::getOrder(rearrageRank,shape,stride,1);
 
@@ -3275,11 +3291,10 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
         int rearrageRank = rank;
         int *shape = shape::shapeOf(shapeRef);
         int *stride = shape::stride(shapeRef);
-        shape::copyOf(rearrageRank,rearrange, tmpBuffer);
-        shape::doPermuteSwap(rearrageRank,&shape,tmpBuffer);
-
-        shape::copyOf(rearrageRank,rearrange, tmpBuffer);
-        shape::doPermuteSwap(rearrageRank,&stride,tmpBuffer);
+        if(shapeBuffer != tmpBuffer)
+            shape::copyOf(rearrageRank,shapeBuffer, tmpBuffer);
+        shape::doPermuteSwap(rearrageRank,&shape,rearrange);
+        shape::doPermuteSwap(rearrageRank,&stride,rearrange);
         shapeRef[shapeInfoLength(rank) - 2] = -1;
         shapeRef[shape::shapeInfoLength(rank) - 1] = shape::getOrder(rank,shape,stride,1);
     }

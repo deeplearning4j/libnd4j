@@ -67,5 +67,5 @@ elseif(MSYS)
 endif()
 
 
-add_executable(runtests ReduceTests.cpp)
+add_executable(runtests ShapeTests.cpp)
 target_link_libraries(runtests   gtest gtest_main)

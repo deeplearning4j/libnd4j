@@ -169,6 +169,34 @@ public:
 
 };
 
+
+class LeadingOnes : public testing::Test {
+public:
+    int shapeBufferF[16] = {4,1,1,4,4,1,1,1,4,0,1,102};
+    int shapeBufferC[16] = {4,1,1,4,4,16,16,4,1,0,1,99};
+    int dimensionLength = 2;
+    int dimension[2] = {2,3};
+    int tadAssertionC[10] = {3,4,4,1,4,1,16,0,-1,99};
+    int tadCAssertionF[10] = {3,4,4,1,1,4,1,0,-1,99};
+};
+
+
+TEST_F(LeadingOnes,OnesTest) {
+    shape::TAD *cTad = new shape::TAD(shapeBufferC,dimension,dimensionLength);
+    cTad->createTadOnlyShapeInfo();
+    cTad->createOffsets();
+    shape::TAD *fTad = new shape::TAD(shapeBufferF,dimension,dimensionLength);
+    fTad->createTadOnlyShapeInfo();
+    fTad->createOffsets();
+    ASSERT_TRUE(arrsEquals(10,tadCAssertionF,fTad->tadOnlyShapeInfo));
+    ASSERT_TRUE(arrsEquals(10,tadAssertionC,cTad->tadOnlyShapeInfo));
+
+    delete cTad;
+    delete fTad;
+}
+
+
+
 class TestRemoveIndex : public testing::Test {};
 
 class TestReverseCopy : public testing::Test {};
