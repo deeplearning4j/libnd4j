@@ -5,20 +5,24 @@
 #ifndef LIBCNPY_H_
 #define LIBCNPY_H_
 
-#include<string>
-#include<stdexcept>
-#include<sstream>
-#include<vector>
-#include<cstdio>
-#include<typeinfo>
-#include<iostream>
-#include<cassert>
-#include<zlib.h>
-#include<map>
 
 /**
  *
  */
+#include <typeinfo>
+#include <vector>
+#include <cstdio>
+#include <string>
+#include <algorithm>
+#include <map>
+#include <assert.h>
+#include <iostream>
+#include <zlib.h>
+#include <sstream>
+#include<complex>
+#include <cstring>
+#include <algorithm>
+
 namespace cnpy {
 
     /**
@@ -60,7 +64,7 @@ namespace cnpy {
      * @param t
      * @return
      */
-    char map_type(const std::type_info& t);
+    char mapType(const std::type_info &t);
 
     /**
      *
@@ -103,11 +107,12 @@ namespace cnpy {
     * @param ndims
     * @param fortran_order
     */
-    void parseNpyHeader(char *header,
-                          unsigned int& word_size,
-                          unsigned int*& shape,
-                          unsigned int& ndims,
-                          bool& fortran_order);
+    void parseNpyHeaderPointer(
+            const char *header,
+            unsigned int& word_size,
+            unsigned int*& shape,
+            unsigned int& ndims,
+            bool& fortran_order);
     /**
      *
      * @param fp
@@ -143,11 +148,34 @@ namespace cnpy {
     NpyArray npyLoad(std::string fname);
 
     /**
+    * Parse the numpy header from
+    * the given file
+    * based on the pointers passed in
+    * @param fp the file to parse from
+    * @param word_size the size of
+    * the individual elements
+    * @param shape
+    * @param ndims
+    * @param fortran_order
+    */
+    void parseNpyHeaderStr(std::string header,
+                           unsigned int &word_size,
+                           unsigned int *&shape,
+                           unsigned int &ndims,
+                           bool &fortran_order);
+    /**
+     * Load the numpy array from the given file.
+     * @param fp the file to load
+     * @return the loaded array
+     */
+    NpyArray loadNpyFromFile(FILE *fp);
+
+    /**
      *
      * @param data
      * @return
      */
-    cnpy::NpyArray loadNpyFromPointer(char *data);
+    NpyArray loadNpyFromPointer(char *data);
 
     /**
      *
@@ -186,7 +214,22 @@ namespace cnpy {
     template<>
     std::vector<char>& operator+=(std::vector<char>& lhs,
                                   const char* rhs);
-
+/**
+* Parse the numpy header from
+* the given file
+* based on the pointers passed in
+* @param fp the file to parse from
+* @param word_size the size of
+* the individual elements
+* @param shape
+* @param ndims
+* @param fortran_order
+*/
+    void parseNpyHeader(std::string header,
+                        unsigned int &word_size,
+                        unsigned int *&shape,
+                        unsigned int &ndims,
+                        bool &fortran_order);
 
     /**
      *
@@ -400,7 +443,7 @@ namespace cnpy {
         std::vector<char> dict;
         dict += "{'descr': '";
         dict += BigEndianTest();
-        dict += map_type(typeid(T));
+        dict += mapType(typeid(T));
         dict += tostring(sizeof(T));
         dict += "', 'fortran_order': False, 'shape': (";
         dict += tostring(shape[0]);

@@ -3,14 +3,8 @@
 //license available in LICENSE file, or at http://www.opensource.org/licenses/mit-license.php
 
 #include"cnpy.h"
-#include<complex>
-#include<cstdlib>
-#include<algorithm>
-#include<cstring>
-#include<iomanip>
-#include <string>
-#include <fstream>
-#include <streambuf>
+
+
 
 /**
  *
@@ -27,7 +21,7 @@ char cnpy::BigEndianTest() {
  * @param t
  * @return
  */
-char cnpy::map_type(const std::type_info& t) {
+char cnpy::mapType(const std::type_info &t) {
     if(t == typeid(float) ) return 'f';
     if(t == typeid(double) ) return 'f';
     if(t == typeid(long double) ) return 'f';
@@ -107,34 +101,6 @@ char* loadFile(char const *path) {
     return buffer;
 }
 
-/**
- *
- *
- *
- *
- * @param fp the file to open
- * @param word_size the size of each element in the array
- * @param shape the pointer to where the shape is stored
- * @param ndims the number of dimensions for the array
- * @param fortran_order
- */
-void cnpy::parseNpyHeader(FILE *fp,
-                          unsigned int &word_size,
-                          unsigned int *&shape,
-                          unsigned int &ndims,
-                          bool &fortran_order) {
-    char buffer[256];
-    size_t res = fread(buffer,sizeof(char),11,fp);
-    if(res != 11)
-        throw std::runtime_error("parse_npy_header: failed fread");
-    std::string header = fgets(buffer,256,fp);
-    assert(header[header.size() - 1] == '\n');
-    cnpy::parseNpyHeader(header,
-                           word_size,
-                           shape,
-                           ndims,
-                           fortran_order);
-}
 
 /**
 * Parse the numpy header from
@@ -147,11 +113,11 @@ void cnpy::parseNpyHeader(FILE *fp,
 * @param ndims
 * @param fortran_order
 */
-void parseNpyHeader(std::string header,
-                    unsigned int &word_size,
-                    unsigned int *&shape,
-                    unsigned int &ndims,
-                    bool &fortran_order) {
+void cnpy::parseNpyHeaderStr(std::string header,
+                             unsigned int &word_size,
+                             unsigned int *&shape,
+                             unsigned int &ndims,
+                             bool &fortran_order) {
 
 
     int loc1, loc2;
@@ -187,6 +153,36 @@ void parseNpyHeader(std::string header,
     loc2 = str_ws.find("'");
     word_size = atoi(str_ws.substr(0,loc2).c_str());
 }
+/**
+ *
+ *
+ *
+ *
+ * @param fp the file to open
+ * @param word_size the size of each element in the array
+ * @param shape the pointer to where the shape is stored
+ * @param ndims the number of dimensions for the array
+ * @param fortran_order
+ */
+void cnpy::parseNpyHeader(FILE *fp,
+                          unsigned int &word_size,
+                          unsigned int *&shape,
+                          unsigned int &ndims,
+                          bool &fortran_order) {
+    char buffer[256];
+    size_t res = fread(buffer,sizeof(char),11,fp);
+    if(res != 11)
+        throw std::runtime_error("parse_npy_header: failed fread");
+    std::string header = fgets(buffer,256,fp);
+    assert(header[header.size() - 1] == '\n');
+    cnpy::parseNpyHeaderStr(header,
+                         word_size,
+                         shape,
+                         ndims,
+                         fortran_order);
+}
+
+
 
 /**
  *
@@ -196,9 +192,9 @@ void parseNpyHeader(std::string header,
  * @param global_header_offset
  */
 void cnpy::parseZipFooter(FILE* fp,
-                            unsigned short& nrecs,
-                            unsigned int& global_header_size,
-                            unsigned int& global_header_offset) {
+                          unsigned short& nrecs,
+                          unsigned int& global_header_size,
+                          unsigned int& global_header_offset) {
 
     std::vector<char> footer(22);
     fseek(fp, -22, SEEK_END);
@@ -226,7 +222,7 @@ void cnpy::parseZipFooter(FILE* fp,
  * @param fp the file to load
  * @return the loaded array
  */
-cnpy::NpyArray loadNpyFromFile(FILE *fp) {
+cnpy::NpyArray cnpy::loadNpyFromFile(FILE *fp) {
     unsigned int *shape;
     unsigned int ndims, word_size;
     bool fortran_order;
@@ -251,23 +247,21 @@ cnpy::NpyArray loadNpyFromFile(FILE *fp) {
     * @param data
     * @return
     */
-cnpy::NpyArray loadNpyFromPointer(char *data)  {
+cnpy::NpyArray cnpy::loadNpyFromPointer(char *data)  {
     unsigned int *shape;
-    unsigned int ndims, word_size;
-    bool fortran_order;
-    cnpy::parseNpyHeader(std::string(data),word_size,shape,ndims,fortran_order);
+    unsigned int ndims, wordSize;
+    bool fortranOrder;
+    const char *str = std::string(data).c_str();
+    cnpy::parseNpyHeaderStr(std::string(data),wordSize,shape,ndims,fortranOrder);
     unsigned long long size = 1; //long long so no overflow when multiplying by word_size
     for(unsigned int i = 0; i < ndims; i++) size *= shape[i];
-
+    char *cursor = data;
     cnpy::NpyArray arr;
-    arr.word_size = word_size;
+    arr.word_size = wordSize;
     arr.shape = std::vector<unsigned int>(shape,shape + ndims);
     delete[] shape;
-    arr.data = new char[size*word_size];
-    arr.fortran_order = fortran_order;
-    size_t nread = fread(arr.data,word_size,size,fp);
-    if(nread != size)
-        throw std::runtime_error("load_the_npy_file: failed fread");
+    arr.data = cursor;
+    arr.fortran_order = fortranOrder;
     return arr;
 }
 
@@ -313,7 +307,7 @@ cnpy::npz_t cnpy::npzLoad(std::string fname) {
                 throw std::runtime_error("npz_load: failed fread");
         }
 
-        arrays[varname] = loadNpyFile(fp);
+       // arrays[varname] = loadArrayFromFile(fp);
     }
 
     fclose(fp);
@@ -356,7 +350,7 @@ cnpy::NpyArray cnpy::npzLoad(std::string fname, std::string varname) {
         fseek(fp,extra_field_len,SEEK_CUR); //skip past the extra field
 
         if(vname == varname) {
-            NpyArray array = loadNpyFile(fp);
+            NpyArray array = cnpy::loadNpyFromFile(fp);
             fclose(fp);
             return array;
         }
@@ -372,6 +366,9 @@ cnpy::NpyArray cnpy::npzLoad(std::string fname, std::string varname) {
     abort();
 }
 
+
+
+
 /**
  * Load a numpy array from the given file
  * @param fname the fully qualified path for the file
@@ -385,7 +382,7 @@ cnpy::NpyArray cnpy::npyLoad(std::string fname) {
         abort();
     }
 
-    NpyArray arr = loadNpyFile(fp);
+    NpyArray arr = cnpy::loadNpyFromFile(fp);
 
     fclose(fp);
     return arr;
