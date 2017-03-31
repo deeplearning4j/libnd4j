@@ -23,6 +23,12 @@
 #include <cstring>
 #include <algorithm>
 
+#include <string>
+#include <fstream>
+#include <streambuf>
+
+
+
 namespace cnpy {
 
     /**
@@ -31,8 +37,8 @@ namespace cnpy {
     struct NpyArray {
         char* data;
         std::vector<unsigned int> shape;
-        unsigned int word_size;
-        bool fortran_order;
+        unsigned int wordSize;
+        bool fortranOrder;
         void destruct() {delete[] data;}
     };
 

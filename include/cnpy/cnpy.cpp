@@ -81,7 +81,7 @@ std::vector<char>& cnpy::operator+=(std::vector<char>& lhs, const char* rhs) {
  * @param path
  * @return
  */
-char* loadFile(char const *path) {
+char* cnpy::loadFile(char const *path) {
     char* buffer = 0;
     long length;
     FILE * f = fopen (path, "rb"); //was "rb"
@@ -90,13 +90,13 @@ char* loadFile(char const *path) {
         fseek (f, 0, SEEK_END);
         length = ftell (f);
         fseek (f, 0, SEEK_SET);
-        buffer = (char*)malloc ((length+1)*sizeof(char));
-        if (buffer)
-        {
+        buffer = (char*)malloc ((length+ 1) * sizeof(char));
+        if (buffer) {
             fread (buffer, sizeof(char), length, f);
         }
         fclose (f);
     }
+
     buffer[length] = '\0';
     return buffer;
 }
@@ -176,10 +176,10 @@ void cnpy::parseNpyHeader(FILE *fp,
     std::string header = fgets(buffer,256,fp);
     assert(header[header.size() - 1] == '\n');
     cnpy::parseNpyHeaderStr(header,
-                         word_size,
-                         shape,
-                         ndims,
-                         fortran_order);
+                            word_size,
+                            shape,
+                            ndims,
+                            fortran_order);
 }
 
 
@@ -231,11 +231,11 @@ cnpy::NpyArray cnpy::loadNpyFromFile(FILE *fp) {
     for(unsigned int i = 0;i < ndims;i++) size *= shape[i];
 
     cnpy::NpyArray arr;
-    arr.word_size = word_size;
+    arr.wordSize = word_size;
     arr.shape = std::vector<unsigned int>(shape,shape + ndims);
     delete[] shape;
     arr.data = new char[size*word_size];
-    arr.fortran_order = fortran_order;
+    arr.fortranOrder = fortran_order;
     size_t nread = fread(arr.data,word_size,size,fp);
     if(nread != size)
         throw std::runtime_error("load_the_npy_file: failed fread");
@@ -248,20 +248,22 @@ cnpy::NpyArray cnpy::loadNpyFromFile(FILE *fp) {
     * @return
     */
 cnpy::NpyArray cnpy::loadNpyFromPointer(char *data)  {
+    //move the pointer forward by 11 immitating
+    //the seek in loading directly from a file
+    data += 11;
     unsigned int *shape;
     unsigned int ndims, wordSize;
     bool fortranOrder;
-    const char *str = std::string(data).c_str();
     cnpy::parseNpyHeaderStr(std::string(data),wordSize,shape,ndims,fortranOrder);
     unsigned long long size = 1; //long long so no overflow when multiplying by word_size
     for(unsigned int i = 0; i < ndims; i++) size *= shape[i];
     char *cursor = data;
     cnpy::NpyArray arr;
-    arr.word_size = wordSize;
+    arr.wordSize = wordSize;
     arr.shape = std::vector<unsigned int>(shape,shape + ndims);
     delete[] shape;
     arr.data = cursor;
-    arr.fortran_order = fortranOrder;
+    arr.fortranOrder = fortranOrder;
     return arr;
 }
 
@@ -307,7 +309,7 @@ cnpy::npz_t cnpy::npzLoad(std::string fname) {
                 throw std::runtime_error("npz_load: failed fread");
         }
 
-       // arrays[varname] = loadArrayFromFile(fp);
+        // arrays[varname] = loadArrayFromFile(fp);
     }
 
     fclose(fp);
