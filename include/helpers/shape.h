@@ -15,6 +15,8 @@
 #include "../templatemath.h"
 #include "../helpers/logger.h"
 #include "../pointercast.h"
+#include "../cnpy/cnpy.h"
+
 #define MAX_DIMENSION 0x7fffffff
 #define MAX_NUM_THREADS  1024
 #define MAX_RANK 32
@@ -833,8 +835,13 @@ namespace shape {
     __host__ __device__
 #endif
 
-    INLINEDEF int sliceOffsetForTensor(int rank, int index, int *shape, int *tensorShape,
-                                       int tensorShapeLength, int *dimension, int dimensionLength);
+    INLINEDEF int sliceOffsetForTensor(int rank,
+                                       int index,
+                                       int *shape,
+                                       int *tensorShape,
+                                       int tensorShapeLength,
+                                       int *dimension,
+                                       int dimensionLength);
 
 /**
  * calculates the offset for a tensor
@@ -860,7 +867,10 @@ namespace shape {
     __host__ __device__
 #endif
 
-    INLINEDEF int offset(int index, int rank, shape::ShapeInformation *info, int *dimension,
+    INLINEDEF int offset(int index,
+                         int rank,
+                         shape::ShapeInformation *info,
+                         int *dimension,
                          int dimensionLength);
 
 
@@ -873,8 +883,11 @@ namespace shape {
     __host__ __device__
 #endif
 
-    INLINEDEF int tensorsAlongDimension(int rank, volatile int length, volatile int *shape,
-                                        int *dimension, int dimensionLength);
+    INLINEDEF int tensorsAlongDimension(int rank,
+                                        volatile int length,
+                                        volatile int *shape,
+                                        int *dimension,
+                                        int dimensionLength);
 
 /**
  * Computes the number
@@ -1481,10 +1494,10 @@ namespace shape {
             this->tadOnlyShapeInfo = this->shapeInfoOnlyShapeAndStride();
             this->tadShape = shape::shapeOf(this->tadOnlyShapeInfo);
             this->tadStride = shape::stride(this->tadOnlyShapeInfo);
-           /* if(tadIndex > 0) {
-                this->createOffsets();
-                this->tadOnlyShapeInfo[shape::shapeInfoLength(shape::rank(this->tadOnlyShapeInfo)) - 3] = this->tadOffsets[tadIndex];
-            }*/
+            /* if(tadIndex > 0) {
+                 this->createOffsets();
+                 this->tadOnlyShapeInfo[shape::shapeInfoLength(shape::rank(this->tadOnlyShapeInfo)) - 3] = this->tadOffsets[tadIndex];
+             }*/
         }
 
 
@@ -1848,7 +1861,6 @@ namespace shape {
         __host__ __device__
 #endif
         void createOffsets() {
-
             this->tadOffsets = new int[this->numTads];
 #pragma omp parallel for schedule(guided) proc_bind(close) default(shared)
             for(int i = 0; i < this->numTads; i++) {
@@ -3408,6 +3420,7 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
             if (arr[i] >= arrLength || arr[i] < 0)
                 return -1;
         }
+
         for (int i = 0; i < arrLength; i++) {
             for (int j = 0; j < arrLength; j++) {
                 if (i != j && arr[i] == arr[j])
@@ -3471,7 +3484,6 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
 #ifdef __CUDACC__
     __host__ __device__
 #endif
-
     INLINEDEF bool isRowVector(int *shapeInfo) {
         bool isVector = shape::isVector(shapeInfo) == 1;
         bool shapeFirstOne = shape::shapeOf(shapeInfo)[0] == 1;
@@ -4076,7 +4088,6 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
 #endif
 
     INLINEDEF int *ensureVectorShape(int *shape, int dimension) {
-
         traceNew(21);
 
         int *ret = new int[2];
@@ -4806,6 +4817,36 @@ __device__ int tadOffset(int *xInfo, int offset) {
         targetBuffer[i] = shapeInfoBuffer[i];
 }
 #endif
+
+#ifdef __CUDACC__
+    __host__ __device__
+#endif
+    INLINEDEF int *shapeBufferOfNpy(cnpy::NpyArray arr) {
+        if(arr.fortranOrder) {
+            int *shapeBufferRet = shape::shapeBufferFortran(arr.shape.size(),(int *) arr.shape.data());
+            return shapeBufferRet;
+        }
+        else {
+            int *shapeBufferRet = shape::shapeBuffer(arr.shape.size(),(int *) arr.shape.data());
+            return shapeBufferRet;
+
+
+        }
+    }
+
+
+
+
+
+#ifdef __CUDACC__
+__host__ __device__
+#endif
+INLINEDEF int *shapeBufferOfNpyBuffer(char *buffer) {
+    return shape::shapeBufferOfNpy(cnpy::loadNpyFromPointer(buffer));
 }
+
+
+}
+
 
 #endif /* SHAPE_H_ */

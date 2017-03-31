@@ -153,6 +153,7 @@ void cnpy::parseNpyHeaderStr(std::string header,
     loc2 = str_ws.find("'");
     word_size = atoi(str_ws.substr(0,loc2).c_str());
 }
+
 /**
  *
  *

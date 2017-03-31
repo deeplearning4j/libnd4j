@@ -5893,3 +5893,36 @@ void NativeOps::reSeedBuffer(Nd4jPointer *extraPointers, long seed, Nd4jPointer 
     buffer->setOffset(0);
     buffer->propagateToDevice(buffer, *stream);
 }
+
+
+/**
+ *
+ * @param npyArray
+ * @return
+ */
+Nd4jPointer NativeOps::shapeBufferForNumpy(Nd4jPointer npyArray) {
+	cnpy::NpyArray *arrPointer = reinterpret_cast<cnpy::NpyArray *>(npyArray);
+	int *shapeBuffer = shape::shapeBufferOfNpy(*arrPointer);
+	return reinterpret_cast<Nd4jPointer>(shapeBuffer);
+}
+
+
+/**
+ *
+ * @param npyArray
+ * @return
+ */
+Nd4jPointer NativeOps::dataPointForNumpy(Nd4jPointer npyArray) {
+	cnpy::NpyArray *arrPointer = reinterpret_cast<cnpy::NpyArray *>(npyArray);
+	char *data = arrPointer->data;
+	if(arrPointer->wordSize == sizeof(float)) {
+		float *floatData = reinterpret_cast<float *>(data);
+		return reinterpret_cast<Nd4jPointer>(floatData);
+	}
+	else if(arrPointer->wordSize == sizeof(double)) {
+		double *doubleData = reinterpret_cast<double *>(data);
+		return reinterpret_cast<Nd4jPointer >(doubleData);
+	}
+
+	return reinterpret_cast<Nd4jPointer >(0);
+}
