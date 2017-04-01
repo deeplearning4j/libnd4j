@@ -5926,3 +5926,37 @@ Nd4jPointer NativeOps::dataPointForNumpy(Nd4jPointer npyArray) {
 
 	return reinterpret_cast<Nd4jPointer >(0);
 }
+
+/**
+ * Load a numpy array from a file
+ * and return it as an Nd4jPointer
+ * @param path
+ * @return
+ */
+Nd4jPointer NativeOps::numpyFromFile(std::string path) {
+    cnpy::NpyArray arr = cnpy::npyLoad(path);
+    return reinterpret_cast<Nd4jPointer >(&arr);
+}
+
+
+/**
+    * Return the length of a shape buffer
+    * based on the pointer
+    * @param buffer  the buffer pointer to check
+    * @return
+    */
+int NativeOps::lengthForShapeBufferPointer(Nd4jPointer buffer) {
+    int *shapeBuffer = reinterpret_cast<int *>(buffer);
+    return shape::shapeInfoLength(shape::rank(shapeBuffer));
+}
+
+/**
+  * Get the element size for a numpy array
+  * @param npyArray  the numpy array's address
+  * to get the length for
+  * @return
+  */
+int NativeOps::elementSizeForNpyArray(Nd4jPointer npyArray) {
+    cnpy::NpyArray *arr = reinterpret_cast<cnpy::NpyArray *>(npyArray);
+    return arr->wordSize;
+}

@@ -3446,7 +3446,9 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
         checkArrangeArray(rearrange, rank, rank);
         shape::doPermuteSwap(rank, &infoDeref->shape, rearrange);
         shape::doPermuteSwap(rank, &infoDeref->stride, rearrange);
-        char order = getOrder(rank, infoDeref->shape, infoDeref->stride,
+        char order = getOrder(rank,
+                              infoDeref->shape,
+                              infoDeref->stride,
                               infoDeref->elementWiseStride);
         infoDeref->order = order;
 

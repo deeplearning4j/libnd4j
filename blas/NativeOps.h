@@ -2693,6 +2693,30 @@ public:
      */
     Nd4jPointer dataPointForNumpy(Nd4jPointer npArray);
 
+    /**
+     * Create a pointer to an NDarray struct
+     * @param path  the path to create the ndarray
+     * struct from
+     * @return  a pointer to the ndarray struct
+     */
+    Nd4jPointer numpyFromFile(std::string path);
+
+    /**
+     * Return the length of a shape buffer
+     * based on the pointer
+     * @param buffer  the buffer pointer to check
+     * @return
+     */
+    int lengthForShapeBufferPointer(Nd4jPointer buffer);
+
+    /**
+     * Get the element size for a numpy array
+     * @param npyArray  the numpy array's address
+     * to get the length for
+     * @return
+     */
+    int elementSizeForNpyArray(Nd4jPointer npyArray);
+
 };
 
 
