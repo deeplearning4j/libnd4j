@@ -1,5 +1,5 @@
 include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
-include_directories(../../include ../../include/helpers ../../include/loops ../../include/ops ../../include/types ../../include/cnpy)
+include_directories(../../include ../../include/helpers ../../include/loops ../../include/ops ../../include/types ../../include/cnpy ../../blas)
 if(LINUX)
     link_directories(/usr/local/lib)
     link_directories(/usr/lib)
@@ -68,4 +68,4 @@ endif()
 
 
 add_executable(runtests ../../include/cnpy/cnpy.cpp CnpyTests.cpp)
-target_link_libraries(runtests   gtest gtest_main)
+target_link_libraries(runtests nd4jcpu  gtest gtest_main)

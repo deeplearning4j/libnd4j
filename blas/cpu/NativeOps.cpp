@@ -2786,7 +2786,7 @@ void NativeOps::execAggregateBatchDouble(Nd4jPointer *extraPointers,
                             helper.getNumShapeArguments(i),
                             idxArg,
                             helper.getNumIndexArguments(i),
-                            (int **) intArrays,
+                            intArrays,
                             helper.getNumIntArrayArguments(i),
                             realArg,
                             helper.getNumRealArguments(i));

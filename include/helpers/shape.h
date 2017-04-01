@@ -1882,7 +1882,6 @@ namespace shape {
             }
 
             int *theShape = shape::shapeOf(shapeInfo);
-            int *theStride = shape::stride(shapeInfo);
             int rank = shape::rank(shapeInfo);
 
             if(dimensionLength == 1) {
@@ -1920,9 +1919,7 @@ namespace shape {
 
 
             int *ret2 = shape::sliceOfShapeBuffer(sliceIndex,permuted);
-            int ret2SliceLength = shape::lengthPerSlice(shape::rank(ret2),shape::shapeOf(ret2),dimension,dimensionLength);
             int tensorLength = shape::prod(tensorShape,tadRank);
-            int offset = tadIndex * tensorLength / ret2SliceLength;
 
             int compLength = shape::isVector(ret2) ? shape::length(ret2)  : shape::prod(tensorShape,tadRank);
             if(dimensionLength == tadRank && compLength == shape::length(ret2)) {
@@ -1990,7 +1987,6 @@ namespace shape {
                 else {
                     //execute final part, note that this is mainly so delete[] gets called
                     //at the bottom of the method
-                    int sliceDimension = 0;
                     while(shape::length(ret2) > length) {
                         int lengthPerSlice2 = this->lengthPerSlice(ret2);
                         sliceIndex =    sliceOffsetForTensor(sliceIndex,shape::length(ret2),lengthPerSlice2);
