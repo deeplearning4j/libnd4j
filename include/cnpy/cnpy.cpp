@@ -90,10 +90,11 @@ char* cnpy::loadFile(char const *path) {
         fseek (f, 0, SEEK_END);
         length = ftell (f);
         fseek (f, 0, SEEK_SET);
-        buffer = (char*)malloc ((length+ 1) * sizeof(char));
+        buffer = (char*) malloc ((length+ 1) * sizeof(char));
         if (buffer) {
             fread (buffer, sizeof(char), length, f);
         }
+
         fclose (f);
     }
 
@@ -107,24 +108,24 @@ char* cnpy::loadFile(char const *path) {
 * the given file
 * based on the pointers passed in
 * @param fp the file to parse from
-* @param word_size the size of
+* @param wordSize the size of
 * the individual elements
 * @param shape
 * @param ndims
-* @param fortran_order
+* @param fortranOrder
 */
 void cnpy::parseNpyHeaderStr(std::string header,
-                             unsigned int &word_size,
+                             unsigned int &wordSize,
                              unsigned int *&shape,
                              unsigned int &ndims,
-                             bool &fortran_order) {
+                             bool &fortranOrder) {
 
 
     int loc1, loc2;
 
     //fortran order
-    loc1 = header.find("fortran_order") + 16;
-    fortran_order = (header.substr(loc1,5) == "True" ? true : false);
+    loc1 = header.find("fortranOrder") + 16;
+    fortranOrder = (header.substr(loc1,5) == "True" ? true : false);
 
     //shape
     loc1 = header.find("(");
@@ -151,7 +152,7 @@ void cnpy::parseNpyHeaderStr(std::string header,
 
     std::string str_ws = header.substr(loc1 + 2);
     loc2 = str_ws.find("'");
-    word_size = atoi(str_ws.substr(0,loc2).c_str());
+    wordSize = atoi(str_ws.substr(0,loc2).c_str());
 }
 
 /**
@@ -160,16 +161,16 @@ void cnpy::parseNpyHeaderStr(std::string header,
  *
  *
  * @param fp the file to open
- * @param word_size the size of each element in the array
+ * @param wordSize the size of each element in the array
  * @param shape the pointer to where the shape is stored
  * @param ndims the number of dimensions for the array
- * @param fortran_order
+ * @param fortranOrder
  */
 void cnpy::parseNpyHeader(FILE *fp,
-                          unsigned int &word_size,
+                          unsigned int &wordSize,
                           unsigned int *&shape,
                           unsigned int &ndims,
-                          bool &fortran_order) {
+                          bool &fortranOrder) {
     char buffer[256];
     size_t res = fread(buffer,sizeof(char),11,fp);
     if(res != 11)
@@ -177,10 +178,10 @@ void cnpy::parseNpyHeader(FILE *fp,
     std::string header = fgets(buffer,256,fp);
     assert(header[header.size() - 1] == '\n');
     cnpy::parseNpyHeaderStr(header,
-                            word_size,
+                            wordSize,
                             shape,
                             ndims,
-                            fortran_order);
+                            fortranOrder);
 }
 
 
@@ -225,19 +226,18 @@ void cnpy::parseZipFooter(FILE* fp,
  */
 cnpy::NpyArray cnpy::loadNpyFromFile(FILE *fp) {
     unsigned int *shape;
-    unsigned int ndims, word_size;
-    bool fortran_order;
-    cnpy::parseNpyHeader(fp,word_size,shape,ndims,fortran_order);
+    unsigned int ndims, wordSize;
+    bool fortranOrder;
+    cnpy::parseNpyHeader(fp,wordSize,shape,ndims,fortranOrder);
     unsigned long long size = 1; //long long so no overflow when multiplying by word_size
     for(unsigned int i = 0;i < ndims;i++) size *= shape[i];
 
     cnpy::NpyArray arr;
-    arr.wordSize = word_size;
+    arr.wordSize = wordSize;
     arr.shape = std::vector<unsigned int>(shape,shape + ndims);
-    delete[] shape;
-    arr.data = new char[size*word_size];
-    arr.fortranOrder = fortran_order;
-    size_t nread = fread(arr.data,word_size,size,fp);
+    arr.data = new char[size * wordSize];
+    arr.fortranOrder = fortranOrder;
+    size_t nread = fread(arr.data,wordSize,size,fp);
     if(nread != size)
         throw std::runtime_error("load_the_npy_file: failed fread");
     return arr;
@@ -255,14 +255,27 @@ cnpy::NpyArray cnpy::loadNpyFromPointer(char *data)  {
     unsigned int *shape;
     unsigned int ndims, wordSize;
     bool fortranOrder;
-    cnpy::parseNpyHeaderStr(std::string(data),wordSize,shape,ndims,fortranOrder);
+    cnpy::parseNpyHeaderStr(std::string(data),
+                            wordSize,
+                            shape,
+                            ndims,
+                            fortranOrder);
+    //the "real" data starts after the \n
+    char currChar = data[0];
+    while(currChar != '\n') {
+        data++;
+        currChar = data[0];
+    }
+
+    //move pass the \n
+    data++;
+
     unsigned long long size = 1; //long long so no overflow when multiplying by word_size
     for(unsigned int i = 0; i < ndims; i++) size *= shape[i];
     char *cursor = data;
     cnpy::NpyArray arr;
     arr.wordSize = wordSize;
     arr.shape = std::vector<unsigned int>(shape,shape + ndims);
-    delete[] shape;
     arr.data = cursor;
     arr.fortranOrder = fortranOrder;
     return arr;

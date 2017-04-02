@@ -2717,6 +2717,8 @@ public:
      */
     int elementSizeForNpyArray(Nd4jPointer npyArray);
 
+
+
 };
 
 

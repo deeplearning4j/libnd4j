@@ -2976,7 +2976,6 @@ void NativeOps::reSeedBuffer(Nd4jPointer *extraPointers, long seed, Nd4jPointer 
 
 void NativeOps::destroyRandom(Nd4jPointer ptrBuffer) {
     nd4j::random::RandomBuffer *buffer = reinterpret_cast<nd4j::random::RandomBuffer *>(ptrBuffer);
-
     delete buffer;
 }
 
@@ -2987,8 +2986,16 @@ void NativeOps::destroyRandom(Nd4jPointer ptrBuffer) {
  * @return
  */
 Nd4jPointer NativeOps::shapeBufferForNumpy(Nd4jPointer npyArray) {
-    cnpy::NpyArray *arrPointer = reinterpret_cast<cnpy::NpyArray *>(npyArray);
-    int *shapeBuffer = shape::shapeBufferOfNpy(*arrPointer);
+    cnpy::NpyArray arr = cnpy::loadNpyFromPointer(reinterpret_cast<char *>(npyArray));
+    unsigned int *shape = new unsigned int[arr.shape.size()];
+    for(int i = 0; i < arr.shape.size(); i++) {
+        shape[i] = arr.shape[i];
+    }
+
+    int *shapeBuffer = shape::shapeBufferOfNpy(arr.shape.size(),
+                                               shape,
+                                               arr.fortranOrder);
+    delete[] shape;
     return reinterpret_cast<Nd4jPointer>(shapeBuffer);
 }
 
@@ -2999,7 +3006,8 @@ Nd4jPointer NativeOps::shapeBufferForNumpy(Nd4jPointer npyArray) {
  * @return
  */
 Nd4jPointer NativeOps::dataPointForNumpy(Nd4jPointer npyArray) {
-    cnpy::NpyArray *arrPointer = reinterpret_cast<cnpy::NpyArray *>(npyArray);
+    cnpy::NpyArray arr = cnpy::loadNpyFromPointer(reinterpret_cast<char *>(npyArray));
+    cnpy::NpyArray *arrPointer = &arr;
     char *data = arrPointer->data;
     if(arrPointer->wordSize == sizeof(float)) {
         float *floatData = reinterpret_cast<float *>(data);
@@ -3020,8 +3028,8 @@ Nd4jPointer NativeOps::dataPointForNumpy(Nd4jPointer npyArray) {
  * @return
  */
 Nd4jPointer NativeOps::numpyFromFile(std::string path) {
-    cnpy::NpyArray arr = cnpy::npyLoad(path);
-    return reinterpret_cast<Nd4jPointer >(&arr);
+    char *numpyBuffer = cnpy::loadFile(path.data());
+    return reinterpret_cast<Nd4jPointer >(numpyBuffer);
 }
 
 /**
@@ -3042,6 +3050,9 @@ int NativeOps::lengthForShapeBufferPointer(Nd4jPointer buffer) {
   * @return
   */
 int NativeOps::elementSizeForNpyArray(Nd4jPointer npyArray) {
-    cnpy::NpyArray *arr = reinterpret_cast<cnpy::NpyArray *>(npyArray);
-    return arr->wordSize;
+    cnpy::NpyArray arr = cnpy::loadNpyFromPointer(reinterpret_cast<char *>(npyArray));
+    cnpy::NpyArray *arrPointer = &arr;
+    int size = arrPointer->wordSize;
+    //delete arrPointer;
+    return size;
 }

@@ -1274,6 +1274,30 @@ namespace shape {
     void printArray(float *arr,int length);
 
 
+#ifdef __CUDACC__
+    __host__ __device__
+#endif
+    INLINEDEF int *shapeBufferOfNpy(int rank, unsigned int *shape,bool fortranOrder);
+
+
+#ifdef __CUDACC__
+    __host__ __device__
+#endif
+    INLINEDEF int *shapeBufferOfNpy(cnpy::NpyArray arr);
+
+
+
+
+#ifdef __CUDACC__
+    __host__ __device__
+#endif
+    INLINEDEF int *shapeBufferOfNpyBuffer(char *buffer);
+
+//END HEADERS
+
+
+    //BEGIN IMPLEMENTATIONS
+
     /**
      * Dimension collapse is an algorithm
      * for collapsing singular dimensions.
@@ -4810,26 +4834,19 @@ __device__ int tadOffset(int *xInfo, int offset) {
     __device__ INLINEDEF void sweepShapeInfoBuffer(int *shapeInfoBuffer, int *targetBuffer) {
     // we read first element, to find out length of our shapeInfoBuffer
     int rank = shapeInfoBuffer[0];
-    int len = rank * 2 + 4;
+    int len = shape::shapeInfoLength(rank);
     for (int i = threadIdx.x; i < len; i += blockDim.x)
         targetBuffer[i] = shapeInfoBuffer[i];
 }
 #endif
 
+
+
 #ifdef __CUDACC__
     __host__ __device__
 #endif
     INLINEDEF int *shapeBufferOfNpy(cnpy::NpyArray arr) {
-        if(arr.fortranOrder) {
-            int *shapeBufferRet = shape::shapeBufferFortran(arr.shape.size(),(int *) arr.shape.data());
-            return shapeBufferRet;
-        }
-        else {
-            int *shapeBufferRet = shape::shapeBuffer(arr.shape.size(),(int *) arr.shape.data());
-            return shapeBufferRet;
-
-
-        }
+      return shape::shapeBufferOfNpy(arr.shape.size(),(unsigned int* )arr.shape.data(),arr.fortranOrder);
     }
 
 
@@ -4837,14 +4854,43 @@ __device__ int tadOffset(int *xInfo, int offset) {
 
 
 #ifdef __CUDACC__
-__host__ __device__
+    __host__ __device__
 #endif
-INLINEDEF int *shapeBufferOfNpyBuffer(char *buffer) {
-    return shape::shapeBufferOfNpy(cnpy::loadNpyFromPointer(buffer));
+    INLINEDEF int *shapeBufferOfNpyBuffer(char *buffer) {
+        unsigned int *shape;
+        unsigned int ndims, wordSize;
+        bool fortranOrder;
+        cnpy::parseNpyHeaderStr(std::string(buffer),wordSize,shape,ndims,fortranOrder);
+        int * ret =  shape::shapeBufferOfNpy(ndims,shape,fortranOrder);
+        delete[] shape;
+        return ret;
+    }
+
+
+#ifdef __CUDACC__
+    __host__ __device__
+#endif
+    INLINEDEF int *shapeBufferOfNpy(int rank, unsigned int *shape,bool fortranOrder) {
+        if(fortranOrder) {
+            int *shapeBufferRet = shape::shapeBufferFortran(rank,(int *) shape);
+            return shapeBufferRet;
+        }
+        else {
+            int *newShape = new int[rank];
+            for(int i = 0; i < rank; i++) {
+                newShape[i] = shape[i];
+            }
+
+            int *shapeBufferRet = shape::shapeBuffer(rank,newShape);
+            delete[] newShape;
+            return shapeBufferRet;
+
+        }
+    }
 }
 
 
-}
+
 
 
 #endif /* SHAPE_H_ */

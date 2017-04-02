@@ -39,7 +39,9 @@ namespace cnpy {
         std::vector<unsigned int> shape;
         unsigned int wordSize;
         bool fortranOrder;
-        void destruct() {delete[] data;}
+        void destruct() {
+            //delete[] data;
+        }
     };
 
     struct npz_t : public std::map<std::string, NpyArray> {
@@ -90,17 +92,17 @@ namespace cnpy {
      * the given file
      * based on the pointers passed in
      * @param fp the file to parse from
-     * @param word_size the size of
+     * @param wordSize the size of
      * the individual elements
      * @param shape
      * @param ndims
-     * @param fortran_order
+     * @param fortranOrder
      */
     void parseNpyHeader(FILE *fp,
-                        unsigned int &word_size,
+                        unsigned int &wordSize,
                         unsigned int *&shape,
                         unsigned int &ndims,
-                        bool &fortran_order);
+                        bool &fortranOrder);
 
     /**
     * Parse the numpy header from
@@ -158,17 +160,33 @@ namespace cnpy {
     * the given file
     * based on the pointers passed in
     * @param fp the file to parse from
-    * @param word_size the size of
+    * @param wordSize the size of
     * the individual elements
     * @param shape
     * @param ndims
-    * @param fortran_order
+    * @param fortranOrder
     */
     void parseNpyHeaderStr(std::string header,
-                           unsigned int &word_size,
+                           unsigned int &wordSize,
                            unsigned int *&shape,
                            unsigned int &ndims,
-                           bool &fortran_order);
+                           bool &fortranOrder);
+
+
+    /**
+     *
+     * @param fp
+     * @return
+     */
+    int * shapeFromFile(FILE *fp);
+
+    /**
+     *
+     * @param data
+     * @return
+     */
+    int * shapeFromPointer(char *data);
+
     /**
      * Load the numpy array from the given file.
      * @param fp the file to load
