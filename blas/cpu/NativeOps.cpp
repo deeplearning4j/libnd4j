@@ -3056,3 +3056,14 @@ int NativeOps::elementSizeForNpyArray(Nd4jPointer npyArray) {
    // arrPointer->destruct();
     return size;
 }
+
+/**
+  * The pointer to get the address for
+  *
+  * @param address the address to get the pointer
+  * @return the pointer for the given address
+  */
+
+Nd4jPointer NativeOps::pointerForAddress(long address) {
+    return reinterpret_cast<Nd4jPointer >(address);
+}
