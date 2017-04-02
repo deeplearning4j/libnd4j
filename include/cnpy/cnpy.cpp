@@ -276,6 +276,7 @@ cnpy::NpyArray cnpy::loadNpyFromPointer(char *data)  {
     cnpy::NpyArray arr;
     arr.wordSize = wordSize;
     arr.shape = std::vector<unsigned int>(shape,shape + ndims);
+    delete[] shape;
     arr.data = cursor;
     arr.fortranOrder = fortranOrder;
     return arr;

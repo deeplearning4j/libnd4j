@@ -3053,6 +3053,6 @@ int NativeOps::elementSizeForNpyArray(Nd4jPointer npyArray) {
     cnpy::NpyArray arr = cnpy::loadNpyFromPointer(reinterpret_cast<char *>(npyArray));
     cnpy::NpyArray *arrPointer = &arr;
     int size = arrPointer->wordSize;
-    //delete arrPointer;
+   // arrPointer->destruct();
     return size;
 }

@@ -40,7 +40,7 @@ namespace cnpy {
         unsigned int wordSize;
         bool fortranOrder;
         void destruct() {
-            //delete[] data;
+            delete[] data;
         }
     };
 
