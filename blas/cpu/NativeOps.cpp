@@ -3006,6 +3006,8 @@ Nd4jPointer NativeOps::shapeBufferForNumpy(Nd4jPointer npyArray) {
  * @return
  */
 Nd4jPointer NativeOps::dataPointForNumpy(Nd4jPointer npyArray) {
+    char *buff = reinterpret_cast<char *>(npyArray);
+    printf("Pointer contents %s\n",buff);
     cnpy::NpyArray arr = cnpy::loadNpyFromPointer(reinterpret_cast<char *>(npyArray));
     cnpy::NpyArray *arrPointer = &arr;
     char *data = arrPointer->data;
