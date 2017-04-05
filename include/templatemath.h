@@ -197,11 +197,20 @@ template<typename T>
 		template<typename T>
         math_def inline T nd4j_asin(T val);
 
+        template<typename T>
+        math_def inline T nd4j_asinh(T val) {
+            //Math.log(Math.sqrt(Math.pow(x, 2) + 1) + x)
+            return nd4j_log(nd4j_sqrt(nd4j_pow(val,2) + 1) + val);
+        }
+
 		template<typename T>
         math_def inline T nd4j_atan(T val);
 
+        template<typename T>
+        math_def inline T nd4j_atanh(T val);
 
-		template<>
+
+        template<>
         math_def inline float16 nd4j_abs<float16>(float16 value) {
 #ifdef NATIVE_HALFS
             return value < 0. ?  __hneg(value.data) : value;
@@ -653,6 +662,33 @@ template<typename T>
         math_def inline int nd4j_atan<int>(int val) {
 			return atanf((float) val);
 		}
+
+
+
+
+
+        template<>
+        math_def inline float16 nd4j_atanh<float16>(float16 val) {
+            return (float16) atanhf((float)val);
+        }
+
+
+        template<>
+        math_def inline float nd4j_atanh<float>(float val) {
+            return atanhf(val);
+        }
+
+        template<>
+        math_def inline double nd4j_atanh<double>(double val) {
+            return atanh(val);
+        }
+
+        template<>
+        math_def inline int nd4j_atanh<int>(int val) {
+            return atanhf((float) val);
+        }
+
+
 
 
         template<typename T>
