@@ -259,7 +259,7 @@ For gpu run:
 
 Openblas: Ensure that you set up $MSYSROOT/opt/OpenBLAS/lib. If you built OpenBLAS in msys2 (make, make install), then you should not need to do anything else.
 
-Note: our informal/unscientific testing suggests that Intel MKL can be about equal with, and up to about 40% faster than OpenBLAS on some matrix multiply (gemm) operations, on some machines. Installing MKL is recommended but not required.
+Note: our informal/unscientific testing suggests that Intel MKL can be about equal with, and up to about 40% faster than OpenBLAS on some matrix multiply (gemm) operations, on some machines. Installing MKL is recommended, but not required.
 
 ### MKL Setup
 
