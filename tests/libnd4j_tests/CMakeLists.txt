@@ -67,5 +67,5 @@ elseif(MSYS)
 endif()
 
 
-add_executable(runtests ../../include/cnpy/cnpy.cpp CnpyTests.cpp)
+add_executable(runtests ../../include/cnpy/cnpy.cpp SetTest.cpp)
 target_link_libraries(runtests nd4jcpu  gtest gtest_main)
