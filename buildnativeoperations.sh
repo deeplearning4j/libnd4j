@@ -130,6 +130,58 @@ case "$OS" in
     export CMAKE_COMMAND="cmake -DCMAKE_TOOLCHAIN_FILE=cmake/android-x86.cmake"
     ;;
 
+    ios-sim64)
+    LIBTYPE="static"
+    ARCH="x86_64"
+    if xcrun --sdk iphoneos --show-sdk-version &> /dev/null; then
+        export IOS_VERSION="$(xcrun --sdk iphoneos --show-sdk-version)"
+    else
+        export IOS_VERSION="10.3"
+    fi
+    XCODE_PATH="$(xcode-select --print-path)"
+    export IOS_SDK="$XCODE_PATH/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS$IOS_VERSION.sdk"
+    export CMAKE_COMMAND="cmake -DCMAKE_TOOLCHAIN_FILE=cmake/ios-dev32.cmake --debug-trycompile"
+    ;;
+
+    ios-sim32)
+    LIBTYPE="static"
+    ARCH="x86"
+    if xcrun --sdk iphoneos --show-sdk-version &> /dev/null; then
+        export IOS_VERSION="$(xcrun --sdk iphoneos --show-sdk-version)"
+    else
+        export IOS_VERSION="10.3"
+    fi
+    XCODE_PATH="$(xcode-select --print-path)"
+    export IOS_SDK="$XCODE_PATH/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS$IOS_VERSION.sdk"
+    export CMAKE_COMMAND="cmake -DCMAKE_TOOLCHAIN_FILE=cmake/ios-dev32.cmake --debug-trycompile"
+    ;;
+
+    ios-dev64)
+    LIBTYPE="static"
+    ARCH="arm64"
+    if xcrun --sdk iphoneos --show-sdk-version &> /dev/null; then
+        export IOS_VERSION="$(xcrun --sdk iphoneos --show-sdk-version)"
+    else
+        export IOS_VERSION="10.3"
+    fi
+    XCODE_PATH="$(xcode-select --print-path)"
+    export IOS_SDK="$XCODE_PATH/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS$IOS_VERSION.sdk"
+    export CMAKE_COMMAND="cmake -DCMAKE_TOOLCHAIN_FILE=cmake/ios-dev32.cmake --debug-trycompile"
+    ;;
+
+    ios-dev32)
+    LIBTYPE="static"
+    ARCH="armv7"
+    if xcrun --sdk iphoneos --show-sdk-version &> /dev/null; then
+        export IOS_VERSION="$(xcrun --sdk iphoneos --show-sdk-version)"
+    else
+        export IOS_VERSION="10.3"
+    fi
+    XCODE_PATH="$(xcode-select --print-path)"
+    export IOS_SDK="$XCODE_PATH/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS$IOS_VERSION.sdk"
+    export CMAKE_COMMAND="cmake -DCMAKE_TOOLCHAIN_FILE=cmake/ios-dev32.cmake --debug-trycompile"
+    ;;
+
     ios-armv7)
     # change those 2 parameters and make sure the IOS_SDK exists
     export iPhoneOS="iPhoneOS"
