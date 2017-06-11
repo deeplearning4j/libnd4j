@@ -130,56 +130,56 @@ case "$OS" in
     export CMAKE_COMMAND="cmake -DCMAKE_TOOLCHAIN_FILE=cmake/android-x86.cmake"
     ;;
 
-    ios-sim64)
+    ios-x86_64)
     LIBTYPE="static"
-    ARCH="x86_64"
+    ARCH="x86-64"
     if xcrun --sdk iphoneos --show-sdk-version &> /dev/null; then
-        export IOS_VERSION="$(xcrun --sdk iphoneos --show-sdk-version)"
+    export IOS_VERSION="$(xcrun --sdk iphoneos --show-sdk-version)"
     else
         export IOS_VERSION="10.3"
     fi
     XCODE_PATH="$(xcode-select --print-path)"
-    export IOS_SDK="$XCODE_PATH/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS$IOS_VERSION.sdk"
-    export CMAKE_COMMAND="cmake -DCMAKE_TOOLCHAIN_FILE=cmake/ios-dev32.cmake --debug-trycompile"
+    export IOS_SDK="$XCODE_PATH/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator$IOS_VERSION.sdk"
+    export CMAKE_COMMAND="cmake -DCMAKE_TOOLCHAIN_FILE=cmake/ios-x86_64.cmake --debug-trycompile"
     ;;
 
-    ios-sim32)
+    ios-x86)
     LIBTYPE="static"
-    ARCH="x86"
+    ARCH="i386"
     if xcrun --sdk iphoneos --show-sdk-version &> /dev/null; then
-        export IOS_VERSION="$(xcrun --sdk iphoneos --show-sdk-version)"
+    export IOS_VERSION="$(xcrun --sdk iphoneos --show-sdk-version)"
     else
         export IOS_VERSION="10.3"
     fi
     XCODE_PATH="$(xcode-select --print-path)"
-    export IOS_SDK="$XCODE_PATH/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS$IOS_VERSION.sdk"
-    export CMAKE_COMMAND="cmake -DCMAKE_TOOLCHAIN_FILE=cmake/ios-dev32.cmake --debug-trycompile"
+    export IOS_SDK="$XCODE_PATH/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator$IOS_VERSION.sdk"
+    export CMAKE_COMMAND="cmake -DCMAKE_TOOLCHAIN_FILE=cmake/ios-x86.cmake --debug-trycompile"
     ;;
 
-    ios-dev64)
+    ios-arm64)
     LIBTYPE="static"
     ARCH="arm64"
     if xcrun --sdk iphoneos --show-sdk-version &> /dev/null; then
-        export IOS_VERSION="$(xcrun --sdk iphoneos --show-sdk-version)"
+    export IOS_VERSION="$(xcrun --sdk iphoneos --show-sdk-version)"
     else
         export IOS_VERSION="10.3"
     fi
     XCODE_PATH="$(xcode-select --print-path)"
     export IOS_SDK="$XCODE_PATH/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS$IOS_VERSION.sdk"
-    export CMAKE_COMMAND="cmake -DCMAKE_TOOLCHAIN_FILE=cmake/ios-dev32.cmake --debug-trycompile"
+    export CMAKE_COMMAND="cmake -DCMAKE_TOOLCHAIN_FILE=cmake/ios-arm64.cmake --debug-trycompile"
     ;;
 
-    ios-dev32)
+    ios-arm)
     LIBTYPE="static"
     ARCH="armv7"
     if xcrun --sdk iphoneos --show-sdk-version &> /dev/null; then
-        export IOS_VERSION="$(xcrun --sdk iphoneos --show-sdk-version)"
+    export IOS_VERSION="$(xcrun --sdk iphoneos --show-sdk-version)"
     else
         export IOS_VERSION="10.3"
     fi
     XCODE_PATH="$(xcode-select --print-path)"
     export IOS_SDK="$XCODE_PATH/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS$IOS_VERSION.sdk"
-    export CMAKE_COMMAND="cmake -DCMAKE_TOOLCHAIN_FILE=cmake/ios-dev32.cmake --debug-trycompile"
+    export CMAKE_COMMAND="cmake -DCMAKE_TOOLCHAIN_FILE=cmake/ios-arm.cmake --debug-trycompile"
     ;;
 
     ios-armv7)
