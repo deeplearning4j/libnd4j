@@ -6824,10 +6824,10 @@ void NativeOps::decodeBitmapHalf(Nd4jPointer *extraPointers, void *dx, Nd4jIndex
     checkCudaErrors(cudaStreamSynchronize(*stream));
 }
 
-Nd4jPointer NativeOps::mmapFile(Nd4jPointer *extraPointers, const char *fileName, Nd4jIndex length) {
+Nd4jIndex* NativeOps::mmapFile(Nd4jPointer *extraPointers, const char *fileName, Nd4jIndex length) {
 	return nullptr;
 }
 
-void NativeOps::munmapFile(Nd4jPointer *extraPointers, Nd4jPointer ptrMap, Nd4jIndex length) {
+void NativeOps::munmapFile(Nd4jPointer *extraPointers, Nd4jIndex* ptrMap, Nd4jIndex length) {
 
 }
