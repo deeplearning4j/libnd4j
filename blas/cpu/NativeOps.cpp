@@ -15,6 +15,9 @@
 #include <loops/aggregates.h>
 #include <helpers/helper_ptrmap.h>
 #include <helpers/logger.h>
+#include <sys/mman.h>
+#include <sys/types.h>
+#include <fcntl.h>
 
 char *name;
 bool nameSet = false;
@@ -3034,4 +3037,19 @@ void NativeOps::decodeBitmapDouble(Nd4jPointer *extraPointers, void *dx, Nd4jInd
 
 void NativeOps::decodeBitmapHalf(Nd4jPointer *extraPointers, void *dx, Nd4jIndex N, float16 *dz) {
     //NativeOpExcutioner<float16>::decodeBitmap(dx, N, dz);
+}
+
+Nd4jPointer NativeOps::mmapFile(Nd4jPointer *extraPointers, const char *fileName, Nd4jIndex length) {
+    int fd = open(fileName, O_NOATIME, 0);
+    void * ptr = mmap(NULL, length, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_POPULATE, fd, 0);
+
+    // check for failed allocation
+    if (ptr == MAP_FAILED)
+        return nullptr;
+
+    return (Nd4jPointer) ptr;
+}
+
+void NativeOps::munmapFile(Nd4jPointer *extraPointers, Nd4jPointer ptrMap, Nd4jIndex length) {
+    munmap(ptrMap, length);
 }
