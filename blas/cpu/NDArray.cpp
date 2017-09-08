@@ -174,6 +174,36 @@ template <typename T> NDArray<T>::NDArray(const char order, const std::initializ
 }
 
 
+////////////////////////////////////////////////////////////////////////
+// assignment operator
+template<typename T> NDArray<T>& NDArray<T>::operator=(const NDArray<T>& other) {
+	if (this == &other) return *this;
+
+    if (shape::equalsStrict(_shapeInfo, other._shapeInfo))
+        memcpy(_buffer, other._buffer, lengthOf()*sizeOfT());
+    else {        
+        if(_isBuffAlloc)
+            delete []_buffer;
+        if(_isShapeAlloc)
+            delete []_shapeInfo;
+
+        int arrLength = shape::length(other._shapeInfo);
+        int shapeLength = shape::rank(other._shapeInfo)*2 + 4;
+        
+        _buffer = new T[arrLength];
+        memcpy(_buffer, other._buffer, lengthOf()*sizeOfT());               // copy elements of other current array
+        
+        _shapeInfo = new int[shapeLength];             
+        memcpy(_shapeInfo, other._shapeInfo, shapeLength*sizeof(int));     // copy shape information into new array
+        
+        _isBuffAlloc = true;        
+        _isShapeAlloc = true;        
+    }
+
+    return *this;    
+}
+
+//////////////////////////////////////////////////////////////////////////
 template <typename T>
 void NDArray<T>::replacePointers(T *buffer, int *shapeInfo, const bool releaseExisting ) {
     this->_buffer = buffer;
@@ -188,61 +218,61 @@ void NDArray<T>::replacePointers(T *buffer, int *shapeInfo, const bool releaseEx
     }
 }
 
+//////////////////////////////////////////////////////////////////////////
+template<typename T>
+NDArray<T>::NDArray(const char order, const std::vector<int> &shape) {
 
+    int rank = (int) shape.size();
 
-    template<typename T>
-    NDArray<T>::NDArray(const char order, const std::vector<int> &shape) {
+    if (rank > MAX_RANK)
+        throw std::invalid_argument("Rank of NDArray can't exceed 32");
 
-        int rank = (int) shape.size();
+    std::unique_ptr<int> shapeOf(new int[rank]);
+    int cnt = 0;
 
-        if (rank > MAX_RANK)
-            throw std::invalid_argument("Rank of NDArray can't exceed 32");
+    for (auto &item: shape)
+        shapeOf.get()[cnt++] = item;
 
-        std::unique_ptr<int> shapeOf(new int[rank]);
-        int cnt = 0;
-
-        for (auto &item: shape)
-            shapeOf.get()[cnt++] = item;
-
-        if (order == 'f') {
-            _shapeInfo = shape::shapeBufferFortran(rank, shapeOf.get());
-        } else {
-            _shapeInfo = shape::shapeBuffer(rank, shapeOf.get());
-        }
-
-        _buffer = new T[shape::length(_shapeInfo)];
-        memset(_buffer, 0, sizeOfT() * shape::length(_shapeInfo));
-        
-		_isBuffAlloc = true; 
-		_isShapeAlloc = true;
-	
+    if (order == 'f') {
+        _shapeInfo = shape::shapeBufferFortran(rank, shapeOf.get());
+    } else {
+        _shapeInfo = shape::shapeBuffer(rank, shapeOf.get());
     }
 
+    _buffer = new T[shape::length(_shapeInfo)];
+    memset(_buffer, 0, sizeOfT() * shape::length(_shapeInfo));
+    
+	_isBuffAlloc = true; 
+	_isShapeAlloc = true;
 
+}
+
+//////////////////////////////////////////////////////////////////////////
 // This method assigns values of given NDArray to this one, wrt order
-    template<typename T>
-    void NDArray<T>::assign(NDArray<T> *other) {
+template<typename T>
+void NDArray<T>::assign(NDArray<T> *other) {
 
-        if (other->lengthOf() != lengthOf())
-            throw std::invalid_argument("Lengths of arrays are mismatched");
+    if (other->lengthOf() != lengthOf())
+        throw std::invalid_argument("Lengths of arrays are mismatched");
 
-        if (ordering() == other->ordering()) {
+    if (ordering() == other->ordering()) {
 
-            memcpy(_buffer, other->_buffer, lengthOf() * sizeOfT());
-        } else {
-            // now we invoke dup pwt against target buffer
-            NativeOpExcutioner<T>::execPairwiseTransform(1, _buffer, _shapeInfo, other->_buffer, other->_shapeInfo,
-                                                         _buffer, _shapeInfo, nullptr);
-        }
+        memcpy(_buffer, other->_buffer, lengthOf() * sizeOfT());
+    } else {
+        // now we invoke dup pwt against target buffer
+        NativeOpExcutioner<T>::execPairwiseTransform(1, _buffer, _shapeInfo, other->_buffer, other->_shapeInfo,
+                                                     _buffer, _shapeInfo, nullptr);
     }
+}
 
+//////////////////////////////////////////////////////////////////////////
 // This method assigns given value to all elements in this NDArray
-    template<typename T>
-    void NDArray<T>::assign(const T value) {
+template<typename T>
+void NDArray<T>::assign(const T value) {
 
-        // just fire scalar
-        NativeOpExcutioner<T>::execScalar(13, _buffer, _shapeInfo, _buffer, _shapeInfo, value, nullptr);
-    }
+    // just fire scalar
+    NativeOpExcutioner<T>::execScalar(13, _buffer, _shapeInfo, _buffer, _shapeInfo, value, nullptr);
+}
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -271,179 +301,186 @@ template <typename T> NDArray<T>* NDArray<T>::dup(const char newOrder) {
     return result;
 }
 
-
+//////////////////////////////////////////////////////////////////////////
 // This method returns sum of all elements of this NDArray
-    template<typename T>
-    T NDArray<T>::sumNumber() const {
-        return NativeOpExcutioner<T>::execReduceScalar(1, _buffer, _shapeInfo, nullptr);
-    }
+template<typename T>
+T NDArray<T>::sumNumber() const {
+    return NativeOpExcutioner<T>::execReduceScalar(1, _buffer, _shapeInfo, nullptr);
+}
 
-
+//////////////////////////////////////////////////////////////////////////
 // This method returns mean number of this NDArray
-    template<typename T>
-    T NDArray<T>::meanNumber() const {
-        return NativeOpExcutioner<T>::execReduceScalar(0, _buffer, _shapeInfo, nullptr);
-    }
+ template<typename T>
+ T NDArray<T>::meanNumber() const {
+     return NativeOpExcutioner<T>::execReduceScalar(0, _buffer, _shapeInfo, nullptr);
+ }
 
-
+//////////////////////////////////////////////////////////////////////////
 // method calculates sum along dimension(s) in this array and save it to row: as new NDArray with dimensions 1xN
-    template<typename T>
-    NDArray<T> *NDArray<T>::sum(const std::initializer_list<int> &dimensions) const {
-        return reduceAlongDimension<simdOps::Sum<T>>(dimensions);
+template<typename T>
+NDArray<T> *NDArray<T>::sum(const std::initializer_list<int> &dimensions) const {
+    return reduceAlongDimension<simdOps::Sum<T>>(dimensions);
 //    NativeOpExcutioner<T>::execReduce(1, _buffer, _shapeInfo, nullptr, result->_buffer, result->_shapeInfo, dims, dimensions.size(), tad->tadOnlyShapeInfo, tad->tadOffsets);
 
-    }
+}
 
-
+//////////////////////////////////////////////////////////////////////////
 // eventually this method reduces this array to 1xN row 
-    template<typename T>
-    template<typename OpName>
-    NDArray<T> *NDArray<T>::reduceAlongDimension(const std::initializer_list<int> &dimensions) const {
+template<typename T>
+template<typename OpName>
+NDArray<T> *NDArray<T>::reduceAlongDimension(const std::initializer_list<int> &dimensions) const {
 
-        int *dims = new int[dimensions.size()];
-        int cnt = 0;
-        for (auto &d : dimensions)
-            dims[cnt++] = d;
+    int *dims = new int[dimensions.size()];
+    int cnt = 0;
+    for (auto &d : dimensions)
+        dims[cnt++] = d;
 
-        // FIXME: we need inplace sort on dims here (!!!)
-        shape::TAD *tad = new shape::TAD(_shapeInfo, dims, dimensions.size());
-        tad->createTadOnlyShapeInfo();
-        tad->createOffsets();
+    // FIXME: we need inplace sort on dims here (!!!)
+    shape::TAD *tad = new shape::TAD(_shapeInfo, dims, dimensions.size());
+    tad->createTadOnlyShapeInfo();
+    tad->createOffsets();
 
-        auto *result = new NDArray<T>(1, tad->numTads, 'c');
+    auto *result = new NDArray<T>(1, tad->numTads, 'c');
 
-        functions::reduce::ReduceFunction<T>::template exec<OpName>(_buffer, _shapeInfo, nullptr, result->_buffer,
-                                                                    result->_shapeInfo, dims, dimensions.size(),
-                                                                    tad->tadOnlyShapeInfo, tad->tadOffsets);
+    functions::reduce::ReduceFunction<T>::template exec<OpName>(_buffer, _shapeInfo, nullptr, result->_buffer,
+                                                                result->_shapeInfo, dims, dimensions.size(),
+                                                                tad->tadOnlyShapeInfo, tad->tadOffsets);
 
-        delete tad;
-        delete dims;
+    delete tad;
+    delete dims;
 
-        return result;
-    }
+    return result;
+}
 
-//
-    template<typename T>
-    template<typename OpName>
-    T NDArray<T>::reduceNumber(T *extraParams) {
-        return functions::reduce::ReduceFunction<T>::template execScalar<OpName>(_buffer, _shapeInfo, extraParams);
-    }
+//////////////////////////////////////////////////////////////////////////
+template<typename T>
+template<typename OpName>
+T NDArray<T>::reduceNumber(T *extraParams) {
+    return functions::reduce::ReduceFunction<T>::template execScalar<OpName>(_buffer, _shapeInfo, extraParams);
+}
 
+//////////////////////////////////////////////////////////////////////////
 // perform array transformation
-    template<typename T>
-    template<typename OpName>
-    void NDArray<T>::applyTransform(NDArray<T> *target, T *extraParams) {
-        functions::transform::Transform<T>::template exec<OpName>(this->_buffer, this->_shapeInfo, target->_buffer,
-                                                                  target->_shapeInfo, extraParams, nullptr, nullptr);
-    }
+template<typename T>
+template<typename OpName>
+void NDArray<T>::applyTransform(NDArray<T> *target, T *extraParams) {
+    functions::transform::Transform<T>::template exec<OpName>(this->_buffer, this->_shapeInfo, target->_buffer,
+                                                              target->_shapeInfo, extraParams, nullptr, nullptr);
+}
 
+//////////////////////////////////////////////////////////////////////////
 // perform array transformation
-    template<typename T>
-    template<typename OpName>
-    void NDArray<T>::applyTransform(T *extraParams) {
-        applyTransform<OpName>(this, extraParams);
-    }
+template<typename T>
+template<typename OpName>
+void NDArray<T>::applyTransform(T *extraParams) {
+    applyTransform<OpName>(this, extraParams);
+}
 
+//////////////////////////////////////////////////////////////////////////
 // perform pairwise transformation
-    template<typename T>
-    template<typename OpName>
-    void NDArray<T>::applyPairwiseTransform(NDArray<T> *other, T *extraParams) {
-        applyPairwiseTransform<OpName>(other, this, extraParams);
-    }
+template<typename T>
+template<typename OpName>
+void NDArray<T>::applyPairwiseTransform(NDArray<T> *other, T *extraParams) {
+    applyPairwiseTransform<OpName>(other, this, extraParams);
+}
 
+//////////////////////////////////////////////////////////////////////////
 // perform pairwise transformation
-    template<typename T>
-    template<typename OpName>
-    void NDArray<T>::applyPairwiseTransform(NDArray<T> *other, NDArray<T> *target, T *extraParams) {
-        functions::pairwise_transforms::PairWiseTransform<T>::template exec<OpName>(this->_buffer, this->_shapeInfo,
-                                                                                    other->_buffer, other->_shapeInfo,
-                                                                                    target->_buffer, target->_shapeInfo,
-                                                                                    extraParams);
+template<typename T>
+template<typename OpName>
+void NDArray<T>::applyPairwiseTransform(NDArray<T> *other, NDArray<T> *target, T *extraParams) {
+    functions::pairwise_transforms::PairWiseTransform<T>::template exec<OpName>(this->_buffer, this->_shapeInfo,
+                                                                                other->_buffer, other->_shapeInfo,
+                                                                                target->_buffer, target->_shapeInfo,
+                                                                                extraParams);
+}
+
+//////////////////////////////////////////////////////////////////////////
+template <typename T>
+Nd4jIndex NDArray<T>::tensorsAlongDimension(std::initializer_list<int> dimensions) {
+    std::vector<int> vector(dimensions);
+    return tensorsAlongDimension(vector);
+}
+
+//////////////////////////////////////////////////////////////////////////
+template <typename T>
+Nd4jIndex NDArray<T>::tensorsAlongDimension(std::vector<int>& dimensions) {
+    if (dimensions.size() > this->rankOf())
+        throw "TAD can't have dimensions higher then original array";
+
+    std::vector<int> copy(dimensions);
+
+    // we need to sort dimensions (?)
+    if (dimensions.size() > 1)
+        std::sort (copy.begin(), copy.end());
+
+    Nd4jIndex tadLength = shape::tadLength(this->_shapeInfo, copy.data(), copy.size());
+    Nd4jIndex numTads = this->lengthOf() / tadLength;
+
+    return numTads;
+}
+
+//////////////////////////////////////////////////////////////////////////
+template <typename T>
+NDArray<T>* NDArray<T>::tensorAlongDimension(int index, std::initializer_list<int> dimensions) {
+    std::vector<int> vector(dimensions);
+    return tensorAlongDimension(index, vector);
+}
+
+//////////////////////////////////////////////////////////////////////////
+template <typename T>
+void NDArray<T>::printBuffer(const char* msg) {
+    if (msg != nullptr)
+        printf("%s [", msg);
+    else
+        printf("[");
+    for (Nd4jIndex e = 0; e < lengthOf(); e++) {
+        printf("%f", this->getScalar(e));
+        if (e < lengthOf() - 1)
+            printf(", ");
     }
+    printf("]\n");
+    fflush(stdout);
+}
+
+//////////////////////////////////////////////////////////////////////////
+template <typename T>
+NDArray<T>* NDArray<T>::tensorAlongDimension(int index, std::vector<int>& dimensions) {
+    if (dimensions.size() > this->rankOf())
+        throw "TAD can't have dimensions higher then original array";
+
+    std::vector<int> copy(dimensions);
+
+    // we need to sort dimensions (?)
+    if (dimensions.size() > 1)
+        std::sort (copy.begin(), copy.end());
+
+    Nd4jIndex tadLength = shape::tadLength(this->_shapeInfo, copy.data(), copy.size());
+    Nd4jIndex numTads = this->lengthOf() / tadLength;
+
+    if (index >= numTads)
+        throw "Can't get index higher than total number of TADs";
+
+    std::unique_ptr<shape::TAD> tad(new shape::TAD(this->_shapeInfo, copy.data(), copy.size()));
+    tad->createTadOnlyShapeInfo();
+    tad->createOffsets();
+
+    nd4j_verbose("Applying offset [%i] for index [%i]\n", tad->tadOffsets[index], index);
+
+    T* buffer = this->_buffer + tad->tadOffsets[index];
+    int* shapeInfo = new int[shape::shapeInfoLength(tad->tadOnlyShapeInfo[0])];
+    std::memcpy(shapeInfo, tad->tadOnlyShapeInfo, shape::shapeInfoByteLength(tad->tadOnlyShapeInfo));
+
+    auto array = new NDArray<T>(buffer, shapeInfo);
+    array->_isBuffAlloc = false;
+    array->_isShapeAlloc = true;
+    array->_isView = true;
 
 
-    template <typename T>
-    Nd4jIndex NDArray<T>::tensorsAlongDimension(std::initializer_list<int> dimensions) {
-        std::vector<int> vector(dimensions);
-        return tensorsAlongDimension(vector);
-    }
+    return array;
+}
 
-    template <typename T>
-    Nd4jIndex NDArray<T>::tensorsAlongDimension(std::vector<int>& dimensions) {
-        if (dimensions.size() > this->rankOf())
-            throw "TAD can't have dimensions higher then original array";
-
-        std::vector<int> copy(dimensions);
-
-        // we need to sort dimensions (?)
-        if (dimensions.size() > 1)
-            std::sort (copy.begin(), copy.end());
-
-        Nd4jIndex tadLength = shape::tadLength(this->_shapeInfo, copy.data(), copy.size());
-        Nd4jIndex numTads = this->lengthOf() / tadLength;
-
-        return numTads;
-    }
-
-    template <typename T>
-    NDArray<T>* NDArray<T>::tensorAlongDimension(int index, std::initializer_list<int> dimensions) {
-        std::vector<int> vector(dimensions);
-        return tensorAlongDimension(index, vector);
-    }
-
-
-
-    template <typename T>
-    void NDArray<T>::printBuffer(const char* msg) {
-        if (msg != nullptr)
-            printf("%s [", msg);
-        else
-            printf("[");
-        for (Nd4jIndex e = 0; e < lengthOf(); e++) {
-            printf("%f", this->getScalar(e));
-            if (e < lengthOf() - 1)
-                printf(", ");
-        }
-        printf("]\n");
-        fflush(stdout);
-    }
-
-    template <typename T>
-    NDArray<T>* NDArray<T>::tensorAlongDimension(int index, std::vector<int>& dimensions) {
-        if (dimensions.size() > this->rankOf())
-            throw "TAD can't have dimensions higher then original array";
-
-        std::vector<int> copy(dimensions);
-
-        // we need to sort dimensions (?)
-        if (dimensions.size() > 1)
-            std::sort (copy.begin(), copy.end());
-
-        Nd4jIndex tadLength = shape::tadLength(this->_shapeInfo, copy.data(), copy.size());
-        Nd4jIndex numTads = this->lengthOf() / tadLength;
-
-        if (index >= numTads)
-            throw "Can't get index higher than total number of TADs";
-
-        std::unique_ptr<shape::TAD> tad(new shape::TAD(this->_shapeInfo, copy.data(), copy.size()));
-        tad->createTadOnlyShapeInfo();
-        tad->createOffsets();
-
-        nd4j_verbose("Applying offset [%i] for index [%i]\n", tad->tadOffsets[index], index);
-
-        T* buffer = this->_buffer + tad->tadOffsets[index];
-        int* shapeInfo = new int[shape::shapeInfoLength(tad->tadOnlyShapeInfo[0])];
-        std::memcpy(shapeInfo, tad->tadOnlyShapeInfo, shape::shapeInfoByteLength(tad->tadOnlyShapeInfo));
-
-        auto array = new NDArray<T>(buffer, shapeInfo);
-        array->_isBuffAlloc = false;
-        array->_isShapeAlloc = true;
-        array->_isView = true;
-
-
-        return array;
-    }
-
+//////////////////////////////////////////////////////////////////////////
 // method makes copy of this array and applies to the copy the transpose operation, that is this array remains unaffected 
 template <typename T> NDArray<T>* NDArray<T>::transpose() const {
     int *rearrange = new int[rankOf()];
@@ -509,89 +546,93 @@ template <typename T> void NDArray<T>::transposei() {
     delete []rearrange;
 }
 
+//////////////////////////////////////////////////////////////////////////
 // This method returns true if two arrays are equal, with custom or default Eps value of 1e-5, false otherwise
-    template<typename T>
-    bool NDArray<T>::equalsTo(const NDArray<T> *other, T eps) const {
+template<typename T>
+bool NDArray<T>::equalsTo(const NDArray<T> *other, T eps) const {
 
-        if (lengthOf() != other->lengthOf())
-            return false;
+    if (lengthOf() != other->lengthOf())
+        return false;
 
-        if (!shape::equalsSoft(_shapeInfo, other->_shapeInfo))
-            return false;
+    if (!shape::equalsSoft(_shapeInfo, other->_shapeInfo))
+        return false;
 
-        T *extras = new T[1]{eps};
+    T *extras = new T[1]{eps};
 
-        // we don't need extraparams for this op
-        T val = NativeOpExcutioner<T>::execReduce3Scalar(4, _buffer, _shapeInfo, extras, other->_buffer,
-                                                         other->_shapeInfo);
+    // we don't need extraparams for this op
+    T val = NativeOpExcutioner<T>::execReduce3Scalar(4, _buffer, _shapeInfo, extras, other->_buffer,
+                                                     other->_shapeInfo);
 
-        delete[] extras;
+    delete[] extras;
 
-        if (val > 0)
-            return false;
+    if (val > 0)
+        return false;
 
-        return true;
-    }
+    return true;
+}
 
-
+//////////////////////////////////////////////////////////////////////////
 // Return value from linear buffer
-    template<typename T>
-    T NDArray<T>::getScalar(const Nd4jIndex i) const {
+template<typename T>
+T NDArray<T>::getScalar(const Nd4jIndex i) const {
 
-        // throw something right here
-        if (i >= shape::length(_shapeInfo))
-            throw std::invalid_argument("Requested index above limit");
+    // throw something right here
+    if (i >= shape::length(_shapeInfo))
+        throw std::invalid_argument("Requested index above limit");
 
-        return _buffer[i];
+    return _buffer[i];
+}
+
+//////////////////////////////////////////////////////////////////////////
+template<typename T>
+T NDArray<T>::getIndexedScalar(const Nd4jIndex i)  {
+    // throw something right here
+    if (i >= shape::length(_shapeInfo))
+        throw std::invalid_argument("Requested index above limit");
+	/*
+    if (isRowVector()) {
+        return this->getScalar(0, i);
+    } else if (isColumnVector()) {
+        return this->getScalar(i, 0);
+    }
+	*/
+    int idx[MAX_RANK];
+    if (this->ordering() == 'f') {
+        shape::ind2sub(this->rankOf(), this->shapeOf(), i, idx);
+    } else {
+        shape::ind2subC(this->rankOf(), this->shapeOf(), i, idx);
     }
 
-    template<typename T>
-    T NDArray<T>::getIndexedScalar(const Nd4jIndex i)  {
-        // throw something right here
-        if (i >= shape::length(_shapeInfo))
-            throw std::invalid_argument("Requested index above limit");
-/*
-        if (isRowVector()) {
-            return this->getScalar(0, i);
-        } else if (isColumnVector()) {
-            return this->getScalar(i, 0);
-        }
-*/
-        int idx[MAX_RANK];
-        if (this->ordering() == 'f') {
-            shape::ind2sub(this->rankOf(), this->shapeOf(), i, idx);
-        } else {
-            shape::ind2subC(this->rankOf(), this->shapeOf(), i, idx);
-        }
+    Nd4jIndex offset = shape::getOffset(0, this->shapeOf(), this->stridesOf(), idx, this->rankOf());
 
-        Nd4jIndex offset = shape::getOffset(0, this->shapeOf(), this->stridesOf(), idx, this->rankOf());
+    return _buffer[offset];
+}
 
-        return _buffer[offset];
+//////////////////////////////////////////////////////////////////////////
+template<typename T>
+void NDArray<T>::putIndexedScalar(const Nd4jIndex i, const T value)  {
+    // throw something right here
+    if (i >= shape::length(_shapeInfo))
+        throw std::invalid_argument("Requested index above limit");
+	/*	
+    if (isRowVector()) {
+        return this->putScalar(0, i, value);
+    } else if (isColumnVector()) {
+        return this->putScalar(i, 0, value);
+    }
+	*/
+    int idx[MAX_RANK];
+    if (this->ordering() == 'f') {
+        shape::ind2sub(this->rankOf(), this->shapeOf(), i, idx);
+    } else {
+        shape::ind2subC(this->rankOf(), this->shapeOf(), i, idx);
     }
 
-    template<typename T>
-    void NDArray<T>::putIndexedScalar(const Nd4jIndex i, const T value)  {
-        // throw something right here
-        if (i >= shape::length(_shapeInfo))
-            throw std::invalid_argument("Requested index above limit");
-/*
-        if (isRowVector()) {
-            return this->putScalar(0, i, value);
-        } else if (isColumnVector()) {
-            return this->putScalar(i, 0, value);
-        }
-*/
-        int idx[MAX_RANK];
-        if (this->ordering() == 'f') {
-            shape::ind2sub(this->rankOf(), this->shapeOf(), i, idx);
-        } else {
-            shape::ind2subC(this->rankOf(), this->shapeOf(), i, idx);
-        }
+    Nd4jIndex offset = shape::getOffset(0, this->shapeOf(), this->stridesOf(), idx, this->rankOf());
+    _buffer[offset] = value;
+}
 
-        Nd4jIndex offset = shape::getOffset(0, this->shapeOf(), this->stridesOf(), idx, this->rankOf());
-        _buffer[offset] = value;
-    }
-
+//////////////////////////////////////////////////////////////////////////
 // Returns value from 2D matrix by coordinates/indexes 
     template<typename T>
     T NDArray<T>::getScalar(const int i, const int j) const {
@@ -605,80 +646,102 @@ template <typename T> void NDArray<T>::transposei() {
         return _buffer[xOffset];
     }
 
-
+//////////////////////////////////////////////////////////////////////////
 // Returns value from 3D tensor by coordinates
-    template<typename T>
-    T NDArray<T>::getScalar(const int i, const int j, const int k) const {
-        // throw something here
-        if (rankOf() != 3)
-            throw std::invalid_argument("Requested index above limit");
+template<typename T>
+T NDArray<T>::getScalar(const int i, const int j, const int k) const {
+    // throw something here
+    if (rankOf() != 3)
+        throw std::invalid_argument("Requested index above limit");
 
-        int coords[3] = {i, j, k};
+    int coords[3] = {i, j, k};
 
-        Nd4jIndex xOffset = shape::getOffset(0, shapeOf(), stridesOf(), coords, rankOf());
+    Nd4jIndex xOffset = shape::getOffset(0, shapeOf(), stridesOf(), coords, rankOf());
 
-        return _buffer[xOffset];
-    }
+    return _buffer[xOffset];
+}
 
-
+//////////////////////////////////////////////////////////////////////////
 // This method sets value in linear buffer to position i
-    template<typename T>
-    void NDArray<T>::putScalar(const Nd4jIndex i, const T value) {
-        // throw something right here
-        if (i >= shape::length(_shapeInfo))
-            return;
+template<typename T>
+void NDArray<T>::putScalar(const Nd4jIndex i, const T value) {
+    // throw something right here
+    if (i >= shape::length(_shapeInfo))
+        return;
 
-        _buffer[i] = value;
-    }
+    _buffer[i] = value;
+}
 
-
+//////////////////////////////////////////////////////////////////////////
 // This method sets value in 2D matrix to position i, j 
-    template<typename T>
-    void NDArray<T>::putScalar(const int i, const int j, const T value) {
-        // throw something here
-        if (rankOf() != 2)
-            throw std::invalid_argument("Requested index above limit");
+template<typename T>
+void NDArray<T>::putScalar(const int i, const int j, const T value) {
+    // throw something here
+    if (rankOf() != 2)
+        throw std::invalid_argument("Requested index above limit");
 
-        int coords[2] = {i, j};
-        Nd4jIndex xOffset = shape::getOffset(0, shapeOf(), stridesOf(), coords, rankOf());
-        putScalar(xOffset, value);
-    }
+    int coords[2] = {i, j};
+    Nd4jIndex xOffset = shape::getOffset(0, shapeOf(), stridesOf(), coords, rankOf());
+    putScalar(xOffset, value);
+}
 
-
+//////////////////////////////////////////////////////////////////////////
 // This method sets value in 3D matrix to position i,j,k
-    template<typename T>
-    void NDArray<T>::putScalar(const int i, const int j, const int k, const T value) {
-        // throw something here
-        if (rankOf() != 3)
-            throw std::invalid_argument("Requested index above limit");
+template<typename T>
+void NDArray<T>::putScalar(const int i, const int j, const int k, const T value) {
+    // throw something here
+    if (rankOf() != 3)
+        throw std::invalid_argument("Requested index above limit");
 
-        int coords[3] = {i, j, k};
+    int coords[3] = {i, j, k};
 
-        Nd4jIndex xOffset = shape::getOffset(0, shapeOf(), stridesOf(), coords, rankOf());
+    Nd4jIndex xOffset = shape::getOffset(0, shapeOf(), stridesOf(), coords, rankOf());
 
-        putScalar(xOffset, value);
-    }
+    putScalar(xOffset, value);
+}
 
+//////////////////////////////////////////////////////////////////////////
+// accessing operator for 2D matrix, i - row, j - column
+// be careful this method doesn't check the rank of array
+template<typename T>
+T NDArray<T>::operator()(const int i, const int j) const {
 
+    int coords[2] = {i, j};
+    Nd4jIndex xOffset = shape::getOffset(0, shapeOf(), stridesOf(), coords, rankOf());
+    return _buffer[xOffset];
+}
+
+//////////////////////////////////////////////////////////////////////////
+// modifying operator for 2D matrix, i - row, j - column   
+// be careful this method doesn't check the rank of array
+template<typename T>
+T& NDArray<T>::operator()(const int i, const int j) {
+
+	int coords[2] = {i, j};
+    Nd4jIndex xOffset = shape::getOffset(0, shapeOf(), stridesOf(), coords, rankOf());
+    return _buffer[xOffset];
+}
+
+//////////////////////////////////////////////////////////////////////////
 // This method adds given row to all rows in this NDArray, that is this array becomes affected
-    template<typename T>
-    void NDArray<T>::addiRowVector(const NDArray<T> *row) {
-        if (rankOf() != 2)
-            throw std::invalid_argument("addiRowVector can be called only on Matrix");
+template<typename T>
+void NDArray<T>::addiRowVector(const NDArray<T> *row) {
+    if (rankOf() != 2)
+        throw std::invalid_argument("addiRowVector can be called only on Matrix");
 
-        if (!shape::isRowVector(row->_shapeInfo))
-            throw std::invalid_argument("Argument should be row vector");
+    if (!shape::isRowVector(row->_shapeInfo))
+        throw std::invalid_argument("Argument should be row vector");
 
-        int dimension[1] = {1};
+    int dimension[1] = {1};
 
-        std::unique_ptr<shape::TAD> tad(new shape::TAD(_shapeInfo, dimension, 1));
-        tad->createTadOnlyShapeInfo();
-        tad->createOffsets();
+    std::unique_ptr<shape::TAD> tad(new shape::TAD(_shapeInfo, dimension, 1));
+    tad->createTadOnlyShapeInfo();
+    tad->createOffsets();
 
-        NativeOpExcutioner<T>::execBroadcast(0, _buffer, _shapeInfo, row->_buffer, row->_shapeInfo, _buffer, _shapeInfo,
-                                             dimension, 1, tad->tadOnlyShapeInfo, tad->tadOffsets,
-                                             tad->tadOnlyShapeInfo, tad->tadOffsets);
-    }
+    NativeOpExcutioner<T>::execBroadcast(0, _buffer, _shapeInfo, row->_buffer, row->_shapeInfo, _buffer, _shapeInfo,
+                                         dimension, 1, tad->tadOnlyShapeInfo, tad->tadOffsets,
+                                         tad->tadOnlyShapeInfo, tad->tadOffsets);
+}
 
 
     template<typename T>
@@ -1341,6 +1404,294 @@ NDArray<T>* NDArray<T>::mmulHelper(NDArray<T>* A, NDArray<T>* B, NDArray<T>* C ,
 
     return result;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// //////////////////////////////////////////////////////////////////////////
+// // Singular value decomposition program, svdcmp, from "Numerical Recipes in C"
+// // (Cambridge Univ. Press) by W.H. Press, S.A. Teukolsky, W.T. Vetterling, and B.P. Flannery
+// #define NR_END 1
+// #define FREE_ARG char*
+// #define SIGN(a,b) ((b) >= 0.0 ? fabs(a) : -fabs(a))
+// static double dmaxarg1,dmaxarg2;
+// #define DMAX(a,b) (dmaxarg1=(a),dmaxarg2=(b),(dmaxarg1) > (dmaxarg2) ?\
+// (dmaxarg1) : (dmaxarg2))
+// static int iminarg1,iminarg2;
+// #define IMIN(a,b) (iminarg1=(a),iminarg2=(b),(iminarg1) < (iminarg2) ?\
+// (iminarg1) : (iminarg2))
+
+// double **dmatrix(int nrl, int nrh, int ncl, int nch)
+// /* allocate a double matrix with subscript range m[nrl..nrh][ncl..nch] */
+// {
+	// int i,nrow=nrh-nrl+1,ncol=nch-ncl+1;
+	// double **m;
+	// /* allocate pointers to rows */
+	// m=(double **) malloc((size_t)((nrow+NR_END)*sizeof(double*)));
+	// m += NR_END;
+	// m -= nrl;
+	// /* allocate rows and set pointers to them */
+	// m[nrl]=(double *) malloc((size_t)((nrow*ncol+NR_END)*sizeof(double)));
+	// m[nrl] += NR_END;
+	// m[nrl] -= ncl;
+	// for(i=nrl+1;i<=nrh;i++) m[i]=m[i-1]+ncol;
+	// /* return pointer to array of pointers to rows */
+	// return m;
+// }
+
+// double *dvector(int nl, int nh)
+// /* allocate a double vector with subscript range v[nl..nh] */
+// {
+	// double *v;
+	// v=(double *)malloc((size_t) ((nh-nl+1+NR_END)*sizeof(double)));
+	// return v-nl+NR_END;
+// }
+
+// void free_dvector(double *v, int nl, int nh)
+// /* free a double vector allocated with dvector() */
+// {
+	// free((FREE_ARG) (v+nl-NR_END));
+// }
+
+
+
+// /******************************************************************************/
+// void svd(double **a, int m, int n, double w[], double **v)
+// /*******************************************************************************
+// Given a matrix a[1..m][1..n], this routine computes its singular value
+// decomposition, A = U.W.VT.  The matrix U replaces a on output.  The diagonal
+// matrix of singular values W is output as a vector w[1..n].  The matrix V (not
+// the transpose VT) is output as v[1..n][1..n].
+// *******************************************************************************/
+// template<typename T>
+// void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& v)
+// {
+// if(rankOf() !=2 || w->rankOf() !=2 || v->rankOf() !=2)
+	// throw "SVD operation: rank of some of input matrices is not equal 2 !";
+
+// int m = rows();
+// int n = columns();
+
+// if(w->rows() !=1 || w->columns() !=n || v->rows() !=n || v->columns() !=n)
+	// throw "SVD operation: shape of some of input matrices is wrong !";
+
+// // compute (a2 + b2)^1/2 without destructive underflow or overflow 
+// auto pythag = [] (T a, T b) -> T
+// {
+	// T absa, absb;
+	// absa = fabs(a);
+	// absb = fabs(b);
+	// if (absa > absb) return absa*sqrt(1.f + (absb/absa)*(absb/absa));
+	// else return (absb == 0.f ? 0.f : absb*sqrt(1.f + (absa/absb)*(absa/absb)));
+// };
+
+// u = *this;
+// int flag,i,its,j,jj,k,l,nm;
+// T anorm,c,f,g,h,s,scale,x,y,z;
+// T* rv1 = new T[n*sizeOfT()];
+
+// // Householder reduction to bidiagonal form 
+// g=scale=anorm=0.f; 
+// for (i=0; i<n; i++) {
+	// // left-hand reduction
+	// l = i + 1;
+	// rv1[i] = scale*g;
+	// g = s = scale = 0.f;
+	// if (i < m) {
+		// for (k=i; k<m; k++) 
+			// scale += fabs(u->getScalar(k,i))	;
+		// if (scale) {
+			// for (k=i; k<m; k++) {
+				// u[k][i] /= scale;
+				// s += u[k][i]*u[k][i];
+			// }
+			// f=u[i][i];
+			// g = -SIGN(sqrt(s),f);
+			// h=f*g-s;
+			// u[i][i]=f-g;
+			// for (j=l;j<=n;j++) {
+				// for (s=0.f,k=i;k<=m;k++) s += u[k][i]*u[k][j];
+				// f=s/h;
+				// for (k=i;k<=m;k++) u[k][j] += f*u[k][i];
+			// }
+			// for (k=i;k<=m;k++) u[k][i] *= scale;
+		// }
+	// }
+	// w[i]=scale *g;
+	// g=s=scale=0.f;
+	// if (i <= m && i != n) {
+		// for (k=l;k<=n;k++) scale += fabs(u[i][k]);
+		// if (scale) {
+			// for (k=l;k<=n;k++) {
+				// u[i][k] /= scale;
+				// s += u[i][k]*u[i][k];
+			// }
+			// f=u[i][l];
+			// g = -SIGN(sqrt(s),f);
+			// h=f*g-s;
+			// u[i][l]=f-g;
+			// for (k=l;k<=n;k++) rv1[k]=u[i][k]/h;
+			// for (j=l;j<=m;j++) {
+				// for (s=0.f,k=l;k<=n;k++) s += u[j][k]*u[i][k];
+				// for (k=l;k<=n;k++) u[j][k] += s*rv1[k];
+			// }
+			// for (k=l;k<=n;k++) u[i][k] *= scale;
+		// }
+	// }
+	// anorm = DMAX(anorm,(fabs(w[i])+fabs(rv1[i])));
+// }
+// for (i=n;i>=1;i--) { /* Accumulation of right-hand transformations. */
+	// if (i < n) {
+		// if (g) {
+			// for (j=l;j<=n;j++) /* Double division to avoid possible underflow. */
+				// v[j][i]=(u[i][j]/u[i][l])/g;
+			// for (j=l;j<=n;j++) {
+				// for (s=0.f,k=l;k<=n;k++) s += u[i][k]*v[k][j];
+				// for (k=l;k<=n;k++) v[k][j] += s*v[k][i];
+			// }
+		// }
+		// for (j=l;j<=n;j++) v[i][j]=v[j][i]=0.f;
+	// }
+	// v[i][i]=1.0;
+	// g=rv1[i];
+	// l=i;
+// }
+// for (i=IMIN(m,n);i>=1;i--) { /* Accumulation of left-hand transformations. */
+	// l=i+1;
+	// g=w[i];
+	// for (j=l;j<=n;j++) u[i][j]=0.f;
+	// if (g) {
+		// g=1.f/g;
+		// for (j=l;j<=n;j++) {
+			// for (s=0.f,k=l;k<=m;k++) s += u[k][i]*u[k][j];
+			// f=(s/u[i][i])*g;
+			// for (k=i;k<=m;k++) u[k][j] += f*u[k][i];
+		// }
+		// for (j=i;j<=m;j++) u[j][i] *= g;
+	// } else for (j=i;j<=m;j++) u[j][i]=0.f;
+	// ++u[i][i];
+// }
+// for (k=n;k>=1;k--) { /* Diagonalization of the bidiagonal form. */
+	// for (its=1;its<=30;its++) {
+		// flag=1;
+		// for (l=k;l>=1;l--) { /* Test for splitting. */
+			// nm=l-1; /* Note that rv1[1] is always zero. */
+			// if ((double)(fabs(rv1[l])+anorm) == anorm) {
+				// flag=0;
+				// break;
+			// }
+			// if ((double)(fabs(w[nm])+anorm) == anorm) break;
+		// }
+		// if (flag) {
+			// c=0.f; /* Cancellation of rv1[l], if l > 1. */
+			// s=1.f;
+			// for (i=l;i<=k;i++) {
+				// f=s*rv1[i];
+				// rv1[i]=c*rv1[i];
+				// if ((double)(fabs(f)+anorm) == anorm) break;
+				// g=w[i];
+				// h=pythag(f,g);
+				// w[i]=h;
+				// h=1.f/h;
+				// c=g*h;
+				// s = -f*h;
+				// for (j=1;j<=m;j++) {
+					// y=u[j][nm];
+					// z=u[j][i];
+					// u[j][nm]=y*c+z*s;
+					// u[j][i]=z*c-y*s;
+				// }
+			// }
+		// }
+		// z=w[k];
+		// if (l == k) { /* Convergence. */
+			// if (z < 0.f) { /* Singular value is made nonnegative. */
+				// w[k] = -z;
+				// for (j=1;j<=n;j++) v[j][k] = -v[j][k];
+			// }
+			// break;
+		// }
+		// if (its == 30) printf("no convergence in 30 svdcmp iterations");
+		// x=w[l]; /* Shift from bottom 2-by-2 minor. */
+		// nm=k-1;
+		// y=w[nm];
+		// g=rv1[nm];
+		// h=rv1[k];
+		// f=((y-z)*(y+z)+(g-h)*(g+h))/(2.f*h*y);
+		// g=pythag(f,1.f);
+		// f=((x-z)*(x+z)+h*((y/(f+SIGN(g,f)))-h))/x;
+		// c=s=1.f; /* Next QR transformation: */
+		// for (j=l;j<=nm;j++) {
+			// i=j+1;
+			// g=rv1[i];
+			// y=w[i];
+			// h=s*g;
+			// g=c*g;
+			// z=pythag(f,h);
+			// rv1[j]=z;
+			// c=f/z;
+			// s=h/z;
+			// f=x*c+g*s;
+			// g = g*c-x*s;
+			// h=y*s;
+			// y *= c;
+			// for (jj=1;jj<=n;jj++) {
+				// x=v[jj][j];
+				// z=v[jj][i];
+				// v[jj][j]=x*c+z*s;
+				// v[jj][i]=z*c-x*s;
+			// }
+			// z=pythag(f,h);
+			// w[j]=z; /* Rotation can be arbitrary if z = 0. */
+			// if (z) {
+				// z=1.f/z;
+				// c=f*z;
+				// s=h*z;
+			// }
+			// f=c*g+s*y;
+			// x=c*y-s*g;
+			// for (jj=1;jj<=m;jj++) {
+				// y=u[jj][j];
+				// z=u[jj][i];
+				// u[jj][j]=y*c+z*s;
+				// u[jj][i]=z*c-y*s;
+			// }
+		// }
+		// rv1[l]=0.f;
+		// rv1[k]=f;
+		// w[k]=x;
+	// }
+// }
+// delete []rv1;
+// }
+
+
+
+
+
+
+
+
+
+
 
 // default destructor
     template<typename T>
