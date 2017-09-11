@@ -735,22 +735,28 @@ TEST_F(NDArrayTest, TestAllTensors1) {
 //////////////////////////////////////////////////////////////////////
 TEST_F(NDArrayTest, SVD1) {
     
-    float arrA[8]  = {1, 2, 3, 4, 5, 6, 7, 8};
-	float arrU[8]  = {-0.35206, -0.75898, -0.44363, -0.32124, -0.53519,  0.11650, -0.62675,  0.55424};
-	float arrS[2]  = {14.22741, 1.25733};
-	float arrVt[4] = {-0.37617, -0.92655, 0.92655, -0.37617};
+    double arrA[8]  = {1, 2, 3, 4, 5, 6, 7, 8};
+	double arrU[8]  = {-0.35206, -0.75898, -0.44363, -0.32124, -0.53519,  0.11650, -0.62675,  0.55424};
+	double arrS[2]  = {14.22741, 1.25733};
+	double arrVt[4] = {-0.37617, -0.92655, 0.92655, -0.37617};
 	
 	int shapeA[8]  = {2, 4, 2, 2, 1, 0, 1, 99};
 	int shapeS[8]  = {2, 1, 2, 2, 1, 0, 1, 99};
 	int shapeVt[8] = {2, 2, 2, 2, 1, 0, 1, 99};
     
-	NDArray<float> a(arrA,   shapeA);
-    NDArray<float> u(arrU,   shapeA);    
-	NDArray<float> s(arrS,   shapeS);    
-	NDArray<float> vt(arrVt, shapeVt);    
-	NDArray<float> expU, expS(shapeS), expVt(shapeVt);
+	NDArray<double> a(arrA,   shapeA);
+    NDArray<double> u(arrU,   shapeA);    
+	NDArray<double> s(arrS,   shapeS);    
+	NDArray<double> vt(arrVt, shapeVt);    
+	NDArray<double> expU, expS(shapeS), expVt(shapeVt);
 	
 	a.svd(expU, expS, expVt);
+	expU.printBuffer();
+	expU.printShapeInfo();
+	expS.printBuffer();
+	expS.printShapeInfo(); 
+	expVt.printBuffer();
+	expVt.printShapeInfo();
 	ASSERT_TRUE(u.equalsTo(&expU));
 	ASSERT_TRUE(s.equalsTo(&expS));
 	ASSERT_TRUE(vt.equalsTo(&expVt));

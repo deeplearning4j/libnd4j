@@ -188,19 +188,19 @@ template <typename T> NDArray<T>::NDArray(const char order, const std::initializ
 template<typename T> NDArray<T>& NDArray<T>::operator=(const NDArray<T>& other) {
 	if (this == &other) return *this;
 
-    if (shape::equalsStrict(_shapeInfo, other._shapeInfo))
-        memcpy(_buffer, other._buffer, lengthOf()*sizeOfT());
+    if (_shapeInfo!=nullptr && shape::equalsStrict(_shapeInfo, other._shapeInfo))
+        memcpy(_buffer, other._buffer, other.lengthOf()*sizeOfT());
     else {
         if(_isBuffAlloc)
             delete []_buffer;
         if(_isShapeAlloc)
             delete []_shapeInfo;
 
-        int arrLength = shape::length(other._shapeInfo);
-        int shapeLength = shape::rank(other._shapeInfo)*2 + 4;
+        int arrLength = other.lengthOf();
+        int shapeLength = other.rankOf()*2 + 4;
 
         _buffer = new T[arrLength];
-        memcpy(_buffer, other._buffer, lengthOf()*sizeOfT());               // copy elements of other current array
+        memcpy(_buffer, other._buffer, arrLength*sizeOfT());               // copy elements of other current array
 
         _shapeInfo = new int[shapeLength];
         memcpy(_shapeInfo, other._shapeInfo, shapeLength*sizeof(int));     // copy shape information into new array
@@ -1374,7 +1374,7 @@ matrix of singular values W is output as a vector w[n].  The matrix vt is output
                         u(i,k) *= scale;
                 }
             }
-            anorm = std::max(anorm,(fabs(w(1,i))+fabs(rv1[i])));
+            anorm = nd4j::math::nd4j_max(anorm,(fabs(w(1,i))+fabs(rv1[i])));
         }
 // accumulation of right-hand transformations
         for (i=n-1; i>=0; i--) {
