@@ -682,6 +682,7 @@ TEST_F(NDArrayTest, Broadcast1) {
 	delete result;
 }
 
+//////////////////////////////////////////////////////////////////////
 TEST_F(NDArrayTest, BroadcastOpsTest1) {
 
     NDArray<float> x(5, 5, 'c');
@@ -703,6 +704,7 @@ TEST_F(NDArrayTest, BroadcastOpsTest1) {
     ASSERT_TRUE(x.equalsTo(&exp));
 }
 
+//////////////////////////////////////////////////////////////////////
 TEST_F(NDArrayTest, TestIndexedPut2) {
     NDArray<float> x(2, 2, 'f');
     x.printShapeInfo("x shape");
@@ -712,6 +714,7 @@ TEST_F(NDArrayTest, TestIndexedPut2) {
     ASSERT_NEAR(x.getBuffer()[2], 1.0, 1e-5);
 }
 
+//////////////////////////////////////////////////////////////////////
 TEST_F(NDArrayTest, TestIndexedPut3) {
     NDArray<float> x(2, 2, 'c');
     x.putIndexedScalar(1, 1.0f);
@@ -720,11 +723,36 @@ TEST_F(NDArrayTest, TestIndexedPut3) {
     ASSERT_NEAR(x.getBuffer()[1], 1.0, 1e-5);
 }
 
-
+//////////////////////////////////////////////////////////////////////
 TEST_F(NDArrayTest, TestAllTensors1) {
     NDArray<float> matrix(3, 5, 'c');
 
     std::unique_ptr<ArrayList<float>> rows(NDArrayFactory::allTensorsAlongDimension<float>(&matrix, {1}));
 
     ASSERT_EQ(3, rows->size());
+}
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest, SVD1) {
+    
+    float arrA[8]  = {1, 2, 3, 4, 5, 6, 7, 8};
+	float arrU[8]  = {-0.35206, -0.75898, -0.44363, -0.32124, -0.53519,  0.11650, -0.62675,  0.55424};
+	float arrS[2]  = {14.22741, 1.25733};
+	float arrVt[4] = {-0.37617, -0.92655, 0.92655, -0.37617};
+	
+	int shapeA[8]  = {2, 4, 2, 2, 1, 0, 1, 99};
+	int shapeS[8]  = {2, 1, 2, 2, 1, 0, 1, 99};
+	int shapeVt[8] = {2, 2, 2, 2, 1, 0, 1, 99};
+    
+	NDArray<float> a(arrA,   shapeA);
+    NDArray<float> u(arrU,   shapeA);    
+	NDArray<float> s(arrS,   shapeS);    
+	NDArray<float> vt(arrVt, shapeVt);    
+	NDArray<float> expU, expS(shapeS), expVt(shapeVt);
+	
+	a.svd(expU, expS, expVt);
+	ASSERT_TRUE(u.equalsTo(&expU));
+	ASSERT_TRUE(s.equalsTo(&expS));
+	ASSERT_TRUE(vt.equalsTo(&expVt));
+	
 }

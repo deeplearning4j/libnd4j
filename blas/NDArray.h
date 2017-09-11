@@ -27,7 +27,7 @@ namespace nd4j {
 
 
     public:
-		// forbid assignment operator
+		// assignment operator
 		NDArray<T>& operator=(const NDArray<T>& other);
         // accessing operator for 2D matrix, i - row, j - column
         // be careful this method doesn't check the rank of array
