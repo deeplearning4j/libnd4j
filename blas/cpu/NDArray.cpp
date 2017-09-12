@@ -2,6 +2,7 @@
 #define NDARRAY_CPP
 
 #include "../NDArray.h"
+#include "../NDArrayFactory.h"
 #include "../NativeOpExcutioner.h"
 #include <ops/gemm.h>
 #include <pointercast.h>
@@ -1276,12 +1277,89 @@ NDArray<T>* NDArray<T>::broadcast(const NDArray<T>& other) {
 	return ret;
 }
 
+//////////////////////////////////////////////////////////////////////////
+// check whether array's rows (arg=0) or columns create orthogonal basis
+template<typename T>
+bool NDArray<T>::hasOrthonormalBasis(const int arg) {
+	        
+	if(rankOf() !=2 )
+		throw "hasOrthBasis method: rank of ndarray is not equal 2 !";
+
+	if(arg!=0  && arg!=1)
+		throw "hasOrthBasis method: input argument is not equal to 0 or 1 !";
+	
+	const T eps = 1e-5f;
+	T dot = 0.f;
+	if(arg) {					// check whether columns create orthogonal basis
+		for(int j=0; j<columns()-1; ++j)
+			for(int k=j+1; k<columns(); ++k) {
+				for(int i=0; i<rows(); ++i)
+					dot += getScalar(i,j)*getScalar(i,k);
+				if(nd4j::math::nd4j_abs(dot) > eps )
+					return false;
+				dot = 0.f;
+			}
+		for(int j=0; j<columns(); ++j)		// check whether norm of column vector = 1
+			for(int i=0; i<rows(); ++i)
+					dot += getScalar(i,j)*getScalar(i,j);
+		if(nd4j::math::nd4j_abs(nd4j::math::nd4j_sqrt<T>(dot) - 1.f) > eps)
+			return false;
+	}
+	else {						// check whether rows create orthogonal basis
+		for(int i=0; i<rows()-1; ++i)
+			for(int k=i+1; k<rows(); ++k) {
+				for(int j=0; j<columns(); ++j)							
+					dot += getScalar(i,j)*getScalar(k,j);
+				if(nd4j::math::nd4j_abs(dot) > eps )
+					return false;
+				dot = 0.f;
+			}
+		for(int i=0; i<rows(); ++i)		// check whether norm of row vector = 1
+			for(int j=0; j<columns(); ++j)
+					dot += getScalar(i,j)*getScalar(i,j);
+		if(nd4j::math::nd4j_abs(nd4j::math::nd4j_sqrt<T>(dot) - 1.f) > eps)
+			return false;
+	}
+	return true;
+}
 
 //////////////////////////////////////////////////////////////////////////
-// Singular value decomposition program, slightly modificated routine svdcmp, from "Numerical Recipes in C"
+// check whether array is identity matrix
+template<typename T>
+bool NDArray<T>::isIdentityMatrix() {
+	if(rankOf() !=2 || rows() != columns())
+		throw "isIdentityMatrix method: matrix must be square and have rank = 2 !";
+
+	const T eps = 1e-5f;
+	for(int i=0; i<rows(); ++i)			
+		if(nd4j::math::nd4j_abs(getScalar(i,i) - 1.f) > eps)
+			return false;
+
+	for(int i=0; i<rows(); ++i)			
+		for(int j=0; j!=i, j<columns(); ++j)			
+			if(nd4j::math::nd4j_abs(getScalar(i,i)) > eps)
+				return false;
+	return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// check whether array is unitary matrix
+template<typename T>
+bool NDArray<T>::isUnitary() {
+	
+	if(rankOf() !=2 || rows() != columns())
+		throw "isUnitary method: matrix must be square and have rank = 2 !";
+	
+	NDArray<T> tr = *(this->transpose());
+	tr = *nd4j::NDArrayFactory::mmulHelper<T>(this, &tr, &tr, 1.f, 0.f);
+	 return tr.isIdentityMatrix();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Singular value decomposition program from "Numerical Recipes, The Art of Scientific Computing, 3d edition"
 // (Cambridge Univ. Press) by W.H. Press, S.A. Teukolsky, W.T. Vetterling, and B.P. Flannery
 /*******************************************************************************
-Given a matrix a[m][n], this routine computes its singular value
+Given a matrix a[m][n], this method computes its singular value
 decomposition, *this = U.W.VT.  The matrix U replaces *this on output.  The diagonal
 matrix of singular values W is output as a vector w[n].  The matrix vt is output as vt[n][n]
 *******************************************************************************/
@@ -1291,8 +1369,8 @@ T pythag (T a, T b) {
     T absa, absb;
     absa = fabs(a);
     absb = fabs(b);
-    if (absa > absb) return absa*sqrt(1.f + (absb/absa)*(absb/absa));
-    else return (absb == 0.f ? 0.f : absb*sqrt(1.f + (absa/absb)*(absa/absb)));
+    if (absa > absb) return absa*nd4j::math::nd4j_sqrt<T>(1.f + (absb/absa)*(absb/absa));
+    else return (absb == 0.f ? 0.f : absb*nd4j::math::nd4j_sqrt<T>(1.f + (absa/absb)*(absa/absb)));
 };
 
 
@@ -1328,7 +1406,7 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
 					s += u(k,i)*u(k,i);
 				}
 				f=u(i,i);				
-				g = - nd4j::math::nd4j_copysign<T>(sqrt(s),f);
+				g = - nd4j::math::nd4j_copysign<T>(nd4j::math::nd4j_sqrt<T>(s),f);
 				h=f*g-s;
 				u(i,i)=f-g;
 				for (j=l-1;j<n;j++) {
@@ -1349,7 +1427,7 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
 					s += u(i,k)*u(i,k);
 				}
 				f=u(i,l-1);
-				g = -nd4j::math::nd4j_copysign<T>(sqrt(s),f);
+				g = -nd4j::math::nd4j_copysign<T>(nd4j::math::nd4j_sqrt<T>(s),f);
 				h=f*g-s;
 				u(i,l-1)=f-g;
 				for (k=l-1;k<n;k++) rv1[k]=u(i,k)/h;
