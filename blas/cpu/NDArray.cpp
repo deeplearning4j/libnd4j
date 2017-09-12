@@ -1304,7 +1304,7 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
 
     int m = rows();
     int n = columns();
-
+	
     if(w.rows() !=1 || w.columns() !=n || vt.rows() !=n || vt.columns() !=n)
         throw "SVD operation: shape of some of input matrices is wrong !";
 
@@ -1380,7 +1380,7 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
 		l=i;
 	}
 	// accumulation of left-hand transformations
-	for (i=nd4j::math::nd4j_max<T>(m,n)-1;i>=0;i--) {
+	for (i=nd4j::math::nd4j_min<T>(m,n)-1;i>=0;i--) {
 		l=i+1;
 		g=w(0,i);
 		for (j=l;j<n;j++) u(i,j)=0.f;
