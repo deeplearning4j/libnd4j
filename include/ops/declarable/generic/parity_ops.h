@@ -1024,15 +1024,16 @@ namespace nd4j {
 
 			std::vector<int> argumens = *(block.getIArguments());
 			NDArray<T>* x = block.getVariables().at(0)->getNDArray(); 
+			NDArray<T> *z = this->getZ(block);
 			
 			if((argumens.size()==1 && argumens[0]==INT_MAX) || argumens.size()==0) {
-				NDArray<T>* ret = new NDArray<T>(1,1,'c', block.getWorkspace());
-				ret->putScalar(0, 0, x->template reduceNumber<simdOps::Sum<T>>(nullptr));
-				STORE_RESULT(*ret); 
+				
+				z->putScalar(0, 0, x->template reduceNumber<simdOps::Sum<T>>(nullptr));
+				STORE_RESULT(*z); 
 			}
 			else {
-				NDArray<T>* ret = x->template reduceAlongDimension<simdOps::Sum<T>>(argumens); 
-				STORE_RESULT(*ret); 
+				z = x->template reduceAlongDimension<simdOps::Sum<T>>(argumens); 
+				STORE_RESULT(*z); 
 			}
 
 			return ND4J_STATUS_OK; 
