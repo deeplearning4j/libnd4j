@@ -1020,13 +1020,24 @@ namespace nd4j {
         }
 		
 		//////////////////////////////////////////////////////////////////////////
-		DECLARE_OP(sum, 1, 1, false) { 
+		DECLARE_CONFIGURABLE_OP(sum, 1, 1, false, 0, -1) {
+
+			std::vector<int> argumens = *(block.getIArguments());
 			NDArray<T>* x = block.getVariables().at(0)->getNDArray(); 
-			NDArray<T>* ret = x->template reduceAlongDimension<simdOps::Sum<T>>(*(block.getIArguments())); 
-			STORE_RESULT(*ret); 
-		
+			
+			if((argumens.size()==1 && argumens[0]==INT_MAX) || argumens.size()==0) {
+				NDArray<T>* ret = new NDArray<T>(1,1,'c', block.getWorkspace());
+				ret->putScalar(0, 0, x->template reduceNumber<simdOps::Sum<T>>(nullptr));
+				STORE_RESULT(*ret); 
+			}
+			else {
+				NDArray<T>* ret = x->template reduceAlongDimension<simdOps::Sum<T>>(argumens); 
+				STORE_RESULT(*ret); 
+			}
+
 			return ND4J_STATUS_OK; 
 		}
+
     }
 }
 

@@ -1465,4 +1465,34 @@ TEST_F(DeclarableOpsTests, TestArgumentsValidation1) {
 
 }
 
+//////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests, Sum1) {		
+
+	float xBuff[] = {1, 2, 3, 4, 5, 6, 7, 8};
+	int xShape[]  = {2, 4, 2, 2, 1, 0, 1, 99};	
+	float expBuff[] = {18, 20};
+	int expShape[]  = {2, 1, 2, 2, 1, 0, 1, 99};	
+
+	const std::vector<int> dimensions = {0};    
+
+	NDArray<float> x(xBuff, xShape);
+	NDArray<float> exp(expBuff, expShape);
+
+	VariableSpace<float>* variableSpace = new VariableSpace<float>();
+    variableSpace->putVariable(-1, &x);
+	variableSpace->putVariable(1, new Variable<float>());
+
+	Block<float>* block = new Block<float>(1, variableSpace, false);  // not-in-place
+    block->fillInputs({-1});
+	std::vector<int>* arguments = block->getIArguments();	
+	*arguments = dimensions;		
+	
+	nd4j::ops::sum<float> sum;
+	Nd4jStatus status = sum.execute(block);
+	NDArray<float>* result = block->getVariableSpace()->getVariable(block->getNodeId())->getNDArray();	
+	
+	ASSERT_EQ(ND4J_STATUS_OK, status);	
+	ASSERT_TRUE(result->equalsTo(&exp));	
+}
+
 
