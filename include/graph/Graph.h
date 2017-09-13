@@ -17,11 +17,6 @@
 #include <graph/generated/config_generated.h>
 #include <ExecutorConfiguration.h>
 
-/*
-template<typename K, typename V>
-using MapIterator = typename std::map<K,V>::iterator;
-*/
-
 namespace nd4j {
     namespace graph {
 
@@ -121,7 +116,7 @@ namespace nd4j {
 }
 
 template <typename T>
-void nd4j::graph::Graph<T>::estimateRequiredMemory() {
+Nd4jIndex nd4j::graph::Graph<T>::estimateRequiredMemory() {
 
     // we loop in similar way to execution
     for (int l = 0; l < (int) _onion->size(); l++) {
@@ -141,6 +136,8 @@ void nd4j::graph::Graph<T>::estimateRequiredMemory() {
              */
         }
     }
+
+    return 0;
 }
 
 template <typename T>
@@ -380,7 +377,6 @@ Nd4jStatus nd4j::graph::Graph<T>::buildGraph() {
                 _unmapped.erase(node->id());
             }
         }
-
 
         // second pass is mover, we'll be moving onion layers around here
     }

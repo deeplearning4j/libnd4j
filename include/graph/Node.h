@@ -45,6 +45,10 @@ namespace nd4j {
             bool _hasInternalOutputs;
             bool _hasInternalInputs;
 
+            bool _isInplace = false;
+
+            OpClass _opClass;
+
             nd4j::ops::DeclarableOp<T> *_customOp = nullptr;
 
             bool _active = true;
@@ -313,7 +317,6 @@ nd4j::graph::Node<T>::Node(OpType opType, int opNum, int id, std::initializer_li
     for (auto o: output)
         pickOutput(o);
 
-
     if (dimensions.size() > 0) {
         _dim = new int[dimensions.size()];
         int cnt = 0;
@@ -323,6 +326,15 @@ nd4j::graph::Node<T>::Node(OpType opType, int opNum, int id, std::initializer_li
         }
     }
 
+    // these ops allow in-place execution by design
+    if (opType == OpType_TRANSFORM || opType == OpType_SCALAR || opType == OpType_BROADCAST) {
+        if (_output.size() <= 1) {
+            _isInplace = true;
+        }
+        _opClass = OpClass_TRANFSFORM;
+    } else if (opType == OpType_ACCUMULATION || opType == OpType_SUMMARYSTATS) {
+        _opClass = OpClass_REDUCTION;
+    }
 };
 
 template <typename T>
@@ -369,6 +381,17 @@ nd4j::graph::Node<T>::Node(const nd4j::graph::FlatNode *node) {
                 _dimensions.push_back(node->dimensions()->Get(e));
                 _dim[e] = node->dimensions()->Get(e);
             }
+        }
+
+
+        // these ops allow in-place execution by design
+        if (this->_opType == OpType_TRANSFORM || this->_opType == OpType_SCALAR || this->_opType == OpType_BROADCAST) {
+            if (_output.size() <= 1) {
+                _isInplace = true;
+            }
+            _opClass = OpClass_TRANFSFORM;
+        } else if (this->_opType == OpType_ACCUMULATION || this->_opType == OpType_SUMMARYSTATS) {
+            _opClass = OpClass_REDUCTION;
         }
     } else {
         // empty dynamic node, tests probably
