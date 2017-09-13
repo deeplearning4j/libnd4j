@@ -1299,11 +1299,13 @@ bool NDArray<T>::hasOrthonormalBasis(const int arg) {
 					return false;
 				dot = 0.f;
 			}
-		for(int j=0; j<columns(); ++j)		// check whether norm of column vector = 1
+		for(int j=0; j<columns(); ++j)	{	// check whether norm of column vector = 1
 			for(int i=0; i<rows(); ++i)
-					dot += getScalar(i,j)*getScalar(i,j);
-		if(nd4j::math::nd4j_abs(nd4j::math::nd4j_sqrt<T>(dot) - 1.f) > eps)
-			return false;
+				dot += getScalar(i,j)*getScalar(i,j);
+			if(dot!=0.f && nd4j::math::nd4j_abs(nd4j::math::nd4j_sqrt<T>(dot) - 1.f) > eps)
+				return false;
+			dot = 0.f;
+		}	
 	}
 	else {						// check whether rows create orthogonal basis
 		for(int i=0; i<rows()-1; ++i)
@@ -1314,11 +1316,13 @@ bool NDArray<T>::hasOrthonormalBasis(const int arg) {
 					return false;
 				dot = 0.f;
 			}
-		for(int i=0; i<rows(); ++i)		// check whether norm of row vector = 1
+		for(int i=0; i<rows(); ++i) {		// check whether norm of row vector = 1
 			for(int j=0; j<columns(); ++j)
 					dot += getScalar(i,j)*getScalar(i,j);
-		if(nd4j::math::nd4j_abs(nd4j::math::nd4j_sqrt<T>(dot) - 1.f) > eps)
-			return false;
+			if(dot!=0.f && nd4j::math::nd4j_abs(nd4j::math::nd4j_sqrt<T>(dot) - 1.f) > eps)
+				return false;
+			dot = 0.f;
+		}
 	}
 	return true;
 }
@@ -1336,8 +1340,8 @@ bool NDArray<T>::isIdentityMatrix() {
 			return false;
 
 	for(int i=0; i<rows(); ++i)			
-		for(int j=0; j!=i, j<columns(); ++j)			
-			if(nd4j::math::nd4j_abs(getScalar(i,i)) > eps)
+		for(int j=0; j!=i && j<columns(); ++j)			
+			if(nd4j::math::nd4j_abs(getScalar(i,j)) > eps)
 				return false;
 	return true;
 }
@@ -1350,9 +1354,10 @@ bool NDArray<T>::isUnitary() {
 	if(rankOf() !=2 || rows() != columns())
 		throw "isUnitary method: matrix must be square and have rank = 2 !";
 	
-	NDArray<T> tr = *(this->transpose());
-	tr = *nd4j::NDArrayFactory::mmulHelper<T>(this, &tr, &tr, 1.f, 0.f);
-	 return tr.isIdentityMatrix();
+	NDArray<T> tr = *(this->transpose());	
+	tr = *nd4j::NDArrayFactory::mmulHelper<T>(this, &tr, &tr, 1.f, 0.f);	
+	
+	return tr.isIdentityMatrix();
 }
 
 //////////////////////////////////////////////////////////////////////////
