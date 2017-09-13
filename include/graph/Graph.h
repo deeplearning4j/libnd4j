@@ -63,7 +63,13 @@ namespace nd4j {
             // this method will build structured representation of graph
             Nd4jStatus buildGraph();
 
+            // this method will return estimated memory size (in bytes) required for 1 full graph execution round
+            Nd4jIndex estimateRequiredMemory();
+
+            // this method returns number of root nodes in this graph
             int rootNodes();
+
+            // this method returns total number of nodes in this graph
             int totalNodes();
 
             /**
@@ -111,6 +117,29 @@ namespace nd4j {
              */
             void addOutput(int32_t id);
         };
+    }
+}
+
+template <typename T>
+void nd4j::graph::Graph<T>::estimateRequiredMemory() {
+
+    // we loop in similar way to execution
+    for (int l = 0; l < (int) _onion->size(); l++) {
+        int layerSize = _onion->count(l) == 1 ? _onion->at(l)->size() : 0;
+
+
+        for (int n = 0; n < layerSize; n++) {
+            auto node = _onion->at(l)->at(n);
+
+            /*
+             * Limited number of options here:
+             *
+             * 1) Op is inplace, so adds nothing to total
+             * 2) Op is not inplace, and 1:1 transform
+             * 3) Op is reduction (i.e. sum)
+             * 4) Op is multiplicator (i.e. im2col)
+             */
+        }
     }
 }
 
