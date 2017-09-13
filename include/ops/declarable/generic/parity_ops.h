@@ -1018,8 +1018,20 @@ namespace nd4j {
 			}
 			return ND4J_STATUS_OK;
         }
+		
+		//////////////////////////////////////////////////////////////////////////
+		DECLARE_OP(sum, 1, 1, false) { 
+			NDArray<T>* x = block.getVariables().at(0)->getNDArray(); 
+			NDArray<T>* ret = x->template reduceAlongDimension<simdOps::Sum<T>>(*(block.getIArguments())); 
+			STORE_RESULT(*ret); 
+		
+			return ND4J_STATUS_OK; 
+		}
     }
 }
 
 #endif //LIBND4J_PARITY_OPS_H
 
+// 1) ты не учитываешь, что возможно результат надо сохранить в какое-то конкретное место
+// 2) ты не учитываешь, что возможно операция - будет не along dimension
+// 3) и главное - какого хера ты обращаешься за IArguments при том что у тебя операция объявлена как не использующая их?

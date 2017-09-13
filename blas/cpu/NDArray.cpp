@@ -397,11 +397,10 @@ template <typename T> NDArray<T>* NDArray<T>::dup(const char newOrder) {
 
     }
 
-
 // eventually this method reduces this array to 1xN row 
     template<typename T>
     template<typename OpName>
-    NDArray<T> *NDArray<T>::reduceAlongDimension(const std::initializer_list<int> &dimensions) const {
+    NDArray<T> *NDArray<T>::reduceAlongDimension(const std::vector<int> &dimensions) const {
 
         int *dims = new int[dimensions.size()];
         int cnt = 0;
@@ -424,6 +423,15 @@ template <typename T> NDArray<T>* NDArray<T>::dup(const char newOrder) {
 
         return result;
     }
+
+// eventually this method reduces this array to 1xN row 
+    template<typename T>
+    template<typename OpName>
+    NDArray<T> *NDArray<T>::reduceAlongDimension(const std::initializer_list<int> &dimensions) const {		
+		
+		return reduceAlongDimension<OpName>(std::vector<int>(dimensions));
+	}
+	
 
 //
     template<typename T>

@@ -173,6 +173,10 @@ namespace nd4j {
         // method calculates sum along dimension(s) in this array and save it to row: as new NDArray with dimensions 1xN
         NDArray<T> *sum(const std::initializer_list<int> &dimensions) const;
 
+		// eventually this method reduces this array to 1xN row 
+        template<typename OpName>
+        NDArray<T> *reduceAlongDimension(const std::vector<int> &dimensions) const;
+		
         // eventually this method reduces this array to 1xN row 
         template<typename OpName>
         NDArray<T> *reduceAlongDimension(const std::initializer_list<int> &dimensions) const;
