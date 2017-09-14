@@ -428,6 +428,20 @@ template <typename T> NDArray<T>* NDArray<T>::dup(const char newOrder) {
 
     }
 
+    template<typename T>
+    bool NDArray<T>::isContiguous() {
+        Nd4jIndex z = 1;
+        int d;
+        for(d = this->rankOf() - 1; d >= 0; d--)  {
+            if(this->sizeAt(d) != 1) {
+                if(this->stridesOf()[d] == z)
+                    z *= this->sizeAt(d);
+                else
+                    return false;
+            }
+        }
+        return true;
+    }
 
 // eventually this method reduces this array to 1xN row 
     template<typename T>

@@ -1465,4 +1465,26 @@ TEST_F(DeclarableOpsTests, TestArgumentsValidation1) {
 
 }
 
+TEST_F(DeclarableOpsTests, Conv3D_ff_Test1) {
+    NDArray<float> input('c', {2, 3, 3, 28, 28});
+    NDArray<float> weights('f', {3, 3, 28, 28});
+    NDArray<float> bias('c', {3, 3, 28, 28});
+
+    NDArray<float> output('c', {1, 2, 3});
+
+    VariableSpace<float>* variableSpace = new VariableSpace<float>();
+    variableSpace->putVariable(-1, &input);
+    variableSpace->putVariable(-2, &weights);
+    variableSpace->putVariable(-3, &bias);
+
+    variableSpace->putVariable(1, &output);
+    Block<float>* block = new Block<float>(1, variableSpace, false);  // not-in-place
+    block->fillInputs({-1, -2, -3});
+
+    nd4j::ops::conv3d<float> conv3d;
+
+    Nd4jStatus result = conv3d.execute(block);
+    ASSERT_EQ(ND4J_STATUS_OK, result);
+}
+
 

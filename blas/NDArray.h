@@ -135,6 +135,8 @@ namespace nd4j {
             return sizeof(T);
         }
 
+        bool isContiguous();
+
         // print information about array shape
         void printShapeInfo(const char * msg = nullptr) const {
             //shape::printShapeInfo(_shapeInfo);
