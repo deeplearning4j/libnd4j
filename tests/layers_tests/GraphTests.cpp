@@ -833,3 +833,27 @@ TEST_F(GraphTests, TestDivergentNode1) {
     ASSERT_TRUE(nodeY->isDivergencePoint());
     ASSERT_TRUE(nodeY->isActive());
 }
+
+
+TEST_F(GraphTests, MemoryEstimationTest1) {
+    Graph<float> graph;
+
+    auto x = new NDArray<float>(5, 5, 'c');
+    x->assign(-2.0);
+
+    graph.getVariableSpace()->putVariable(-1, x);
+
+    auto nodeA0 = new Node<float>(OpType_TRANSFORM, 0, 1, {-1}, {2});
+    auto nodeA1 = new Node<float>(OpType_TRANSFORM, 0, 2, {1}, {});
+    nodeA1->markInplace(false);
+
+    graph.addNode(nodeA0);
+    graph.addNode(nodeA1);
+
+    ASSERT_EQ(2, graph.totalNodes());
+    ASSERT_EQ(1, graph.rootNodes());
+
+    auto memReq = graph.estimateRequiredMemory();
+
+    ASSERT_EQ(25 * x->sizeOfT(), memReq);
+}

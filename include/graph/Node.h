@@ -108,8 +108,27 @@ namespace nd4j {
             void setCustomOp(nd4j::ops::DeclarableOp<T> *customOp = nullptr);
             nd4j::ops::DeclarableOp<T>* getCustomOp();
             bool hasCustomOp();
+
+            bool isInplace();
+            void markInplace(bool reallyInplace);
+            OpClass getOpClass();
         };
     }
+}
+
+template <typename T>
+void nd4j::graph::Node<T>::markInplace(bool reallyInplace) {
+    _isInplace = reallyInplace;
+}
+
+template <typename T>
+OpClass nd4j::graph::Node<T>::getOpClass() {
+    return _opClass;
+}
+
+template <typename T>
+bool nd4j::graph::Node<T>::isInplace() {
+    return _isInplace;
 }
 
 template <typename T>

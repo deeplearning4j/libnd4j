@@ -89,7 +89,7 @@ namespace nd4j {
             }
 
             Nd4jIndex getOpHash() {
-                return 0;
+                return _descriptor->getHash();
             }
 
             /**
@@ -120,6 +120,8 @@ namespace nd4j {
             Nd4jStatus validateInputDimensions(Block<T>& block, int rank);
 
             Nd4jStatus validateArguments(Block<T>& block);
+
+            std::vector<int>* calculateOutputShape(std::vector<int>* inputShape);
         };
 
 
@@ -438,6 +440,12 @@ namespace nd4j {
 nd4j::ops::OpRegistrator* nd4j::ops::OpRegistrator::_INSTANCE = 0;
 
 template <typename T>
+std::vector<int>* nd4j::ops::DeclarableOp<T>::calculateOutputShape(std::vector<int>* inputShape) {
+    // default implementation suits transform, so just returns the same shape
+    return inputShape;
+}
+
+template <typename T>
 nd4j::NDArray<T>* nd4j::ops::DeclarableOp<T>::getZ(Block<T>& block, int inputId) {
     NDArray<T>* z = nullptr;
 
@@ -454,6 +462,8 @@ nd4j::NDArray<T>* nd4j::ops::DeclarableOp<T>::getZ(Block<T>& block, int inputId)
 
     return z;
 }
+
+
 
 template <typename T>
 void nd4j::ops::DeclarableOp<T>::storeResult(Block<T> &block, int outputNumber, NDArray<T>& array) {

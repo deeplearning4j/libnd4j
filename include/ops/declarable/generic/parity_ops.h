@@ -13,9 +13,11 @@
 #include <ops/ops.h>
 #include <loops/random.h>
 #include <NDArray.h>
+#include <graph/Variable.h>
 #include <ops/declarable/declarable_ops.h>
 #include <NDArrayFactory.h>
 #include <ops/declarable/generic/third_party.h>
+#include <ops/declarable/generic/helpers/convolutions.h>
 
 namespace nd4j {
     namespace ops {
@@ -136,8 +138,72 @@ namespace nd4j {
         }
 
 //////////////////////////////////////////////////////////////////////////
-        DECLARE_CONFIGURABLE_OP(conv3d, 2, 1, false, 0, 7) {
+        DECLARE_CONFIGURABLE_OP(conv3d, 3, 1, false, 0, 7) {
             // cubic convo
+
+            NDArray<T> *input = block.getVariables().at(0)->getNDArray();
+            NDArray<T> *weights = block.getVariables().at(1)->getNDArray();
+            NDArray<T> *bias = block.getVariables().at(2)->getNDArray();
+
+            if (input->rankOf() != 5)
+                return ND4J_STATUS_BAD_DIMENSIONS;
+
+            NDArray<T> *output = this->getZ(block);
+
+            bool biasUsed = block.getIArguments()->at(0) != 0;
+            int dT = block.getIArguments()->at(1);
+            int dW = block.getIArguments()->at(2);
+            int dH = block.getIArguments()->at(3);
+            int pT = block.getIArguments()->at(4);
+            int pW = block.getIArguments()->at(5);
+            int pH = block.getIArguments()->at(6);
+
+
+            // we always expect 5d
+            int dimt = 2;
+            int dimh = 3;
+            int dimw = 4;
+
+            Nd4jIndex nOutputPlane = weights->sizeAt(0);
+            Nd4jIndex kT           = weights->sizeAt(2);
+            Nd4jIndex kH           = weights->sizeAt(3);
+            Nd4jIndex kW           = weights->sizeAt(4);
+            Nd4jIndex inputDepth   = input->sizeAt(dimt);
+            Nd4jIndex inputHeight  = input->sizeAt(dimh);
+            Nd4jIndex inputWidth   = input->sizeAt(dimw);
+            Nd4jIndex outputDepth  = (inputDepth - kT) / dT + 1;
+            Nd4jIndex outputWidth  = (inputWidth - kW) / dW + 1;
+            Nd4jIndex outputHeight = (inputHeight - kH) / dH + 1;
+
+            std::unique_ptr<ArrayList<T>> batchIn(NDArrayFactory::allExamples<T>(input));
+            std::unique_ptr<ArrayList<T>> batchOut(NDArrayFactory::allExamples<T>(output));
+            for (int e = 0; e < batchIn->size(); e++) {
+                auto tadIn = batchIn->at(e);
+                auto tadOut = batchOut->at(e);
+
+                if (biasUsed) {
+                    std::unique_ptr<ArrayList<T>> outputBlock(NDArrayFactory::allExamples<T>(tadOut));
+                    std::unique_ptr<ArrayList<T>> biasBlock(NDArrayFactory::allExamples<T>(bias));
+                    // is this just a broadcast?
+                    for (int i = 0; i < bias->sizeAt(0); i++) {
+                        auto oB = outputBlock->at(i);
+                        auto bB = biasBlock->at(i);
+                        oB->assign(bB);
+                    }
+                } else {
+                    tadOut->assign(0.0);
+                }
+
+                conv3Dmv(tadOut, (T) 1.0f, (T) 1.0f, tadIn, weights, dT, dH, dW, "V", "X");
+            }
+
+            STORE_RESULT(*output);
+
+            return ND4J_STATUS_OK;
+        }
+
+        DECLARE_CONFIGURABLE_OP(conv3d_bp, 3, 1, false, 0, 7) {
+
             return ND4J_STATUS_OK;
         }
 

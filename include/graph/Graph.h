@@ -118,13 +118,15 @@ namespace nd4j {
 template <typename T>
 Nd4jIndex nd4j::graph::Graph<T>::estimateRequiredMemory() {
 
+    Nd4jIndex result = 0L;
+    Nd4jIndex lastStep = 0L;
     // we loop in similar way to execution
     for (int l = 0; l < (int) _onion->size(); l++) {
         int layerSize = _onion->count(l) == 1 ? _onion->at(l)->size() : 0;
 
 
         for (int n = 0; n < layerSize; n++) {
-            auto node = _onion->at(l)->at(n);
+            Node<T>* node = _onion->at(l)->at(n);
 
             /*
              * Limited number of options here:
@@ -134,10 +136,26 @@ Nd4jIndex nd4j::graph::Graph<T>::estimateRequiredMemory() {
              * 3) Op is reduction (i.e. sum)
              * 4) Op is multiplicator (i.e. im2col)
              */
+            if (node->hasCustomOp()) {
+                if (node->isInplace())
+                    continue;
+
+                auto op = node->getCustomOp();
+
+            } else if (node->getOpClass() == OpClass_TRANFSFORM) {
+                if (node->isInplace())
+                    continue;
+
+                result += lastStep;
+            } else if (node->getOpClass() == OpClass_REDUCTION) {
+
+            } else if (node->getOpClass() == OpClass_MULTIPLICATOR) {
+
+            }
         }
     }
 
-    return 0;
+    return result;
 }
 
 template <typename T>
