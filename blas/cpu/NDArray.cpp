@@ -1093,7 +1093,7 @@ template <typename T> void NDArray<T>::tilei(const std::vector<int>& reps) {
 
     template<typename T>
     int NDArray<T>::sizeAt(int dim) {
-        if (dim > this->rankOf())
+        if (dim >= this->rankOf())
             throw "Bad size index requested";
 
         return this->_shapeInfo[1+dim];

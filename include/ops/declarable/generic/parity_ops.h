@@ -159,6 +159,11 @@ namespace nd4j {
             int pH = block.getIArguments()->at(6);
 
 
+            if (pT != 0 || pW != 0 || pH != 0) {
+                nd4j_printf("Padding isn't supported on CPU backend O_o","");
+                return ND4J_STATUS_BAD_PARAMS;
+            }
+
             // we always expect 5d
             int dimt = 2;
             int dimh = 3;
@@ -175,26 +180,38 @@ namespace nd4j {
             Nd4jIndex outputWidth  = (inputWidth - kW) / dW + 1;
             Nd4jIndex outputHeight = (inputHeight - kH) / dH + 1;
 
+            // THTensor_(resize5d)(output, nBatch, nOutputPlane, outputDepth, outputHeight, outputWidth);
+
+            nd4j_printf("Expected output shape: [%i, %i, %i, %i, %i]\n", input->sizeAt(0), nOutputPlane, outputDepth, outputHeight, outputWidth);
+
+            if (output->sizeAt(0) != input->sizeAt(0) ||
+                output->sizeAt(1) != nOutputPlane ||
+                output->sizeAt(2) != outputDepth ||
+                output->sizeAt(3) != outputHeight ||
+                output->sizeAt(4) != outputWidth)
+                return ND4J_STATUS_BAD_INPUT;
+
+
             std::unique_ptr<ArrayList<T>> batchIn(NDArrayFactory::allExamples<T>(input));
             std::unique_ptr<ArrayList<T>> batchOut(NDArrayFactory::allExamples<T>(output));
+
+            // TODO: eventually we want OMP being used here
             for (int e = 0; e < batchIn->size(); e++) {
                 auto tadIn = batchIn->at(e);
                 auto tadOut = batchOut->at(e);
 
                 if (biasUsed) {
                     std::unique_ptr<ArrayList<T>> outputBlock(NDArrayFactory::allExamples<T>(tadOut));
-                    std::unique_ptr<ArrayList<T>> biasBlock(NDArrayFactory::allExamples<T>(bias));
-                    // is this just a broadcast?
-                    for (int i = 0; i < bias->sizeAt(0); i++) {
+                    for (int i = 0; i < bias->lengthOf(); i++) {
                         auto oB = outputBlock->at(i);
-                        auto bB = biasBlock->at(i);
-                        oB->assign(bB);
+                        oB->assign(bias->getScalar(i));
                     }
-                } else {
-                    tadOut->assign(0.0);
-                }
+                } else
+                    output->assign(0.0);
 
-                conv3Dmv(tadOut, (T) 1.0f, (T) 1.0f, tadIn, weights, dT, dH, dW, "V", "X");
+                Nd4jStatus  res = conv3Dmv(tadOut, (T) 1.0f, (T) 1.0f, tadIn, weights, dT, dH, dW, "V", "X");
+                if (res != ND4J_STATUS_OK)
+                    throw "Boom";
             }
 
             STORE_RESULT(*output);

@@ -195,19 +195,24 @@ Nd4jStatus nd4j::ops::conv3Dmv(NDArray<T>* r_, T beta, T alpha, NDArray<T>* t_, 
     Nd4jIndex k, i;
 
     if (t_->rankOf() != 4)
-        return ND4J_STATUS_BAD_DIMENSIONS;
+        throw "Boom";
+        //return ND4J_STATUS_BAD_DIMENSIONS;
 
     if (k_->rankOf() != 5)
-        return ND4J_STATUS_BAD_DIMENSIONS;
+        throw "Boom";
+        //return ND4J_STATUS_BAD_DIMENSIONS;
 
     if (sdepth < 1 || srow < 1 || scol < 1)
-        return ND4J_STATUS_BAD_PARAMS;
+        throw "Boom";
+        //return ND4J_STATUS_BAD_PARAMS;
 
     if (!(*vf == 'V' || *vf == 'F'))
-        return ND4J_STATUS_BAD_PARAMS;
+        throw "Boom";
+        //return ND4J_STATUS_BAD_PARAMS;
 
     if (!(*xc == 'X' || *xc == 'C'))
-        return ND4J_STATUS_BAD_PARAMS;
+        throw "Boom";
+        //return ND4J_STATUS_BAD_PARAMS;
 
     input = t_->isContiguous() ? t_ : t_->dup(t_->ordering());
     if (!(k_->stridesOf()[4] == 1 || k_->stridesOf()[3] == k_->sizeAt(4))) {
@@ -231,11 +236,13 @@ Nd4jStatus nd4j::ops::conv3Dmv(NDArray<T>* r_, T beta, T alpha, NDArray<T>* t_, 
     nOutputPlane = kernel->sizeAt(0);
 
     if (kernel->sizeAt(1) != nInputPlane)
-        return ND4J_STATUS_BAD_DIMENSIONS;
+        throw "Boom";
+        //return ND4J_STATUS_BAD_DIMENSIONS;
 
 
     if (!((nInputDepth >= nKernelDepth && nInputRows >= nKernelRows && nInputCols >= nKernelCols) || *vf == 'F'))
-        return ND4J_STATUS_BAD_PARAMS;
+        throw "Boom";
+        //return ND4J_STATUS_BAD_PARAMS;
 
     nOutputDepth = convsize(nInputDepth, nKernelDepth, sdepth, vf);
     nOutputRows = convsize(nInputRows, nKernelRows, srow, vf);
@@ -245,7 +252,8 @@ Nd4jStatus nd4j::ops::conv3Dmv(NDArray<T>* r_, T beta, T alpha, NDArray<T>* t_, 
 
     if (r_->sizeAt(0) != nOutputPlane || r_->sizeAt(1) != nOutputDepth || r_->sizeAt(2) != nOutputRows || r_->sizeAt(3)!= nOutputCols) {
         nd4j_printf("Failed at r_ size: {%i, %i, %i, %i} vs {}", r_->sizeAt(0), r_->sizeAt(1), r_->sizeAt(2), r_->sizeAt(3), nOutputPlane, nOutputDepth, nOutputRows, nOutputCols);
-        return ND4J_STATUS_BAD_DIMENSIONS;
+        throw "Boom";
+        //return ND4J_STATUS_BAD_DIMENSIONS;
     }
 
     if (nelem == 0 || beta == (T) 0.0f || nelem != r_->lengthOf()) {
@@ -298,13 +306,13 @@ Nd4jStatus nd4j::ops::conv3D(T* output_data,
 
     if (*vf == 'F')
         if (*xc == 'X') {
-            fullXCorr3Dptr(output_data,
+            nd4j::ops::fullXCorr3Dptr<T>(output_data,
                            alpha,
                            ptr_input, nInputDepth, nInputRows,  nInputCols,
                            ptr_weight, nKernelDepth, nKernelRows, nKernelCols,
                            sdepth, srow, scol);
         } else {
-            fullConv3Dptr(output_data,
+            nd4j::ops::fullConv3Dptr<T>(output_data,
                           alpha,
                           ptr_input, nInputDepth, nInputRows,  nInputCols,
                           ptr_weight, nKernelDepth, nKernelRows, nKernelCols,
@@ -312,13 +320,13 @@ Nd4jStatus nd4j::ops::conv3D(T* output_data,
         }
     else
         if (*xc == 'X') {
-            validXCorr3Dptr(output_data,
+            nd4j::ops::validXCorr3Dptr<T>(output_data,
                             alpha,
                             ptr_input, nInputDepth, nInputRows,  nInputCols,
                             ptr_weight, nKernelDepth, nKernelRows, nKernelCols,
                             sdepth, srow, scol);
         } else {
-            validConv3Dptr(output_data,
+            nd4j::ops::validConv3Dptr<T>(output_data,
                            alpha,
                            ptr_input, nInputDepth, nInputRows,  nInputCols,
                            ptr_weight, nKernelDepth, nKernelRows, nKernelCols,

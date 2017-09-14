@@ -1466,11 +1466,16 @@ TEST_F(DeclarableOpsTests, TestArgumentsValidation1) {
 }
 
 TEST_F(DeclarableOpsTests, Conv3D_ff_Test1) {
-    NDArray<float> input('c', {2, 3, 3, 28, 28});
-    NDArray<float> weights('f', {3, 3, 28, 28});
-    NDArray<float> bias('c', {3, 3, 28, 28});
+    NDArray<float> input('c', {4, 3, 3, 56, 56});
+    NDArray<float> weights('f', {2, 3, 3, 5, 5});
+    NDArray<float> bias('c', {1, 2});
 
-    NDArray<float> output('c', {1, 2, 3});
+    input.assign(1.0);
+    weights.assign(2.0);
+    bias.putScalar(0, 1.0f);
+    bias.putScalar(1, 2.0f);
+
+    NDArray<float> output('c', {4, 2, 1, 11, 11});
 
     VariableSpace<float>* variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, &input);
@@ -1481,10 +1486,20 @@ TEST_F(DeclarableOpsTests, Conv3D_ff_Test1) {
     Block<float>* block = new Block<float>(1, variableSpace, false);  // not-in-place
     block->fillInputs({-1, -2, -3});
 
+    block->getIArguments()->push_back(1);
+    block->getIArguments()->push_back(2);
+    block->getIArguments()->push_back(5);
+    block->getIArguments()->push_back(5);
+    block->getIArguments()->push_back(0);
+    block->getIArguments()->push_back(0);
+    block->getIArguments()->push_back(0);
+
     nd4j::ops::conv3d<float> conv3d;
 
     Nd4jStatus result = conv3d.execute(block);
     ASSERT_EQ(ND4J_STATUS_OK, result);
+
+    output.printBuffer("Result");
 }
 
 
