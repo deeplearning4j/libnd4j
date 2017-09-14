@@ -142,20 +142,66 @@ namespace nd4j {
         }
 
 //////////////////////////////////////////////////////////////////////////
-        DECLARE_OP(maxpool, 2, 1, true) {
-            // MaxPooling
-            return ND4J_STATUS_OK;
+		DECLARE_CONFIGURABLE_OP(maxpool, 1, 1, false, 0, 8) {
+        
+            NDArray<T> *x = block.getVariables().at(0)->getNDArray();
+			std::vector<int> argI = *(block.getIArguments());							// 0,1 kernelWidth/Height; 2,3 strideX/Y; 4,5 padWidth/Height; 6,7 dilationWidth/Height; 8,9 poolingMode;
+			std::vector<T> argT(argI.size());
+			for(int i=0; i<argI.size(); ++i)
+				argT[i] = argI[i];
+			argT.emplace_back(0.f); argT.emplace_back(0.f);
+            auto z = this->getZ(block);
+
+            x->template applyTransform<simdOps::Pooling2D<T>>(z, argT.data());
+
+            STORE_RESULT(*z);
+
+            return ND4J_STATUS_OK;         
         }
         DECLARE_SYN(MaxPool2D, maxpool);
         DECLARE_SYN(MaxPool, maxpool);
 
 //////////////////////////////////////////////////////////////////////////
-        DECLARE_OP(avgpool, 2, 1, true) {
-            // AvgPooling
-            return ND4J_STATUS_OK;
-        }
+        DECLARE_CONFIGURABLE_OP(avgpool, 1, 1, false, 0, 8) {
+        
+            NDArray<T> *x = block.getVariables().at(0)->getNDArray();
+			std::vector<int> argI = *(block.getIArguments());							// 0,1 kernelWidth/Height; 2,3 strideX/Y; 4,5 padWidth/Height; 6,7 dilationWidth/Height; 8,9 poolingMode;
+			std::vector<T> argT(argI.size());
+			for(int i=0; i<argI.size(); ++i)
+				argT[i] = argI[i];
+			argT.emplace_back(1.f); argT.emplace_back(1.f);
+			auto z = this->getZ(block);	
+						
+            x->template applyTransform<simdOps::Pooling2D<T>>(z, argT.data());
+
+            STORE_RESULT(*z);
+
+            return ND4J_STATUS_OK;         
+        }        
         DECLARE_SYN(AvgPool2D, avgpool);
         DECLARE_SYN(AvgPool, avgpool);
+
+//////////////////////////////////////////////////////////////////////////
+        DECLARE_CONFIGURABLE_OP(pnormpool, 1, 1, false, 1, 8) {
+        
+            NDArray<T> *x = block.getVariables().at(0)->getNDArray();				
+			std::vector<int> argI = *(block.getIArguments());							// 0,1 kernelWidth/Height; 2,3 strideX/Y; 4,5 padWidth/Height; 6,7 dilationWidth/Height; 8,9 poolingMode;
+			std::vector<T> argT(argI.size());
+			for(int i=0; i<argI.size(); ++i)
+				argT[i] = argI[i];
+			argT.emplace_back(2.f); argT.emplace_back(2.f); 
+			argT.emplace_back(block.getTArguments()->at(0));						// 0 extraParam0
+            
+			auto z = this->getZ(block);	
+						
+            x->template applyTransform<simdOps::Pooling2D<T>>(z, argT.data());
+
+            STORE_RESULT(*z);
+
+            return ND4J_STATUS_OK;         
+        }        
+        DECLARE_SYN(PnormPool2D, pnormpool);
+        DECLARE_SYN(PnormPool, pnormpool);
 
 //////////////////////////////////////////////////////////////////////////
         DECLARE_OP(lrn, 2, 1, true) {
@@ -1007,7 +1053,7 @@ namespace nd4j {
 		//////////////////////////////////////////////////////////////////////////
 		// here iArgs is int vector of ordered set of dimensions to be permuted
 		DECLARE_CONFIGURABLE_OP(permute, 1, 1, true, 0, -1) {
-			std::vector<int>* argumets = block.getIArguments();								
+			std::vector<int>* argumets = block.getIArguments();
 			NDArray<T> *x = block.getVariables().at(0)->getNDArray();            			
 			
 			if(block.isInplace()) {		// in-place
