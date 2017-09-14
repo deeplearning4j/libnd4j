@@ -933,11 +933,13 @@ namespace nd4j {
             NDArray<T> *x = block.getVariables().at(0)->getNDArray();
             NDArray<T> *y = block.getVariables().at(1)->getNDArray();	
 			
+			NDArray<T>* z = this->getZ(block);			
 			std::vector<int> shapeNew(y->shapeOf(), y->shapeOf() + y->rankOf());
 			char order = y->ordering();
 			
 			if (x->reshape(order, shapeNew)) {
-				STORE_RESULT(*x);
+				*z = *x;
+				STORE_RESULT(*z);
 				return ND4J_STATUS_OK;				
 			}			
 			
@@ -1025,14 +1027,13 @@ namespace nd4j {
 			std::vector<int> argumens = *(block.getIArguments());
 			NDArray<T>* x = block.getVariables().at(0)->getNDArray(); 
 			NDArray<T> *z = this->getZ(block);
-			
+			std::cout<<"!!   "<<argumens.size()<<std::endl;
 			if((argumens.size()==1 && argumens[0]==INT_MAX) || argumens.size()==0) {
-				
 				z->putScalar(0, 0, x->template reduceNumber<simdOps::Sum<T>>(nullptr));
 				STORE_RESULT(*z); 
 			}
 			else {
-				z = x->template reduceAlongDimension<simdOps::Sum<T>>(argumens); 
+				z = x->template reduceAlongDimension<simdOps::Sum<T>>(argumens); 				
 				STORE_RESULT(*z); 
 			}
 
@@ -1044,6 +1045,3 @@ namespace nd4j {
 
 #endif //LIBND4J_PARITY_OPS_H
 
-// 1) ты не учитываешь, что возможно результат надо сохранить в какое-то конкретное место
-// 2) ты не учитываешь, что возможно операция - будет не along dimension
-// 3) и главное - какого хера ты обращаешься за IArguments при том что у тебя операция объявлена как не использующая их?
