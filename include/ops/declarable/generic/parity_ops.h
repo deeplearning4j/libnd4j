@@ -180,17 +180,9 @@ namespace nd4j {
             Nd4jIndex outputWidth  = (inputWidth - kW) / dW + 1;
             Nd4jIndex outputHeight = (inputHeight - kH) / dH + 1;
 
-            // THTensor_(resize5d)(output, nBatch, nOutputPlane, outputDepth, outputHeight, outputWidth);
 
-            nd4j_printf("Expected output shape: [%i, %i, %i, %i, %i]\n", input->sizeAt(0), nOutputPlane, outputDepth, outputHeight, outputWidth);
-
-            if (output->sizeAt(0) != input->sizeAt(0) ||
-                output->sizeAt(1) != nOutputPlane ||
-                output->sizeAt(2) != outputDepth ||
-                output->sizeAt(3) != outputHeight ||
-                output->sizeAt(4) != outputWidth)
-                return ND4J_STATUS_BAD_INPUT;
-
+            REQUIRE_TRUE(output->sizeAt(0) == input->sizeAt(0) && output->sizeAt(1) == nOutputPlane && output->sizeAt(2) == outputDepth && output->sizeAt(3) == outputHeight && output->sizeAt(4) == outputWidth, 0,
+                         "Expected output shape: [%i, %i, %i, %i, %i]", input->sizeAt(0), nOutputPlane, outputDepth, outputHeight, outputWidth);
 
             std::unique_ptr<ArrayList<T>> batchIn(NDArrayFactory::allExamples<T>(input));
             std::unique_ptr<ArrayList<T>> batchOut(NDArrayFactory::allExamples<T>(output));
@@ -239,6 +231,105 @@ namespace nd4j {
         }
         DECLARE_SYN(AvgPool2D, avgpool);
         DECLARE_SYN(AvgPool, avgpool);
+
+
+        //////////////////////////////////////////////////////////////////////////
+        DECLARE_CONFIGURABLE_OP(maxpool3d, 2, 1, true, 0, 13) {
+
+            NDArray<T> *input = block.getVariables().at(0)->getNDArray();
+            NDArray<T> *indices = block.getVariables().at(1)->getNDArray();
+
+            REQUIRE_TRUE(input->rankOf() == 5, 0, "Input should be 5D, got rank %i instead", input->rankOf());
+
+            NDArray<T> *output = this->getZ(block);
+
+            int kT = block.getIArguments()->at(0);
+            int kW = block.getIArguments()->at(1);
+            int kH = block.getIArguments()->at(2);
+            int dT = block.getIArguments()->at(3);
+            int dW = block.getIArguments()->at(4);
+            int dH = block.getIArguments()->at(5);
+            int pT = block.getIArguments()->at(6);
+            int pW = block.getIArguments()->at(7);
+            int pH = block.getIArguments()->at(8);
+            int dilationT = block.getIArguments()->at(9);
+            int dilationW = block.getIArguments()->at(10);
+            int dilationH = block.getIArguments()->at(11);
+            bool ceilMode = block.getIArguments()->at(12) != 0;
+
+            Nd4jIndex nslices;
+            Nd4jIndex itime;
+            Nd4jIndex iheight;
+            Nd4jIndex iwidth;
+            Nd4jIndex otime;
+            Nd4jIndex oheight;
+            Nd4jIndex owidth;
+            T *input_data;
+            T *output_data;
+
+            ////////////
+            T *indices_data;
+
+
+            int dimN = 1;
+            int dimt = 2;
+            int dimh = 3;
+            int dimw = 4;
+
+
+            nslices = input->sizeAt(dimN);
+            itime   = input->sizeAt(dimt);
+            iheight = input->sizeAt(dimh);
+            iwidth  = input->sizeAt(dimw);
+
+            if (ceilMode) {
+                otime = (int)(nd4j::math::nd4j_ceil<T>((float)(itime - (dilationT * (kT - 1) + 1) + 2*pT) / dT)) + 1;
+                oheight = (int)(nd4j::math::nd4j_ceil<T>((float)(iheight - (dilationH * (kH - 1) + 1) + 2*pH) / dH)) + 1;
+                owidth  = (int)(nd4j::math::nd4j_ceil<T>((float)(iwidth  - (dilationW * (kW - 1) + 1) + 2*pW) / dW)) + 1;
+            } else {
+                otime = (int)(nd4j::math::nd4j_floor<T>((float)(itime - (dilationT * (kT - 1) + 1) + 2*pT) / dT)) + 1;
+                oheight = (int)(nd4j::math::nd4j_floor<T>((float)(iheight - (dilationH * (kH - 1) + 1) + 2*pH) / dH)) + 1;
+                owidth  = (int)(nd4j::math::nd4j_floor<T>((float)(iwidth  - (dilationW * (kW - 1) + 1) + 2*pW) / dW)) + 1;
+            }
+
+            if (pT > 0 || pW > 0 || pH > 0) {
+                // ensure that the last pooling starts inside the image
+                if ((otime - 1)*dT >= itime + pT)
+                    --otime;
+                if ((oheight - 1)*dH >= iheight + pH)
+                    --oheight;
+                if ((owidth  - 1)*dW >= iwidth  + pW)
+                    --owidth;
+            }
+
+            NDArray<T>* _input;
+            if (!input->isContiguous())
+                _input = input->dup(input->ordering());
+            else
+                _input = input;
+
+
+
+            Nd4jIndex istride = nslices * itime * iwidth * iheight;
+            Nd4jIndex ostride = nslices * otime * owidth * oheight;
+
+            /* resize output */
+            //THTensor_(resize5d)(output, nBatch, nslices, otime, oheight, owidth);
+            /* indices will contain ti,i,j locations for each output point */
+            //THIndexTensor_(resize5d)(indices, nBatch, nslices, otime, oheight, owidth);
+
+            input_data = _input->getBuffer();
+            output_data = output->getBuffer();
+            indices_data = indices->getBuffer();
+
+            for (int n = 0; n < input->sizeAt(0); n++) {
+                //
+            }
+
+            return ND4J_STATUS_OK;
+        }
+        DECLARE_SYN(MaxPool3D, maxpool3d);
+        DECLARE_SYN(MaxPool3d, maxpool3d);
 
 //////////////////////////////////////////////////////////////////////////
         DECLARE_OP(lrn, 2, 1, true) {

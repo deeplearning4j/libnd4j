@@ -1473,7 +1473,7 @@ TEST_F(DeclarableOpsTests, Conv3D_ff_Test1) {
     input.assign(1.0);
     weights.assign(2.0);
     bias.putScalar(0, 1.0f);
-    bias.putScalar(1, 2.0f);
+    bias.putScalar(1, 1.0f);
 
     NDArray<float> output('c', {4, 2, 1, 11, 11});
 
@@ -1500,6 +1500,8 @@ TEST_F(DeclarableOpsTests, Conv3D_ff_Test1) {
     ASSERT_EQ(ND4J_STATUS_OK, result);
 
     output.printBuffer("Result");
+
+    ASSERT_NEAR(451.0f, output.template reduceNumber<simdOps::Mean<float>>(), 1e-5);
 }
 
 

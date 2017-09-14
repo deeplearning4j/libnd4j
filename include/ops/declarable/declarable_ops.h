@@ -22,6 +22,23 @@ using namespace nd4j::graph;
 namespace nd4j {
     namespace ops {
 
+        Nd4jStatus conditionHelper(const char *file, int line, int condition, int argNumber, const char *format, ...) {
+            if (!condition) {
+                va_list args;
+
+                printf("Error at [%s:%i:%i]:\n", file, line, argNumber);
+                va_start(args, format);
+                vprintf(format, args);
+                va_end(args);
+                printf("\n");
+                fflush(stdout);
+
+                return ND4J_STATUS_BAD_PARAMS;
+            }
+            return ND4J_STATUS_OK;
+        }
+
+
         template<typename T>
         Nd4jStatus resultHelper(T status, const char *func, const char *file, int line) {
             if (status) {
