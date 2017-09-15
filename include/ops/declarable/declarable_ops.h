@@ -73,6 +73,8 @@ namespace nd4j {
             bool allocateResult(Block<T>& block, int* shape);
             void storeResult(Block<T> &block, int outputNumber, NDArray<T>& array);
             nd4j::NDArray<T> *getZ(Block<T>& block, int inputId = 0);
+
+            //std::vector<int>* calculateOutputShape(std::vector<int>* inputShape, nd4j::graph::Block<T>& block);
         public:
             DeclarableOp(int numInputs, int numOutputs, const char *opName, bool allowsInplace) {
                 _descriptor = new OpDescriptor(numInputs, numOutputs, opName, allowsInplace);
@@ -95,6 +97,8 @@ namespace nd4j {
             OpDescriptor *getOpDescriptor() {
                 return _descriptor;
             }
+
+            int* calculateOutputShape(int* inputShape, nd4j::graph::Block<T>& block);
 
             /**
              * Returns opName
@@ -137,8 +141,18 @@ namespace nd4j {
             Nd4jStatus validateInputDimensions(Block<T>& block, int rank);
 
             Nd4jStatus validateArguments(Block<T>& block);
+        };
 
-            std::vector<int>* calculateOutputShape(std::vector<int>* inputShape);
+
+        template <typename T>
+        class DeclarableReductionOp : public nd4j::ops::DeclarableOp<T> {
+        protected:
+            /**
+             * This method executes this Op
+             */
+            virtual Nd4jStatus validateAndExecute(Block<T>& block) = 0;
+        public:
+            int* calculateOutputShape(int* inputShape, nd4j::graph::Block<T>& block) override;
         };
 
 
@@ -457,9 +471,34 @@ namespace nd4j {
 nd4j::ops::OpRegistrator* nd4j::ops::OpRegistrator::_INSTANCE = 0;
 
 template <typename T>
-std::vector<int>* nd4j::ops::DeclarableOp<T>::calculateOutputShape(std::vector<int>* inputShape) {
+int* nd4j::ops::DeclarableReductionOp<T>::calculateOutputShape(int* inputShape, nd4j::graph::Block<T>& block)  {
+    int numDims = block.getIArguments()->at(0);
+    std::vector<int> dims;
+    for (int e = 0; e < numDims; e++)
+        dims.push_back(block.getIArguments()->at(e+1));
+
+    if (numDims > 1)
+        std::sort(dims.begin(), dims.end());
+
+    shape::TAD tad(inputShape, dims.data(), numDims);
+    tad.createTadOnlyShapeInfo();
+
+    int* newShape;
+    ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(tad.tadOnlyShapeInfo), int);
+    memcpy(newShape, tad.tadOnlyShapeInfo, shape::shapeInfoByteLength(tad.tadOnlyShapeInfo));
+
+    return newShape;
+}
+
+template <typename T>
+int* nd4j::ops::DeclarableOp<T>::calculateOutputShape(int* inputShape, nd4j::graph::Block<T>& block) {
     // default implementation suits transform, so just returns the same shape
-    return inputShape;
+
+    int* newshape;
+    ALLOCATE(newshape, block.getWorkspace(), shape::shapeInfoLength(inputShape), int);
+    memcpy(newshape, inputShape, shape::shapeInfoByteLength(inputShape));
+
+    return newshape;
 }
 
 template <typename T>

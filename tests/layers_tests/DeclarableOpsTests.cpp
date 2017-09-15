@@ -1559,6 +1559,8 @@ TEST_F(DeclarableOpsTests, DilatedMaxPool3D_ff_Test1) {
     output.printBuffer("Result");
 
     ASSERT_NEAR(451.0f, output.template reduceNumber<simdOps::Mean<float>>(), 1e-5);
+
+
 }
 
 
