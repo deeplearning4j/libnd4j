@@ -120,6 +120,10 @@ Nd4jIndex nd4j::graph::Graph<T>::estimateRequiredMemory() {
 
     Nd4jIndex result = 0L;
     Nd4jIndex lastStep = 0L;
+
+    std::vector<int *> shapes;
+    std::map<std::pair<int,int>, int*> shapesMap;
+
     // we loop in similar way to execution
     for (int l = 0; l < (int) _onion->size(); l++) {
         int layerSize = _onion->count(l) == 1 ? _onion->at(l)->size() : 0;
@@ -143,17 +147,95 @@ Nd4jIndex nd4j::graph::Graph<T>::estimateRequiredMemory() {
                 auto op = node->getCustomOp();
 
             } else if (node->getOpClass() == OpClass_TRANFSFORM) {
-                if (node->isInplace())
-                    continue;
+                auto vec = node->input();
 
-                result += lastStep;
+                auto in = node->input()->at(0);
+                if (in.first < 0) {
+
+                    auto x = _variableSpace->getVariable(in);
+                    auto z = _variableSpace->getVariable(node->id());
+
+                    int *newShape = new int[shape::shapeInfoLength(x->getNDArray()->getShapeInfo())];
+                    memcpy(newShape, x->getNDArray()->getShapeInfo(), shape::shapeInfoByteLength(x->getNDArray()->getShapeInfo()));
+
+                    std::pair<int, int> pairAddr(node->id(), 0);
+                    std::pair<std::pair<int, int>, int *> pairShape(pairAddr, newShape);
+
+                    shapesMap.insert(pairShape);
+
+                    if (!node->isInplace())
+                        result += shape::length(newShape) * sizeof(T);
+
+                    shapes.push_back(newShape);
+                } else {
+                    auto prevShape = shapesMap.at(in);
+
+                    int *newShape = new int[shape::shapeInfoLength(prevShape)];
+                    memcpy(newShape, prevShape, shape::shapeInfoByteLength(prevShape));
+
+                    std::pair<int, int> pairAddr(node->id(), 0);
+                    std::pair<std::pair<int, int>, int *> pairShape(pairAddr, newShape);
+
+                    shapesMap.insert(pairShape);
+
+                    if (!node->isInplace())
+                        result += shape::length(newShape) * sizeof(T);
+
+                    shapes.push_back(newShape);
+                }
+
             } else if (node->getOpClass() == OpClass_REDUCTION) {
+                int *newShape = nullptr;
 
+                // if that's scalar output - we don't give a fuck about previous node
+                if (node->getDimensions()->size() == 0 || (node->getDimensions()->size() == 1 && node->getDimensions()->at(0) == MAX_INT)) {
+                    newShape = new int[8];
+
+                    newShape[0] = 2;
+                    newShape[1] = 1;
+                    newShape[2] = 1;
+                    newShape[3] = 1;
+                    newShape[4] = 1;
+                    newShape[5] = 0;
+                    newShape[6] = 1;
+                    newShape[7] = 99;
+
+                } else {
+                    auto in = node->input()->at(0);
+
+                    int *oldShape = nullptr;
+                    // calculate tads here
+                    if (in.first < 0) {
+                        auto x = _variableSpace->getVariable(in)->getNDArray();
+
+                        oldShape = x->getShapeInfo();
+                    } else {
+
+                        oldShape = shapesMap.at(in);
+                    }
+
+                    //shape::TAD tad(oldShape, node->getDimensions()->data(), node->getDimensions()->size());
+                    Nd4jIndex numTads = shape::tadLength(oldShape, node->getDimensions()->data(), node->getDimensions()->size());
+                    int *shape = new int[2]{1, (int) numTads};
+                    newShape = shape::shapeBuffer(2, shape);
+                }
+
+                std::pair<int, int> pairAddr(node->id(), 0);
+                std::pair<std::pair<int, int>, int *> pairShape(pairAddr, newShape);
+
+                shapesMap.insert(pairShape);
+
+                result += shape::length(newShape) * sizeof(T);
+
+                shapes.push_back(newShape);
             } else if (node->getOpClass() == OpClass_MULTIPLICATOR) {
-
+                // can't be in non-special op
             }
         }
     }
+
+    for (auto v: shapes)
+        delete[] v;
 
     return result;
 }
