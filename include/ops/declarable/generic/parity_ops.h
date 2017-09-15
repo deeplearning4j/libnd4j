@@ -579,6 +579,10 @@ namespace nd4j {
         DECLARE_SYN(TestOp2i2o, testop2i2o);
 
 
+        DECLARE_REDUCTION_OP(testreduction, 1, 1, false, 0, -1) {
+
+        }
+
 
         DECLARE_OP(assign, 2, 1, false) {
             REQUIRE_OK(this->validateInputLengthMatch(block));
@@ -945,7 +949,6 @@ namespace nd4j {
             return ND4J_STATUS_OK;
         }
         DECLARE_SYN(scatterupdate, scatter_update);
-
 
 //////////////////////////////////////////////////////////////////////////
         DECLARE_CONFIGURABLE_OP(relu, 1, 1, true, 1, 0) {

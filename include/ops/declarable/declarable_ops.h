@@ -152,7 +152,15 @@ namespace nd4j {
              */
             virtual Nd4jStatus validateAndExecute(Block<T>& block) = 0;
         public:
-            int* calculateOutputShape(int* inputShape, nd4j::graph::Block<T>& block) override;
+            DeclarableReductionOp(int numInputs, int numOutputs, const char *opName, bool allowsInplace, int tArgs, int iArgs) : nd4j::ops::DeclarableOp<T>(numInputs, numOutputs, opName, allowsInplace, tArgs, iArgs) {
+                //
+            }
+
+            ~DeclarableReductionOp()  {
+                //
+            }
+
+            int* calculateOutputShape(int* inputShape, nd4j::graph::Block<T>& block);
         };
 
 
@@ -480,12 +488,40 @@ int* nd4j::ops::DeclarableReductionOp<T>::calculateOutputShape(int* inputShape, 
     if (numDims > 1)
         std::sort(dims.begin(), dims.end());
 
+    // special case - output is scalar
+    if (numDims == 1 && dims.at(0) == MAX_INT) {
+        int* newShape;
+        ALLOCATE(newShape, block.getWorkspace(), 8, int);
+
+        newShape[0] = 2;
+        newShape[1] = 1;
+        newShape[2] = 1;
+        newShape[3] = 1;
+        newShape[4] = 1;
+        newShape[5] = 0;
+        newShape[6] = 1;
+        newShape[7] = 99;
+
+        return newShape;
+    }
+
     shape::TAD tad(inputShape, dims.data(), numDims);
     tad.createTadOnlyShapeInfo();
 
+    Nd4jIndex tadLength = shape::tadLength(inputShape, dims.data(), numDims);
+    Nd4jIndex numTads = shape::length(inputShape) /  tadLength;
+
     int* newShape;
-    ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(tad.tadOnlyShapeInfo), int);
-    memcpy(newShape, tad.tadOnlyShapeInfo, shape::shapeInfoByteLength(tad.tadOnlyShapeInfo));
+    ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(2), int);
+
+    newShape[0] = 2;
+    newShape[1] = 1;
+    newShape[2] = numTads;
+    newShape[3] = numTads;
+    newShape[4] = 1;
+    newShape[5] = 0;
+    newShape[6] = 1;
+    newShape[7] = 99;
 
     return newShape;
 }

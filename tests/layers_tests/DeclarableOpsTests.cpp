@@ -1504,6 +1504,53 @@ TEST_F(DeclarableOpsTests, Conv3D_ff_Test1) {
     ASSERT_NEAR(451.0f, output.template reduceNumber<simdOps::Mean<float>>(), 1e-5);
 }
 
+TEST_F(DeclarableOpsTests, TestReductionShape1) {
+    NDArray<float> input('c', {4, 5, 5, 10, 10});
+
+    VariableSpace<float>* variableSpace = new VariableSpace<float>();
+    variableSpace->putVariable(-1, &input);
+
+    Block<float>* block = new Block<float>(1, variableSpace, false);  // not-in-place
+    block->fillInputs({-1});
+
+    // kernel params
+    block->getIArguments()->push_back(1);
+    block->getIArguments()->push_back(MAX_INT);
+
+    nd4j::ops::testreduction<float> testop;
+
+    int *shape = testop.calculateOutputShape(input.getShapeInfo(), *block);
+
+    ASSERT_EQ(2,shape[0]);
+    ASSERT_EQ(1,shape[1]);
+    ASSERT_EQ(1,shape[2]);
+}
+
+TEST_F(DeclarableOpsTests, TestReductionShape2) {
+    NDArray<float> input('c', {4, 5, 5, 10, 10});
+
+    VariableSpace<float>* variableSpace = new VariableSpace<float>();
+    variableSpace->putVariable(-1, &input);
+
+    Block<float>* block = new Block<float>(1, variableSpace, false);  // not-in-place
+    block->fillInputs({-1});
+
+    // kernel params
+    block->getIArguments()->push_back(4);
+    block->getIArguments()->push_back(1);
+    block->getIArguments()->push_back(2);
+    block->getIArguments()->push_back(3);
+    block->getIArguments()->push_back(4);
+
+    nd4j::ops::testreduction<float> testop;
+
+    int *shape = testop.calculateOutputShape(input.getShapeInfo(), *block);
+
+    ASSERT_EQ(2,shape[0]);
+    ASSERT_EQ(1,shape[1]);
+    ASSERT_EQ(4,shape[2]);
+}
+
 TEST_F(DeclarableOpsTests, DilatedMaxPool3D_ff_Test1) {
     NDArray<float> input('c', {4, 2, 1, 11, 11});
 
