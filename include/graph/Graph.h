@@ -145,7 +145,35 @@ Nd4jIndex nd4j::graph::Graph<T>::estimateRequiredMemory() {
                     continue;
 
                 auto op = node->getCustomOp();
+                auto in = node->input()->at(0);
 
+                auto block = node->getBlock();
+                std::vector<int*> inputShapes;
+                int *newShape;
+                int *oldShape;
+                for (auto v: *node->input()) {
+                    if (v.first < 0) {
+                        inputShapes.push_back(_variableSpace->getVariable(v.first)->getNDArray()->getShapeInfo());
+                    } else {
+                        inputShapes.push_back(shapesMap.at(v));
+                        shape::printShapeInfoLinear(shapesMap.at(v));
+                    }
+                }
+
+                newShape = op->calculateOutputShape(inputShapes.at(0), *block);
+
+                // FIXME: we need multi-input/multi-output here
+                std::pair<int, int> pairAddr(node->id(), 0);
+                std::pair<std::pair<int, int>, int *> pairShape(pairAddr, newShape);
+
+                shapesMap.insert(pairShape);
+
+                if (!block->isInplace())
+                    result += shape::length(newShape) * sizeof(T);
+
+                shape::printShapeInfoLinear(newShape);
+
+                shapes.push_back(newShape);
             } else if (node->getOpClass() == OpClass_TRANFSFORM) {
                 auto vec = node->input();
 
@@ -327,6 +355,16 @@ void nd4j::graph::Graph<T>::addNode(nd4j::graph::Node<T> *node) {
     if (node->hasCustomOp()) {
         // custom ops require Block inside. but we'll set it inside buildGraph
 
+
+        auto block = new Block<T>(node->id(), _variableSpace);
+        node->setBlock(block);
+
+        for (uint32_t e = 0; e < node->input()->size(); e++) {
+            auto var = _variableSpace->getVariable(node->input()->at(e));
+
+            block->getVariables().push_back(var);
+        }
+
         // and might have > 1 output
         if (node->getCustomOp()->getOpDescriptor()->getNumberOfOutputs() > 1) {
             for (int e = 0; e < node->getCustomOp()->getOpDescriptor()->getNumberOfOutputs(); e++) {
@@ -434,6 +472,17 @@ Nd4jStatus nd4j::graph::Graph<T>::buildGraph() {
                         expandOnion(maxLayer);
 
                     this->injectNode(node);
+
+                    if (node->hasCustomOp()) {
+                        auto block = new Block<T>(node->id(), _variableSpace);
+                        node->setBlock(block);
+
+                        for (uint32_t e = 0; e < node->input()->size(); e++) {
+                            auto var = _variableSpace->getVariable(node->input()->at(e));
+
+                            block->getVariables().push_back(var);
+                        }
+                    }
                 } else
                     continue;
 
