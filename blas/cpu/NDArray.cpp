@@ -1008,7 +1008,7 @@ template <typename T> NDArray<T>* NDArray<T>::reshape(const char order, const st
 	NDArray<T>* newArr = new NDArray<T>(_buffer, newShapeInfo, _workspace);
 	newArr->_isShapeAlloc = true;
 	newArr->_isBuffAlloc  = false;
-	newArr->permute(order, shape);
+	newArr->reshapei(order, shape);
 	
 	return newArr;	
 }

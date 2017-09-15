@@ -95,7 +95,7 @@ namespace shape {
 #ifdef __CUDACC__
     __host__ __device__
 #endif
-    INLINEDEF bool strideEquals(int *stride,int strideRank,int *stride2,int stride2Rank);
+    INLINEDEF bool strideEquals(int *stride1,int rank1,int *stride2,int rank2);
 
 #ifdef __CUDACC__
     __host__ __device__
@@ -2476,6 +2476,19 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
         return shape::strideEquals(shape::rank(shapeInfo1),shape::stride(shapeInfo1),shape::rank(shapeInfo2),shape::stride(shapeInfo2));
 
     }
+
+#ifdef __CUDACC__
+    __host__ __device__
+#endif
+	INLINEDEF bool strideEquals(int *stride1,int rank1 , int *stride2, int rank2) {
+		if(rank1 != rank2)
+            return false;
+		
+		for(int i = 0; i < rank1; i++) {
+            if(stride1[i] != stride2[i])
+                return false;
+        }
+	}
 
 #ifdef __CUDACC__
     __host__ __device__

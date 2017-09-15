@@ -2161,9 +2161,9 @@ namespace simdOps {
 			T *result,
 			int *resultShapeBuffer,
 			T *extraParams, int *tadShapeInfo, Nd4jIndex *tadOffsets) {
-
-			if (extraParams == nullptr || extraParams[0] == 0 ||
-				(extraParams[0] == 1 && extraParams[1] == MAX_DIMENSION)) {
+			//FIXME: this op should be moved to CustomOps
+			if (extraParams == nullptr || (int)extraParams[0] == 0 ||
+				((int)extraParams[0] == 1 && (int)extraParams[1] == MAX_DIMENSION)) {
 				doAll(dx, xShapeBuffer, result, resultShapeBuffer, extraParams);
 			}
 			else if (shape::isVector(xShapeBuffer)) {

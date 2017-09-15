@@ -1088,90 +1088,92 @@ namespace nd4j {
 		}
 		
 		//////////////////////////////////////////////////////////////////////////
-		// DECLARE_CONFIGURABLE_OP(maxpool_bp, 2, 1, false, 0, 13) {
+		DECLARE_CONFIGURABLE_OP(maxpool_bp, 2, 1, false, 0, 14) {
         
-            // NDArray<T> input = *(block.getVariables().at(0)->getNDArray());
-			// NDArray<T> epsilon = *(block.getVariables().at(1)->getNDArray());
-			// NDArray<T> gradient = *(this->getZ(block));
-			// std::vector<int> argI = *(block.getIArguments());
-			// int bS  = argI[0]; 
-			// int iD  = argI[1]; 
-			// int pH  = argI[2]; 
-			// int pW  = argI[3]; 
-			// int kH  = argI[4]; 
-			// int kW  = argI[5];
-			// int sH  = argI[5];
-			// int sW  = argI[6];
-			// int dH  = argI[7];
-			// int dW  = argI[8];
-			// int pdH = argI[9]; 
-			// int pdW = argI[10];  
-			// int oH  = argI[11]; 
-			// int oW  = argI[12]; 
+            NDArray<T>* input = block.getVariables().at(0)->getNDArray();
+			NDArray<T>* epsilon = block.getVariables().at(1)->getNDArray();
+			NDArray<T>* outEpsilon = this->getZ(block);
+			std::vector<int> argI = *(block.getIArguments());
+			int bS  = argI[0]; 
+			int iD  = argI[1]; 
+			int pH  = argI[2]; 
+			int pW  = argI[3]; 
+			int kH  = argI[4]; 
+			int kW  = argI[5];
+			int sH  = argI[5];
+			int sW  = argI[6];
+			int dH  = argI[7];
+			int dW  = argI[8];
+			int pdH = argI[9]; 
+			int pdW = argI[10];  
+			int oH  = argI[11]; 
+			int oW  = argI[12]; 
+			int convMode = argI[13]; 
 
-			// bool cOrderStrides = false;
-			// if (epsilon->ordering() != 'c') {
-				// epsilon = epsilon->dup('c');
-				// cOrderStrides = true;
-			// }
+			bool cOrderStrides = false;
+			bool isEpsilonDup = false;
+			if (epsilon->ordering() != 'c') {
+				epsilon = epsilon->dup('c');
+				cOrderStrides = true;
+				isEpsilonDup = true;
+			}
 			
-			// int strideToCompare[] = {oH*oW, iD*oH*oW, oW, 1};
-			// if (!cOrderStrides && shape::strideDescendingCAscendingF(epsilon->getShapeInfo())) {
-				// cOrderStrides = true;
-			// } 
-			// else if (!strideEquals(strideToCompare, 4., epsilon.stridesOf(), epsilon.rankOf())) {				
-				// epsilon = epsilon.dup('c');
-				// cOrderStrides = true;
-			// }
+			int strideToCompare[] = {oH*oW, iD*oH*oW, oW, 1};
+			if (!cOrderStrides && shape::strideDescendingCAscendingF(epsilon->getShapeInfo())) {
+				cOrderStrides = true;
+			} 
+			else if (!shape::strideEquals(strideToCompare, 4., epsilon->stridesOf(), epsilon->rankOf())) {				
+				epsilon = epsilon->dup('c');
+				cOrderStrides = true;
+				isEpsilonDup = true;
+			}
 			
-			// NDArray<T> col6d;
-			// NDArray<T> col6dPermuted;
-			// NDArray<T> epsilon1d;
+			NDArray<T>* col6d = nullptr;
+			NDArray<T>* col6dPermuted = nullptr;
+			NDArray<T>* epsilon1d = nullptr;
 
-			// if (cOrderStrides) {
-				// col6d = NDArray<T>('c', {miniBatch, inDepth, outH, outW, kernel[0], kernel[1]});
-				// col6dPermuted = col6d.permute({0, 1, 4, 5, 2, 3});
-				// epsilon1d = epsilon.reshape('c', {1, epsilon.lengthOf()}); //zero copy reshape
-			// } 
-			// else {            
-				// col6d = NDArray<T>('c', {inDepth, miniBatch, outH, outW, kernel[0], kernel[1]});
-				// col6dPermuted = col6d.permute({1, 0, 4, 5, 2, 3});
-				// INDArray<T> epsilonTemp = epsilon.permute({1, 0, 2, 3});
-				// epsilon1d = epsilonTemp.reshape('c', {1, epsilon.length()), 1}); //Should be a zero-copy reshape always
-			// }
+			if (cOrderStrides) {
+				col6d = new NDArray<T>('c', {bS, iD, oH, oW, kH, kW});
+				col6dPermuted = col6d->permute({0, 1, 4, 5, 2, 3});
+				epsilon1d = epsilon->reshape('c', {epsilon->lengthOf(), 1}); //zero copy reshape
+			} 
+			else {            
+				col6d = new NDArray<T>('c', {iD, bS, oH, oW, kH, kW});
+				col6dPermuted = col6d->permute({1, 0, 4, 5, 2, 3});
+				NDArray<T>* epsilonTemp = epsilon->permute({1, 0, 2, 3});
+				epsilon1d = epsilonTemp->reshape('c', {epsilon->lengthOf(), 1}); //Should be a zero-copy reshape always
+				delete epsilonTemp;
+			}
+			
+			NDArray<T>* col2d = col6d->reshape('c', {bS*iD*oH*oW, kH*kW});			         
 		
-        
-
-
-
-		// bool NDArray<T>::reshape(NDArray<T>& other, const char order, const std::vector<int>& shape){
+			T extraParams1[] = {kW, kH, sW, sH, pdW, pdH, dW, dH, convMode};
+			input->template applyTransform<simdOps::Im2col<T>>(col6dPermuted, extraParams1);
 			
-			// other
-			// return other.reshape(order, shape)
-		// }
+			//FIXME: this op should be moved to CustomOps
+			T extraParams2[] = {(T)1.f, (T)1.f};
+            NDArray<T>* isMax = new NDArray<T>(); // ??????
+			col2d->template applyTransform<simdOps::IsMax<T>>(isMax, extraParams2);
+			nd4j::NDArrayFactory::mmulHelper<T>(isMax, epsilon1d, isMax, 1.f, 0.f);
 
+			// NDArray<T>* tempEpsilon = new NDArray<T>('c', {iD, bS, pH, pW});
+			// NDArray<T>* outEpsilon = tempEpsilon.permute({1, 0, 2, 3});
+			T extraParams3[] = {sW, sH, pdW, pdH, 0.f, 0.f, dW, dH};   			// ??? zeros
+			col6dPermuted->template applyTransform<simdOps::Col2Im<T>>(outEpsilon, extraParams3);        
+			
+			
+            STORE_RESULT(*outEpsilon);		// ???
 
-
-
-
-
-
-
-
-
-			// std::vector<int> argI = *(block.getIArguments());							// 0,1 kernelWidth/Height; 2,3 strideX/Y; 4,5 padWidth/Height; 6,7 dilationWidth/Height; 8,9 poolingMode;
-			// std::vector<T> argT(argI.size());
-			// for(int i=0; i<argI.size(); ++i)
-				// argT[i] = argI[i];
-			// argT.emplace_back(0.f); argT.emplace_back(0.f);
-            // auto z = this->getZ(block);
-
-            // x->template applyTransform<simdOps::Pooling2D<T>>(z, argT.data());
-
-            // STORE_RESULT(*z);
-
-            // return ND4J_STATUS_OK;         
-        // }
+			if(isEpsilonDup) 
+				delete epsilon;
+			delete col6d;
+			delete col6dPermuted;
+			delete epsilon1d;
+            delete col2d;
+			delete isMax;		// ??????
+			// delete tempEpsilon;
+			return ND4J_STATUS_OK;         
+        }
 
     }
 }
