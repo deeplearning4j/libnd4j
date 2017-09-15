@@ -818,8 +818,8 @@
 
 
 /// graph definitions
-#define REQUIRE_OK(A)  if (nd4j::ops::resultHelper( (A), #A, __FILE__, __LINE__ ) != 0) return nd4j::ops::resultHelper( (A), #A, __FILE__, __LINE__ );
-#define REQUIRE_TRUE(...) if (nd4j::ops::conditionHelper(__FILE__, __LINE__, __VA_ARGS__) != 0) return ND4J_STATUS_BAD_PARAMS;
+#define REQUIRE_OK(A)  if (nd4j::ops::resultHelper( (A), #A, __FILE__, __LINE__ ) != 0) return ND4J_STATUS_VALIDATION;
+#define REQUIRE_TRUE(...) if (nd4j::ops::conditionHelper(__FILE__, __LINE__, __VA_ARGS__) != 0) return ND4J_STATUS_VALIDATION;
 
 
 #define DECLARE_OP(NAME, NIN, NOUT, INPLACEABLE)   DECLARE_OP_UNIQ(__COUNTER__, NAME, NIN, NOUT, INPLACEABLE)

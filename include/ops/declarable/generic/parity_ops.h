@@ -234,14 +234,16 @@ namespace nd4j {
 
 
         //////////////////////////////////////////////////////////////////////////
-        DECLARE_CONFIGURABLE_OP(maxpool3d, 2, 1, true, 0, 13) {
+        DECLARE_CONFIGURABLE_OP(maxpool3d, 1, 2, true, 0, 13) {
 
             NDArray<T> *input = block.getVariables().at(0)->getNDArray();
-            NDArray<T> *indices = block.getVariables().at(1)->getNDArray();
-
-            REQUIRE_TRUE(input->rankOf() == 5, 0, "Input should be 5D, got rank %i instead", input->rankOf());
 
             NDArray<T> *output = this->getZ(block);
+            NDArray<T> *indices = this->getZ(block, 1);
+
+            REQUIRE_TRUE(input->sizeOfT() > 2, 0, "MaxPool3D can't be used in HALF precision")
+            REQUIRE_TRUE(input->rankOf() == 5, 0, "Input should be 5D, got rank %i instead", input->rankOf());
+            REQUIRE_TRUE(output->rankOf() == 5, 0, "Output should be 5D, got rank %i instead", output->rankOf());
 
             int kT = block.getIArguments()->at(0);
             int kW = block.getIArguments()->at(1);
@@ -256,6 +258,24 @@ namespace nd4j {
             int dilationW = block.getIArguments()->at(10);
             int dilationH = block.getIArguments()->at(11);
             bool ceilMode = block.getIArguments()->at(12) != 0;
+
+
+            REQUIRE_TRUE(kT > 0 && kW > 0 && kH > 0, 0,
+                    "Kernel size should be greater than zero, but got kT: %d kH: %d kW: %d",
+                    kT, kH, kW);
+
+            REQUIRE_TRUE(dT > 0 && dW > 0 && dH > 0, 8,
+                       "stride should be greater than zero, but got dT: %d dH: %d dW: %d",
+                       dT, dH, dW);
+
+            REQUIRE_TRUE(dilationT > 0 && dilationW > 0 && dilationH > 0, 14,
+                       "dilation should be greater than 0, but got dilationT: %d dilationH: %d dilationW: %d",
+                       dilationT, dilationH, dilationW);
+
+            REQUIRE_TRUE(kT/2 >= pT && kW/2 >= pW && kH/2 >= pH, 2,
+                       "pad should be smaller than half of kernel size, but got "
+                               "kT: %d kW: %d, kH: %d, padT: %d, padW: %d, padH: %d",
+                       kT, kW, kH, pT, pW, pH);
 
             Nd4jIndex nslices;
             Nd4jIndex itime;
@@ -283,13 +303,13 @@ namespace nd4j {
             iwidth  = input->sizeAt(dimw);
 
             if (ceilMode) {
-                otime = (int)(nd4j::math::nd4j_ceil<T>((float)(itime - (dilationT * (kT - 1) + 1) + 2*pT) / dT)) + 1;
-                oheight = (int)(nd4j::math::nd4j_ceil<T>((float)(iheight - (dilationH * (kH - 1) + 1) + 2*pH) / dH)) + 1;
-                owidth  = (int)(nd4j::math::nd4j_ceil<T>((float)(iwidth  - (dilationW * (kW - 1) + 1) + 2*pW) / dW)) + 1;
+                otime = (int)(nd4j::math::nd4j_ceil<T>((T)(itime - (dilationT * (kT - 1) + 1) + 2*pT) / dT)) + 1;
+                oheight = (int)(nd4j::math::nd4j_ceil<T>((T)(iheight - (dilationH * (kH - 1) + 1) + 2*pH) / dH)) + 1;
+                owidth  = (int)(nd4j::math::nd4j_ceil<T>((T)(iwidth  - (dilationW * (kW - 1) + 1) + 2*pW) / dW)) + 1;
             } else {
-                otime = (int)(nd4j::math::nd4j_floor<T>((float)(itime - (dilationT * (kT - 1) + 1) + 2*pT) / dT)) + 1;
-                oheight = (int)(nd4j::math::nd4j_floor<T>((float)(iheight - (dilationH * (kH - 1) + 1) + 2*pH) / dH)) + 1;
-                owidth  = (int)(nd4j::math::nd4j_floor<T>((float)(iwidth  - (dilationW * (kW - 1) + 1) + 2*pW) / dW)) + 1;
+                otime = (int)(nd4j::math::nd4j_floor<T>((T)(itime - (dilationT * (kT - 1) + 1) + 2*pT) / dT)) + 1;
+                oheight = (int)(nd4j::math::nd4j_floor<T>((T)(iheight - (dilationH * (kH - 1) + 1) + 2*pH) / dH)) + 1;
+                owidth  = (int)(nd4j::math::nd4j_floor<T>((T)(iwidth  - (dilationW * (kW - 1) + 1) + 2*pW) / dW)) + 1;
             }
 
             if (pT > 0 || pW > 0 || pH > 0) {
@@ -302,29 +322,43 @@ namespace nd4j {
                     --owidth;
             }
 
+
+            REQUIRE_TRUE(otime >= 1 && owidth >= 1 && oheight >= 1, 0, "Output size is too small: [%i, %i, %i]", otime, oheight, owidth);
+
             NDArray<T>* _input;
             if (!input->isContiguous())
                 _input = input->dup(input->ordering());
             else
                 _input = input;
 
-
-
             Nd4jIndex istride = nslices * itime * iwidth * iheight;
             Nd4jIndex ostride = nslices * otime * owidth * oheight;
 
-            /* resize output */
-            //THTensor_(resize5d)(output, nBatch, nslices, otime, oheight, owidth);
-            /* indices will contain ti,i,j locations for each output point */
-            //THIndexTensor_(resize5d)(indices, nBatch, nslices, otime, oheight, owidth);
+            REQUIRE_TRUE(output->sizeAt(0) == input->sizeAt(0) && output->sizeAt(1) == nslices && output->sizeAt(2) == otime && output->sizeAt(3) == oheight && output->sizeAt(4) == owidth, 0,
+                         "Output shape expected to be [%i, %i, %i, %i, %i], but got [%i, %i, %i, %i, %i] instead", input->sizeAt(0), nslices, otime, oheight, owidth, output->sizeAt(0), output->sizeAt(1), output->sizeAt(2), output->sizeAt(3), output->sizeAt(4));
+
+            REQUIRE_TRUE(indices->isSameShape(output), 0, "Output and Indices shapes should be equal");
 
             input_data = _input->getBuffer();
             output_data = output->getBuffer();
             indices_data = indices->getBuffer();
 
             for (int n = 0; n < input->sizeAt(0); n++) {
-                //
+                nd4j::ops::_dilatedMaxPool3D(
+                        input_data   + n * istride,
+                        output_data  + n * ostride,
+                        indices_data + n * ostride,
+                        nslices,
+                        itime, iwidth, iheight,
+                        otime, owidth, oheight,
+                        kT, kW, kH,
+                        dT, dW, dH,
+                        pT, pW, pH,
+                        dilationT, dilationW, dilationH);
             }
+
+            if (_input != input)
+                delete _input;
 
             return ND4J_STATUS_OK;
         }

@@ -1504,4 +1504,61 @@ TEST_F(DeclarableOpsTests, Conv3D_ff_Test1) {
     ASSERT_NEAR(451.0f, output.template reduceNumber<simdOps::Mean<float>>(), 1e-5);
 }
 
+TEST_F(DeclarableOpsTests, DilatedMaxPool3D_ff_Test1) {
+    NDArray<float> input('c', {4, 2, 1, 11, 11});
+
+    input.assign(451.0);
+
+    NDArray<float> output('c', {4, 2, 1, 10, 10});
+    NDArray<float> indices('c', {4, 2, 1, 10, 10});
+
+
+    std::pair<int, int> pair0(1,0);
+    std::pair<int, int> pair1(1,1);
+
+
+    VariableSpace<float>* variableSpace = new VariableSpace<float>();
+    variableSpace->putVariable(-1, &input);
+
+    variableSpace->putVariable(pair0, &output);
+    variableSpace->putVariable(pair1, &indices);
+
+    Block<float>* block = new Block<float>(1, variableSpace, false);  // not-in-place
+    block->fillInputs({-1});
+
+    // kernel params
+    block->getIArguments()->push_back(1);
+    block->getIArguments()->push_back(2);
+    block->getIArguments()->push_back(2);
+
+    // stride
+    block->getIArguments()->push_back(1);
+    block->getIArguments()->push_back(1);
+    block->getIArguments()->push_back(1);
+
+    // padding
+    block->getIArguments()->push_back(0);
+    block->getIArguments()->push_back(0);
+    block->getIArguments()->push_back(0);
+
+    // dilation
+    block->getIArguments()->push_back(1);
+    block->getIArguments()->push_back(1);
+    block->getIArguments()->push_back(1);
+
+    // ceiling
+    block->getIArguments()->push_back(1);
+
+
+
+    nd4j::ops::maxpool3d<float> maxpool3d;
+
+    Nd4jStatus result = maxpool3d.execute(block);
+    ASSERT_EQ(ND4J_STATUS_OK, result);
+
+    output.printBuffer("Result");
+
+    ASSERT_NEAR(451.0f, output.template reduceNumber<simdOps::Mean<float>>(), 1e-5);
+}
+
 

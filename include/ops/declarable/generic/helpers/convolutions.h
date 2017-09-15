@@ -15,9 +15,9 @@ namespace nd4j {
         template<typename T>
         Nd4jStatus conv3D(T* output_data,
                     T alpha,
-                    T* ptr_input, long nInputDepth, long nInputRows, long nInputCols,
-                    T* ptr_weight, long nKernelDepth, long nKernelRows, long nKernelCols,
-                    long sdepth, long srow, long scol,
+                    T* ptr_input, Nd4jIndex nInputDepth, Nd4jIndex nInputRows, Nd4jIndex nInputCols,
+                    T* ptr_weight, Nd4jIndex nKernelDepth, Nd4jIndex nKernelRows, Nd4jIndex nKernelCols,
+                    Nd4jIndex sdepth, Nd4jIndex srow, Nd4jIndex scol,
                     const char *vf, const char *xc);
 
         template<typename T>
@@ -35,6 +35,86 @@ namespace nd4j {
 
         template<typename T>
         void validConv3Dptr(T*r_, T alpha, T *t_, Nd4jIndex it, Nd4jIndex ir, Nd4jIndex ic, T *k_, Nd4jIndex kt, Nd4jIndex kr, Nd4jIndex kc, Nd4jIndex st, Nd4jIndex sr, Nd4jIndex sc);
+
+        template<typename T>
+        void _dilatedMaxPool3D(T *input_p, T *output_p, T *indz_p, Nd4jIndex nslices, Nd4jIndex itime, Nd4jIndex iwidth, Nd4jIndex iheight, Nd4jIndex otime, Nd4jIndex owidth, Nd4jIndex oheight, int kT, int kW, int kH, int dT, int dW, int dH, int pT, int pW, int pH, int dilationT, int dilationW, int dilationH);
+    }
+}
+
+template<typename T>
+void nd4j::ops::_dilatedMaxPool3D(T *input_p, T *output_p, T *indz_p, Nd4jIndex nslices, Nd4jIndex itime, Nd4jIndex iwidth, Nd4jIndex iheight, Nd4jIndex otime, Nd4jIndex owidth, Nd4jIndex oheight, int kT, int kW, int kH, int dT, int dW, int dH, int pT, int pW, int pH, int dilationT, int dilationW, int dilationH) {
+    Nd4jIndex k;
+//#pragma omp parallel for private(k)
+    for (k = 0; k < nslices; k++)
+    {
+        /* loop over output */
+        Nd4jIndex i, j, ti;
+        for (ti = 0; ti < otime; ti++)
+        {
+            for (i = 0; i < oheight; i++)
+            {
+                for (j = 0; j < owidth; j++)
+                {
+                    /* local pointers */
+
+                    Nd4jIndex start_t = ti * dT - pT;
+                    Nd4jIndex start_h = i * dH - pH;
+                    Nd4jIndex start_w = j * dW - pW;
+
+                    Nd4jIndex kernel_t = nd4j::math::nd4j_min<Nd4jIndex>(kT, kT + start_t);
+                    Nd4jIndex kernel_h = nd4j::math::nd4j_min<Nd4jIndex>(kH, kH + start_h);
+                    Nd4jIndex kernel_w = nd4j::math::nd4j_min<Nd4jIndex>(kW, kW + start_w);
+
+                    while(start_t < 0)
+                        start_t += dilationT;
+                    while(start_h < 0)
+                        start_h += dilationH;
+                    while(start_w < 0)
+                        start_w += dilationW;
+
+                    T *ip = input_p + k * itime * iwidth * iheight + start_t * iwidth * iheight + start_h * iwidth + start_w;
+                    T *op = output_p + k * otime * owidth * oheight + ti * owidth * oheight + i * owidth + j;
+                    T *indzp = indz_p + k * otime * owidth * oheight + ti * owidth * oheight + i * owidth + j;
+
+                    /* compute local max: */
+                    T maxval = -MAX_FLOAT;
+                    int x,y,z;
+                    int mx, my, mz;
+                    mx = my = mz = -1;
+
+                    for (z = 0; z < kernel_t; z++)
+                    {
+                        for (y = 0; y < kernel_h; y++)
+                        {
+                            for (x = 0; x < kernel_w; x++)
+                            {
+                                if ((start_t + z * dilationT < itime) && (start_h + y * dilationH < iheight) && (start_w + x * dilationW < iwidth))
+                                {
+                                    T val = *(ip + z * dilationT * iwidth * iheight + y * dilationH * iwidth + x * dilationW);
+                                    if (val > maxval)
+                                    {
+                                        maxval = val;
+                                        // Store indices w.r.t the kernel dimension
+                                        mz = z + (kT - kernel_t);
+                                        my = y + (kH - kernel_h);
+                                        mx = x + (kW - kernel_w);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // set max values
+                    ((unsigned char*)(indzp))[0] = mz;
+                    ((unsigned char*)(indzp))[1] = my;
+                    ((unsigned char*)(indzp))[2] = mx;
+                    ((unsigned char*)(indzp))[3] = 0;
+
+                    /* set output to local max */
+                    *op = maxval;
+                }
+            }
+        }
     }
 }
 
@@ -292,9 +372,9 @@ Nd4jStatus nd4j::ops::conv3Dmv(NDArray<T>* r_, T beta, T alpha, NDArray<T>* t_, 
 template<typename T>
 Nd4jStatus nd4j::ops::conv3D(T* output_data,
             T alpha,
-            T* ptr_input, long nInputDepth, long nInputRows, long nInputCols,
-            T* ptr_weight, long nKernelDepth, long nKernelRows, long nKernelCols,
-            long sdepth, long srow, long scol,
+            T* ptr_input, Nd4jIndex nInputDepth, Nd4jIndex nInputRows, Nd4jIndex nInputCols,
+            T* ptr_weight, Nd4jIndex nKernelDepth, Nd4jIndex nKernelRows, Nd4jIndex nKernelCols,
+            Nd4jIndex sdepth, Nd4jIndex srow, Nd4jIndex scol,
             const char *vf, const char *xc) {
 
     if (!(*vf == 'V' || *vf == 'F'))
