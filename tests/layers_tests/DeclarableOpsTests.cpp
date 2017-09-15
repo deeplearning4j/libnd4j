@@ -1551,6 +1551,28 @@ TEST_F(DeclarableOpsTests, TestReductionShape2) {
     ASSERT_EQ(4,shape[2]);
 }
 
+TEST_F(DeclarableOpsTests, TestCustomShape1) {
+    NDArray<float> input('c', {2, 3, 4});
+
+    VariableSpace<float>* variableSpace = new VariableSpace<float>();
+    variableSpace->putVariable(-1, &input);
+
+    Block<float>* block = new Block<float>(1, variableSpace, false);  // not-in-place
+    block->fillInputs({-1});
+
+    nd4j::ops::testcustom<float> test;
+
+    int *shape = test.calculateOutputShape(input.getShapeInfo(), *block);
+
+    input.printShapeInfo("input");
+    shape::printShapeInfoLinear(shape);
+
+    ASSERT_EQ(input.getShapeInfo()[1] * 2, shape[1]);
+    ASSERT_EQ(input.getShapeInfo()[2] * 2, shape[2]);
+    ASSERT_EQ(input.getShapeInfo()[3] * 2, shape[3]);
+}
+
+
 TEST_F(DeclarableOpsTests, DilatedMaxPool3D_ff_Test1) {
     NDArray<float> input('c', {4, 2, 1, 11, 11});
 

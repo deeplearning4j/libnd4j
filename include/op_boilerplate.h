@@ -880,6 +880,23 @@
                                                                                 Nd4jStatus nd4j::ops::NAME<T>::validateAndExecute(Block<T>& block)
 
 
+#define DECLARE_CUSTOM_OP(NAME, NIN, NOUT, INPLACEABLE, TARGS, IARGS)     template <typename T> \
+                                                                                class NAME: public nd4j::ops::DeclarableCustomOp<T> { \
+                                                                                public:\
+                                                                                    NAME() : nd4j::ops::DeclarableCustomOp<T>(NIN, NOUT, #NAME, INPLACEABLE, TARGS, IARGS) { } \
+                                                                                    int* calculateOutputShape(int* inputShape, nd4j::graph::Block<T>& block); \
+                                                                                protected: \
+                                                                                    Nd4jStatus validateAndExecute(Block<T>& block); \
+                                                                                };\
+                                                                                static nd4j::ops::__registratorFloat<NAME<float>> zzz_register_opf_##NAME; \
+                                                                                static nd4j::ops::__registratorHalf<NAME<float16>> zzz_register_oph_##NAME; \
+                                                                                static nd4j::ops::__registratorDouble<NAME<double>> zzz_register_opd_##NAME; \
+                                                                                template <typename T> \
+                                                                                Nd4jStatus nd4j::ops::NAME<T>::validateAndExecute(Block<T>& block)
+
+#define DECLARE_SHAPE_FN(NAME)                                              template<typename T>\
+                                                                            int* nd4j::ops::NAME<T>::calculateOutputShape(int* inputShape, nd4j::graph::Block<T>& block)
+
 #define DECLARE_DEVICE_OP(NAME, NIN, NOUT, INPLACEABLE, TARGS, IARGS)
 
 

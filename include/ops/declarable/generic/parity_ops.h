@@ -580,10 +580,34 @@ namespace nd4j {
 
 
         DECLARE_REDUCTION_OP(testreduction, 1, 1, false, 0, -1) {
+            auto z = this->getZ(block);
 
+            STORE_RESULT(*z);
+            return ND4J_STATUS_OK;
         }
 
+/////////////////////////////////////////
+        DECLARE_CUSTOM_OP(testcustom, 1, 1, false, 0, -1) {
+            auto z = this->getZ(block);
 
+            STORE_RESULT(*z);
+            return ND4J_STATUS_OK;
+        }
+        DECLARE_SHAPE_FN(testcustom) {
+            // this test op will just return back original shape doubled
+            int *newShape;
+            ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(inputShape), int);
+            memcpy(newShape, inputShape, shape::shapeInfoByteLength(inputShape));
+
+            // THIS IS WRONG SHAPEINFO
+            // but we don't care at this moment - it's just simple test
+            for (int e = 0; e < shape::rank(inputShape); e++)
+                newShape[e+1] *= 2;
+
+            return newShape;
+        }
+
+/////////////////////////////////////////
         DECLARE_OP(assign, 2, 1, false) {
             REQUIRE_OK(this->validateInputLengthMatch(block));
             REQUIRE_OK(this->validateInputDimensionsMatch(block));

@@ -163,6 +163,24 @@ namespace nd4j {
             int* calculateOutputShape(int* inputShape, nd4j::graph::Block<T>& block);
         };
 
+        template <typename T>
+        class DeclarableCustomOp : public nd4j::ops::DeclarableOp<T> {
+        protected:
+            /**
+             * This method executes this Op
+             */
+            virtual Nd4jStatus validateAndExecute(Block<T>& block) = 0;
+        public:
+            DeclarableCustomOp(int numInputs, int numOutputs, const char *opName, bool allowsInplace, int tArgs, int iArgs) : nd4j::ops::DeclarableOp<T>(numInputs, numOutputs, opName, allowsInplace, tArgs, iArgs) {
+                //
+            }
+
+            ~DeclarableCustomOp()  {
+                //
+            }
+
+            virtual int* calculateOutputShape(int* inputShape, nd4j::graph::Block<T>& block) = 0;
+        };
 
         class OpRegistrator {
         private:
