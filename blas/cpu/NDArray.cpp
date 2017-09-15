@@ -880,9 +880,9 @@ template <typename T> void NDArray<T>::updateStrides(const char order) {
 
 //////////////////////////////////////////////////////////////////////////
 // set new order and shape in case of suitable array length 
-template <typename T> bool NDArray<T>::reshape(const char order, const std::initializer_list<int>& shape) {
+template <typename T> bool NDArray<T>::reshapei(const char order, const std::initializer_list<int>& shape) {
         std::vector<int> vShape(shape);
-        return reshape(order, vShape);
+        return reshapei(order, vShape);
 /*
     int rank = shape.size();
     int arrLength = 1;
@@ -919,7 +919,7 @@ template <typename T> bool NDArray<T>::reshape(const char order, const std::init
 
 //////////////////////////////////////////////////////////////////////////
 // set new order and shape in case of suitable array length 
-template <typename T> bool NDArray<T>::reshape(const char order, const std::vector<int>& cshape) {
+template <typename T> bool NDArray<T>::reshapei(const char order, const std::vector<int>& cshape) {
 
     std::vector<int> shape(cshape);
     int rank = shape.size();
@@ -997,6 +997,23 @@ template <typename T> bool NDArray<T>::reshape(const char order, const std::vect
 }
 
 //////////////////////////////////////////////////////////////////////////
+// create new array with corresponding order and shape, new array will point to the same _buffer as this array
+template <typename T> NDArray<T>* NDArray<T>::reshape(const char order, const std::vector<int>& shape) {
+	int shapeInfoLength = shape::shapeInfoLength(rankOf());
+	int* newShapeInfo = nullptr;
+	
+	ALLOCATE(newShapeInfo , _workspace, shapeInfoLength, int);		
+	memcpy(newShapeInfo, _shapeInfo, shapeInfoLength*sizeof(int));	
+		
+	NDArray<T>* newArr = new NDArray<T>(_buffer, newShapeInfo, _workspace);
+	newArr->_isShapeAlloc = true;
+	newArr->_isBuffAlloc  = false;
+	newArr->permute(order, shape);
+	
+	return newArr;	
+}
+
+//////////////////////////////////////////////////////////////////////////
 // change an array by repeating it the number of times given by reps.
 template <typename T> void NDArray<T>::tilei(const std::vector<int>& reps) {
 	// check whether reps contains at least one zero (then throw exception) or whether all elements in reps are unities (then simply reshape or do nothing)
@@ -1012,7 +1029,7 @@ template <typename T> void NDArray<T>::tilei(const std::vector<int>& reps) {
 		if(diff < 0) {		// reshape to higher dimension			
 			std::vector<int> shapeNew = reps;				// need to have unities at first "diff" positions of new shape
 			memcpy(&shapeNew[-diff], _shapeInfo+1, rankOld*sizeof(int));   // put old shape numbers at rest of positions
-			reshape(ordering(), shapeNew);
+			reshapei(ordering(), shapeNew);
 		}		
 		return;				// nothing to do, if diff >= 0 -> identity tile 
 	}	
@@ -1259,7 +1276,7 @@ template<typename T> NDArray<T>* NDArray<T>::tile(const std::vector<int>& reps) 
         for (auto v: origShape)
             newS.push_back(v);
 
-        this->reshape('c', newS);
+        this->reshapei('c', newS);
     }
 
     // evaluate new shape
@@ -1299,7 +1316,7 @@ template<typename T> NDArray<T>* NDArray<T>::tile(const std::vector<int>& reps) 
     NDArray<T>* result = this;
     for (int i = 0; i < rank; i++) {
         if (repeat[i] != 1) {
-            result->reshape('c', {-1, n});
+            result->reshapei('c', {-1, n});
             NDArray<T> *tmp = result->repeat(0, {repeat[i]});
 
             if (result->_shapeInfo != this->_shapeInfo)
@@ -1317,10 +1334,10 @@ template<typename T> NDArray<T>* NDArray<T>::tile(const std::vector<int>& reps) 
     }
     delete[] shape;
 
-    result->reshape('c', shapeNew);
+    result->reshapei('c', shapeNew);
 
     if (wasReshaped)
-        this->reshape(origOrder, origShape);
+        this->reshapei(origOrder, origShape);
 
     return result;
 }

@@ -375,10 +375,10 @@ namespace nd4j {
             auto bT = b->ordering() == 'c' ? b : b->dup('c');
 
             aT->permutei(newAxesA);
-            aT->reshape('c', newShapeA);
+            aT->reshapei('c', newShapeA);
 
             bT->permutei(newAxesB);
-            bT->reshape('f', newShapeB);
+            bT->reshapei('f', newShapeB);
 
             auto c = nd4j::NDArrayFactory::mmulHelper<T>(aT, bT, nullptr, 1.0, 0.0);
 
@@ -386,7 +386,7 @@ namespace nd4j {
             for (auto v: oldShapeB)
                 aPlusB.push_back(v);
 
-            c->reshape('f', aPlusB);
+            c->reshapei('f', aPlusB);
 
             STORE_RESULT(*c);
 
@@ -983,7 +983,7 @@ namespace nd4j {
 			std::vector<int> shapeNew(y->shapeOf(), y->shapeOf() + y->rankOf());
 			char order = y->ordering();
 			
-			if (x->reshape(order, shapeNew)) {
+			if (x->reshapei(order, shapeNew)) {
 				*z = *x;
 				STORE_RESULT(*z);
 				return ND4J_STATUS_OK;				
@@ -995,7 +995,7 @@ namespace nd4j {
 
 		//////////////////////////////////////////////////////////////////////////
 		// here iArgs is vector with shape dimensions at the beginning and last element in iArgs is order
-		DECLARE_CONFIGURABLE_OP(reshape, 1, 1, true, 0, -1) {
+		DECLARE_CONFIGURABLE_OP(reshapei, 1, 1, true, 0, -1) {
 			std::vector<int>* argumets = block.getIArguments();
 			int argsSize = argumets->size();
 			char order = (*argumets)[argsSize-1];
@@ -1004,14 +1004,14 @@ namespace nd4j {
 
 			NDArray<T> *x = block.getVariables().at(0)->getNDArray();            			
 			if(block.isInplace()) {
-				if (x->reshape(order, shapeNew)) {
+				if (x->reshapei(order, shapeNew)) {
 					STORE_RESULT(*x);
 					return ND4J_STATUS_OK;				
 				}
 			}
 			else {
 				auto ret = new NDArray<T>(*x);
-				if (ret->reshape(order, shapeNew)) {
+				if (ret->reshapei(order, shapeNew)) {
 					STORE_RESULT(*ret);
 					return ND4J_STATUS_OK;				
 				}
@@ -1070,21 +1070,108 @@ namespace nd4j {
 		//////////////////////////////////////////////////////////////////////////
 		DECLARE_CONFIGURABLE_OP(sum, 1, 1, false, 0, -1) {
 
-			std::vector<int> argumens = *(block.getIArguments());
+			std::vector<int> argI = *(block.getIArguments());
+			argI.erase(argI.begin(), argI.begin()+1);
 			NDArray<T>* x = block.getVariables().at(0)->getNDArray(); 
 			NDArray<T> *z = this->getZ(block);
-			std::cout<<"!!   "<<argumens.size()<<std::endl;
-			if((argumens.size()==1 && argumens[0]==INT_MAX) || argumens.size()==0) {
+					
+			if((argI.size()==1 && argI[0]==INT_MAX) || argI.size()==0) {
 				z->putScalar(0, 0, x->template reduceNumber<simdOps::Sum<T>>(nullptr));
 				STORE_RESULT(*z); 
 			}
 			else {
-				z = x->template reduceAlongDimension<simdOps::Sum<T>>(argumens); 				
+				z = x->template reduceAlongDimension<simdOps::Sum<T>>(argI); 				
 				STORE_RESULT(*z); 
 			}
 
 			return ND4J_STATUS_OK; 
 		}
+		
+		//////////////////////////////////////////////////////////////////////////
+		// DECLARE_CONFIGURABLE_OP(maxpool_bp, 2, 1, false, 0, 13) {
+        
+            // NDArray<T> input = *(block.getVariables().at(0)->getNDArray());
+			// NDArray<T> epsilon = *(block.getVariables().at(1)->getNDArray());
+			// NDArray<T> gradient = *(this->getZ(block));
+			// std::vector<int> argI = *(block.getIArguments());
+			// int bS  = argI[0]; 
+			// int iD  = argI[1]; 
+			// int pH  = argI[2]; 
+			// int pW  = argI[3]; 
+			// int kH  = argI[4]; 
+			// int kW  = argI[5];
+			// int sH  = argI[5];
+			// int sW  = argI[6];
+			// int dH  = argI[7];
+			// int dW  = argI[8];
+			// int pdH = argI[9]; 
+			// int pdW = argI[10];  
+			// int oH  = argI[11]; 
+			// int oW  = argI[12]; 
+
+			// bool cOrderStrides = false;
+			// if (epsilon->ordering() != 'c') {
+				// epsilon = epsilon->dup('c');
+				// cOrderStrides = true;
+			// }
+			
+			// int strideToCompare[] = {oH*oW, iD*oH*oW, oW, 1};
+			// if (!cOrderStrides && shape::strideDescendingCAscendingF(epsilon->getShapeInfo())) {
+				// cOrderStrides = true;
+			// } 
+			// else if (!strideEquals(strideToCompare, 4., epsilon.stridesOf(), epsilon.rankOf())) {				
+				// epsilon = epsilon.dup('c');
+				// cOrderStrides = true;
+			// }
+			
+			// NDArray<T> col6d;
+			// NDArray<T> col6dPermuted;
+			// NDArray<T> epsilon1d;
+
+			// if (cOrderStrides) {
+				// col6d = NDArray<T>('c', {miniBatch, inDepth, outH, outW, kernel[0], kernel[1]});
+				// col6dPermuted = col6d.permute({0, 1, 4, 5, 2, 3});
+				// epsilon1d = epsilon.reshape('c', {1, epsilon.lengthOf()}); //zero copy reshape
+			// } 
+			// else {            
+				// col6d = NDArray<T>('c', {inDepth, miniBatch, outH, outW, kernel[0], kernel[1]});
+				// col6dPermuted = col6d.permute({1, 0, 4, 5, 2, 3});
+				// INDArray<T> epsilonTemp = epsilon.permute({1, 0, 2, 3});
+				// epsilon1d = epsilonTemp.reshape('c', {1, epsilon.length()), 1}); //Should be a zero-copy reshape always
+			// }
+		
+        
+
+
+
+		// bool NDArray<T>::reshape(NDArray<T>& other, const char order, const std::vector<int>& shape){
+			
+			// other
+			// return other.reshape(order, shape)
+		// }
+
+
+
+
+
+
+
+
+
+
+			// std::vector<int> argI = *(block.getIArguments());							// 0,1 kernelWidth/Height; 2,3 strideX/Y; 4,5 padWidth/Height; 6,7 dilationWidth/Height; 8,9 poolingMode;
+			// std::vector<T> argT(argI.size());
+			// for(int i=0; i<argI.size(); ++i)
+				// argT[i] = argI[i];
+			// argT.emplace_back(0.f); argT.emplace_back(0.f);
+            // auto z = this->getZ(block);
+
+            // x->template applyTransform<simdOps::Pooling2D<T>>(z, argT.data());
+
+            // STORE_RESULT(*z);
+
+            // return ND4J_STATUS_OK;         
+        // }
 
     }
 }

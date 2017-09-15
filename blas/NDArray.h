@@ -299,11 +299,14 @@ namespace nd4j {
         std::vector<int32_t> getShapeAsVector();
 		
 		// set new order and shape in case of suitable array length 
-		bool reshape(const char order, const std::initializer_list<int>& shape);
+		bool reshapei(const char order, const std::initializer_list<int>& shape);
 	
 		// set new order and shape in case of suitable array length 
-		bool reshape(const char order, const std::vector<int>& shape);
+		bool reshapei(const char order, const std::vector<int>& shape);
 	
+		// create new array with corresponding order and shape, new array will point to the same _buffer as this array
+		NDArray<T>* reshape(const char order, const std::vector<int>& shape);
+		
 		// calculate strides 
 		void updateStrides(const char order);
 
