@@ -98,7 +98,7 @@ namespace nd4j {
                 return _descriptor;
             }
 
-            int* calculateOutputShape(int* inputShape, nd4j::graph::Block<T>& block);
+            virtual int* calculateOutputShape(int* inputShape, nd4j::graph::Block<T>& block) = 0;
 
             /**
              * Returns opName
@@ -544,6 +544,7 @@ int* nd4j::ops::DeclarableReductionOp<T>::calculateOutputShape(int* inputShape, 
     return newShape;
 }
 
+/*
 template <typename T>
 int* nd4j::ops::DeclarableOp<T>::calculateOutputShape(int* inputShape, nd4j::graph::Block<T>& block) {
     // default implementation suits transform, so just returns the same shape
@@ -554,6 +555,7 @@ int* nd4j::ops::DeclarableOp<T>::calculateOutputShape(int* inputShape, nd4j::gra
 
     return newshape;
 }
+*/
 
 template <typename T>
 nd4j::NDArray<T>* nd4j::ops::DeclarableOp<T>::getZ(Block<T>& block, int inputId) {
