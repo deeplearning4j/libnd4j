@@ -75,6 +75,8 @@ namespace nd4j {
             void storeResult(Block<T> &block, int outputNumber, NDArray<T>& array);
             nd4j::NDArray<T> *getZ(Block<T>& block, int inputId = 0);
 
+            bool prepareOutputs(Block<T>& block);
+
             //std::vector<int>* calculateOutputShape(std::vector<int>* inputShape, nd4j::graph::Block<T>& block);
         public:
             DeclarableOp(int numInputs, int numOutputs, const char *opName, bool allowsInplace) {
@@ -576,7 +578,40 @@ nd4j::NDArray<T>* nd4j::ops::DeclarableOp<T>::getZ(Block<T>& block, int inputId)
     return z;
 }
 
+template <typename T>
+bool nd4j::ops::DeclarableOp<T>::prepareOutputs(Block<T> &block) {
+    auto workspace = block.getWorkspace();
 
+    if (block.isInplace()) {
+        // do nothing, getZ result will do the trick
+    } else {
+        // if op is not inplace - we should pre-allocate arrays
+
+        ShapeList inSha;
+
+        int cntIn = 0;
+        for (auto var: block.getVariables()) {
+            NDArray<T> *array = var->getNDArray();
+            inSha.push_back(array->getShapeInfo());
+
+            array->printShapeInfo("prepOutput");
+            cntIn++;
+        }
+        nd4j_printf("Input shapes: %i\n", cntIn);
+
+        auto outSha = this->calculateOutputShape(&inSha, block);
+        int cnt = 0;
+        nd4j_printf("Output shapes: %i; Rank_0: %i\n", outSha->size(), outSha->at(0)[0]);
+        for (auto out: *outSha->asVector()) {
+            auto outArr = new NDArray<T>(out, workspace);
+
+            std::pair<int, int> pair(block.getNodeId(), cnt++);
+            block.getVariableSpace()->putVariable(pair, outArr);
+        }
+    }
+
+    return true;
+}
 
 template <typename T>
 void nd4j::ops::DeclarableOp<T>::storeResult(Block<T> &block, int outputNumber, NDArray<T>& array) {
@@ -655,8 +690,14 @@ Nd4jStatus nd4j::ops::DeclarableOp<T>::execute(Block<T>* block) {
     else
         throw std::invalid_argument("Block is NULL");
 
+    // basic validation: ensure inputs are set
     REQUIRE_OK(this->validateNonEmptyInput(*block));
+
+    // ensure number of IArgs, TArgs match our expectations
     REQUIRE_OK(this->validateArguments(*block));
+
+    // this method will allocate output NDArrays for this op
+    this->prepareOutputs(*block);
 
     return this->validateAndExecute(*block);
 }

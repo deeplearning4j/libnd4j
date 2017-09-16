@@ -266,6 +266,7 @@ Nd4jIndex nd4j::graph::Graph<T>::estimateRequiredMemory() {
         }
     }
 
+    // this is the only place where we deallocate shapes.
     for (auto v: shapes)
         delete[] v;
 

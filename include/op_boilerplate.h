@@ -839,7 +839,7 @@
                                                 nd4j::ShapeList* nd4j::ops::NAME<T>::calculateOutputShape(nd4j::ShapeList* inputShape, nd4j::graph::Block<T>& block) { \
                                                     int* newshape; \
                                                     ALLOCATE(newshape, block.getWorkspace(), shape::shapeInfoLength(inputShape->at(0)), int); \
-                                                    memcpy(newshape, inputShape, shape::shapeInfoByteLength(inputShape->at(0))); \
+                                                    memcpy(newshape, inputShape->at(0), shape::shapeInfoByteLength(inputShape->at(0))); \
                                                     auto shapeList = new nd4j::ShapeList(newshape); \
                                                     return shapeList; \
                                                 } \
@@ -866,7 +866,7 @@
                                                 nd4j::ShapeList* nd4j::ops::NAME<T>::calculateOutputShape(nd4j::ShapeList* inputShape, nd4j::graph::Block<T>& block) { \
                                                     int* newshape; \
                                                     ALLOCATE(newshape, block.getWorkspace(), shape::shapeInfoLength(inputShape->at(0)), int); \
-                                                    memcpy(newshape, inputShape, shape::shapeInfoByteLength(inputShape->at(0))); \
+                                                    memcpy(newshape, inputShape->at(0), shape::shapeInfoByteLength(inputShape->at(0))); \
                                                     auto shapeList = new nd4j::ShapeList(newshape); \
                                                     return shapeList; \
                                                 } \
@@ -889,7 +889,7 @@
                                                                                 nd4j::ShapeList* nd4j::ops::NAME<T>::calculateOutputShape(nd4j::ShapeList* inputShape, nd4j::graph::Block<T>& block) { \
                                                                                     int* newshape; \
                                                                                     ALLOCATE(newshape, block.getWorkspace(), shape::shapeInfoLength(inputShape->at(0)), int); \
-                                                                                    memcpy(newshape, inputShape, shape::shapeInfoByteLength(inputShape->at(0))); \
+                                                                                    memcpy(newshape, inputShape->at(0), shape::shapeInfoByteLength(inputShape->at(0))); \
                                                                                     auto shapeList = new nd4j::ShapeList(newshape); \
                                                                                     return shapeList; \
                                                                                 } \
