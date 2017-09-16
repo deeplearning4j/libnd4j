@@ -149,7 +149,6 @@ Nd4jIndex nd4j::graph::Graph<T>::estimateRequiredMemory() {
 
                 auto block = node->getBlock();
                 std::vector<int*> inputShapes;
-                int *newShape;
                 int *oldShape;
                 for (auto v: *node->input()) {
                     if (v.first < 0) {
@@ -160,20 +159,25 @@ Nd4jIndex nd4j::graph::Graph<T>::estimateRequiredMemory() {
                     }
                 }
 
-                newShape = op->calculateOutputShape(inputShapes.at(0), *block);
+                ShapeList inSha(inputShapes);
+                auto outSha = op->calculateOutputShape(&inSha, *block);
 
-                // FIXME: we need multi-input/multi-output here
-                std::pair<int, int> pairAddr(node->id(), 0);
-                std::pair<std::pair<int, int>, int *> pairShape(pairAddr, newShape);
+                int cnt = 0;
+                for (auto newShape: *outSha->asVector()) {
+                    std::pair<int, int> pairAddr(node->id(), cnt++);
+                    std::pair<std::pair<int, int>, int *> pairShape(pairAddr, newShape);
 
-                shapesMap.insert(pairShape);
+                    shapesMap.insert(pairShape);
 
-                if (!block->isInplace())
-                    result += shape::length(newShape) * sizeof(T);
+                    if (!block->isInplace())
+                        result += shape::length(newShape) * sizeof(T);
 
-                shape::printShapeInfoLinear(newShape);
+                    shape::printShapeInfoLinear(newShape);
 
-                shapes.push_back(newShape);
+                    shapes.push_back(newShape);
+                }
+
+                delete outSha;
             } else if (node->getOpClass() == OpClass_TRANFSFORM) {
                 auto vec = node->input();
 

@@ -1519,11 +1519,12 @@ TEST_F(DeclarableOpsTests, TestReductionShape1) {
 
     nd4j::ops::testreduction<float> testop;
 
-    int *shape = testop.calculateOutputShape(input.getShapeInfo(), *block);
+    auto shapes = testop.calculateOutputShape(new ShapeList(input.getShapeInfo()), *block);
 
-    ASSERT_EQ(2,shape[0]);
-    ASSERT_EQ(1,shape[1]);
-    ASSERT_EQ(1,shape[2]);
+    ASSERT_EQ(1,shapes->size());
+    ASSERT_EQ(2,shapes->at(0)[0]);
+    ASSERT_EQ(1,shapes->at(0)[1]);
+    ASSERT_EQ(1,shapes->at(0)[2]);
 }
 
 TEST_F(DeclarableOpsTests, TestReductionShape2) {
@@ -1544,11 +1545,12 @@ TEST_F(DeclarableOpsTests, TestReductionShape2) {
 
     nd4j::ops::testreduction<float> testop;
 
-    int *shape = testop.calculateOutputShape(input.getShapeInfo(), *block);
+    auto shapes = testop.calculateOutputShape(new ShapeList(input.getShapeInfo()), *block);
 
-    ASSERT_EQ(2,shape[0]);
-    ASSERT_EQ(1,shape[1]);
-    ASSERT_EQ(4,shape[2]);
+    ASSERT_EQ(1,shapes->size());
+    ASSERT_EQ(2,shapes->at(0)[0]);
+    ASSERT_EQ(1,shapes->at(0)[1]);
+    ASSERT_EQ(4,shapes->at(0)[2]);
 }
 
 TEST_F(DeclarableOpsTests, TestCustomShape1) {
@@ -1562,14 +1564,15 @@ TEST_F(DeclarableOpsTests, TestCustomShape1) {
 
     nd4j::ops::testcustom<float> test;
 
-    int *shape = test.calculateOutputShape(input.getShapeInfo(), *block);
+    auto shapes = test.calculateOutputShape(new ShapeList(input.getShapeInfo()), *block);
 
     input.printShapeInfo("input");
-    shape::printShapeInfoLinear(shape);
+    //shape::printShapeInfoLinear(shape);
 
-    ASSERT_EQ(input.getShapeInfo()[1] * 2, shape[1]);
-    ASSERT_EQ(input.getShapeInfo()[2] * 2, shape[2]);
-    ASSERT_EQ(input.getShapeInfo()[3] * 2, shape[3]);
+    ASSERT_EQ(input.getShapeInfo()[0]    , shapes->at(0)[0]);
+    ASSERT_EQ(input.getShapeInfo()[1] * 2, shapes->at(0)[1]);
+    ASSERT_EQ(input.getShapeInfo()[2] * 2, shapes->at(0)[2]);
+    ASSERT_EQ(input.getShapeInfo()[3] * 2, shapes->at(0)[3]);
 }
 
 

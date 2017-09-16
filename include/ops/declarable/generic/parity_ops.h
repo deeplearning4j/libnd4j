@@ -596,20 +596,20 @@ namespace nd4j {
         DECLARE_SHAPE_FN(testcustom) {
             // this test op will just return back original shape doubled
             int *shapeOf;
-            ALLOCATE(shapeOf, block.getWorkspace(), shape::rank(inputShape), int);
+            ALLOCATE(shapeOf, block.getWorkspace(), shape::rank(inputShape->at(0)), int);
 
             int *newShape;
-            ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(inputShape), int);
+            ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(inputShape->at(0)), int);
 
-            for (int e = 0; e < shape::rank(inputShape); e++)
-                shapeOf[e] = inputShape[e+1] * 2;
+            for (int e = 0; e < shape::rank(inputShape->at(0)); e++)
+                shapeOf[e] = inputShape->at(0)[e+1] * 2;
 
 
-            shape::shapeBuffer(shape::rank(inputShape), shapeOf, newShape);
+            shape::shapeBuffer(shape::rank(inputShape->at(0)), shapeOf, newShape);
 
             RELEASE(shapeOf, block.getWorkspace());
 
-            return newShape;
+            return new ShapeList(newShape);
         }
 
 /////////////////////////////////////////

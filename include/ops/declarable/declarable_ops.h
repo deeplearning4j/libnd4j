@@ -15,6 +15,7 @@
 #include <helpers/helper_hash.h>
 #include <memory/Workspace.h>
 #include <memory/MemoryRegistrator.h>
+#include <ShapeList.h>
 
 
 using namespace nd4j::graph;
@@ -98,7 +99,7 @@ namespace nd4j {
                 return _descriptor;
             }
 
-            virtual int* calculateOutputShape(int* inputShape, nd4j::graph::Block<T>& block) = 0;
+            virtual ShapeList* calculateOutputShape(ShapeList* inputShape, nd4j::graph::Block<T>& block) = 0;
 
             /**
              * Returns opName
@@ -160,7 +161,7 @@ namespace nd4j {
                 //
             }
 
-            int* calculateOutputShape(int* inputShape, nd4j::graph::Block<T>& block);
+            ShapeList* calculateOutputShape(ShapeList* inputShape, nd4j::graph::Block<T>& block);
         };
 
         template <typename T>
@@ -179,7 +180,7 @@ namespace nd4j {
                 //
             }
 
-            virtual int* calculateOutputShape(int* inputShape, nd4j::graph::Block<T>& block) = 0;
+            virtual ShapeList* calculateOutputShape(ShapeList* inputShapes, nd4j::graph::Block<T>& block) = 0;
         };
 
         class OpRegistrator {
@@ -497,7 +498,7 @@ namespace nd4j {
 nd4j::ops::OpRegistrator* nd4j::ops::OpRegistrator::_INSTANCE = 0;
 
 template <typename T>
-int* nd4j::ops::DeclarableReductionOp<T>::calculateOutputShape(int* inputShape, nd4j::graph::Block<T>& block)  {
+nd4j::ShapeList* nd4j::ops::DeclarableReductionOp<T>::calculateOutputShape(nd4j::ShapeList* inputShape, nd4j::graph::Block<T>& block)  {
     int numDims = block.getIArguments()->at(0);
     std::vector<int> dims;
     for (int e = 0; e < numDims; e++)
@@ -520,14 +521,14 @@ int* nd4j::ops::DeclarableReductionOp<T>::calculateOutputShape(int* inputShape, 
         newShape[6] = 1;
         newShape[7] = 99;
 
-        return newShape;
+        return new ShapeList(newShape);
     }
 
-    shape::TAD tad(inputShape, dims.data(), numDims);
+    shape::TAD tad(inputShape->at(0), dims.data(), numDims);
     tad.createTadOnlyShapeInfo();
 
-    Nd4jIndex tadLength = shape::tadLength(inputShape, dims.data(), numDims);
-    Nd4jIndex numTads = shape::length(inputShape) /  tadLength;
+    Nd4jIndex tadLength = shape::tadLength(inputShape->at(0), dims.data(), numDims);
+    Nd4jIndex numTads = shape::length(inputShape->at(0)) /  tadLength;
 
     int* newShape;
     ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(2), int);
@@ -541,7 +542,7 @@ int* nd4j::ops::DeclarableReductionOp<T>::calculateOutputShape(int* inputShape, 
     newShape[6] = 1;
     newShape[7] = 99;
 
-    return newShape;
+    return new ShapeList(newShape);
 }
 
 /*
