@@ -10,6 +10,7 @@
 #include <op_boilerplate.h>
 #include <declarable/declarable_ops.h>
 #include <declarable/generic/helpers/convolutions.h>
+#include <helpers/ArrayUtils.h>
 
 namespace nd4j {
     namespace ops {
@@ -398,7 +399,7 @@ namespace nd4j {
         DECLARE_SYN(MaxPool3D, maxpool3d);
         DECLARE_SYN(MaxPool3d, maxpool3d);
 
-
+//////////////////////////////////////////////////////////////////////////
         DECLARE_CUSTOM_OP(maxpool3d_bp, 3, 1, true, 0, 13) {
 
             NDArray<T> *input = block.getVariables().at(0)->getNDArray();
@@ -494,9 +495,249 @@ namespace nd4j {
                 );
             }
         }
-
         DECLARE_SHAPE_FN(maxpool3d_bp) {
             // output shape equals to input shape, all out of sudden
+            int* newShape;
+            ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(inputShape->at(0)), int);
+            memcpy(newShape, inputShape->at(0), shape::shapeInfoByteLength(inputShape->at(0)));
+            return new ShapeList(newShape);
+        }
+
+//////////////////////////////////////////////////////////////////////////
+        DECLARE_CUSTOM_OP(avgpool3d, 1, 1, true, 0, 11) {
+
+            NDArray<T> *input = block.getVariables().at(0)->getNDArray();
+            NDArray<T> *output = this->getZ(block);
+
+            REQUIRE_TRUE(input->rankOf() == 5, 0, "Input should be 5D, got %i instead", input->rankOf());
+
+            int kT = block.getIArguments()->at(0);
+            int kW = block.getIArguments()->at(1);
+            int kH = block.getIArguments()->at(2);
+            int dT = block.getIArguments()->at(3);
+            int dW = block.getIArguments()->at(4);
+            int dH = block.getIArguments()->at(5);
+            int padT = block.getIArguments()->at(6);
+            int padW = block.getIArguments()->at(7);
+            int padH = block.getIArguments()->at(8);
+            bool ceil_mode = block.getIArguments()->at(9) != 0;
+            bool count_include_pad  = block.getIArguments()->at(10) != 0;
+
+
+            Nd4jIndex nslices;
+            Nd4jIndex itime;
+            Nd4jIndex iheight;
+            Nd4jIndex iwidth;
+            Nd4jIndex otime;
+            Nd4jIndex oheight;
+            Nd4jIndex owidth;
+            T *input_data;
+            T *output_data;
+
+            int dimN = 1;
+            int dimt = 2;
+            int dimh = 3;
+            int dimw = 4;
+
+            nslices = input->sizeAt(dimN);
+            itime   = input->sizeAt(dimt);
+            iheight = input->sizeAt(dimh);
+            iwidth  = input->sizeAt(dimw);
+
+            if (ceil_mode)
+            {
+                otime   = (Nd4jIndex)(nd4j::math::nd4j_ceil<T>((T)(itime   - kT + 2*padT) / dT)) + 1;
+                oheight = (Nd4jIndex)(nd4j::math::nd4j_ceil<T>((T)(iheight - kH + 2*padH) / dH)) + 1;
+                owidth  = (Nd4jIndex)(nd4j::math::nd4j_ceil<T>((T)(iwidth  - kW + 2*padW) / dW)) + 1;
+            }
+            else
+            {
+                otime   = (Nd4jIndex)(nd4j::math::nd4j_floor<T>((T)(itime   - kT + 2*padT) / dT)) + 1;
+                oheight = (Nd4jIndex)(nd4j::math::nd4j_floor<T>((T)(iheight - kH + 2*padH) / dH)) + 1;
+                owidth  = (Nd4jIndex)(nd4j::math::nd4j_floor<T>((T)(iwidth  - kW + 2*padW) / dW)) + 1;
+            }
+            if (padT || padH || padW)
+            {
+                // ensure that the last pooling starts inside the image
+                // needed to avoid problems in ceil mode
+                if ((otime   - 1)*dT >= itime   + padT)
+                    --otime;
+                if ((oheight - 1)*dH >= iheight + padH)
+                    --oheight;
+                if ((owidth  - 1)*dW >= iwidth  + padW)
+                    --owidth;
+            }
+
+            int nBatch = input->sizeAt(0);
+
+            Nd4jIndex istride = nslices * itime * iwidth * iheight;
+            Nd4jIndex ostride = nslices * otime * owidth * oheight;
+
+            REQUIRE_TRUE(output->isSameShape({nBatch, (int) nslices, (int)otime, (int)oheight, (int)owidth}), 0, "Output should have shape of [%i, %i, %i, %i, %i], but got [%i, %i, %i, %i, %i] instead", nBatch, nslices, otime, oheight, owidth, output->sizeAt(0), output->sizeAt(1), output->sizeAt(2), output->sizeAt(3), output->sizeAt(4));
+
+            input_data = input->getBuffer();
+            output_data = output->getBuffer();
+
+            for (int p=0; p < nBatch; p++)
+            {
+
+                nd4j::ops::_avgPool3D(
+                        input_data + p * istride, output_data + p * ostride, nslices,
+                        itime, iwidth, iheight,
+                        otime, owidth, oheight,
+                        kT, kW, kH,
+                        dT, dW, dH,
+                        padT, padW, padH,
+                        count_include_pad
+                );
+
+            }
+        }
+
+        DECLARE_SHAPE_FN(avgpool3d) {
+            int* input = inputShape->at(0);
+
+            int kT = block.getIArguments()->at(0);
+            int kW = block.getIArguments()->at(1);
+            int kH = block.getIArguments()->at(2);
+            int dT = block.getIArguments()->at(3);
+            int dW = block.getIArguments()->at(4);
+            int dH = block.getIArguments()->at(5);
+            int padT = block.getIArguments()->at(6);
+            int padW = block.getIArguments()->at(7);
+            int padH = block.getIArguments()->at(8);
+            bool ceil_mode = block.getIArguments()->at(9) != 0;
+
+            Nd4jIndex nslices;
+            Nd4jIndex itime;
+            Nd4jIndex iheight;
+            Nd4jIndex iwidth;
+            Nd4jIndex otime;
+            Nd4jIndex oheight;
+            Nd4jIndex owidth;
+
+            int dimN = 2;
+            int dimt = 3;
+            int dimh = 4;
+            int dimw = 5;
+
+            int nBatch = input[1];
+            nslices = input[dimN];
+            itime   = input[dimt];
+            iheight = input[dimh];
+            iwidth  = input[dimw];
+
+            if (ceil_mode)
+            {
+                otime   = (Nd4jIndex)(nd4j::math::nd4j_ceil<T>((T)(itime   - kT + 2*padT) / dT)) + 1;
+                oheight = (Nd4jIndex)(nd4j::math::nd4j_ceil<T>((T)(iheight - kH + 2*padH) / dH)) + 1;
+                owidth  = (Nd4jIndex)(nd4j::math::nd4j_ceil<T>((T)(iwidth  - kW + 2*padW) / dW)) + 1;
+            }
+            else
+            {
+                otime   = (Nd4jIndex)(nd4j::math::nd4j_floor<T>((T)(itime   - kT + 2*padT) / dT)) + 1;
+                oheight = (Nd4jIndex)(nd4j::math::nd4j_floor<T>((T)(iheight - kH + 2*padH) / dH)) + 1;
+                owidth  = (Nd4jIndex)(nd4j::math::nd4j_floor<T>((T)(iwidth  - kW + 2*padW) / dW)) + 1;
+            }
+            if (padT || padH || padW)
+            {
+                // ensure that the last pooling starts inside the image
+                // needed to avoid problems in ceil mode
+                if ((otime   - 1)*dT >= itime   + padT)
+                    --otime;
+                if ((oheight - 1)*dH >= iheight + padH)
+                    --oheight;
+                if ((owidth  - 1)*dW >= iwidth  + padW)
+                    --owidth;
+            }
+
+            int *shapeOf;
+            int *newShape;
+            ALLOCATE(shapeOf, block.getWorkspace(), 5, int);
+            ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(5), int);
+
+            nd4j::ArrayUtils::toIntPtr({nBatch, (int) nslices, (int)otime, (int)oheight, (int)owidth}, shapeOf);
+
+            shape::shapeBuffer(5, shapeOf, newShape);
+
+            RELEASE(shapeOf, block.getWorkspace());
+            return new ShapeList(newShape);
+        }
+
+
+//////////////////////////////////////////////////////////////////////////
+        DECLARE_CUSTOM_OP(avgpool3d_bp, 2, 1, true, 0, 11) {
+            NDArray<T> *input = block.getVariables().at(0)->getNDArray();
+            NDArray<T> *gradNext = block.getVariables().at(1)->getNDArray();
+
+            NDArray<T> *output = this->getZ(block);
+
+            REQUIRE_TRUE(input->rankOf() == 5, 0, "Input should be 5D, got %i instead", input->rankOf());
+
+            Nd4jIndex nslices;
+            Nd4jIndex itime;
+            Nd4jIndex iheight;
+            Nd4jIndex iwidth;
+            Nd4jIndex otime;
+            Nd4jIndex oheight;
+            Nd4jIndex owidth;
+            T *gradInput_data;
+            T *gradOutput_data;
+            int kT = block.getIArguments()->at(0);
+            int kW = block.getIArguments()->at(1);
+            int kH = block.getIArguments()->at(2);
+            int dT = block.getIArguments()->at(3);
+            int dW = block.getIArguments()->at(4);
+            int dH = block.getIArguments()->at(5);
+            int padT = block.getIArguments()->at(6);
+            int padW = block.getIArguments()->at(7);
+            int padH = block.getIArguments()->at(8);
+            bool ceil_mode = block.getIArguments()->at(9) != 0;
+            bool count_include_pad  = block.getIArguments()->at(10) != 0;
+
+            REQUIRE_TRUE(output->isSameShape(input), 0, "Output gradients should have the same dimensionality as input");
+
+            int dimN = 1;
+            int dimt = 2;
+            int dimh = 3;
+            int dimw = 4;
+
+            output->assign(0.0);
+
+            nslices = input->sizeAt(dimN);
+            itime = input->shapeOf()[dimt];
+            iheight = input->shapeOf()[dimh];
+            iwidth = input->shapeOf()[dimw];
+            otime = gradNext->shapeOf()[dimt];
+            oheight = gradNext->shapeOf()[dimh];
+            owidth = gradNext->shapeOf()[dimw];
+
+
+            gradInput_data = output->getBuffer();
+            gradOutput_data = gradNext->getBuffer();
+
+            long nBatch = input->sizeAt(0);
+
+            long istride = nslices * itime * iwidth * iheight;
+            long ostride = nslices * otime * owidth * oheight;
+
+            for (int p = 0; p < nBatch; p++)
+            {
+                nd4j::ops::_avgPool3D_bp(
+                        gradInput_data  + p * istride,
+                        gradOutput_data + p * ostride,
+                        nslices,
+                        itime, iwidth, iheight,
+                        otime, owidth, oheight,
+                        kT, kW, kH,
+                        dT, dW, dH,
+                        padT, padW, padH,
+                        count_include_pad
+                );
+            }
+        }
+        DECLARE_SHAPE_FN(avgpool3d_bp) {
+// output shape equals to input shape, all out of sudden
             int* newShape;
             ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(inputShape->at(0)), int);
             memcpy(newShape, inputShape->at(0), shape::shapeInfoByteLength(inputShape->at(0)));

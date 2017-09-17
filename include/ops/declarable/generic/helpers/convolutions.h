@@ -41,8 +41,137 @@ namespace nd4j {
 
         template<typename T>
         void _dilatedMaxPool3D_bp(T *gradInput_p, T *gradOutput_p, T *indz_p, Nd4jIndex nslices, Nd4jIndex  itime, Nd4jIndex  iwidth, Nd4jIndex  iheight, Nd4jIndex otime, Nd4jIndex owidth, Nd4jIndex oheight, int dT, int dW, int dH, int pT, int pW, int pH, int dilationT, int dilationW, int dilationH);
+
+        template<typename T>
+        void _avgPool3D(T *input_p, T *output_p, Nd4jIndex nslices, Nd4jIndex itime, Nd4jIndex iwidth, Nd4jIndex iheight, Nd4jIndex otime, Nd4jIndex owidth, Nd4jIndex oheight, int kT, int kW, int kH, int dT, int dW, int dH, int padT, int padW, int padH, bool count_include_pad);
+
+        template<typename T>
+        void _avgPool3D_bp(T *gradInput_p, T *gradOutput_p, Nd4jIndex nslices, Nd4jIndex itime, Nd4jIndex iwidth, Nd4jIndex iheight, Nd4jIndex otime, Nd4jIndex owidth, Nd4jIndex oheight, int kT, int kW, int kH, int dT, int dW, int dH, int padT, int padW, int padH, bool count_include_pad);
     }
 }
+
+template<typename T>
+void nd4j::ops::_avgPool3D_bp(T *gradInput_p, T *gradOutput_p, Nd4jIndex nslices, Nd4jIndex itime, Nd4jIndex iwidth, Nd4jIndex iheight, Nd4jIndex otime, Nd4jIndex owidth, Nd4jIndex oheight, int kT, int kW, int kH, int dT, int dW, int dH, int padT, int padW, int padH, bool count_include_pad) {
+    for (int k = 0; k < nslices; k++)
+    {
+        Nd4jIndex i, j, ti;
+
+        /* local pointers */
+        T *ip = gradInput_p + k * itime * iwidth * iheight;
+        T *op = gradOutput_p + k * otime * owidth * oheight;
+        for (i = 0; i < itime*iwidth*iheight; i++)
+            *(ip + i) = 0;
+
+        /* loop over output */
+        for (ti = 0; ti < otime; ti++)
+        {
+            for (i = 0; i < oheight; i++)
+            {
+                for (j = 0; j < owidth; j++)
+                {
+                    Nd4jIndex tstart = ti * dT - padT;
+                    Nd4jIndex hstart = i  * dH - padH;
+                    Nd4jIndex wstart = j  * dW - padW;
+                    Nd4jIndex tend = nd4j::math::nd4j_min<Nd4jIndex>(tstart + kT, itime + padT);
+                    Nd4jIndex hend = nd4j::math::nd4j_min<Nd4jIndex>(hstart + kH, iheight + padH);
+                    Nd4jIndex wend = nd4j::math::nd4j_min<Nd4jIndex>(wstart + kW, iwidth + padW);
+                    Nd4jIndex pool_size = (tend -tstart) * (hend - hstart) * (wend - wstart);
+                    tstart = nd4j::math::nd4j_max<Nd4jIndex>(tstart, 0);
+                    hstart = nd4j::math::nd4j_max<Nd4jIndex>(hstart, 0);
+                    wstart = nd4j::math::nd4j_max<Nd4jIndex>(wstart, 0);
+                    tend = nd4j::math::nd4j_min<Nd4jIndex>(tend, itime);
+                    hend = nd4j::math::nd4j_min<Nd4jIndex>(hend, iheight);
+                    wend = nd4j::math::nd4j_min<Nd4jIndex>(wend, iwidth);
+
+                    Nd4jIndex divide_factor;
+                    if (count_include_pad)
+                        divide_factor = pool_size;
+                    else
+                        divide_factor = (tend - tstart) * (hend - hstart) * (wend - wstart);
+
+                    /* scatter gradients out to footprint: */
+                    T val  = *op++;
+
+                    long x,y,z;
+                    for (z = tstart; z < tend; z++)
+                    {
+                        for (y = hstart; y < hend; y++)
+                        {
+                            for (x = wstart; x < wend; x++)
+                            {
+                                *(ip + z * iheight * iwidth + y * iwidth + x) += val / divide_factor;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+template<typename T>
+void nd4j::ops::_avgPool3D(T *input_p, T *output_p, Nd4jIndex nslices, Nd4jIndex itime, Nd4jIndex iwidth, Nd4jIndex iheight, Nd4jIndex otime, Nd4jIndex owidth, Nd4jIndex oheight, int kT, int kW, int kH, int dT, int dW, int dH, int padT, int padW, int padH, bool count_include_pad) {
+    for (Nd4jIndex k = 0; k < nslices; k++)
+    {
+        long i, j, ti;
+
+        /* local pointers. */
+        T *ip = input_p + k * itime * iwidth * iheight;
+        T *op = output_p + k * otime * owidth * oheight;
+        for (i = 0; i < otime * oheight * owidth; ++i)
+            *(op + i) = 0;
+
+        /* loop over output */
+        for (ti = 0; ti < otime; ti++)
+        {
+            for (i = 0; i < oheight; i++)
+            {
+                for (j = 0; j < owidth; j++)
+                {
+                    /* compute pool range. */
+                    Nd4jIndex tstart = ti * dT - padT;
+                    Nd4jIndex hstart = i  * dH - padH;
+                    Nd4jIndex wstart = j  * dW - padW;
+                    Nd4jIndex tend = nd4j::math::nd4j_min<Nd4jIndex>(tstart + kT, itime + padT);
+                    Nd4jIndex hend = nd4j::math::nd4j_min<Nd4jIndex>(hstart + kH, iheight + padH);
+                    Nd4jIndex wend = nd4j::math::nd4j_min<Nd4jIndex>(wstart + kW, iwidth + padW);
+                    Nd4jIndex pool_size = (tend - tstart) * (hend - hstart) * (wend - wstart);
+                    tstart = nd4j::math::nd4j_max<Nd4jIndex>(tstart, 0);
+                    hstart = nd4j::math::nd4j_max<Nd4jIndex>(hstart, 0);
+                    wstart = nd4j::math::nd4j_max<Nd4jIndex>(wstart, 0);
+                    tend = nd4j::math::nd4j_min<Nd4jIndex>(tend, itime);
+                    hend = nd4j::math::nd4j_min<Nd4jIndex>(hend, iheight);
+                    wend = nd4j::math::nd4j_min<Nd4jIndex>(wend, iwidth);
+
+                    Nd4jIndex divide_factor;
+                    if (count_include_pad)
+                        divide_factor = pool_size;
+                    else
+                        divide_factor = (tend - tstart) * (hend - hstart) * (wend - wstart);
+
+                    /* compute local sum: */
+                    T sum = (T) 0.0f;
+                    long x, y, z;
+
+                    for (z = tstart; z < tend; z++)
+                    {
+                        for (y = hstart; y < hend; y++)
+                        {
+                            for (x = wstart; x < wend; x++)
+                            {
+                                sum +=  *(ip + z * iwidth * iheight + y * iwidth + x);
+                            }
+                        }
+                    }
+
+                    /* set output to local max */
+                    *op++ += sum / divide_factor;
+                }
+            }
+        }
+    }
+}
+
 
 template<typename T>
 void nd4j::ops::_dilatedMaxPool3D_bp(T *gradInput_p, T *gradOutput_p, T *indz_p, Nd4jIndex nslices, Nd4jIndex  itime, Nd4jIndex  iwidth, Nd4jIndex  iheight, Nd4jIndex otime, Nd4jIndex owidth, Nd4jIndex oheight, int dT, int dW, int dH, int pT, int pW, int pH, int dilationT, int dilationW, int dilationH) {
