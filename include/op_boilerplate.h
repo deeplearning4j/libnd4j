@@ -923,7 +923,7 @@
                                                                                 static nd4j::ops::__registratorDouble<NAME<double>> zzz_register_opd_##NAME; \
                                                                                 template <typename T> \
                                                                                 Nd4jStatus nd4j::ops::NAME<T>::validateAndExecute(Block<T>& block)
-
+// this declaration MUST follow DECLARE_CUSTOM_OP
 #define DECLARE_SHAPE_FN(NAME)                                              template<typename T>\
                                                                             nd4j::ShapeList* nd4j::ops::NAME<T>::calculateOutputShape(nd4j::ShapeList* inputShape, nd4j::graph::Block<T>& block)
 

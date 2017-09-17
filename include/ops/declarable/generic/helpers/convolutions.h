@@ -38,6 +38,41 @@ namespace nd4j {
 
         template<typename T>
         void _dilatedMaxPool3D(T *input_p, T *output_p, T *indz_p, Nd4jIndex nslices, Nd4jIndex itime, Nd4jIndex iwidth, Nd4jIndex iheight, Nd4jIndex otime, Nd4jIndex owidth, Nd4jIndex oheight, int kT, int kW, int kH, int dT, int dW, int dH, int pT, int pW, int pH, int dilationT, int dilationW, int dilationH);
+
+        template<typename T>
+        void _dilatedMaxPool3D_bp(T *gradInput_p, T *gradOutput_p, T *indz_p, Nd4jIndex nslices, Nd4jIndex  itime, Nd4jIndex  iwidth, Nd4jIndex  iheight, Nd4jIndex otime, Nd4jIndex owidth, Nd4jIndex oheight, int dT, int dW, int dH, int pT, int pW, int pH, int dilationT, int dilationW, int dilationH);
+    }
+}
+
+template<typename T>
+void nd4j::ops::_dilatedMaxPool3D_bp(T *gradInput_p, T *gradOutput_p, T *indz_p, Nd4jIndex nslices, Nd4jIndex  itime, Nd4jIndex  iwidth, Nd4jIndex  iheight, Nd4jIndex otime, Nd4jIndex owidth, Nd4jIndex oheight, int dT, int dW, int dH, int pT, int pW, int pH, int dilationT, int dilationW, int dilationH) {
+    for (int k = 0; k < nslices; k++)
+    {
+        T *gradInput_p_k  = gradInput_p  + k * itime * iwidth * iheight;
+        T *gradOutput_p_k = gradOutput_p + k * otime * owidth * oheight;
+        T *indz_p_k = indz_p + k * otime * owidth * oheight;
+
+        /* calculate max points */
+        long ti, i, j;
+        for (ti = 0; ti < otime; ti++)
+        {
+            for (i = 0; i < oheight; i++)
+            {
+                for (j = 0; j < owidth; j++)
+                {
+                    /* retrieve position of max */
+                    T * indzp = &indz_p_k[ti * oheight * owidth + i * owidth + j];
+                    long maxti = ((unsigned char*)(indzp))[0] * dilationT + ti * dT - pT;
+                    long maxi  = ((unsigned char*)(indzp))[1] * dilationH + i * dH - pH;
+                    long maxj  = ((unsigned char*)(indzp))[2] * dilationW + j * dW - pW;
+
+                    if (maxti != -1) {
+                        /* update gradient */
+                        gradInput_p_k[maxti * iheight * iwidth + maxi * iwidth + maxj] += gradOutput_p_k[ti * oheight * owidth + i * owidth + j];
+                    }
+                }
+            }
+        }
     }
 }
 
