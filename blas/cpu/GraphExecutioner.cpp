@@ -219,7 +219,7 @@ namespace nd4j{
                     // if there's no dimensions set - it's reduceToScalar
                     if (node->getDimensions()->size() == 0 ||
                         (node->getDimensions()->size() == 1 && node->getDimensions()->at(0) == MAX_INT)) {
-                        nd4j_verbose("ACCUM SCALAR BEFORE: X[0]: %f; X[1]: %f; xLength: %f\n",
+                        nd4j_verbose("ACCUM SCALAR BEFORE: X[0]: %f; X[1]: %f; xLength: %i\n",
                                      x->getNDArray()->getScalar(0), x->getNDArray()->getScalar(1),
                                      x->getNDArray()->lengthOf());
 
