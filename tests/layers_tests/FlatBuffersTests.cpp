@@ -253,3 +253,50 @@ TEST_F(FlatBuffersTest, ExplicitOutputTest1) {
     //ASSERT_EQ(-1, results->at(0)->id());
     //ASSERT_EQ(-2, results->at(1)->id());
 }
+
+long getFileSize(const char * filename) {
+    struct stat stat_buf;
+    int rc = stat(filename, &stat_buf);
+    return rc == 0 ? stat_buf.st_size : -1;
+}
+
+uint8_t* readFlatBuffers(const char * filename) {
+    long fileLen = getFileSize(filename);
+    uint8_t * data = new uint8_t[fileLen];
+
+    printf("File length: %i\n", fileLen);
+
+    FILE *in = fopen(filename, "rb");
+    int cnt = 0;
+
+    while (cnt < fileLen) {
+        fread(data + cnt, 1, 1, in);
+
+        cnt++;
+    }
+    fclose(in);
+
+    return data;
+}
+
+TEST_F(FlatBuffersTest, ReadFile1) {
+
+    uint8_t* data = readFlatBuffers("../../../tests/resources/adam_sum.fb");
+
+    auto fg = GetFlatGraph(data);
+    auto restoredGraph = new Graph<float>(fg);
+
+    ASSERT_EQ(1, restoredGraph->rootNodes());
+    ASSERT_EQ(2, restoredGraph->totalNodes());
+
+    auto ones = restoredGraph->getVariableSpace()->getVariable(-1)->getNDArray();
+
+    ASSERT_EQ(4, ones->lengthOf());
+    ASSERT_NEAR(8.0f, ones->template reduceNumber<simdOps::Sum<float>>(), 1e-5);
+
+    GraphExecutioner<float>::execute(restoredGraph);
+
+    auto result = restoredGraph->getVariableSpace()->getVariable(2)->getNDArray();
+    ASSERT_EQ(1, result->lengthOf());
+    ASSERT_EQ(12, result->getScalar(0));
+}
