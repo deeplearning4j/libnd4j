@@ -206,6 +206,12 @@ namespace shape {
 #endif
     INLINEDEF int* calcStrides(int *shape, int rank, int* ret);
 
+#ifdef __CUDACC__
+    __host__ __device__
+#endif
+    INLINEDEF void updateStrides(int *shape);
+
+
 /**
  * Computes the standard packed array strides for a given shape.
  *
@@ -2786,6 +2792,28 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
 #endif
     INLINEDEF int* calcStrides(int *shape, int rank, int* ret) {
         return calcStrides(shape, rank, 1, ret);
+    }
+
+#ifdef __CUDACC__
+    __host__ __device__
+#endif
+    INLINEDEF void updateStrides(int *shape, const char order) {
+        int rank = shape[0];
+		int doubleRank = 2*rank;
+		if(order == 'c') {
+			shape[doubleRank] = 1;          // set unity as last stride for c order
+			for(int j=1; j<rank; ++j)
+				shape[doubleRank-j] = shape[doubleRank-j+1]*shape[rank+1-j];
+		}
+		else {
+			shape[rank+1] = 1;             // set unity as first stride for f order
+			for(int j=rank+1; j<doubleRank; ++j)
+				shape[j+1] = shape[j]*shape[j-rank];
+		}
+		// set last 3 elements in shape
+		shape[doubleRank + 1] = 0;                  
+		shape[doubleRank + 2] = 1;
+		shape[doubleRank + 3] = (int)order;
     }
 
 /**
