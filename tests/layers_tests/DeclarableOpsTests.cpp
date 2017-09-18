@@ -19,8 +19,22 @@ class DeclarableOpsTests : public testing::Test {
 public:
     int *cShape = new int[8]{2, 2, 2, 2, 1, 0, 1, 99};
     int *fShape = new int[8]{2, 2, 2, 1, 2, 0, 1, 102};
-		
-
+			
+	const int bS = 2;      	// batch size
+	const int iD = 1;      	// input depth (number of picture channels, for example rgb=3)
+	const int iH = 28;     	// picture height in pixels
+	const int iW = 28;     	// picture width in pixels
+	const int oD = 3;      	// output depth (= N for dense layer)
+	const int kH = 5;      	// kernel height in pixels
+	const int kW = 5;      	// kernel width in pixels
+	const int sH = 1;      	// stride step in horizontal direction
+	const int sW = 1;      	// stride step in vertical direction
+	const int pH = 0;      	// padding height
+	const int pW = 0; 		// padding width
+	const int dH = 2;      	// dilation height
+	const int dW = 2; 		// dilation width
+	const int oH = (iH - kH - (kH-1)*(dH-1) + 2*pH)/sH + 1;		// output height
+	const int oW = (iW - kW - (kW-1)*(dW-1) + 2*pW)/sW + 1;		// output width
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -1475,7 +1489,7 @@ TEST_F(DeclarableOpsTests, Sum1) {
 	float expBuff[] = {16, 20};
 	int expShape[]  = {2, 1, 2, 2, 1, 0, 1, 99};	
 
-	const std::vector<int> dimensions = {0};    
+	const std::vector<int> dimensions = {1,0};    
 
 	NDArray<float> x(xBuff, xShape);
 	NDArray<float> z(1, 2);
@@ -1497,34 +1511,126 @@ TEST_F(DeclarableOpsTests, Sum1) {
 	ASSERT_TRUE(result->equalsTo(&exp));	
 }
 
-
 //////////////////////////////////////////////////////////////////////
-TEST_F(DeclarableOpsTests, Sum2) {		
-
-	float xBuff[] = {1, 2, 3, 4, 5, 6, 7, 8};
-	int xShape[]  = {2, 4, 2, 2, 1, 0, 1, 99};	
-	float expBuff[] = {36, 0};
-	int expShape[]  = {2, 1, 2, 2, 1, 0, 1, 99};	
-
-	const std::vector<int> dimensions;    
-
-	NDArray<float> x(xBuff, xShape);
-	NDArray<float> z(1, 2);
-	NDArray<float> exp(expBuff, expShape);
+TEST_F(DeclarableOpsTests, Maxpool1) {
+	
+	NDArray<float> x('c', {bS,iD,iH,iW});	
+	NDArray<float> exp('c',{bS,iD,oH,oW});
+	NDArray<float> z('c', {bS,iD,iH,iW});
 
 	VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &x);	
+    variableSpace->putVariable(-1, &x);
 	variableSpace->putVariable(1, &z);
-
-	Block<float>* block = new Block<float>(1, variableSpace, false);  // not-in-place
-    block->fillInputs({-1});
-	std::vector<int>* arguments = block->getIArguments();	
-	*arguments = dimensions;		
+    
+	Block<float>* block = new Block<float>(1, variableSpace, false);
+    block->fillInputs({-1});	
+	std::vector<int>* argI = block->getIArguments();	
+	*argI = {4, kH,kW, sH,sW, pH,pW, dW,dH, oH,oW};	
 	
-	nd4j::ops::sum<float> sum;
-	Nd4jStatus status = sum.execute(block);
-	NDArray<float>* result = block->getVariableSpace()->getVariable(block->getNodeId())->getNDArray();	
-	result->printBuffer();
-	ASSERT_EQ(ND4J_STATUS_OK, status);	
-	ASSERT_TRUE(result->getScalar(0,0) == exp.getScalar(0,0));	
+	nd4j::ops::maxpool<float> pooling;
+	Nd4jStatus status = pooling.execute(block);
+    ASSERT_EQ(ND4J_STATUS_OK, status);
+
+	NDArray<float>* result = block->getVariableSpace()->getVariable(block->getNodeId())->getNDArray();		
+    ASSERT_TRUE(exp.isSameShape(result));	
 }
+
+//////////////////////////////////////////////////////////////////////
+// TEST_F(DeclarableOpsTests, Sum2) {		
+
+	// float xBuff[] = {1, 2, 3, 4, 5, 6, 7, 8};
+	// int xShape[]  = {2, 4, 2, 2, 1, 0, 1, 99};	
+	// float expBuff[] = {36, 0};
+	// int expShape[]  = {2, 1, 2, 2, 1, 0, 1, 99};	
+
+	// const std::vector<int> dimensions;    
+
+	// NDArray<float> x(xBuff, xShape);
+	// NDArray<float> z(1, 2);
+	// NDArray<float> exp(expBuff, expShape);
+
+	// VariableSpace<float>* variableSpace = new VariableSpace<float>();
+    // variableSpace->putVariable(-1, &x);	
+	// variableSpace->putVariable(1, &z);
+
+	// Block<float>* block = new Block<float>(1, variableSpace, false);  // not-in-place
+    // block->fillInputs({-1});
+	// std::vector<int>* arguments = block->getIArguments();	
+	// *arguments = dimensions;		
+	
+	// nd4j::ops::sum<float> sum;
+	// Nd4jStatus status = sum.execute(block);
+	// NDArray<float>* result = block->getVariableSpace()->getVariable(block->getNodeId())->getNDArray();	
+	// result->printBuffer();
+	// ASSERT_EQ(ND4J_STATUS_OK, status);	
+	// ASSERT_TRUE(result->getScalar(0,0) == exp.getScalar(0,0));	
+// }
+
+// TEST_F(DeclarableOpsTests, MaxPoolBP) {		
+
+	// const int bS  = 2;       // batch size
+// const int iD  = 1;        // input depth (number of picture channels, for example rgb=3)
+// const int pH  = 28;      // picture height in pixels
+// const int pW  = 28;      // picture width in pixels
+// const int oD  = 3;        // output depth (= N for dense layer)
+// const int kH  = 5;        // kernel height in pixels
+// const int kW  = 5;        // kernel width in pixels
+// const int sH  = 1;        // stride step in horizontal direction
+// const int sW  = 1;        // stride step in vertical direction
+// const int pdH = 0;        // padding height
+// const int pdW = 0;        // padding width
+// const int oW  = (pW - kW + 2*pdW)/sW + 1; // output width
+// const int oH = (pH - kH + 2*pdH)/sH + 1; // output width
+
+
+	// NDArray<float> x(5, 3, 'c');
+	// NDArray<float> y(5, 3, 'c');
+	// NDArray<float> exp(5, 3, 'c'); 
+	// x.assign(6);
+	// y.assign(2);
+	// exp.assign(3);
+
+	// VariableSpace<float>* variableSpace = new VariableSpace<float>();
+    // variableSpace->putVariable(-1, &x);
+    // variableSpace->putVariable(-2, &y);
+	// Block<float>* block = new Block<float>(1, variableSpace, true);
+    // block->fillInputs({-1, -2});
+
+	// nd4j::ops::divide<float> div;
+ 
+	// div.execute(block);
+
+    // ASSERT_TRUE(x.equalsTo(&exp));	
+
+
+
+
+
+
+
+// float xBuff[] = {1, 2, 3, 4, 5, 6, 7, 8};
+	// int xShape[]  = {2, 4, 2, 2, 1, 0, 1, 99};	
+	// float expBuff[] = {16, 20};
+	// int expShape[]  = {2, 1, 2, 2, 1, 0, 1, 99};	
+
+	// const std::vector<int> dimensions = {1,0};    
+
+	// NDArray<float> x(xBuff, xShape);
+	// NDArray<float> z(1, 2);
+	// NDArray<float> exp(expBuff, expShape);
+
+	// VariableSpace<float>* variableSpace = new VariableSpace<float>();
+    // variableSpace->putVariable(-1, &x);	
+	// variableSpace->putVariable(1, &z);
+
+	// Block<float>* block = new Block<float>(1, variableSpace, false);  // not-in-place
+    // block->fillInputs({-1});
+	// std::vector<int>* arguments = block->getIArguments();	
+	// *arguments = dimensions;		
+	
+	// nd4j::ops::sum<float> sum;
+	// Nd4jStatus status = sum.execute(block);
+	// NDArray<float>* result = block->getVariableSpace()->getVariable(block->getNodeId())->getNDArray();	
+	// ASSERT_EQ(ND4J_STATUS_OK, status);	
+	// ASSERT_TRUE(result->equalsTo(&exp));	
+// }
