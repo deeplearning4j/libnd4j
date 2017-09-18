@@ -292,11 +292,11 @@ TEST_F(FlatBuffersTest, ReadFile1) {
     auto ones = restoredGraph->getVariableSpace()->getVariable(-1)->getNDArray();
 
     ASSERT_EQ(4, ones->lengthOf());
-    ASSERT_NEAR(8.0f, ones->template reduceNumber<simdOps::Sum<float>>(), 1e-5);
+    ASSERT_NEAR(4.0f, ones->template reduceNumber<simdOps::Sum<float>>(), 1e-5);
 
     GraphExecutioner<float>::execute(restoredGraph);
 
     auto result = restoredGraph->getVariableSpace()->getVariable(2)->getNDArray();
     ASSERT_EQ(1, result->lengthOf());
-    ASSERT_EQ(12, result->getScalar(0));
+    ASSERT_EQ(8, result->getScalar(0));
 }
