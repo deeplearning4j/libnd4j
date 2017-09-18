@@ -294,9 +294,21 @@ TEST_F(FlatBuffersTest, ReadFile1) {
     ASSERT_EQ(4, ones->lengthOf());
     ASSERT_NEAR(4.0f, ones->template reduceNumber<simdOps::Sum<float>>(), 1e-5);
 
-    GraphExecutioner<float>::execute(restoredGraph);
+    Nd4jStatus status = GraphExecutioner<float>::execute(restoredGraph);
+    ASSERT_EQ(ND4J_STATUS_OK, status);
 
     auto result = restoredGraph->getVariableSpace()->getVariable(2)->getNDArray();
     ASSERT_EQ(1, result->lengthOf());
     ASSERT_EQ(8, result->getScalar(0));
+}
+
+TEST_F(FlatBuffersTest, ReadFile2) {
+    uint8_t* data = readFlatBuffers("../../../tests/resources/adam_sum.fb");
+    Nd4jPointer result = GraphExecutioner<float>::executeFlatBuffer((Nd4jPointer) data);
+
+    ArrayList<float> arrays(GetFlatResult(result));
+
+    ASSERT_EQ(1, arrays.size());
+    ASSERT_EQ(1, arrays.at(0)->lengthOf());
+    ASSERT_EQ(8, arrays.at(0)->getScalar(0));
 }
