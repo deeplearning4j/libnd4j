@@ -53,14 +53,14 @@ namespace simdOps {
 			T *extraParams, int *allocationPointer, T *reductionPointer, UnifiedSharedMemory *manager, int *tadShapeInfo, Nd4jIndex *tadOffsets) {
 			/*kernel[0], kernel[1], stride[0], stride[1], padding[0], padding[1], 0, false*/
 
-		    int kernelWidth = (int)extraParams[0];
-			int kernelHeight = (int)extraParams[1];
-			int strideX = (int)extraParams[2];
-			int strideY = (int)extraParams[3];
-			int padWidth = (int)extraParams[4];
-			int padHeight = (int)extraParams[5];
-			int dW = (int)extraParams[6];			//Dilation, width dimension
-			int dH = (int)extraParams[7];			//Dilation, height dimension
+		    int kernelHeight = (int)extraParams[0];
+			int kernelWidth = (int)extraParams[1];
+			int strideY = (int)extraParams[2];
+			int strideX = (int)extraParams[3];
+			int padHeight = (int)extraParams[4];
+			int padWidth = (int)extraParams[5];
+			int dH = (int)extraParams[6];			//Dilation, height dimension
+			int dW = (int)extraParams[7];			//Dilation,  width dimension
 			int poolingMode = (int)extraParams[9];
 			int kSize = kernelWidth * kernelHeight;
 
@@ -181,14 +181,14 @@ namespace simdOps {
 				T *extraParams, int *tadShapeInfo, Nd4jIndex *tadOffsets) {
 
 
-			int kernelWidth = (int)extraParams[0];
-			int kernelHeight = (int)extraParams[1];
-			int strideX = (int)extraParams[2];
-			int strideY = (int)extraParams[3];
-			int padWidth = (int)extraParams[4];
-			int padHeight = (int)extraParams[5];
-			int dW = (int)extraParams[6];			//Dilation, width dimension
-			int dH = (int)extraParams[7];			//Dilation, height dimension
+			int kernelHeight = (int)extraParams[0];
+			int kernelWidth = (int)extraParams[1];
+			int strideY = (int)extraParams[2];
+			int strideX = (int)extraParams[3];
+			int padHeight = (int)extraParams[4];
+			int padWidth = (int)extraParams[5];
+			int dH = (int)extraParams[6];			//Dilation, height dimension
+			int dW = (int)extraParams[7];			//Dilation, width dimension
 			int poolingMode = (int)extraParams[9];
 			int kSize = kernelWidth * kernelHeight;
 
@@ -380,14 +380,14 @@ namespace simdOps {
 			int *resultShapeBuffer,
 			T *extraParams, int *allocationPointer, T *reductionPointer, UnifiedSharedMemory *manager, int *tadShapeInfo, Nd4jIndex *tadOffsets) {
 			/*kernel[0], kernel[1], stride[0], stride[1], padding[0], padding[1], 0, false*/
-			int kernelWidth = (int)extraParams[0];
-			int kernelHeight = (int)extraParams[1];
-			int strideX = (int)extraParams[2];
-			int strideY = (int)extraParams[3];
-			int padWidth = (int)extraParams[4];
-			int padHeight = (int)extraParams[5];
-			int dX = (int)extraParams[6];			//Dilation, width/x dimension
-			int dY = (int)extraParams[7];			//Dilation, height/y dimension
+			int kernelHeight = (int)extraParams[0];
+			int kernelWidth = (int)extraParams[1];
+			int strideY = (int)extraParams[2];
+			int strideX = (int)extraParams[3];
+			int padHeight = (int)extraParams[4];
+			int padWidth = (int)extraParams[5];
+			int dY = (int)extraParams[6];			//Dilation, height/x dimension
+			int dX = (int)extraParams[7];			//Dilation, width/y dimension
 			int kSize = kernelWidth * kernelHeight;
 
 			int *outShape = shape::shapeOf(resultShapeBuffer);
@@ -474,14 +474,14 @@ namespace simdOps {
 			int *resultShapeBuffer,
 			T *extraParams, int *tadShapeInfo, Nd4jIndex *tadOffsets) {
 			/*kernel[0], kernel[1], stride[0], stride[1], padding[0], padding[1], 0, false*/
-			int kernelWidth = (int)extraParams[0];
-			int kernelHeight = (int)extraParams[1];
-			int strideX = (int)extraParams[2];
-			int strideY = (int)extraParams[3];
-			int padWidth = (int)extraParams[4];
-			int padHeight = (int)extraParams[5];
-			int dX = (int)extraParams[6];			//Dilation, width/x dimension
-			int dY = (int)extraParams[7];			//Dilation, height/y dimension
+			int kernelHeight = (int)extraParams[0];
+			int kernelWidth = (int)extraParams[1];
+			int strideY = (int)extraParams[2];
+			int strideX = (int)extraParams[3];
+			int padHeight = (int)extraParams[4];
+			int padWidth = (int)extraParams[5];
+			int dY = (int)extraParams[6];			//Dilation, width/x dimension
+			int dX = (int)extraParams[7];			//Dilation, height/y dimension
 			bool isSameMode = extraParams[8] > 0.0;
 
 			int outArrayOffset = 0;
@@ -875,14 +875,14 @@ namespace simdOps {
 
 			// C
 
-			int strideX = (int)extraParams[0];
-			int strideY = (int)extraParams[1];
-			int padWidth = (int)extraParams[2];
-			int padHeight = (int)extraParams[3];
+			int strideY = (int)extraParams[0];
+			int strideX = (int)extraParams[1];
+			int padHeight = (int)extraParams[2];
+			int padWidth = (int)extraParams[3];
 			int imgHeight = (int)extraParams[4];
 			int imgWidth = (int)extraParams[5];
-			int dX = (int)extraParams[6];			//Dilation in width/x dimension
-			int dY = (int)extraParams[7];			//Dilation in height/y dimension
+			int dY = (int)extraParams[6];			//Dilation in height/x dimension
+			int dX = (int)extraParams[7];			//Dilation in width/y dimension
 
 			int *outShape = shape::shapeOf(resultShapeBuffer);
 			char resultOrder = shape::order(resultShapeBuffer);
@@ -964,12 +964,12 @@ namespace simdOps {
 			int kernelHeight = inShape[2];
 			int kernelWidth = inShape[3];
 			/* int strideY, int strideX, int padHeight, int padWidth, int imgHeight, int imgWidth, int dilationW, int dilationH */
-			int strideX = (int)extraParams[0];
-			int strideY = (int)extraParams[1];
-			int padWidth = (int)extraParams[2];
-			int padHeight = (int)extraParams[3];
-			int dX = (int)extraParams[6];			//Dilation in width/x dimension
-			int dY = (int)extraParams[7];			//Dilation in height/y dimension
+			int strideY = (int)extraParams[0];
+			int strideX = (int)extraParams[1];
+			int padHeight = (int)extraParams[2];
+			int padWidth = (int)extraParams[3];
+			int dY = (int)extraParams[6];			//Dilation in width/x dimension
+			int dX = (int)extraParams[7];			//Dilation in height/y dimension
 
 
 			int exampleFrom = 0;
