@@ -178,7 +178,7 @@ Nd4jIndex nd4j::graph::Graph<T>::estimateRequiredMemory() {
                 }
 
                 delete outSha;
-            } else if (node->getOpClass() == OpClass_TRANFSFORM) {
+            } else if (node->getOpClass() == OpClass_TRANSFORM) {
                 auto vec = node->input();
 
                 auto in = node->input()->at(0);

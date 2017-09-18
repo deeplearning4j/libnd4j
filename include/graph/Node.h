@@ -350,7 +350,7 @@ nd4j::graph::Node<T>::Node(OpType opType, int opNum, int id, std::initializer_li
         if (_output.size() <= 1) {
             _isInplace = true;
         }
-        _opClass = OpClass_TRANFSFORM;
+        _opClass = OpClass_TRANSFORM;
     } else if (opType == OpType_ACCUMULATION || opType == OpType_SUMMARYSTATS) {
         _opClass = OpClass_REDUCTION;
     }
@@ -408,7 +408,7 @@ nd4j::graph::Node<T>::Node(const nd4j::graph::FlatNode *node) {
             if (_output.size() <= 1) {
                 _isInplace = true;
             }
-            _opClass = OpClass_TRANFSFORM;
+            _opClass = OpClass_TRANSFORM;
         } else if (this->_opType == OpType_ACCUMULATION || this->_opType == OpType_SUMMARYSTATS) {
             _opClass = OpClass_REDUCTION;
         }
