@@ -1,5 +1,5 @@
 //
-//
+// Based on PyTorch - https://github.com/pytorch/pytorch
 //
 
 #ifndef LIBND4J_CONVOLUTIONS_H
@@ -47,6 +47,81 @@ namespace nd4j {
 
         template<typename T>
         void _avgPool3D_bp(T *gradInput_p, T *gradOutput_p, Nd4jIndex nslices, Nd4jIndex itime, Nd4jIndex iwidth, Nd4jIndex iheight, Nd4jIndex otime, Nd4jIndex owidth, Nd4jIndex oheight, int kT, int kW, int kH, int dT, int dW, int dH, int padT, int padW, int padH, bool count_include_pad);
+
+        template <typename T>
+        void _vol2col(const T *data_vol, const int channels, const int depth, const int height, const int width, const int kT, const int kH, const int kW, const int pT, const int pH, const int pW, const int dT, const int dH, const int dW, const int dilationT, const int dilationH, const int dilationW, T *data_col);
+
+        template <typename T>
+        void _col2vol(const T* data_col, const int channels, const int depth, const int height, const int width, const int out_depth, const int out_height, const int out_width, const int kT, const int kH, const int kW, const int pT, const int pH, const int pW, const int dT, const int dH, const int dW, const int dilationT, const int dilationH, const int dilationW, T* data_vol);
+    }
+}
+
+template <typename T>
+void nd4j::ops::_vol2col(const T *data_vol, const int channels, const int depth, const int height, const int width, const int kT, const int kH, const int kW, const int pT, const int pH, const int pW, const int dT, const int dH, const int dW, const int dilationT, const int dilationH, const int dilationW, T *data_col) {
+    int c, t, h, w;
+    int depth_col  = (depth  + 2 * pT - (dilationT * (kT - 1) + 1)) / dT + 1;
+    int height_col = (height + 2 * pH - (dilationH * (kH - 1) + 1)) / dH + 1;
+    int width_col  = (width  + 2 * pW - (dilationW * (kW - 1) + 1)) / dW + 1;
+    int channels_col = channels * kT * kH * kW;
+    for (c = 0; c < channels_col; ++c)
+    {
+        int w_offset = c % kW;
+        int h_offset = (c / kW) % kH;
+        int t_offset = (c / kW / kH) % kT;
+        int c_vol = c / kT / kH / kW;
+        for (t = 0; t < depth_col; ++t)
+        {
+            for (h = 0; h < height_col; ++h)
+            {
+                for (w = 0; w < width_col; ++w)
+                {
+                    int t_pad = t * dT - pT + t_offset * dilationT;
+                    int h_pad = h * dH - pH + h_offset * dilationH;
+                    int w_pad = w * dW - pW + w_offset * dilationW;
+                    if (t_pad >= 0 && t_pad < depth &&
+                        h_pad >= 0 && h_pad < height &&
+                        w_pad >= 0 && w_pad < width)
+                        data_col[((c * depth_col + t) * height_col + h) * width_col + w] =
+                                data_vol[((c_vol * depth + t_pad) * height + h_pad) * width + w_pad];
+                    else
+                        data_col[((c * depth_col + t) * height_col + h) * width_col + w] = 0;
+                }
+            }
+        }
+    }
+}
+
+template <typename T>
+void nd4j::ops::_col2vol(const T* data_col, const int channels, const int depth, const int height, const int width, const int out_depth, const int out_height, const int out_width, const int kT, const int kH, const int kW, const int pT, const int pH, const int pW, const int dT, const int dH, const int dW, const int dilationT, const int dilationH, const int dilationW, T* data_vol) {
+    int c, t, h, w;
+    memset(data_vol, 0, sizeof(T) * depth * height * width * channels);
+    int depth_col  = out_depth;
+    int height_col = out_height;
+    int width_col  = out_width;
+    int channels_col = channels * kT * kH * kW;
+    for (c = 0; c < channels_col; ++c)
+    {
+        int w_offset = c % kW;
+        int h_offset = (c / kW) % kH;
+        int t_offset = (c / kW / kH) % kT;
+        int c_vol = c / kT / kH / kW;
+        for (t = 0; t < depth_col; ++t)
+        {
+            for (h = 0; h < height_col; ++h)
+            {
+                for (w = 0; w < width_col; ++w)
+                {
+                    int t_pad = t * dT - pT + t_offset * dilationT;
+                    int h_pad = h * dH - pH + h_offset * dilationH;
+                    int w_pad = w * dW - pW + w_offset * dilationW;
+                    if (t_pad >= 0 && t_pad < depth &&
+                        h_pad >= 0 && h_pad < height &&
+                        w_pad >= 0 && w_pad < width)
+                        data_vol[((c_vol * depth + t_pad) * height + h_pad) * width + w_pad] +=
+                                data_col[((c * depth_col + t) * height_col + h) * width_col + w];
+                }
+            }
+        }
     }
 }
 
