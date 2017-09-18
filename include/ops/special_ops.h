@@ -538,6 +538,7 @@ namespace simdOps {
 							if (padding) {
 								int i = y * strideY -
 									padHeight;    //index along height of first element of patch in original img
+									padHeight;    //index along height of first element of patch in original img
 								int j = x * strideX -
 									padWidth;     //index along width of first element in patch in original img
 								inIndices[2] = i;   //along height

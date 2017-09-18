@@ -19,6 +19,7 @@ if(WIN32)
     endforeach()
 endif()
 
+find_package(MKL)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wl,-rpath,$ORIGIN/")
 
