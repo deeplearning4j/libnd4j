@@ -338,10 +338,15 @@ nd4j::graph::VariableSpace<T> * nd4j::graph::Graph<T>::getVariableSpace() {
 
 template <typename T>
 nd4j::graph::Graph<T>::~Graph() {
+    for (auto v: *_mapped)
+        delete v.second;
+
     delete _mapped;
     delete _nodes;
     delete _variableSpace;
     delete _onion;
+    delete _configuration;
+
 
     // delete _onion content here
 }
@@ -603,7 +608,7 @@ nd4j::graph::Graph<T>::Graph(const FlatGraph *flatGraph) {
             auto node = flatGraph->nodes()->Get(e);
 
             if (node->output() == nullptr || node->output()->size() == 0) {
-                nd4j_printf("Orphan node detected: %i; AutoOutput to be considered\n", node->id());
+                nd4j_verbose("Orphan node detected: %i; AutoOutput to be considered\n", node->id());
             }
 
             this->addNode(new Node<T>(node));

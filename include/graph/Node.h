@@ -362,6 +362,8 @@ nd4j::graph::Node<T>::Node(const nd4j::graph::FlatNode *node) {
     _hasExternalOutputs = false;
     _hasInternalInputs = false;
     _hasInternalOutputs = false;
+    _extraParams = nullptr;
+    _dim = nullptr;
 
     _scalar = node->scalar();
 
@@ -374,7 +376,7 @@ nd4j::graph::Node<T>::Node(const nd4j::graph::FlatNode *node) {
         if (node->name() != nullptr && node->name()->c_str() != nullptr)
             this->_name = node->name()->str();
 
-        nd4j_printf("Pulled node_%i (%s)\n", node->id(), this->_name.c_str())
+        nd4j_verbose("Pulled node_%i (%s)\n", node->id(), this->_name.c_str())
 
         if (node->input() != nullptr)
             for (int e = 0; e < (int) node->input()->size(); e++)

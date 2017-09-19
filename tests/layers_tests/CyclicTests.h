@@ -49,6 +49,25 @@ TEST_F(CyclicTests, TestNDArrayWorkspace1) {
             
             workspace.scopeOut();
         }
+
+        if (e % 50 == 0)
+            nd4j_printf("%i ext cycles passed\n", e);
+    }
+}
+
+
+TEST_F(CyclicTests, TestGraphInstantiation1) {
+
+    for (int e = 0; e < numLoops; e++) {
+        auto graph = GraphExecutioner<float>::importFromFlatBuffers("../../../tests/resources/adam_sum.fb");
+
+        ASSERT_FALSE(graph == nullptr);
+        ASSERT_EQ(2, graph->totalNodes());
+        ASSERT_EQ(1, graph->rootNodes());
+        //Nd4jStatus status = GraphExecutioner<float>::execute();
+        //ASSERT_EQ(ND4J_STATUS_OK, status);
+
+        delete graph;
     }
 }
 

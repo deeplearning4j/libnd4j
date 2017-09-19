@@ -254,34 +254,10 @@ TEST_F(FlatBuffersTest, ExplicitOutputTest1) {
     //ASSERT_EQ(-2, results->at(1)->id());
 }
 
-long getFileSize(const char * filename) {
-    struct stat stat_buf;
-    int rc = stat(filename, &stat_buf);
-    return rc == 0 ? stat_buf.st_size : -1;
-}
-
-uint8_t* readFlatBuffers(const char * filename) {
-    long fileLen = getFileSize(filename);
-    uint8_t * data = new uint8_t[fileLen];
-
-    printf("File length: %i\n", fileLen);
-
-    FILE *in = fopen(filename, "rb");
-    int cnt = 0;
-
-    while (cnt < fileLen) {
-        fread(data + cnt, 1, 1, in);
-
-        cnt++;
-    }
-    fclose(in);
-
-    return data;
-}
 
 TEST_F(FlatBuffersTest, ReadFile1) {
 
-    uint8_t* data = readFlatBuffers("../../../tests/resources/adam_sum.fb");
+    uint8_t* data = nd4j::graph::readFlatBuffers("../../../tests/resources/adam_sum.fb");
 
     auto fg = GetFlatGraph(data);
     auto restoredGraph = new Graph<float>(fg);
@@ -303,7 +279,7 @@ TEST_F(FlatBuffersTest, ReadFile1) {
 }
 
 TEST_F(FlatBuffersTest, ReadFile2) {
-    uint8_t* data = readFlatBuffers("../../../tests/resources/adam_sum.fb");
+    uint8_t* data = nd4j::graph::readFlatBuffers("../../../tests/resources/adam_sum.fb");
     Nd4jPointer result = GraphExecutioner<float>::executeFlatBuffer((Nd4jPointer) data);
 
     ArrayList<float> arrays(GetFlatResult(result));
@@ -311,4 +287,16 @@ TEST_F(FlatBuffersTest, ReadFile2) {
     ASSERT_EQ(1, arrays.size());
     ASSERT_EQ(1, arrays.at(0)->lengthOf());
     ASSERT_EQ(8, arrays.at(0)->getScalar(0));
+}
+
+TEST_F(FlatBuffersTest, ReadFile3) {
+    auto graph = GraphExecutioner<float>::importFromFlatBuffers("../../../tests/resources/adam_sum.fb");
+    Nd4jStatus status = GraphExecutioner<float>::execute(graph);
+
+    ASSERT_EQ(ND4J_STATUS_OK, status);
+
+    auto z = graph->getVariableSpace()->getVariable(2)->getNDArray();
+
+    ASSERT_EQ(1, z->lengthOf());
+    ASSERT_EQ(8, z->getScalar(0));
 }
