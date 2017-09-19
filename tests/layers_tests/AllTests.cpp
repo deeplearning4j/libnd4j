@@ -11,6 +11,7 @@
 #include "DeclarableOpsTests.cpp"
 #include "HashUtilsTests.cpp"
 #include "WorkspaceTests.h"
+#include "ConvolutionTests.h"
 // #include "ProtoBufTests.cpp"
 
 int main(int argc, char **argv) {

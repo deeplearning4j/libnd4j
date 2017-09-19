@@ -574,8 +574,6 @@ template <typename T> NDArray<T>* NDArray<T>::dup(const char newOrder) {
         tad->createTadOnlyShapeInfo();
         tad->createOffsets();
 
-        nd4j_verbose("Applying offset [%i] for index [%i]\n", tad->tadOffsets[index], index);
-
         T* buffer = this->_buffer + tad->tadOffsets[index];
 
         int* shapeInfo;
@@ -590,7 +588,6 @@ template <typename T> NDArray<T>* NDArray<T>::dup(const char newOrder) {
         array->_isBuffAlloc = false;
         array->_isShapeAlloc = true;
         array->_isView = true;
-
 
         return array;
     }
