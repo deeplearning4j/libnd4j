@@ -72,4 +72,25 @@ TEST_F(CyclicTests, TestGraphInstantiation1) {
 }
 
 
+TEST_F(CyclicTests, TestGraphExecution1) {
+
+    for (int e = 0; e < numLoops; e++) {
+        auto graph = GraphExecutioner<float>::importFromFlatBuffers("../../../tests/resources/adam_sum.fb");
+
+        ASSERT_FALSE(graph == nullptr);
+        ASSERT_EQ(2, graph->totalNodes());
+        ASSERT_EQ(1, graph->rootNodes());
+        //Nd4jStatus status = GraphExecutioner<float>::execute();
+        //ASSERT_EQ(ND4J_STATUS_OK, status);
+
+        GraphExecutioner<float>::execute(graph);
+
+        ASSERT_EQ(1, graph->getVariableSpace()->getVariable(2)->getNDArray()->lengthOf());
+        ASSERT_NEAR(8.0f, graph->getVariableSpace()->getVariable(2)->getNDArray()->getScalar(0), 1e-5);
+
+        delete graph;
+    }
+}
+
+
 #endif //LIBND4J_CYCLICTESTS_H

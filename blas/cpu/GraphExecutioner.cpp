@@ -37,7 +37,7 @@ namespace nd4j{
             OpType opType = node->opType();
             int opNum = node->opNum();
 
-            nd4j_printf("Executing node_%i{%i}\n", node->id(), opNum);
+            nd4j_debug("Executing node_%i{%i}\n", node->id(), opNum);
             fflush(stdout);
             if (node->hasCustomOp()) {
 
