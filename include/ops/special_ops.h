@@ -63,8 +63,7 @@ namespace simdOps {
 			int dW = (int)extraParams[7];			//Dilation,  width dimension
 			int poolingMode = (int)extraParams[9];
 			T extraParam0 = extraParams[10];
-			int outH = (int)extraParams[11];
-			int outW = (int)extraParams[12];
+			
 			int kSize = kernelWidth * kernelHeight;
 
 			int *inShape = shape::shapeOf(xShapeBuffer);
@@ -80,6 +79,8 @@ namespace simdOps {
 			int strideh = inStride[2];
 			int stridew = inStride[3];
 
+			int outH = resultShapeBuffer[3];
+			int outW = resultShapeBuffer[4];			
 			int *im2colShapeInfo = tadShapeInfo; // we expect (or not ??) tadShape field to be used here
 			if(im2colShapeInfo==nullptr)
 				im2colShapeInfo = new int[16] {6, samples, depth, kernelHeight, kernelWidth, outH, outW, depth*kernelHeight*kernelWidth*outH*outW, kernelHeight*kernelWidth*outH*outW, kernelWidth*outH*outW, outH*outW, outW, 1, 0, 1, 99};
@@ -191,8 +192,6 @@ namespace simdOps {
 			int dW = (int)extraParams[7];			//Dilation, width dimension
 			int poolingMode = (int)extraParams[9];
 			T extraParam0 = extraParams[10];
-			int outH = (int)extraParams[11];
-			int outW = (int)extraParams[12];
 
 			int kSize = kernelWidth * kernelHeight;
 
@@ -209,6 +208,8 @@ namespace simdOps {
 			int strideh = inStride[2];
 			int stridew = inStride[3];
 
+			int outH = resultShapeBuffer[3];
+			int outW = resultShapeBuffer[4];			
             int *im2colShapeInfo = tadShapeInfo; // we expect (or not ??) tadShape field to be used here
 			if(im2colShapeInfo==nullptr)
 				im2colShapeInfo = new int[16] {6, samples, depth, kernelHeight, kernelWidth, outH, outW, depth*kernelHeight*kernelWidth*outH*outW, kernelHeight*kernelWidth*outH*outW, kernelWidth*outH*outW, outH*outW, outW, 1, 0, 1, 99};

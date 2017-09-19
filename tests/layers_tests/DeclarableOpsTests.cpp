@@ -1682,25 +1682,75 @@ TEST_F(DeclarableOpsTests, Sum1) {
 }
 
 //////////////////////////////////////////////////////////////////////
-TEST_F(DeclarableOpsTests, Maxpool1) {
+TEST_F(DeclarableOpsTests, Maxpool2d1) {
 
 	NDArray<float> x('c', {bS,iD,iH,iW});
 	NDArray<float> exp('c',{bS,iD,oH,oW});
-	NDArray<float> z('c', {bS,iD,iH,iW});
+	// NDArray<float> z('c',{bS,iD,oH,oW});
 
 	VariableSpace<float>* variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, &x);
-	variableSpace->putVariable(1, &z);
+	// variableSpace->putVariable(1, &z);
 
 	Block<float>* block = new Block<float>(1, variableSpace, false);
     block->fillInputs({-1});
 	std::vector<int>* argI = block->getIArguments();
-	*argI = {4, kH,kW, sH,sW, pH,pW, dW,dH, oH,oW};
+	*argI = {4, kH,kW, sH,sW, pH,pW, dW,dH, iH,iW, bS, iD, 0};
 
-	nd4j::ops::maxpool<float> pooling;
+	nd4j::ops::maxpool2d<float> pooling;
 	Nd4jStatus status = pooling.execute(block);
     ASSERT_EQ(ND4J_STATUS_OK, status);
+	
+	NDArray<float>* result = block->getVariableSpace()->getVariable(block->getNodeId())->getNDArray();
+    ASSERT_TRUE(exp.isSameShape(result));
+}
 
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests, Avgpool2d1) {
+
+	NDArray<float> x('c', {bS,iD,iH,iW});
+	NDArray<float> exp('c',{bS,iD,oH,oW});
+	// NDArray<float> z('c',{bS,iD,oH,oW});
+
+	VariableSpace<float>* variableSpace = new VariableSpace<float>();
+    variableSpace->putVariable(-1, &x);
+	// variableSpace->putVariable(1, &z);
+
+	Block<float>* block = new Block<float>(1, variableSpace, false);
+    block->fillInputs({-1});
+	std::vector<int>* argI = block->getIArguments();
+	*argI = {4, kH,kW, sH,sW, pH,pW, dW,dH, iH,iW, bS, iD, 0};
+
+	nd4j::ops::avgpool2d<float> pooling;
+	Nd4jStatus status = pooling.execute(block);
+    ASSERT_EQ(ND4J_STATUS_OK, status);
+	
+	NDArray<float>* result = block->getVariableSpace()->getVariable(block->getNodeId())->getNDArray();
+    ASSERT_TRUE(exp.isSameShape(result));
+}
+
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests, Pnormpool2d1) {
+
+	NDArray<float> x('c', {bS,iD,iH,iW});
+	NDArray<float> exp('c',{bS,iD,oH,oW});
+	// NDArray<float> z('c',{bS,iD,oH,oW});
+
+	VariableSpace<float>* variableSpace = new VariableSpace<float>();
+    variableSpace->putVariable(-1, &x);
+	// variableSpace->putVariable(1, &z);
+
+	Block<float>* block = new Block<float>(1, variableSpace, false);
+    block->fillInputs({-1});
+	std::vector<int>* argI = block->getIArguments();
+	*argI = {4, kH,kW, sH,sW, pH,pW, dW,dH, iH,iW, bS, iD, 0};
+
+	nd4j::ops::pnormpool2d<float> pooling;
+	Nd4jStatus status = pooling.execute(block);
+    ASSERT_EQ(ND4J_STATUS_OK, status);
+	
 	NDArray<float>* result = block->getVariableSpace()->getVariable(block->getNodeId())->getNDArray();
     ASSERT_TRUE(exp.isSameShape(result));
 }

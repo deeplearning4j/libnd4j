@@ -209,7 +209,7 @@ namespace shape {
 #ifdef __CUDACC__
     __host__ __device__
 #endif
-    INLINEDEF void updateStrides(int *shape);
+    INLINEDEF void updateStrides(int *shape, const char order);
 
 
 /**
