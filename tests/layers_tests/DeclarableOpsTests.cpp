@@ -1788,23 +1788,8 @@ TEST_F(DeclarableOpsTests, Pnormpool2d1) {
 
 // TEST_F(DeclarableOpsTests, MaxPoolBP) {
 
-	// const int bS  = 2;       // batch size
-// const int iD  = 1;        // input depth (number of picture channels, for example rgb=3)
-// const int pH  = 28;      // picture height in pixels
-// const int pW  = 28;      // picture width in pixels
-// const int oD  = 3;        // output depth (= N for dense layer)
-// const int kH  = 5;        // kernel height in pixels
-// const int kW  = 5;        // kernel width in pixels
-// const int sH  = 1;        // stride step in horizontal direction
-// const int sW  = 1;        // stride step in vertical direction
-// const int pdH = 0;        // padding height
-// const int pdW = 0;        // padding width
-// const int oW  = (pW - kW + 2*pdW)/sW + 1; // output width
-// const int oH = (pH - kH + 2*pdH)/sH + 1; // output width
-
-
-	// NDArray<float> x(5, 3, 'c');
-	// NDArray<float> y(5, 3, 'c');
+	// NDArray<float> input('c',{bS,iD,iH,iW});
+	// NDArray<float> epsilon(5, 3, 'c');
 	// NDArray<float> exp(5, 3, 'c');
 	// x.assign(6);
 	// y.assign(2);
