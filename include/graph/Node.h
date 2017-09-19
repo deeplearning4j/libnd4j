@@ -20,7 +20,7 @@ namespace nd4j {
         protected:
             DataType _dataType;
             OpType _opType;
-            Block<T>* _block;
+            Block<T>* _block = nullptr;
             int _opNum;
             int _id;
             std::vector<std::pair<int, int>> _input;
@@ -322,6 +322,8 @@ nd4j::graph::Node<T>::Node(OpType opType, int opNum, int id, std::initializer_li
     this->_opType = opType;
     this->_id = id;
     this->_opNum = opNum;
+    this->_extraParams = nullptr;
+    this->_dim = nullptr;
 
     _hasExternalInputs = false;
     _hasExternalOutputs = false;

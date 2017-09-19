@@ -63,7 +63,7 @@ namespace nd4j{
 
                     // this assumes inplace operation
                     if (z->getNDArray() == nullptr)
-                        z->setNDArray(x->getNDArray());
+                        z->setNDArray(x->getNDArray()->getView());
 
 
                     functions::transform::Transform<T>::template exec(opNum, x->getNDArray()->getBuffer(),
@@ -87,7 +87,7 @@ namespace nd4j{
 
                     // this assumes inplace operation
                     if (z->getNDArray() == nullptr)
-                        z->setNDArray(x->getNDArray());
+                        z->setNDArray(x->getNDArray()->getView());
 
                     functions::pairwise_transforms::PairWiseTransform<T>::template exec(opNum, x->getNDArray()->getBuffer(), x->getNDArray()->getShapeInfo(), y->getNDArray()->getBuffer(), y->getNDArray()->getShapeInfo(),
                                                                                         z->getNDArray()->getBuffer(), z->getNDArray()->getShapeInfo(), node->extraParams());
@@ -126,7 +126,7 @@ namespace nd4j{
 
                 // this assumes inplace op
                 if (z->getNDArray() == nullptr)
-                    z->setNDArray(x->getNDArray());
+                    z->setNDArray(x->getNDArray()->getView());
 
                 nd4j_verbose("xLength: %i\n", x->getNDArray()->lengthOf());
                 nd4j_verbose("SCALAR BEFORE: X[0]: %f; X[1]: %f; scalar: %f\n", x->getNDArray()->getScalar(0), x->getNDArray()->getScalar(1), node->scalar());
@@ -180,6 +180,7 @@ namespace nd4j{
                     int resultLength = x->getNDArray()->lengthOf() / shape::length(tad->shapeInfoOnlyShapeAndStride());
 
                     if (z->getNDArray() == nullptr || z->getNDArray()->lengthOf() != resultLength) {
+                        // FIXME: this is potentially bad
                         if (z->getNDArray() != nullptr)
                             delete z->getNDArray();
 
@@ -245,6 +246,7 @@ namespace nd4j{
                                 x->getNDArray()->lengthOf() / shape::length(tad->shapeInfoOnlyShapeAndStride());
 
                         if (z->getNDArray() == nullptr || z->getNDArray()->lengthOf() != resultLength) {
+                            // FIXME: this is potentially BAD
                             if (z->getNDArray() != nullptr)
                                 delete z->getNDArray();
 

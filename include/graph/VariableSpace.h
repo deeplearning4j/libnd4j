@@ -34,6 +34,8 @@ namespace nd4j {
             std::mutex _varmap;
 
             std::map<const int32_t, nd4j::graph::Variable<T> *> _temporary;
+
+            std::vector<nd4j::graph::Variable<T> *> _handles;
         public:
             VariableSpace();
             ~VariableSpace();
@@ -167,9 +169,13 @@ void nd4j::graph::VariableSpace<T>::putVariable(std::pair<int,int>& pair, Variab
     // copying duplicate for compatibility
     if (pair.second == 0 && !this->hasVariable(pair.first)) {
         this->putVariable(pair.first, variable);
+    } else {
+        _varmap.lock();
+
+        _handles.push_back(variable);
+
+        _varmap.unlock();
     }
-
-
 }
 
 template <typename T>
@@ -191,6 +197,8 @@ void nd4j::graph::VariableSpace<T>::putVariable(const int32_t id, Variable<T> *v
     nd4j_verbose("Adding Variable to Space: id: %i; Array is null: %i;\n", id, variable->getNDArray() == nullptr);
 
     _varmap.lock();
+
+    _handles.push_back(variable);
 
     if (_auto_counter >= id)
         _auto_counter = id - 1;
@@ -248,8 +256,8 @@ nd4j::graph::Variable<T> * nd4j::graph::VariableSpace<T>::getVariable(const int3
 template <typename T>
 nd4j::graph::VariableSpace<T>::~VariableSpace() {
     // loop through variables and release them
-    for (auto p: _variables) {
-        delete p.second;
+    for (auto p: _handles) {
+        delete p;
     }
 }
 
