@@ -428,7 +428,22 @@ template <typename T> NDArray<T>* NDArray<T>::dup(const char newOrder) {
 
     }
 
-// eventually this method reduces this array to 1xN row 
+    template<typename T>
+    bool NDArray<T>::isContiguous() {
+        Nd4jIndex z = 1;
+        int d;
+        for(d = this->rankOf() - 1; d >= 0; d--)  {
+            if(this->sizeAt(d) != 1) {
+                if(this->stridesOf()[d] == z)
+                    z *= this->sizeAt(d);
+                else
+                    return false;
+            }
+        }
+        return true;
+    }
+
+// eventually this method reduces this array to 1xN row
     template<typename T>
     template<typename OpName>
     NDArray<T> *NDArray<T>::reduceAlongDimension(const std::vector<int> &dimensions) const {
@@ -452,14 +467,14 @@ template <typename T> NDArray<T>* NDArray<T>::dup(const char newOrder) {
         return result;
     }
 
-// eventually this method reduces this array to 1xN row 
+// eventually this method reduces this array to 1xN row
     template<typename T>
     template<typename OpName>
-    NDArray<T> *NDArray<T>::reduceAlongDimension(const std::initializer_list<int> &dimensions) const {		
-		
+    NDArray<T> *NDArray<T>::reduceAlongDimension(const std::initializer_list<int> &dimensions) const {
+
 		return reduceAlongDimension<OpName>(std::vector<int>(dimensions));
 	}
-	
+
 
 //
     template<typename T>
@@ -1001,16 +1016,16 @@ template <typename T> bool NDArray<T>::reshapei(const char order, const std::vec
 template <typename T> NDArray<T>* NDArray<T>::reshape(const char order, const std::vector<int>& shape) {
 	int shapeInfoLength = shape::shapeInfoLength(rankOf());
 	int* newShapeInfo = nullptr;
-	
-	ALLOCATE(newShapeInfo , _workspace, shapeInfoLength, int);		
-	memcpy(newShapeInfo, _shapeInfo, shapeInfoLength*sizeof(int));	
-		
+
+	ALLOCATE(newShapeInfo , _workspace, shapeInfoLength, int);
+	memcpy(newShapeInfo, _shapeInfo, shapeInfoLength*sizeof(int));
+
 	NDArray<T>* newArr = new NDArray<T>(_buffer, newShapeInfo, _workspace);
 	newArr->_isShapeAlloc = true;
 	newArr->_isBuffAlloc  = false;
 	newArr->reshapei(order, shape);
-	
-	return newArr;	
+
+	return newArr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1104,7 +1119,7 @@ template <typename T> void NDArray<T>::tilei(const std::vector<int>& reps) {
 
     template<typename T>
     int NDArray<T>::sizeAt(int dim) {
-        if (dim > this->rankOf())
+        if (dim >= this->rankOf())
             throw "Bad size index requested";
 
         return this->_shapeInfo[1+dim];

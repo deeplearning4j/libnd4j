@@ -19,7 +19,7 @@ class DeclarableOpsTests : public testing::Test {
 public:
     int *cShape = new int[8]{2, 2, 2, 2, 1, 0, 1, 99};
     int *fShape = new int[8]{2, 2, 2, 1, 2, 0, 1, 102};
-			
+
 	const int bS = 2;      	// batch size
 	const int iD = 1;      	// input depth (number of picture channels, for example rgb=3)
 	const int iH = 28;     	// picture height in pixels
@@ -1481,92 +1481,262 @@ TEST_F(DeclarableOpsTests, TestArgumentsValidation1) {
 
 }
 
+TEST_F(DeclarableOpsTests, Conv3D_ff_Test1) {
+    NDArray<float> input('c', {4, 3, 3, 56, 56});
+    NDArray<float> weights('f', {2, 3, 3, 5, 5});
+    NDArray<float> bias('c', {1, 2});
+
+    input.assign(1.0);
+    weights.assign(2.0);
+    bias.putScalar(0, 1.0f);
+    bias.putScalar(1, 1.0f);
+
+    NDArray<float> output('c', {4, 2, 1, 11, 11});
+
+    VariableSpace<float>* variableSpace = new VariableSpace<float>();
+    variableSpace->putVariable(-1, &input);
+    variableSpace->putVariable(-2, &weights);
+    variableSpace->putVariable(-3, &bias);
+
+    variableSpace->putVariable(1, &output);
+    Block<float>* block = new Block<float>(1, variableSpace, false);  // not-in-place
+    block->fillInputs({-1, -2, -3});
+
+    block->getIArguments()->push_back(1);
+    block->getIArguments()->push_back(2);
+    block->getIArguments()->push_back(5);
+    block->getIArguments()->push_back(5);
+    block->getIArguments()->push_back(0);
+    block->getIArguments()->push_back(0);
+    block->getIArguments()->push_back(0);
+
+    nd4j::ops::conv3d<float> conv3d;
+
+    Nd4jStatus result = conv3d.execute(block);
+    ASSERT_EQ(ND4J_STATUS_OK, result);
+
+    output.printBuffer("Result");
+
+    ASSERT_NEAR(451.0f, output.template reduceNumber<simdOps::Mean<float>>(), 1e-5);
+}
+
+TEST_F(DeclarableOpsTests, TestReductionShape1) {
+    NDArray<float> input('c', {4, 5, 5, 10, 10});
+
+    VariableSpace<float>* variableSpace = new VariableSpace<float>();
+    variableSpace->putVariable(-1, &input);
+
+    Block<float>* block = new Block<float>(1, variableSpace, false);  // not-in-place
+    block->fillInputs({-1});
+
+    // kernel params
+    block->getIArguments()->push_back(1);
+    block->getIArguments()->push_back(MAX_INT);
+
+    nd4j::ops::testreduction<float> testop;
+
+    auto shapes = testop.calculateOutputShape(new ShapeList(input.getShapeInfo()), *block);
+
+    ASSERT_EQ(1,shapes->size());
+    ASSERT_EQ(2,shapes->at(0)[0]);
+    ASSERT_EQ(1,shapes->at(0)[1]);
+    ASSERT_EQ(1,shapes->at(0)[2]);
+}
+
+TEST_F(DeclarableOpsTests, TestReductionShape2) {
+    NDArray<float> input('c', {4, 5, 5, 10, 10});
+
+    VariableSpace<float>* variableSpace = new VariableSpace<float>();
+    variableSpace->putVariable(-1, &input);
+
+    Block<float>* block = new Block<float>(1, variableSpace, false);  // not-in-place
+    block->fillInputs({-1});
+
+    // kernel params
+    block->getIArguments()->push_back(4);
+    block->getIArguments()->push_back(1);
+    block->getIArguments()->push_back(2);
+    block->getIArguments()->push_back(3);
+    block->getIArguments()->push_back(4);
+
+    nd4j::ops::testreduction<float> testop;
+
+    auto shapes = testop.calculateOutputShape(new ShapeList(input.getShapeInfo()), *block);
+
+    ASSERT_EQ(1,shapes->size());
+    ASSERT_EQ(2,shapes->at(0)[0]);
+    ASSERT_EQ(1,shapes->at(0)[1]);
+    ASSERT_EQ(4,shapes->at(0)[2]);
+}
+
+TEST_F(DeclarableOpsTests, TestCustomShape1) {
+    NDArray<float> input('c', {2, 3, 4});
+
+    VariableSpace<float>* variableSpace = new VariableSpace<float>();
+    variableSpace->putVariable(-1, &input);
+
+    Block<float>* block = new Block<float>(1, variableSpace, false);  // not-in-place
+    block->fillInputs({-1});
+
+    nd4j::ops::testcustom<float> test;
+
+    auto shapes = test.calculateOutputShape(new ShapeList(input.getShapeInfo()), *block);
+
+    input.printShapeInfo("input");
+    //shape::printShapeInfoLinear(shape);
+
+    ASSERT_EQ(input.getShapeInfo()[0]    , shapes->at(0)[0]);
+    ASSERT_EQ(input.getShapeInfo()[1] * 2, shapes->at(0)[1]);
+    ASSERT_EQ(input.getShapeInfo()[2] * 2, shapes->at(0)[2]);
+    ASSERT_EQ(input.getShapeInfo()[3] * 2, shapes->at(0)[3]);
+}
+
+
+TEST_F(DeclarableOpsTests, DilatedMaxPool3D_ff_Test1) {
+    NDArray<float> input('c', {4, 2, 1, 11, 11});
+
+    input.assign(451.0);
+
+    NDArray<float> output('c', {4, 2, 1, 10, 10});
+    NDArray<float> indices('c', {4, 2, 1, 10, 10});
+
+
+    std::pair<int, int> pair0(1,0);
+    std::pair<int, int> pair1(1,1);
+
+
+    VariableSpace<float>* variableSpace = new VariableSpace<float>();
+    variableSpace->putVariable(-1, &input);
+
+    variableSpace->putVariable(pair0, &output);
+    variableSpace->putVariable(pair1, &indices);
+
+    Block<float>* block = new Block<float>(1, variableSpace, false);  // not-in-place
+    block->fillInputs({-1});
+
+    // kernel params
+    block->getIArguments()->push_back(1);
+    block->getIArguments()->push_back(2);
+    block->getIArguments()->push_back(2);
+
+    // stride
+    block->getIArguments()->push_back(1);
+    block->getIArguments()->push_back(1);
+    block->getIArguments()->push_back(1);
+
+    // padding
+    block->getIArguments()->push_back(0);
+    block->getIArguments()->push_back(0);
+    block->getIArguments()->push_back(0);
+
+    // dilation
+    block->getIArguments()->push_back(1);
+    block->getIArguments()->push_back(1);
+    block->getIArguments()->push_back(1);
+
+    // ceiling
+    block->getIArguments()->push_back(1);
+
+
+
+    nd4j::ops::maxpool3d<float> maxpool3d;
+
+    Nd4jStatus result = maxpool3d.execute(block);
+    ASSERT_EQ(ND4J_STATUS_OK, result);
+
+    output.printBuffer("Result");
+
+    ASSERT_NEAR(451.0f, output.template reduceNumber<simdOps::Mean<float>>(), 1e-5);
+
+
+}
+
 //////////////////////////////////////////////////////////////////////
-TEST_F(DeclarableOpsTests, Sum1) {		
+TEST_F(DeclarableOpsTests, Sum1) {
 
 	float xBuff[] = {1, 2, 3, 4, 5, 6, 7, 8};
-	int xShape[]  = {2, 4, 2, 2, 1, 0, 1, 99};	
+	int xShape[]  = {2, 4, 2, 2, 1, 0, 1, 99};
 	float expBuff[] = {16, 20};
-	int expShape[]  = {2, 1, 2, 2, 1, 0, 1, 99};	
+	int expShape[]  = {2, 1, 2, 2, 1, 0, 1, 99};
 
-	const std::vector<int> dimensions = {1,0};    
+	const std::vector<int> dimensions = {1,0};
 
 	NDArray<float> x(xBuff, xShape);
 	NDArray<float> z(1, 2);
 	NDArray<float> exp(expBuff, expShape);
 
 	VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &x);	
+    variableSpace->putVariable(-1, &x);
 	variableSpace->putVariable(1, &z);
 
 	Block<float>* block = new Block<float>(1, variableSpace, false);  // not-in-place
     block->fillInputs({-1});
-	std::vector<int>* arguments = block->getIArguments();	
-	*arguments = dimensions;		
-	
+	std::vector<int>* arguments = block->getIArguments();
+	*arguments = dimensions;
+
 	nd4j::ops::sum<float> sum;
 	Nd4jStatus status = sum.execute(block);
-	NDArray<float>* result = block->getVariableSpace()->getVariable(block->getNodeId())->getNDArray();	
-	ASSERT_EQ(ND4J_STATUS_OK, status);	
-	ASSERT_TRUE(result->equalsTo(&exp));	
+	NDArray<float>* result = block->getVariableSpace()->getVariable(block->getNodeId())->getNDArray();
+	ASSERT_EQ(ND4J_STATUS_OK, status);
+	ASSERT_TRUE(result->equalsTo(&exp));
 }
 
 //////////////////////////////////////////////////////////////////////
 TEST_F(DeclarableOpsTests, Maxpool1) {
-	
-	NDArray<float> x('c', {bS,iD,iH,iW});	
+
+	NDArray<float> x('c', {bS,iD,iH,iW});
 	NDArray<float> exp('c',{bS,iD,oH,oW});
 	NDArray<float> z('c', {bS,iD,iH,iW});
 
 	VariableSpace<float>* variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, &x);
 	variableSpace->putVariable(1, &z);
-    
+
 	Block<float>* block = new Block<float>(1, variableSpace, false);
-    block->fillInputs({-1});	
-	std::vector<int>* argI = block->getIArguments();	
-	*argI = {4, kH,kW, sH,sW, pH,pW, dW,dH, oH,oW};	
-	
+    block->fillInputs({-1});
+	std::vector<int>* argI = block->getIArguments();
+	*argI = {4, kH,kW, sH,sW, pH,pW, dW,dH, oH,oW};
+
 	nd4j::ops::maxpool<float> pooling;
 	Nd4jStatus status = pooling.execute(block);
     ASSERT_EQ(ND4J_STATUS_OK, status);
 
-	NDArray<float>* result = block->getVariableSpace()->getVariable(block->getNodeId())->getNDArray();		
-    ASSERT_TRUE(exp.isSameShape(result));	
+	NDArray<float>* result = block->getVariableSpace()->getVariable(block->getNodeId())->getNDArray();
+    ASSERT_TRUE(exp.isSameShape(result));
 }
 
 //////////////////////////////////////////////////////////////////////
-// TEST_F(DeclarableOpsTests, Sum2) {		
+// TEST_F(DeclarableOpsTests, Sum2) {
 
 	// float xBuff[] = {1, 2, 3, 4, 5, 6, 7, 8};
-	// int xShape[]  = {2, 4, 2, 2, 1, 0, 1, 99};	
+	// int xShape[]  = {2, 4, 2, 2, 1, 0, 1, 99};
 	// float expBuff[] = {36, 0};
-	// int expShape[]  = {2, 1, 2, 2, 1, 0, 1, 99};	
+	// int expShape[]  = {2, 1, 2, 2, 1, 0, 1, 99};
 
-	// const std::vector<int> dimensions;    
+	// const std::vector<int> dimensions;
 
 	// NDArray<float> x(xBuff, xShape);
 	// NDArray<float> z(1, 2);
 	// NDArray<float> exp(expBuff, expShape);
 
 	// VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    // variableSpace->putVariable(-1, &x);	
+    // variableSpace->putVariable(-1, &x);
 	// variableSpace->putVariable(1, &z);
 
 	// Block<float>* block = new Block<float>(1, variableSpace, false);  // not-in-place
     // block->fillInputs({-1});
-	// std::vector<int>* arguments = block->getIArguments();	
-	// *arguments = dimensions;		
-	
+	// std::vector<int>* arguments = block->getIArguments();
+	// *arguments = dimensions;
+
 	// nd4j::ops::sum<float> sum;
 	// Nd4jStatus status = sum.execute(block);
-	// NDArray<float>* result = block->getVariableSpace()->getVariable(block->getNodeId())->getNDArray();	
+	// NDArray<float>* result = block->getVariableSpace()->getVariable(block->getNodeId())->getNDArray();
 	// result->printBuffer();
-	// ASSERT_EQ(ND4J_STATUS_OK, status);	
-	// ASSERT_TRUE(result->getScalar(0,0) == exp.getScalar(0,0));	
+	// ASSERT_EQ(ND4J_STATUS_OK, status);
+	// ASSERT_TRUE(result->getScalar(0,0) == exp.getScalar(0,0));
 // }
 
-// TEST_F(DeclarableOpsTests, MaxPoolBP) {		
+// TEST_F(DeclarableOpsTests, MaxPoolBP) {
 
 	// const int bS  = 2;       // batch size
 // const int iD  = 1;        // input depth (number of picture channels, for example rgb=3)
@@ -1585,7 +1755,7 @@ TEST_F(DeclarableOpsTests, Maxpool1) {
 
 	// NDArray<float> x(5, 3, 'c');
 	// NDArray<float> y(5, 3, 'c');
-	// NDArray<float> exp(5, 3, 'c'); 
+	// NDArray<float> exp(5, 3, 'c');
 	// x.assign(6);
 	// y.assign(2);
 	// exp.assign(3);
@@ -1597,10 +1767,10 @@ TEST_F(DeclarableOpsTests, Maxpool1) {
     // block->fillInputs({-1, -2});
 
 	// nd4j::ops::divide<float> div;
- 
+
 	// div.execute(block);
 
-    // ASSERT_TRUE(x.equalsTo(&exp));	
+    // ASSERT_TRUE(x.equalsTo(&exp));
 
 
 
@@ -1609,28 +1779,28 @@ TEST_F(DeclarableOpsTests, Maxpool1) {
 
 
 // float xBuff[] = {1, 2, 3, 4, 5, 6, 7, 8};
-	// int xShape[]  = {2, 4, 2, 2, 1, 0, 1, 99};	
+	// int xShape[]  = {2, 4, 2, 2, 1, 0, 1, 99};
 	// float expBuff[] = {16, 20};
-	// int expShape[]  = {2, 1, 2, 2, 1, 0, 1, 99};	
+	// int expShape[]  = {2, 1, 2, 2, 1, 0, 1, 99};
 
-	// const std::vector<int> dimensions = {1,0};    
+	// const std::vector<int> dimensions = {1,0};
 
 	// NDArray<float> x(xBuff, xShape);
 	// NDArray<float> z(1, 2);
 	// NDArray<float> exp(expBuff, expShape);
 
 	// VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    // variableSpace->putVariable(-1, &x);	
+    // variableSpace->putVariable(-1, &x);
 	// variableSpace->putVariable(1, &z);
 
 	// Block<float>* block = new Block<float>(1, variableSpace, false);  // not-in-place
     // block->fillInputs({-1});
-	// std::vector<int>* arguments = block->getIArguments();	
-	// *arguments = dimensions;		
-	
+	// std::vector<int>* arguments = block->getIArguments();
+	// *arguments = dimensions;
+
 	// nd4j::ops::sum<float> sum;
 	// Nd4jStatus status = sum.execute(block);
-	// NDArray<float>* result = block->getVariableSpace()->getVariable(block->getNodeId())->getNDArray();	
-	// ASSERT_EQ(ND4J_STATUS_OK, status);	
-	// ASSERT_TRUE(result->equalsTo(&exp));	
+	// NDArray<float>* result = block->getVariableSpace()->getVariable(block->getNodeId())->getNDArray();
+	// ASSERT_EQ(ND4J_STATUS_OK, status);
+	// ASSERT_TRUE(result->equalsTo(&exp));
 // }

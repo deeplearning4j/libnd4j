@@ -13,9 +13,12 @@
 #include <ops/ops.h>
 #include <loops/random.h>
 #include <NDArray.h>
+#include <graph/Variable.h>
 #include <ops/declarable/declarable_ops.h>
 #include <NDArrayFactory.h>
 #include <ops/declarable/generic/third_party.h>
+#include <ops/declarable/generic/convo/convo_ops.h>
+#include <ops/declarable/generic/helpers/convolutions.h>
 
 namespace nd4j {
     namespace ops {
@@ -145,7 +148,7 @@ namespace nd4j {
 		// maxpool corresponds to poolingMode=0
 		DECLARE_CONFIGURABLE_OP(maxpool, 1, 1, false, 0, 11) {
 			REQUIRE_OK(this->validateInputLengthMatch(block));
-			REQUIRE_OK(this->validateInputDimensionsMatch(block));			
+			REQUIRE_OK(this->validateInputDimensionsMatch(block));
             NDArray<T> *x = block.getVariables().at(0)->getNDArray();
 			std::vector<int> argI = *(block.getIArguments());							// 0 - number of dimensions; 1,2 - kernel Height/Width; 3,4 - stride Height/Width; 5,6 - pad Height/Width; 7,8 - dilation Height/Width; 9,10 - output Height/Width)
 			std::vector<T> argT = {argI[1], argI[2], argI[3], argI[4], argI[5], argI[6], argI[7], argI[8], (T)0.f, (T)0.f, (T)0.f, argI[9], argI[10]};  // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8,9 - poolingMode; 10 - divisor; 11,12 - output Height/Width
@@ -155,7 +158,7 @@ namespace nd4j {
 
             STORE_RESULT(*z);
 
-            return ND4J_STATUS_OK;         
+            return ND4J_STATUS_OK;
         }
         DECLARE_SYN(MaxPool2D, maxpool);
         DECLARE_SYN(MaxPool, maxpool);
@@ -163,7 +166,7 @@ namespace nd4j {
 //////////////////////////////////////////////////////////////////////////
 		// avgpool corresponds to poolingMode=1
         DECLARE_CONFIGURABLE_OP(avgpool, 1, 1, false, 0, 9) {
-        
+
             NDArray<T> *x = block.getVariables().at(0)->getNDArray();
 			std::vector<int> argI = *(block.getIArguments());							// 0 - number of dimensions; 1,2 - kernel Height/Width; 3,4 - stride Height/Width; 5,6 - pad Height/Width; 7,8 - dilation Height/Width;
 			argI.erase(argI.begin(), argI.begin()+1);									// erase first element (number of dimensions)
@@ -172,38 +175,38 @@ namespace nd4j {
 				argT[i] = argI[i];
 			argT.emplace_back(1.f); argT.emplace_back(1.f);								// set poolingMode
 			argT.emplace_back(1.f);
-			auto z = this->getZ(block);	
-						
+			auto z = this->getZ(block);
+
             x->template applyTransform<simdOps::Pooling2D<T>>(z, argT.data());
 
             STORE_RESULT(*z);
 
-            return ND4J_STATUS_OK;         
-        }        
+            return ND4J_STATUS_OK;
+        }
         DECLARE_SYN(AvgPool2D, avgpool);
         DECLARE_SYN(AvgPool, avgpool);
 
 //////////////////////////////////////////////////////////////////////////
 		// pnormpool corresponds to poolingMode=2
         DECLARE_CONFIGURABLE_OP(pnormpool, 1, 1, false, 1, 9) {
-        
-            NDArray<T> *x = block.getVariables().at(0)->getNDArray();				
-			std::vector<int> argI = *(block.getIArguments());							// 0 - number of dimensions; 1,2 - kernel Height/Width; 3,4 - stride Height/Width; 5,6 - pad Height/Width; 7,8 - dilation Height/Width; 
+
+            NDArray<T> *x = block.getVariables().at(0)->getNDArray();
+			std::vector<int> argI = *(block.getIArguments());							// 0 - number of dimensions; 1,2 - kernel Height/Width; 3,4 - stride Height/Width; 5,6 - pad Height/Width; 7,8 - dilation Height/Width;
 			argI.erase(argI.begin(), argI.begin()+1);									// erase first element (number of dimensions)
 			std::vector<T> argT(argI.size());
 			for(int i=0; i<argI.size(); ++i)
 				argT[i] = argI[i];
 			argT.emplace_back(2.f); argT.emplace_back(2.f); 						// set poolingMode
 			argT.emplace_back(block.getTArguments()->at(0));						// set extraParam0 (divisor) for dividing
-            
-			auto z = this->getZ(block);	
-						
+
+			auto z = this->getZ(block);
+
             x->template applyTransform<simdOps::Pooling2D<T>>(z, argT.data());
 
             STORE_RESULT(*z);
 
-            return ND4J_STATUS_OK;         
-        }        
+            return ND4J_STATUS_OK;
+        }
         DECLARE_SYN(PnormPool2D, pnormpool);
         DECLARE_SYN(PnormPool, pnormpool);
 
@@ -421,7 +424,40 @@ namespace nd4j {
         DECLARE_SYN(TestOp2i2o, testop2i2o);
 
 
+        DECLARE_REDUCTION_OP(testreduction, 1, 1, false, 0, -1) {
+            auto z = this->getZ(block);
 
+            STORE_RESULT(*z);
+            return ND4J_STATUS_OK;
+        }
+
+/////////////////////////////////////////
+        DECLARE_CUSTOM_OP(testcustom, 1, 1, false, 0, -1) {
+            auto z = this->getZ(block);
+
+            STORE_RESULT(*z);
+            return ND4J_STATUS_OK;
+        }
+        DECLARE_SHAPE_FN(testcustom) {
+            // this test op will just return back original shape doubled
+            int *shapeOf;
+            ALLOCATE(shapeOf, block.getWorkspace(), shape::rank(inputShape->at(0)), int);
+
+            int *newShape;
+            ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(inputShape->at(0)), int);
+
+            for (int e = 0; e < shape::rank(inputShape->at(0)); e++)
+                shapeOf[e] = inputShape->at(0)[e+1] * 2;
+
+
+            shape::shapeBuffer(shape::rank(inputShape->at(0)), shapeOf, newShape);
+
+            RELEASE(shapeOf, block.getWorkspace());
+
+            return new ShapeList(newShape);
+        }
+
+/////////////////////////////////////////
         DECLARE_OP(assign, 2, 1, false) {
             REQUIRE_OK(this->validateInputLengthMatch(block));
             REQUIRE_OK(this->validateInputDimensionsMatch(block));
@@ -555,151 +591,7 @@ namespace nd4j {
         }
         DECLARE_SYN(ClipByValue, clipbyvalue);
 
-        /**
-         * Upsampling implementation, based on pytorch
-         *
-         * IArgs map:
-         * IArgs[0] - scale factor
-         */
-        DECLARE_CONFIGURABLE_OP(upsampling, 1, 1, false, 0, 1) {
-            NDArray<T>* input = block.getVariables().at(0)->getNDArray();
-            NDArray<T>* output = this->getZ(block);
-            int scale_factor = block.getIArguments()->at(0);
 
-//            int inputHeight = input->sizeAt(2);
-//            int inputWidth  = input->sizeAt(3);
-
-            int dW = scale_factor;
-            int dH = scale_factor;
-//            int outputHeight = inputHeight * scale_factor;
-//            int outputWidth = inputWidth * scale_factor;
-            int xDim = input->rankOf() - 2;
-            int yDim = input->rankOf() - 1;
-
-            int osz0 = output->sizeAt(0);
-            int osz1 = output->sizeAt(1);
-            int osz2 = output->sizeAt(2);
-            int osz3 = output->sizeAt(3);
-
-            int i0, i1, i2, i3, isrc, idst;
-            int iout[4];  // Output indices
-            int iin[4];  // Input indices
-
-            for (i0 = 0; i0 < osz0; i0++) {
-                iout[0] = i0;
-                iin[0] = i0;
-                for (i1 = 0; i1 < osz1; i1++) {
-                    iout[1] = i1;
-                    iin[1] = i1;
-                    for (i2 = 0; i2 < osz2; i2++) {
-                        iout[2] = i2;
-                        iin[2] = i2;
-                        for (i3 = 0; i3 < osz3; i3++) {
-                            iout[3] = i3;
-                            iin[3] = i3;
-
-                            // set the indices for the upsampled dimensions
-                            iin[xDim] = iout[xDim] / dW;
-                            iin[yDim] = iout[yDim] / dH;
-
-                            idst = i0 * output->stridesOf()[0] + i1 * output->stridesOf()[1] + i2 * output->stridesOf()[2];
-                            isrc = iin[0] * input->stridesOf()[0] + iin[1] * input->stridesOf()[1] + iin[2] * input->stridesOf()[2];
-
-                            // in our case rank of input is always 4
-                            idst += i3 * output->stridesOf()[3];
-                            isrc += iin[3]* input->stridesOf()[3];
-
-
-                            output->getBuffer()[idst] = input->getBuffer()[isrc];
-                        }
-                    }
-                }
-            }
-
-            STORE_RESULT(*output);
-
-            return ND4J_STATUS_OK;
-        }
-
-        /**
-         * Upsampling backprop implementation, based on pytorch
-         *
-         * Input[0] - preoutput result
-         * Input[1] - gradients from next node/layer
-         *
-         * Output[0] - gradient for this node
-         *
-         * IArgs map:
-         * IArgs[0] - scale factor
-         */
-        DECLARE_CONFIGURABLE_OP(upsampling_bp, 2, 1, false, 0, 1) {
-            //NDArray<T>* input = block.getVariables().at(0)->getNDArray();
-            NDArray<T>* gradientNext = block.getVariables().at(1)->getNDArray();
-            NDArray<T>* output = this->getZ(block);
-            int scale_factor = block.getIArguments()->at(0);
-
-
-            int dW = scale_factor;
-            int dH = scale_factor;
-            int xDim = output->rankOf() - 2;
-            int yDim = output->rankOf() - 1;
-
-            // dims
-            int idim = output->rankOf();  // Guaranteed to be between 3 and 5
-            int isz0 = output->sizeAt(0);
-            int isz1 = output->sizeAt(1);
-            int isz2 = output->sizeAt(2);
-            int isz3 = 1;
-            if (idim > 3) {
-                isz3 = output->sizeAt(3);
-            }
-
-            output->assign(0.0);
-
-            // perform the upsampling
-            int i0, i1, i2, i3, isrc, idst, x, y;
-            int iin[4];  // Input indices
-            int iout[4];  // Output indices
-
-            for (i0 = 0; i0 < isz0; i0++) {
-                iin[0] = i0;
-                iout[0] = i0;
-                for (i1 = 0; i1 < isz1; i1++) {
-                    iin[1] = i1;
-                    iout[1] = i1;
-                    for (i2 = 0; i2 < isz2; i2++) {
-                        iin[2] = i2;
-                        iout[2] = i2;
-                        for (i3 = 0; i3 < isz3; i3++) {
-                            iin[3] = i3;
-                            iout[3] = i3;
-
-                            idst = i0 * output->stridesOf()[0] + i1 * output->stridesOf()[1] + i2 * output->stridesOf()[2];
-                            if (idim > 3) {
-                                idst += i3 * output->stridesOf()[3];
-                            }
-
-                            // Now accumulate the gradients from gradOutput
-                            for (y = 0; y < dH; y++) {
-                                for (x = 0; x < dW; x++) {
-                                    iout[xDim] = dW * iin[xDim] + x;
-                                    iout[yDim] = dH * iin[yDim] + y;
-                                    isrc = iout[0] * gradientNext->stridesOf()[0] + iout[1] * gradientNext->stridesOf()[1] + iout[2] * gradientNext->stridesOf()[2];
-                                    if (idim > 3) {
-                                        isrc += iout[3] * gradientNext->stridesOf()[3];
-                                    }
-                                    output->getBuffer()[idst] += gradientNext->getBuffer()[isrc];
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            STORE_RESULT(*output);
-
-            return ND4J_STATUS_OK;
-        }
 
 //////////////////////////////////////////////////////////////////////////
         DECLARE_OP(softmax, 2, 1, false) {
@@ -787,7 +679,6 @@ namespace nd4j {
             return ND4J_STATUS_OK;
         }
         DECLARE_SYN(scatterupdate, scatter_update);
-
 
 //////////////////////////////////////////////////////////////////////////
         DECLARE_CONFIGURABLE_OP(relu, 1, 1, true, 1, 0) {
@@ -983,7 +874,7 @@ namespace nd4j {
             NDArray<T> *x = block.getVariables().at(0)->getNDArray();
             NDArray<T> *y = block.getVariables().at(1)->getNDArray();	
 			
-			NDArray<T>* z = this->getZ(block);			
+			NDArray<T>* z = this->getZ(block);
 			std::vector<int> shapeNew(y->shapeOf(), y->shapeOf() + y->rankOf());
 			char order = y->ordering();
 			
@@ -1070,49 +961,49 @@ namespace nd4j {
 			}
 			return ND4J_STATUS_OK;
         }
-		
+
 		//////////////////////////////////////////////////////////////////////////
 		DECLARE_CONFIGURABLE_OP(sum, 1, 1, false, 0, -1) {
 
 			std::vector<int> argI = *(block.getIArguments());
 			argI.erase(argI.begin(), argI.begin()+1);
-			NDArray<T>* x = block.getVariables().at(0)->getNDArray(); 
+			NDArray<T>* x = block.getVariables().at(0)->getNDArray();
 			NDArray<T> *z = this->getZ(block);
-					
+
 			if((argI.size()==1 && argI[0]==INT_MAX) || argI.size()==0) {
 				z->putScalar(0, 0, x->template reduceNumber<simdOps::Sum<T>>(nullptr));
-				STORE_RESULT(*z); 
+				STORE_RESULT(*z);
 			}
 			else {
-				z = x->template reduceAlongDimension<simdOps::Sum<T>>(argI); 				
-				STORE_RESULT(*z); 
+				z = x->template reduceAlongDimension<simdOps::Sum<T>>(argI);
+				STORE_RESULT(*z);
 			}
 
-			return ND4J_STATUS_OK; 
+			return ND4J_STATUS_OK;
 		}
-		
+
 		//////////////////////////////////////////////////////////////////////////
 		DECLARE_CONFIGURABLE_OP(maxpool_bp, 2, 1, false, 0, 14) {
-        
+
             NDArray<T>* input = block.getVariables().at(0)->getNDArray();
 			NDArray<T>* epsilon = block.getVariables().at(1)->getNDArray();
 			NDArray<T>* outEpsilon = this->getZ(block);
 			std::vector<int> argI = *(block.getIArguments());
-			int bS  = argI[0]; 
-			int iD  = argI[1]; 
-			int pH  = argI[2]; 
-			int pW  = argI[3]; 
-			int kH  = argI[4]; 
+			int bS  = argI[0];
+			int iD  = argI[1];
+			int pH  = argI[2];
+			int pW  = argI[3];
+			int kH  = argI[4];
 			int kW  = argI[5];
 			int sH  = argI[5];
 			int sW  = argI[6];
 			int dH  = argI[7];
 			int dW  = argI[8];
-			int pdH = argI[9]; 
-			int pdW = argI[10];  
-			int oH  = argI[11]; 
-			int oW  = argI[12]; 
-			int convMode = argI[13]; 
+			int pdH = argI[9];
+			int pdW = argI[10];
+			int oH  = argI[11];
+			int oW  = argI[12];
+			int convMode = argI[13];
 
 			bool cOrderStrides = false;
 			bool isEpsilonDup = false;
@@ -1121,17 +1012,17 @@ namespace nd4j {
 				cOrderStrides = true;
 				isEpsilonDup = true;
 			}
-			
+
 			int strideToCompare[] = {oH*oW, iD*oH*oW, oW, 1};
 			if (!cOrderStrides && shape::strideDescendingCAscendingF(epsilon->getShapeInfo())) {
 				cOrderStrides = true;
-			} 
-			else if (!shape::strideEquals(strideToCompare, 4., epsilon->stridesOf(), epsilon->rankOf())) {				
+			}
+			else if (!shape::strideEquals(strideToCompare, 4., epsilon->stridesOf(), epsilon->rankOf())) {
 				epsilon = epsilon->dup('c');
 				cOrderStrides = true;
 				isEpsilonDup = true;
 			}
-			
+
 			NDArray<T>* col6d = nullptr;
 			NDArray<T>* col6dPermuted = nullptr;
 			NDArray<T>* epsilon1d = nullptr;
@@ -1140,55 +1031,55 @@ namespace nd4j {
 				col6d = new NDArray<T>('c', {bS, iD, oH, oW, kH, kW});
 				col6dPermuted = col6d->permute({0, 1, 4, 5, 2, 3});
 				epsilon1d = epsilon->reshape('c', {epsilon->lengthOf(), 1}); //zero copy reshape
-			} 
-			else {            
+			}
+			else {
 				col6d = new NDArray<T>('c', {iD, bS, oH, oW, kH, kW});
 				col6dPermuted = col6d->permute({1, 0, 4, 5, 2, 3});
 				NDArray<T>* epsilonTemp = epsilon->permute({1, 0, 2, 3});
 				epsilon1d = epsilonTemp->reshape('c', {epsilon->lengthOf(), 1}); //Should be a zero-copy reshape always
 				delete epsilonTemp;
 			}
-			
-			NDArray<T>* col2d = col6d->reshape('c', {bS*iD*oH*oW, kH*kW});			         
-		
+
+			NDArray<T>* col2d = col6d->reshape('c', {bS*iD*oH*oW, kH*kW});
+
 			T extraParams1[] = {kW, kH, sW, sH, pdW, pdH, dW, dH, convMode};
 			input->template applyTransform<simdOps::Im2col<T>>(col6dPermuted, extraParams1);
-			
+
 			//FIXME: this op should be moved to CustomOps
-			T extraParams2[] = {(T)1.f, (T)1.f};            
+			T extraParams2[] = {(T)1.f, (T)1.f};
 			col2d->template applyTransform<simdOps::IsMax<T>>(col2d, extraParams2);
 			nd4j::NDArrayFactory::mmulHelper<T>(col2d, epsilon1d, col2d, 1.f, 0.f);
 
 			// NDArray<T>* tempEpsilon = new NDArray<T>('c', {iD, bS, pH, pW});
 			// NDArray<T>* outEpsilon = tempEpsilon.permute({1, 0, 2, 3});
 			T extraParams3[] = {sW, sH, pdW, pdH, 0.f, 0.f, dW, dH};   			// ??? zeros
-			col6dPermuted->template applyTransform<simdOps::Col2Im<T>>(outEpsilon, extraParams3);        
-			
-			
+			col6dPermuted->template applyTransform<simdOps::Col2Im<T>>(outEpsilon, extraParams3);
+
+
             STORE_RESULT(*outEpsilon);		// ???
 
-			if(isEpsilonDup) 
+			if(isEpsilonDup)
 				delete epsilon;
 			delete col6d;
 			delete col6dPermuted;
 			delete epsilon1d;
             delete col2d;
 			// delete tempEpsilon;
-			return ND4J_STATUS_OK;         
+			return ND4J_STATUS_OK;
         }
 
 		//////////////////////////////////////////////////////////////////////////
 		// DECLARE_SHAPE_FN(pool2D) {
 			// NDArray<T> *x = block.getVariables().at(0)->getNDArray();
 			// // 0 - number of dimensions; 1,2 - kernel Height/Width; 3,4 - stride Height/Width; 5,6 - pad Height/Width; 7,8 - dilation Height/Width; 9,10 - input Height/Width; 11 - batch size; 12 - input depth; 13 - same mode
-			// std::vector<int> argI = *(block.getIArguments());										
+			// std::vector<int> argI = *(block.getIArguments());
 			// int rank = argI[0];
 			// int kH = argI[1];
 			// int kW = argI[2];
 			// int sH = argI[3];
 			// int sW = argI[4];
 			// int pH = argI[5];
-			// int pW = argI[6];			
+			// int pW = argI[6];
 			// int dH = argI[7];
 			// int dW = argI[8];
 			// int iH = argI[9];
@@ -1196,7 +1087,7 @@ namespace nd4j {
 			// int bS = argI[11];
 			// int iD = argI[12];
 			// int isSameMode = argI[13];
-		
+
 			// int oH, oW;
 
 			// if(isSameMode > 0) {
@@ -1204,19 +1095,19 @@ namespace nd4j {
 				// oW = (int) nd4j::math::nd4j_ceil(iW / ((T) sW));
 			// }
 			// else {
-				// oH = (iH - kH - (kH-1)*(dH-1) + 2*pH)/sH + 1;		
-				// oW = (iW - kW - (kW-1)*(dW-1) + 2*pW)/sW + 1;		
+				// oH = (iH - kH - (kH-1)*(dH-1) + 2*pH)/sH + 1;
+				// oW = (iW - kW - (kW-1)*(dW-1) + 2*pW)/sW + 1;
 			// }
-			// // allocate memory for new shape			 
-            // int* newShape = nullptr;            
+			// // allocate memory for new shape
+            // int* newShape = nullptr;
             // ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(rank), int);
-			// newShape[0] = rank; 
-			// newShape[1] = bS; 
-			// newShape[2] = iD; 
+			// newShape[0] = rank;
+			// newShape[1] = bS;
+			// newShape[2] = iD;
 			// newShape[3] = oH;
 			// newShape[4] = oW;
-            // shape::updateStrides(newShape, 'c');		
-            
+            // shape::updateStrides(newShape, 'c');
+
 			// return ShapeList(newShape);
 		// }
 
