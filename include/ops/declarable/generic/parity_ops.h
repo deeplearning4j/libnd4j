@@ -1177,6 +1177,49 @@ namespace nd4j {
 			return ND4J_STATUS_OK;         
         }
 
+		//////////////////////////////////////////////////////////////////////////
+		// DECLARE_SHAPE_FN(pool2D) {
+			// NDArray<T> *x = block.getVariables().at(0)->getNDArray();
+			// // 0 - number of dimensions; 1,2 - kernel Height/Width; 3,4 - stride Height/Width; 5,6 - pad Height/Width; 7,8 - dilation Height/Width; 9,10 - input Height/Width; 11 - batch size; 12 - input depth; 13 - same mode
+			// std::vector<int> argI = *(block.getIArguments());										
+			// int rank = argI[0];
+			// int kH = argI[1];
+			// int kW = argI[2];
+			// int sH = argI[3];
+			// int sW = argI[4];
+			// int pH = argI[5];
+			// int pW = argI[6];			
+			// int dH = argI[7];
+			// int dW = argI[8];
+			// int iH = argI[9];
+			// int iW = argI[10];
+			// int bS = argI[11];
+			// int iD = argI[12];
+			// int isSameMode = argI[13];
+		
+			// int oH, oW;
+
+			// if(isSameMode > 0) {
+				// oH = (int) nd4j::math::nd4j_ceil(iH / ((T) sH));
+				// oW = (int) nd4j::math::nd4j_ceil(iW / ((T) sW));
+			// }
+			// else {
+				// oH = (iH - kH - (kH-1)*(dH-1) + 2*pH)/sH + 1;		
+				// oW = (iW - kW - (kW-1)*(dW-1) + 2*pW)/sW + 1;		
+			// }
+			// // allocate memory for new shape			 
+            // int* newShape = nullptr;            
+            // ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(rank), int);
+			// newShape[0] = rank; 
+			// newShape[1] = bS; 
+			// newShape[2] = iD; 
+			// newShape[3] = oH;
+			// newShape[4] = oW;
+            // shape::updateStrides(newShape, 'c');		
+            
+			// return ShapeList(newShape);
+		// }
+
     }
 }
 

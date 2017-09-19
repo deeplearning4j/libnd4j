@@ -90,10 +90,6 @@ namespace simdOps {
 
 			int height_col = outShape[4];
 			int width_col = outShape[5];
-			// fill resultShapeBuffer
-			resultShapeBuffer[3] = height_col;
-			resultShapeBuffer[4] = width_col;
-			shape::updateStrides(resultShapeBuffer, shape::order(resultShapeBuffer));
 			int n = samples * depth * height_col * width_col;
 
             T res;
@@ -222,10 +218,6 @@ namespace simdOps {
 
 			int height_col = outShape[4];
 			int width_col = outShape[5];
-			// fill resultShapeBuffer
-			resultShapeBuffer[3] = height_col;
-			resultShapeBuffer[4] = width_col;
-			shape::updateStrides(resultShapeBuffer, shape::order(resultShapeBuffer));
 
 			int n = samples * depth * height_col * width_col;
 
