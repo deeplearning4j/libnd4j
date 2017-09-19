@@ -615,6 +615,9 @@ bool nd4j::ops::DeclarableOp<T>::prepareOutputs(Block<T> &block) {
 
             block.getVariableSpace()->putVariable(pair, outArr);
         }
+
+        outSha->destroy();
+        delete outSha;
     }
 
     return true;
