@@ -247,25 +247,71 @@ namespace nd4j {
             return ND4J_STATUS_OK;
         }
 
+        //////////////////////////////////////////////////////////////////////////
+        // maxpool corresponds to poolingMode=0
+        DECLARE_CONFIGURABLE_OP(maxpool, 1, 1, false, 0, 11) {
+            REQUIRE_OK(this->validateInputLengthMatch(block));
+            REQUIRE_OK(this->validateInputDimensionsMatch(block));
+            NDArray<T> *x = block.getVariables().at(0)->getNDArray();
+            std::vector<int> argI = *(block.getIArguments());							// 0 - number of dimensions; 1,2 - kernel Height/Width; 3,4 - stride Height/Width; 5,6 - pad Height/Width; 7,8 - dilation Height/Width; 9,10 - output Height/Width)
+            std::vector<T> argT = {argI[1], argI[2], argI[3], argI[4], argI[5], argI[6], argI[7], argI[8], (T)0.f, (T)0.f, (T)0.f, argI[9], argI[10]};  // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8,9 - poolingMode; 10 - divisor; 11,12 - output Height/Width
 
+            auto z = this->getZ(block);
+            x->template applyTransform<simdOps::Pooling2D<T>>(z, argT.data());
 
+            STORE_RESULT(*z);
 
-//////////////////////////////////////////////////////////////////////////
-        DECLARE_OP(maxpool, 2, 1, true) {
-            // MaxPooling
             return ND4J_STATUS_OK;
         }
         DECLARE_SYN(MaxPool2D, maxpool);
         DECLARE_SYN(MaxPool, maxpool);
 
 //////////////////////////////////////////////////////////////////////////
-        DECLARE_OP(avgpool, 2, 1, true) {
-            // AvgPooling
+        // avgpool corresponds to poolingMode=1
+        DECLARE_CONFIGURABLE_OP(avgpool, 1, 1, false, 0, 9) {
+
+            NDArray<T> *x = block.getVariables().at(0)->getNDArray();
+            std::vector<int> argI = *(block.getIArguments());							// 0 - number of dimensions; 1,2 - kernel Height/Width; 3,4 - stride Height/Width; 5,6 - pad Height/Width; 7,8 - dilation Height/Width;
+            argI.erase(argI.begin(), argI.begin()+1);									// erase first element (number of dimensions)
+            std::vector<T> argT(argI.size());
+            for(int i=0; i<argI.size(); ++i)
+                argT[i] = argI[i];
+            argT.emplace_back(1.f); argT.emplace_back(1.f);								// set poolingMode
+            argT.emplace_back(1.f);
+            auto z = this->getZ(block);
+
+            x->template applyTransform<simdOps::Pooling2D<T>>(z, argT.data());
+
+            STORE_RESULT(*z);
+
             return ND4J_STATUS_OK;
         }
         DECLARE_SYN(AvgPool2D, avgpool);
         DECLARE_SYN(AvgPool, avgpool);
 
+//////////////////////////////////////////////////////////////////////////
+        // pnormpool corresponds to poolingMode=2
+        DECLARE_CONFIGURABLE_OP(pnormpool, 1, 1, false, 1, 9) {
+
+            NDArray<T> *x = block.getVariables().at(0)->getNDArray();
+            std::vector<int> argI = *(block.getIArguments());							// 0 - number of dimensions; 1,2 - kernel Height/Width; 3,4 - stride Height/Width; 5,6 - pad Height/Width; 7,8 - dilation Height/Width;
+            argI.erase(argI.begin(), argI.begin()+1);									// erase first element (number of dimensions)
+            std::vector<T> argT(argI.size());
+            for(int i=0; i<argI.size(); ++i)
+                argT[i] = argI[i];
+            argT.emplace_back(2.f); argT.emplace_back(2.f); 						// set poolingMode
+            argT.emplace_back(block.getTArguments()->at(0));						// set extraParam0 (divisor) for dividing
+
+            auto z = this->getZ(block);
+
+            x->template applyTransform<simdOps::Pooling2D<T>>(z, argT.data());
+
+            STORE_RESULT(*z);
+
+            return ND4J_STATUS_OK;
+        }
+        DECLARE_SYN(PnormPool2D, pnormpool);
+        DECLARE_SYN(PnormPool, pnormpool);
 
 //////////////////////////////////////////////////////////////////////////
         DECLARE_CONFIGURABLE_OP(maxpool3d, 1, 2, true, 0, 13) {
