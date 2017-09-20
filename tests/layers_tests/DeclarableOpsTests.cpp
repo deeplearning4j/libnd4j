@@ -1756,6 +1756,33 @@ TEST_F(DeclarableOpsTests, Pnormpool2d1) {
 }
 
 //////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests, MaxPoolBP) {
+
+	NDArray<float> input  ('c', {bS,iD,iH,iW});
+	NDArray<float> epsilon('c', {bS,iD,oH,oW});
+	NDArray<float> exp    ('c', {bS,iD,iH,iW});
+	
+	VariableSpace<float>* variableSpace = new VariableSpace<float>();
+    variableSpace->putVariable(-1, &input);
+	variableSpace->putVariable(-2, &epsilon);
+	// variableSpace->putVariable(1, &z);
+
+	Block<float>* block = new Block<float>(1, variableSpace, false);
+    block->fillInputs({-1});
+	block->fillInputs({-2});
+	std::vector<int>* argI = block->getIArguments();
+	*argI = {4, kH,kW, sH,sW, pH,pW, dW,dH, iH,iW, bS, iD, 0};
+
+	nd4j::ops::maxpool2d_bp<float> bp;
+	Nd4jStatus status = bp.execute(block);
+    ASSERT_EQ(ND4J_STATUS_OK, status);
+	
+	NDArray<float>* result = block->getVariableSpace()->getVariable(block->getNodeId())->getNDArray();
+    ASSERT_TRUE(exp.isSameShape(result));
+
+}
+
+//////////////////////////////////////////////////////////////////////
 // TEST_F(DeclarableOpsTests, Sum2) {
 
 	// float xBuff[] = {1, 2, 3, 4, 5, 6, 7, 8};
@@ -1784,58 +1811,4 @@ TEST_F(DeclarableOpsTests, Pnormpool2d1) {
 	// result->printBuffer();
 	// ASSERT_EQ(ND4J_STATUS_OK, status);
 	// ASSERT_TRUE(result->getScalar(0,0) == exp.getScalar(0,0));
-// }
-
-// TEST_F(DeclarableOpsTests, MaxPoolBP) {
-
-	// NDArray<float> input('c',{bS,iD,iH,iW});
-	// NDArray<float> epsilon(5, 3, 'c');
-	// NDArray<float> exp(5, 3, 'c');
-	// x.assign(6);
-	// y.assign(2);
-	// exp.assign(3);
-
-	// VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    // variableSpace->putVariable(-1, &x);
-    // variableSpace->putVariable(-2, &y);
-	// Block<float>* block = new Block<float>(1, variableSpace, true);
-    // block->fillInputs({-1, -2});
-
-	// nd4j::ops::divide<float> div;
-
-	// div.execute(block);
-
-    // ASSERT_TRUE(x.equalsTo(&exp));
-
-
-
-
-
-
-
-// float xBuff[] = {1, 2, 3, 4, 5, 6, 7, 8};
-	// int xShape[]  = {2, 4, 2, 2, 1, 0, 1, 99};
-	// float expBuff[] = {16, 20};
-	// int expShape[]  = {2, 1, 2, 2, 1, 0, 1, 99};
-
-	// const std::vector<int> dimensions = {1,0};
-
-	// NDArray<float> x(xBuff, xShape);
-	// NDArray<float> z(1, 2);
-	// NDArray<float> exp(expBuff, expShape);
-
-	// VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    // variableSpace->putVariable(-1, &x);
-	// variableSpace->putVariable(1, &z);
-
-	// Block<float>* block = new Block<float>(1, variableSpace, false);  // not-in-place
-    // block->fillInputs({-1});
-	// std::vector<int>* arguments = block->getIArguments();
-	// *arguments = dimensions;
-
-	// nd4j::ops::sum<float> sum;
-	// Nd4jStatus status = sum.execute(block);
-	// NDArray<float>* result = block->getVariableSpace()->getVariable(block->getNodeId())->getNDArray();
-	// ASSERT_EQ(ND4J_STATUS_OK, status);
-	// ASSERT_TRUE(result->equalsTo(&exp));
 // }

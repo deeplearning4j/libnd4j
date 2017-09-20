@@ -1158,6 +1158,95 @@ namespace nd4j {
 
             return list;
         }
+		
+		//////////////////////////////////////////////////////////////////////////
+		DECLARE_CUSTOM_OP(maxpool2d_bp, 2, 1, false, 0, 14) {
+
+            NDArray<T>* input = block.getVariables().at(0)->getNDArray();
+			NDArray<T>* epsilon = block.getVariables().at(1)->getNDArray();
+			NDArray<T>* outEpsilon = this->getZ(block);
+			std::vector<int> argI = *(block.getIArguments());
+			
+			int kH = argI[1];
+			int kW = argI[2];
+			int sH = argI[3];
+			int sW = argI[4];
+			int pH = argI[5];
+			int pW = argI[6];
+			int dH = argI[7];
+			int dW = argI[8];
+			int iH = argI[9];
+			int iW = argI[10];
+			int bS = argI[11];
+			int iD = argI[12];
+			int isSameMode = argI[13];
+
+			// calculate output Height/Width
+			int oH, oW;
+			nd4j::ops::calcOutHWpool2D(oH, oW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);			
+
+			bool cOrderStrides = false;
+			bool isEpsilonDup = false;
+			if (epsilon->ordering() != 'c') {
+				epsilon = epsilon->dup('c');
+				cOrderStrides = true;
+				isEpsilonDup = true;
+			}
+
+			int strideToCompare[] = {oH*oW, iD*oH*oW, oW, 1};
+			if (!cOrderStrides && shape::strideDescendingCAscendingF(epsilon->getShapeInfo())) {
+				cOrderStrides = true;
+			}
+			else if (!shape::strideEquals(strideToCompare, 4, epsilon->stridesOf(), epsilon->rankOf())) {
+				epsilon = epsilon->dup('c');
+				cOrderStrides = true;
+				isEpsilonDup = true;
+			}
+
+			NDArray<T>* col6d = nullptr;
+			NDArray<T>* col6dPermuted = nullptr;
+			NDArray<T>* epsilon1d = nullptr;
+
+			if (cOrderStrides) {
+				col6d = new NDArray<T>('c', {bS, iD, oH, oW, kH, kW});
+				col6dPermuted = col6d->permute({0, 1, 4, 5, 2, 3});
+				epsilon1d = epsilon->reshape('c', {epsilon->lengthOf(), 1}); //zero copy reshape
+			}
+			else {
+				col6d = new NDArray<T>('c', {iD, bS, oH, oW, kH, kW});
+				col6dPermuted = col6d->permute({1, 0, 4, 5, 2, 3});
+				NDArray<T>* epsilonTemp = epsilon->permute({1, 0, 2, 3});
+				epsilon1d = epsilonTemp->reshape('c', {epsilon->lengthOf(), 1}); //Should be a zero-copy reshape always
+				delete epsilonTemp;
+			}
+
+			NDArray<T>* col2d = col6d->reshape('c', {bS*iD*oH*oW, kH*kW});
+
+			T extraParams1[] = {kW, kH, sW, sH, pW, pH, dW, dH};
+			input->template applyTransform<simdOps::Im2col<T>>(col6dPermuted, extraParams1);
+
+			//FIXME: this op should be moved to CustomOps
+			T extraParams2[] = {(T)1.f, (T)1.f};
+			col2d->template applyTransform<simdOps::IsMax<T>>(col2d, extraParams2);
+			nd4j::NDArrayFactory::mmulHelper<T>(col2d, epsilon1d, col2d, 1.f, 0.f);
+
+			// NDArray<T>* tempEpsilon = new NDArray<T>('c', {iD, bS, iH, iW});
+			// NDArray<T>* outEpsilon = tempEpsilon.permute({1, 0, 2, 3});
+			T extraParams3[] = {sW, sH, pW, pH, iH, iW, dW, dH};   			// ??? zeros
+			col6dPermuted->template applyTransform<simdOps::Col2Im<T>>(outEpsilon, extraParams3);
+            
+			STORE_RESULT(*outEpsilon);		// ???
+
+			if(isEpsilonDup)
+				delete epsilon;
+			delete col6d;
+			delete col6dPermuted;
+			delete epsilon1d;
+            delete col2d;
+			// delete tempEpsilon;
+			return ND4J_STATUS_OK;
+        }
+
     }
 }
 
