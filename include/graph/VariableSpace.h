@@ -260,7 +260,7 @@ nd4j::graph::Variable<T> * nd4j::graph::VariableSpace<T>::getVariable(int32_t id
 template <typename T>
 nd4j::graph::VariableSpace<T>::~VariableSpace() {
     //std::map<int32_t, nd4j::graph::Variable<T> *>().swap(_variables);
-    _variables.clear();
+    //_variables.clear();
 
     // loop through variables and release them
     for (auto p: *_handles) {
