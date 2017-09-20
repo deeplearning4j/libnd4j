@@ -1756,6 +1756,33 @@ TEST_F(DeclarableOpsTests, Pnormpool2d1) {
 }
 
 //////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests, IsMax1) {
+
+	float xBuff[]   = {1,2,3,4,5,6,7,8,9};
+	int xShape[]    = {2,3,3,3,1,0,1,99};
+	float expBuff[] = {0,0,1,0,0,1,0,0,1};
+
+	NDArray<float> x(xBuff, xShape);	
+	NDArray<float> exp(expBuff, xShape);	
+
+	VariableSpace<float>* variableSpace = new VariableSpace<float>();
+    variableSpace->putVariable(-1, &x);
+
+	Block<float>* block = new Block<float>(1, variableSpace, false);
+    block->fillInputs({-1});
+	std::vector<int>* argI = block->getIArguments();
+	*argI = {1};
+
+	nd4j::ops::ismax<float> ismax;
+	Nd4jStatus status = ismax.execute(block);
+    ASSERT_EQ(ND4J_STATUS_OK, status);
+	
+	NDArray<float>* result = block->getVariableSpace()->getVariable(block->getNodeId())->getNDArray();	
+    ASSERT_TRUE(exp.equalsTo(result));
+}
+
+
+// //////////////////////////////////////////////////////////////////////
 TEST_F(DeclarableOpsTests, MaxPoolBP) {
 
 	NDArray<float> input  ('c', {bS,iD,iH,iW});

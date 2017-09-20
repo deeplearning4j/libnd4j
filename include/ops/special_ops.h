@@ -306,6 +306,8 @@ namespace simdOps {
                     result[index] = res;
                 }
             }
+			if(tadShapeInfo==nullptr)
+				delete im2colShapeInfo;
 		}
 
 		op_def static T op(T d1, T *params) {

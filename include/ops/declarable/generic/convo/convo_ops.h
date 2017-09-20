@@ -1246,6 +1246,369 @@ namespace nd4j {
 			// delete tempEpsilon;
 			return ND4J_STATUS_OK;
         }
+	
+		//////////////////////////////////////////////////////////////////////////
+		DECLARE_CONFIGURABLE_OP(ismax, 1, 1, false, 0, -1) {			
+			// T *dx,
+			// int *xShapeBuffer,
+			// T *result,
+			// int *resultShapeBuffer,
+			// T *extraParams, int *tadShapeInfo, Nd4jIndex *tadOffsets
+			NDArray<T>* x = block.getVariables().at(0)->getNDArray();			
+			NDArray<T>* z = this->getZ(block);
+			std::vector<int> dimensions = *(block.getIArguments());			// argI
+
+			if (x->isVector()) {
+				int dimensionsLength = dimensions.size();
+				int length = x->lengthOf();
+				if ((x->shapeOf())[dimensions[0]] == 1) {
+					for (int i = 0; i < length; i++)
+						z->putScalar(i, 1.f);
+				}
+				else {
+					int eleStride = shape::elementWiseStride(x->getShapeInfo());
+					if (eleStride == 1) {
+						int maxIdx = 0;
+						T currMax = x->getScalar(0);
+						if (length < ELEMENT_THRESHOLD) {
+
+//#pragma omp simd reduction(max:maxIdx,currMax)
+							for (int i = 0; i < length; i++) {
+								if (currMax < x->getScalar(i)) {
+									currMax = x->getScalar(i);
+									maxIdx = i;
+								}
+								x->putScalar(i, 0.f);
+							}
+						}
+						else {
+#pragma omp parallel proc_bind(AFFINITY) default(shared)
+{
+							int maxIdxLocal = maxIdx;
+							T currMaxLocal = currMax;
+//#pragma omp simd reduction(max:maxIdxLocal,currMaxLocal)
+							for (int i = 0; i < length; i++) {
+								if (currMaxLocal < x->getScalar(i)) {
+									currMaxLocal = x->getScalar(i);
+									maxIdxLocal = i;
+								}
+								z->putScalar(i, 0.f);
+							}
+#pragma omp critical
+                            {
+							    if (currMax < currMaxLocal) {
+								    currMax = currMaxLocal;
+								    maxIdx = maxIdxLocal;
+							    }
+                            }
+}
+						}
+						z->putScalar(maxIdx, 1.f);
+					}
+					else {
+						int maxIdx = 0;
+						T currMax = x->getScalar(0);
+						if (length < ELEMENT_THRESHOLD) {
+//#pragma omp parallel for reduction(max:maxIdx,currMax) proc_bind(AFFINITY)
+							for (int i = 0; i < length; i++) {
+								if (currMax < x->getScalar(i*eleStride)) {
+									currMax = x->getScalar(i*eleStride);
+									maxIdx = i;
+								}
+								z->putScalar(i, 0.f);
+							}
+						}
+						else {
+#pragma omp parallel proc_bind(AFFINITY) default(shared)
+{
+							int maxIdxLocal = maxIdx;
+							T currMaxLocal = currMax;
+//#pragma omp parallel for reduction(max:maxIdx,currMax)  proc_bind(AFFINITY)
+							for (int i = 0; i < length; i++) {
+								if (currMaxLocal < x->getScalar(i*eleStride)) {
+									currMaxLocal = x->getScalar(i*eleStride);
+									maxIdxLocal = i;
+								}
+								z->putScalar(i, 0.f);
+							}
+#pragma omp critical
+{
+							if (currMax < currMaxLocal) {
+								currMax = currMaxLocal;
+								maxIdx = maxIdxLocal;
+							}
+}
+}
+						}
+						z->putScalar(maxIdx, 1.f);
+					}
+				}
+			}
+			else {
+                int dimensionsLength = dimensions.size();
+//                int tads = tad.numTads;
+                //decompose in to several sub tads after
+                //moving all dimensions (in sorted order)
+                //to the back.
+                //permuted version of the x shape info for setting up the tad problem
+                shape::TAD tad(x->getShapeInfo(), dimensions.data(), dimensionsLength);
+                tad.createTadOnlyShapeInfo();
+                tad.createOffsets();
+						
+                int *tadShapeShapeInfo = tad.tadOnlyShapeInfo;
+				Nd4jIndex* tadOffsets = tad.tadOffsets;
+
+                int tadLength = shape::tadLength(x->getShapeInfo(), dimensions.data(), dimensionsLength);
+                int tads = x->lengthOf() / tadLength;
+
+                int tadsPerThread = tads / TAD_THRESHOLD;
+                int num_threads = nd4j::math::nd4j_max<int>(1, tadsPerThread);
+                num_threads = nd4j::math::nd4j_min<int>(num_threads, omp_get_max_threads());
+
+                int tadEWS = shape::elementWiseStride(tadShapeShapeInfo);
+                int zEWS = tadEWS;
+
+                int span = (tads / num_threads) + 8;
+
+#pragma omp parallel num_threads(num_threads) if (num_threads>1) proc_bind(AFFINITY)
+                {
+                    int tid = omp_get_thread_num();
+                    int start = span * tid;
+                    int end = span * (tid + 1);
+                    if (end > tads) end = tads;
+
+                    for (int r = start; r < end; r++) {
+                        if (tadEWS > 0 && zEWS > 0 && dimensionsLength == 1) {
+                            T *rX = x->getBuffer() + tadOffsets[r];
+                            T *rZ = z->getBuffer() + tadOffsets[r];
+
+                            T maxValue = rX[0];
+                            int maxIdx = 0;
+                            if (tadEWS == 1 && zEWS == 1) {
+//#pragma omp simd reduction(max:maxValue,maxIdx)
+                                for (int i = 0; i < tadLength; i++) {
+                                    if (rX[i] > maxValue) {
+                                        maxIdx = i;
+                                        maxValue = rX[i];
+                                    }
+                                }
+
+#pragma omp simd
+                                for (int i = 0; i < tadLength; i++) {
+                                    rZ[i] = maxIdx == i ? (T) 1.0 : (T) 0.0;
+                                }
+
+                            } else {
+
+//#pragma omp parallel for reduction(max:maxValue,maxIdx) default(shared)
+                                for (int i = 0; i < tadLength; i++) {
+                                    if (rX[i * tadEWS] > maxValue) {
+                                        maxIdx = i;
+                                        maxValue = rX[i * tadEWS];
+                                    }
+                                }
+
+#pragma omp simd
+                                for (int i = 0; i < tadLength; i++) {
+                                    rZ[i * zEWS] = maxIdx == i ? (T) 1.0 : (T) 0.0;
+                                }
+                            }
+                        } else {
+                            int tadsPerThread = tads / TAD_THRESHOLD;
+                            int num_threads = nd4j::math::nd4j_max<int>(1, tadsPerThread);
+                            num_threads = nd4j::math::nd4j_min<int>(num_threads, omp_get_max_threads());
+
+                            int offset = tadOffsets[r];
+                            int shapeIter[MAX_RANK];
+                            int coord[MAX_RANK];
+                            int dim;
+                            int xStridesIter[MAX_RANK];
+                            int resultStridesIter[MAX_RANK];
+                            int *xShape = shape::shapeOf(tadShapeShapeInfo);
+                            int *xStride = shape::stride(tadShapeShapeInfo);
+                            int *resultStride = shape::stride(tadShapeShapeInfo);
+                            int rank = shape::rank(tadShapeShapeInfo);
+                            T *xPointer = x->getBuffer() + offset;
+                            T *resultPointer = z->getBuffer() + offset;
+                            T maxValue = xPointer[0];
+
+                            T *maxCursor = resultPointer;
+                            Nd4jPointer maxCursorLong = reinterpret_cast<Nd4jPointer>(maxCursor);
+                            if (PrepareTwoRawArrayIter<T>(rank,
+                                                             xShape,
+                                                             xPointer,
+                                                             xStride,
+                                                             resultPointer,
+                                                             resultStride,
+                                                             &rank,
+                                                             shapeIter,
+                                                             &xPointer,
+                                                             xStridesIter,
+                                                             &resultPointer,
+                                                             resultStridesIter) >= 0) {
+                                   ND4J_RAW_ITER_START(dim, rank, coord, shapeIter); {
+                                       if (maxValue < xPointer[0]) {
+                                           maxCursor = resultPointer;
+                                           maxCursorLong = reinterpret_cast<Nd4jPointer>(resultPointer);
+                                           maxValue = xPointer[0];
+                                       }
+
+                                       resultPointer[0] = 0.0;
+                                   }
+                                   ND4J_RAW_ITER_TWO_NEXT(dim,
+                                                          rank,
+                                                          coord,
+                                                          shapeIter,
+                                                          xPointer,
+                                                          xStridesIter,
+                                                          resultPointer,
+                                                          resultStridesIter);
+                                   maxCursor = reinterpret_cast<T *>(maxCursorLong);
+                                   maxCursor[0] = 1.0;
+                            }
+                        }
+                    }
+                }
+            }
+			return ND4J_STATUS_OK;
+		}
+
+		//////////////////////////////////////////////////////////////////////////        
+        DECLARE_CUSTOM_OP(pooling2d, 1, 1, false, 1, 15) {
+
+			REQUIRE_OK(this->validateInputLengthMatch(block));
+            REQUIRE_OK(this->validateInputDimensionsMatch(block));
+            NDArray<T> *x = block.getVariables().at(0)->getNDArray();			
+            std::vector<int> argI = *(block.getIArguments());				// 0 - number of dimensions; 1,2 - kernel Height/Width; 3,4 - stride Height/Width; 5,6 - pad Height/Width; 7,8 - dilation Height/Width; 9,10 - input Height/Width; 11 - batch size; 12 - input depth; 13 - same mode; 14 - pooling mode
+			std::vector<T> argT = *(block.getTArguments());					// 0 - divisor for pnorm mode -> extraParam0
+            auto z = this->getZ(block);
+			int kH = argT[1];
+			int kW = argT[2];
+			int sH = argI[3];
+			int sW = argI[4];
+			int pH = argI[5];
+			int pW = argI[6];
+			int dH = argI[7];			//Dilation, height dimension
+			int dW = argI[8];			//Dilation, width dimension
+			int poolingMode = argI[14];;
+			T extraParam0 = argT[0];
+
+			int kSize = kW * kH;
+
+			int *inShape = shape::shapeOf(x->getShapeInfo());
+			int *inStride = shape::stride(x->getShapeInfo());
+
+			int samples = inShape[0];
+			int depth = inShape[1];
+			int height = inShape[2];
+			int width = inShape[3];
+
+			int strideex = inStride[0];
+			int stridech = inStride[1];
+			int strideh = inStride[2];
+			int stridew = inStride[3];
+
+			int outH = (z->getShapeInfo())[3];
+			int outW = (z->getShapeInfo())[4];			
+            int *im2colShapeInfo = new int[16] {6, samples, depth, kH, kW, outH, outW, depth*kH*kW*outH*outW, kH*kW*outH*outW, kW*outH*outW, outH*outW, outW, 1, 0, 1, 99};
+
+            int *outShape = shape::shapeOf(im2colShapeInfo);
+            int *outStride = shape::stride(im2colShapeInfo);
+
+			int height_col = outShape[4];
+			int width_col = outShape[5];
+
+			int n = samples * depth * height_col * width_col;
+
+			int _threads = omp_get_max_threads();
+			int span = (n / _threads) + 1;
+
+
+#pragma omp parallel num_threads(_threads) proc_bind(close)
+            {
+				int tid = omp_get_thread_num();
+				int start = span * tid;
+				int end = span * (tid + 1);
+				if (end > n) end = n;
+                T res;
+
+                for (int index = start; index < end; index++) {
+                    int h_index = index / width_col;
+                    int h_col = h_index % height_col;
+                    int w_col = index % width_col;
+
+                    int c_im = h_index / height_col;
+                    int c_col = c_im * kSize;
+
+                    int depth_im = c_im % depth;
+                    int num_im = c_im / depth;
+                    int h_offset = h_col * sH - pH;
+                    int w_offset = w_col * sW - pW;
+
+                    T *data_col_ptr = z->getBuffer();
+
+                    int i_c = (c_col * height_col + h_col) * width_col + w_col;
+                    data_col_ptr += (c_col * height_col + h_col) * width_col + w_col;
+
+                    T *data_im_ptr = x->getBuffer();
+
+                    data_im_ptr += num_im * strideex + depth_im * stridech + h_offset * strideh + w_offset * stridew;
+                    res = poolingMode == 0 ? (T) -MAX_FLOAT : (T) 0.0f;
+
+                    for (int i = 0; i < kH; ++i) {
+                        for (int j = 0; j < kW; ++j) {
+                            int h_im = h_offset + i * dH;
+                            int w_im = w_offset + j * dW;
+                            int i_f = 0;
+                            int i_c_temp = i_c;
+                            for (int dim = 5; dim >= 0; dim--) {
+                                i_f += (i_c_temp % outShape[dim]) * outStride[dim];
+                                i_c_temp = i_c_temp / outShape[dim];
+                            }
+
+                            T val;
+                            if (h_im >= 0 && w_im >= 0 && h_im < height && w_im < width)
+                                val = data_im_ptr[i * dH * strideh + j * dW * stridew];
+                            else
+                                val = (T) 0.0f;
+
+                            //kernel[i * kH + j] = val;
+                            // max
+                            if (poolingMode == 0) {
+                                if (res < val)
+                                    res = val;
+                            // avg
+                            } else if (poolingMode == 1) {
+                                res += val;
+
+                            // phorm
+                            } else if (poolingMode == 2) {
+                                res += nd4j::math::nd4j_pow<T>(nd4j::math::nd4j_abs<T>(val), extraParam0);
+                            }
+
+                            //result[i_f] = (h_im >= 0 && w_im >= 0 && h_im < height && w_im < width) ? data_im_ptr[i * strideh + j*stridew] : 0;
+                            data_col_ptr += height_col * width_col;
+                            i_c += height_col * width_col;
+                        }
+                    }
+
+                    // avg final step
+                    if (poolingMode == 1) {
+                        res /= kSize;
+
+                    // pnorm final step
+                    } else if (poolingMode == 2) {
+                        res = nd4j::math::nd4j_pow<T>(res, (T) 1.0f /  extraParam0);
+                    }
+
+                    z->putScalar(index,res);
+                }
+            }
+			delete im2colShapeInfo;
+			return ND4J_STATUS_OK;
+		}
+
+
 
     }
 }

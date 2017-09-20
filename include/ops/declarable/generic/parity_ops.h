@@ -1012,6 +1012,42 @@ namespace nd4j {
 
 			return new ShapeList(newShapeInfo);
 		}	
+			
+		//////////////////////////////////////////////////////////////////////////
+		DECLARE_SHAPE_FN(pooling2d) {
+			NDArray<T> *x = block.getVariables().at(0)->getNDArray();
+			// 0 - number of dimensions; 1,2 - kernel Height/Width; 3,4 - stride Height/Width; 5,6 - pad Height/Width; 7,8 - dilation Height/Width; 9,10 - input Height/Width; 11 - batch size; 12 - input depth; 13 - same mode; 
+			std::vector<int> argI = *(block.getIArguments());			
+			int kH = argI[1];
+			int kW = argI[2];
+			int sH = argI[3];
+			int sW = argI[4];
+			int pH = argI[5];
+			int pW = argI[6];
+			int dH = argI[7];
+			int dW = argI[8];
+			int iH = argI[9];
+			int iW = argI[10];
+			int bS = argI[11];
+			int iD = argI[12];
+			int isSameMode = argI[13];
+			char order = (block.getVariables().at(0)->getNDArray())->ordering();  // output order must be equal to input order
+
+			// calculate output Height/Width
+			int oH, oW;
+			nd4j::ops::calcOutHWpool2D(oH, oW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);
+			// allocate memory for new shape
+            int* newShapeInfo = nullptr;
+            ALLOCATE(newShapeInfo, block.getWorkspace(), 12, int);
+			newShapeInfo[0] = 4;		// rank
+			newShapeInfo[1] = bS;
+			newShapeInfo[2] = iD;
+			newShapeInfo[3] = oH;
+			newShapeInfo[4] = oW;
+            shape::updateStrides(newShapeInfo, order);
+
+			return new ShapeList(newShapeInfo);
+		}
 
 		//////////////////////////////////////////////////////////////////////////
 		DECLARE_SHAPE_FN(maxpool2d_bp) {
