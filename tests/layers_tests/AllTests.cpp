@@ -14,7 +14,7 @@
 #include "ConvolutionTests.h"
 ///////
 
-#include "CyclicTests.h"
+//#include "CyclicTests.h"
 // #include "ProtoBufTests.cpp"
 
 int main(int argc, char **argv) {

@@ -83,6 +83,8 @@ TEST_F(CyclicTests, TestGraphExecution1) {
         //Nd4jStatus status = GraphExecutioner<float>::execute();
         //ASSERT_EQ(ND4J_STATUS_OK, status);
 
+        graph->estimateRequiredMemory();
+
         GraphExecutioner<float>::execute(graph);
 
         ASSERT_EQ(1, graph->getVariableSpace()->getVariable(2)->getNDArray()->lengthOf());
