@@ -25,7 +25,7 @@ namespace nd4j {
 
             std::map<std::pair<int, int>, nd4j::graph::Variable<T> *> _paired;
             std::map<std::string, nd4j::graph::Variable<T> *> _symbolic;
-            std::map<const int32_t, nd4j::graph::Variable<T> *> _variables;
+            std::map<int32_t, nd4j::graph::Variable<T> *> _variables;
             std::vector<nd4j::graph::Variable<T> *> _external;
             std::vector<nd4j::graph::Variable<T> *> _internal;
 
@@ -33,7 +33,7 @@ namespace nd4j {
 
             std::mutex _varmap;
 
-            std::map<const int32_t, nd4j::graph::Variable<T> *> _temporary;
+            std::map<int32_t, nd4j::graph::Variable<T> *> _temporary;
 
             std::vector<nd4j::graph::Variable<T> *> *_handles;
         public:
@@ -44,7 +44,7 @@ namespace nd4j {
             bool hasVariable(std::pair<int,int>& pair);
             bool hasVariable(std::string *symbol);
 
-            nd4j::graph::Variable<T> *getVariable(const int32_t id);
+            nd4j::graph::Variable<T> *getVariable(int32_t id);
             nd4j::graph::Variable<T> *getVariable(std::pair<int,int>& pair);
             nd4j::graph::Variable<T> *getVariable(std::string *symbol);
 
@@ -161,8 +161,8 @@ template <typename T>
 void nd4j::graph::VariableSpace<T>::putVariable(std::pair<int,int>& pair, Variable<T> *variable) {
     _varmap.lock();
 
-    std::pair<std::pair<int, int>, nd4j::graph::Variable<T> *> p(pair, variable);
-    _paired.insert(p);
+    //std::pair<std::pair<int, int>, nd4j::graph::Variable<T> *> p(pair, variable);
+    _paired[pair] = variable;
 
     _varmap.unlock();
 
@@ -179,7 +179,7 @@ void nd4j::graph::VariableSpace<T>::putVariable(std::pair<int,int>& pair, Variab
 }
 
 template <typename T>
-void nd4j::graph::VariableSpace<T>::putVariable(const int32_t id, Variable<T> *variable) {
+void nd4j::graph::VariableSpace<T>::putVariable(int32_t id, Variable<T> *variable) {
 
     // we don't want to add variables more then once
     if (_variables.count(id) > 0 || _temporary.count(id) > 0) {
@@ -206,8 +206,8 @@ void nd4j::graph::VariableSpace<T>::putVariable(const int32_t id, Variable<T> *v
     variable->setId(id);
 
     if (variable->getName() != nullptr && variable->getName()->length() != 0) {
-        std::pair<std::string, nd4j::graph::Variable<T> *> pair(*(variable->getName()), variable);
-        _symbolic.insert(pair);
+        //std::pair<std::string, nd4j::graph::Variable<T> *> pair(*(variable->getName()), variable);
+        _symbolic[*(variable->getName())] = variable;
     }
 
     // we have special list for external variables to ensure graph completeness
@@ -216,28 +216,29 @@ void nd4j::graph::VariableSpace<T>::putVariable(const int32_t id, Variable<T> *v
         //if (variable->isExternal())
             _external.push_back(variable);
 
-        //auto pair = new std::pair<const int32_t, nd4j::graph::Variable<T> *>(id, variable);
-        std::pair<const int32_t, nd4j::graph::Variable<T> *> pair(id, variable);
-        _variables.insert(pair);
+        //auto pair = new std::pair<int32_t, nd4j::graph::Variable<T> *>(id, variable);
+        //std::pair<int32_t, nd4j::graph::Variable<T> *> pair(id, variable);
+        _variables[id] = variable;
+        //_variables.emplace(std::make_pair(id, variable));
         //delete pair;
     } else {
         _internal.push_back(variable);
 
-        std::pair<const int32_t, nd4j::graph::Variable<T> *> pair(id, variable);
-        _temporary.insert(pair);
+        //std::pair<int32_t, nd4j::graph::Variable<T> *> pair(id, variable);
+        _temporary[id] = variable;
     }
 
     _varmap.unlock();
 }
 
 template <typename T>
-void nd4j::graph::VariableSpace<T>::putVariable(const int32_t id, NDArray<T> *array) {
+void nd4j::graph::VariableSpace<T>::putVariable(int32_t id, NDArray<T> *array) {
     nd4j::graph::Variable<T> *var = new nd4j::graph::Variable<T>(array);
     this->putVariable(id, var);
 }
 
 template <typename T>
-nd4j::graph::Variable<T> * nd4j::graph::VariableSpace<T>::getVariable(const int32_t id) {
+nd4j::graph::Variable<T> * nd4j::graph::VariableSpace<T>::getVariable(int32_t id) {
     _varmap.lock();
 
     if (id < 0) {
@@ -258,12 +259,7 @@ nd4j::graph::Variable<T> * nd4j::graph::VariableSpace<T>::getVariable(const int3
  */
 template <typename T>
 nd4j::graph::VariableSpace<T>::~VariableSpace() {
-    _temporary.clear();
-    _variables.clear();
-    _external.clear();
-    _internal.clear();
-    _paired.clear();
-    _symbolic.clear();
+    //std::map<int32_t, nd4j::graph::Variable<T> *>().swap(_variables);
 
     // loop through variables and release them
     for (auto p: *_handles) {
