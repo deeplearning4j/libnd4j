@@ -25,7 +25,7 @@ namespace nd4j {
 
             std::map<std::pair<int, int>, nd4j::graph::Variable<T> *> _paired;
             std::map<std::string, nd4j::graph::Variable<T> *> _symbolic;
-            std::map<int32_t, nd4j::graph::Variable<T> *> _variables;
+            std::map<int, nd4j::graph::Variable<T> *> _variables;
             std::vector<nd4j::graph::Variable<T> *> _external;
             std::vector<nd4j::graph::Variable<T> *> _internal;
 
@@ -33,25 +33,25 @@ namespace nd4j {
 
             std::mutex _varmap;
 
-            std::map<int32_t, nd4j::graph::Variable<T> *> _temporary;
+            std::map<int, nd4j::graph::Variable<T> *> _temporary;
 
             std::vector<nd4j::graph::Variable<T> *> *_handles;
         public:
             VariableSpace();
             ~VariableSpace();
 
-            bool hasVariable(int32_t id);
+            bool hasVariable(int id);
             bool hasVariable(std::pair<int,int>& pair);
             bool hasVariable(std::string *symbol);
 
-            nd4j::graph::Variable<T> *getVariable(int32_t id);
+            nd4j::graph::Variable<T> *getVariable(int id);
             nd4j::graph::Variable<T> *getVariable(std::pair<int,int>& pair);
             nd4j::graph::Variable<T> *getVariable(std::string *symbol);
 
             void putVariable(std::pair<int,int>& pair, NDArray<T> *array);
             void putVariable(std::pair<int,int>& pair, Variable<T> *variable);
-            void putVariable(int32_t id, Variable<T> *variable);
-            void putVariable(int32_t id, NDArray<T> *array);
+            void putVariable(int id, Variable<T> *variable);
+            void putVariable(int id, NDArray<T> *array);
 
             void putOutputVariable(Variable<T> *variable);
 
@@ -94,7 +94,7 @@ nd4j::graph::Variable<T> * nd4j::graph::VariableSpace<T>::getVariable(std::pair<
 }
 
 template <typename T>
-bool nd4j::graph::VariableSpace<T>::hasVariable(int32_t id) {
+bool nd4j::graph::VariableSpace<T>::hasVariable(int id) {
     return _variables.count(id) == 1 || _temporary.count(id) == 1;
 }
 
@@ -179,7 +179,7 @@ void nd4j::graph::VariableSpace<T>::putVariable(std::pair<int,int>& pair, Variab
 }
 
 template <typename T>
-void nd4j::graph::VariableSpace<T>::putVariable(int32_t id, Variable<T> *variable) {
+void nd4j::graph::VariableSpace<T>::putVariable(int id, Variable<T> *variable) {
 
     // we don't want to add variables more then once
     if (_variables.count(id) > 0 || _temporary.count(id) > 0) {
@@ -216,15 +216,10 @@ void nd4j::graph::VariableSpace<T>::putVariable(int32_t id, Variable<T> *variabl
         //if (variable->isExternal())
             _external.push_back(variable);
 
-        //auto pair = new std::pair<int32_t, nd4j::graph::Variable<T> *>(id, variable);
-        //std::pair<int32_t, nd4j::graph::Variable<T> *> pair(id, variable);
         _variables[id] = variable;
-        //_variables.emplace(std::make_pair(id, variable));
-        //delete pair;
     } else {
         _internal.push_back(variable);
 
-        //std::pair<int32_t, nd4j::graph::Variable<T> *> pair(id, variable);
         _temporary[id] = variable;
     }
 
@@ -232,13 +227,13 @@ void nd4j::graph::VariableSpace<T>::putVariable(int32_t id, Variable<T> *variabl
 }
 
 template <typename T>
-void nd4j::graph::VariableSpace<T>::putVariable(int32_t id, NDArray<T> *array) {
+void nd4j::graph::VariableSpace<T>::putVariable(int id, NDArray<T> *array) {
     nd4j::graph::Variable<T> *var = new nd4j::graph::Variable<T>(array);
     this->putVariable(id, var);
 }
 
 template <typename T>
-nd4j::graph::Variable<T> * nd4j::graph::VariableSpace<T>::getVariable(int32_t id) {
+nd4j::graph::Variable<T> * nd4j::graph::VariableSpace<T>::getVariable(int id) {
     _varmap.lock();
 
     if (id < 0) {
@@ -259,9 +254,6 @@ nd4j::graph::Variable<T> * nd4j::graph::VariableSpace<T>::getVariable(int32_t id
  */
 template <typename T>
 nd4j::graph::VariableSpace<T>::~VariableSpace() {
-    //std::map<int32_t, nd4j::graph::Variable<T> *>().swap(_variables);
-    //_variables.clear();
-
     // loop through variables and release them
     for (auto p: *_handles) {
         delete p;

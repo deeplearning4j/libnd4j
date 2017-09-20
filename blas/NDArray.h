@@ -13,7 +13,7 @@ namespace nd4j {
     template<typename T>
     class NDArray {
     protected:
-        bool _isView;
+        bool _isView = false;
 
         T    *_buffer = nullptr;                          // pointer on flattened data array in memory
         int  *_shapeInfo = nullptr;                       // contains shape info:  matrix rank, numbers of elements per each dimension, dimensions strides, c-like or fortan-like order, element-wise-stride
@@ -25,8 +25,8 @@ namespace nd4j {
         int* _shapeInfoD = nullptr;
 #endif
 
-        bool _isShapeAlloc;                    // indicates whether user allocates memory for _shapeInfo by himself, in opposite case the memory must be allocated from outside
-        bool _isBuffAlloc; 						// indicates whether user allocates memory for _buffer by himself, in opposite case the memory must be allocated from outside
+        bool _isShapeAlloc = false;                    // indicates whether user allocates memory for _shapeInfo by himself, in opposite case the memory must be allocated from outside
+        bool _isBuffAlloc = false; 						// indicates whether user allocates memory for _buffer by himself, in opposite case the memory must be allocated from outside
 
 
     public:

@@ -70,7 +70,7 @@ TEST_F(ConvolutionTests, TestAvgFF1) {
     Nd4jStatus result = avgpool3d.execute(block);
     ASSERT_EQ(ND4J_STATUS_OK, result);
 
-    output.printBuffer("Result");
+    //output.printBuffer("Result");
 
     ASSERT_NEAR(451.0f, output.template reduceNumber<simdOps::Mean<float>>(), 1e-5);
 
