@@ -18,7 +18,7 @@ using namespace nd4j::graph;
 
 class CyclicTests : public testing::Test {
 public:
-    int numLoops = 1000000;
+    int numLoops = 100000000;
 
     int extLoops = 1000;
     int intLoops = 1000;
@@ -89,6 +89,69 @@ TEST_F(CyclicTests, TestGraphExecution1) {
         ASSERT_NEAR(8.0f, graph->getVariableSpace()->getVariable(2)->getNDArray()->getScalar(0), 1e-5);
 
         delete graph;
+    }
+}
+
+
+TEST_F(CyclicTests, TestCustomOpExecution1) {
+
+
+    for (int e = 0; e < numLoops; e++) {
+        auto input = new NDArray<float>('c', {4, 2, 1, 11, 11});
+     //   input->assign(451.0);
+
+//        auto output = new NDArray<float>('c', {4, 2, 1, 10, 10});
+
+
+        std::pair<int, int> pair0(1,0);
+        std::pair<int, int> pair1(1,1);
+
+
+        VariableSpace<float>* variableSpace = new VariableSpace<float>();
+        variableSpace->putVariable(-1, input);
+
+        /*
+        variableSpace->putVariable(pair0, output);
+
+
+        Block<float>* block = new Block<float>(1, variableSpace, false);  // not-in-place
+        //block->fillInputs({-1});
+
+        // kernel params
+        block->getIArguments()->push_back(1);
+        block->getIArguments()->push_back(2);
+        block->getIArguments()->push_back(2);
+
+        // stride
+        block->getIArguments()->push_back(1);
+        block->getIArguments()->push_back(1);
+        block->getIArguments()->push_back(1);
+
+        // padding
+        block->getIArguments()->push_back(0);
+        block->getIArguments()->push_back(0);
+        block->getIArguments()->push_back(0);
+
+        // ceiling
+        block->getIArguments()->push_back(1);
+
+        // padding count
+        block->getIArguments()->push_back(1);
+
+*/
+
+        //nd4j::ops::avgpool3d<float> avgpool3d;
+
+        //Nd4jStatus result = avgpool3d.execute(block);
+        //ASSERT_EQ(ND4J_STATUS_OK, result);
+
+        //ASSERT_NEAR(451.0f, output.template reduceNumber<simdOps::Mean<float>>(), 1e-5);
+
+        //delete block;
+        delete variableSpace;
+
+        //delete input;
+        //delete output;
     }
 }
 
