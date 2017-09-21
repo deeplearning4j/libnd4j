@@ -2168,17 +2168,18 @@ namespace simdOps {
                 for (int i = 0; i < dimensionLength; i++) {
                     dimension[i] = (int) extraParams[i + 1];
                 }
-/*
-                shape::TAD tad(xShapeBuffer, dimension, dimensionLength);
-                tad.createTadOnlyShapeInfo();
-                tad.createOffsets();
-*/
-//                int tads = tad.numTads;
                 //decompose in to several sub tads after
                 //moving all dimensions (in sorted order)
                 //to the back.
-                //permuted version of the x shape info for setting up the tad problem
-                int *tadShapeShapeInfo = tadShapeInfo;
+                //permuted version of the x shape info for setting up the tad problem				
+				int *tadShapeShapeInfo = tadShapeInfo;
+				shape::TAD tad (xShapeBuffer, dimension, dimensionLength);
+				if(tadShapeInfo==nullptr) {
+					tad.createTadOnlyShapeInfo();
+					tad.createOffsets();
+					tadShapeShapeInfo = tad.tadOnlyShapeInfo;
+					tadOffsets = tad.tadOffsets;
+				}						                                				
 
                 int tadLength = shape::tadLength(xShapeBuffer, dimension, dimensionLength);
                 int tads = shape::length(xShapeBuffer) / tadLength;
