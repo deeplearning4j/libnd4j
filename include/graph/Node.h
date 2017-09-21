@@ -380,7 +380,12 @@ nd4j::graph::Node<T>::Node(const nd4j::graph::FlatNode *node) {
 
         nd4j_verbose("Pulled node_%i (%s)\n", node->id(), this->_name.c_str())
 
-        if (node->input() != nullptr)
+        if (node->inputPaired() != nullptr && node->inputPaired()->size() > 0) {
+            for (int e = 0; e < (int) node->inputPaired()->size(); e++) {
+                auto pair = node->inputPaired()->Get(e);
+                pickInput(pair->first(), pair->second());
+            }
+        } else if (node->input() != nullptr)
             for (int e = 0; e < (int) node->input()->size(); e++)
                 pickInput(node->input()->Get(e));
 
