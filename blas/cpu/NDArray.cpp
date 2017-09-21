@@ -849,6 +849,27 @@ T& NDArray<T>::operator()(const int i, const int j) {
                                              tad->tadOnlyShapeInfo, tad->tadOffsets);
     }
 
+//////////////////////////////////////////////////////////////////////////
+// This method adds given column to all columns in this NDArray, that is this array becomes affected
+    template<typename T>
+    void NDArray<T>::addiColumnVector(const NDArray<T> *column) {
+        if (rankOf() != 2)
+            throw std::invalid_argument("addiRowVector can be called only for Matrix");
+
+        if (!shape::isColumnVector(column->_shapeInfo))
+            throw std::invalid_argument("Argument should be column vector");
+
+        int dimension[1] = {0};
+
+        std::unique_ptr<shape::TAD> tad(new shape::TAD(_shapeInfo, dimension, 1));
+        tad->createTadOnlyShapeInfo();
+        tad->createOffsets();
+
+        NativeOpExcutioner<T>::execBroadcast(0, _buffer, _shapeInfo, column->_buffer, column->_shapeInfo, _buffer, _shapeInfo,
+                                             dimension, 1, tad->tadOnlyShapeInfo, tad->tadOffsets,
+                                             tad->tadOnlyShapeInfo, tad->tadOffsets);
+    }
+
 
 //////////////////////////////////////////////////////////////////////////
 // This method adds given column to all columns in this NDArray, that is this array becomes affected

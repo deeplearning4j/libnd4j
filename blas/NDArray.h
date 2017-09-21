@@ -272,6 +272,9 @@ namespace nd4j {
         void addiRowVector(const NDArray<T> *row);
 
 		// This method adds given column to all columns in this NDArray, that is this array becomes affected
+		void addiColumnVector(const NDArray<T> *column);
+
+		// This method multiplies given column by all columns in this NDArray, that is this array becomes affected
 		void muliColumnVector(const NDArray<T> *column);
 
         // this method returns number of bytes used by buffer & shapeInfo
