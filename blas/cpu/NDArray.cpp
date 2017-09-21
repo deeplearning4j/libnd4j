@@ -828,12 +828,12 @@ T& NDArray<T>::operator()(const int i, const int j) {
     return _buffer[xOffset];
 }
 
-
+//////////////////////////////////////////////////////////////////////////
 // This method adds given row to all rows in this NDArray, that is this array becomes affected
     template<typename T>
     void NDArray<T>::addiRowVector(const NDArray<T> *row) {
         if (rankOf() != 2)
-            throw std::invalid_argument("addiRowVector can be called only on Matrix");
+            throw std::invalid_argument("addiRowVector can be called only for Matrix");
 
         if (!shape::isRowVector(row->_shapeInfo))
             throw std::invalid_argument("Argument should be row vector");
@@ -845,6 +845,28 @@ T& NDArray<T>::operator()(const int i, const int j) {
         tad->createOffsets();
 
         NativeOpExcutioner<T>::execBroadcast(0, _buffer, _shapeInfo, row->_buffer, row->_shapeInfo, _buffer, _shapeInfo,
+                                             dimension, 1, tad->tadOnlyShapeInfo, tad->tadOffsets,
+                                             tad->tadOnlyShapeInfo, tad->tadOffsets);
+    }
+
+
+//////////////////////////////////////////////////////////////////////////
+// This method adds given column to all columns in this NDArray, that is this array becomes affected
+    template<typename T>
+    void NDArray<T>::muliColumnVector(const NDArray<T> *column) {
+        if (rankOf() != 2)
+            throw std::invalid_argument("muliColumnVector method can be called only for 2D matrix");
+
+        if (!column->isColumnVector())
+            throw std::invalid_argument("muliColumnVector method: argument should be column vector");
+
+        int dimension[1] = {0};
+
+        std::unique_ptr<shape::TAD> tad(new shape::TAD(_shapeInfo, dimension, 1));
+        tad->createTadOnlyShapeInfo();
+        tad->createOffsets();
+
+        NativeOpExcutioner<T>::execBroadcast(2, _buffer, _shapeInfo, column->_buffer, column->_shapeInfo, _buffer, _shapeInfo,
                                              dimension, 1, tad->tadOnlyShapeInfo, tad->tadOffsets,
                                              tad->tadOnlyShapeInfo, tad->tadOffsets);
     }

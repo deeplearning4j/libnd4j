@@ -271,6 +271,9 @@ namespace nd4j {
         // This method adds given row to all rows in this NDArray, that is this array becomes affected
         void addiRowVector(const NDArray<T> *row);
 
+		// This method adds given column to all columns in this NDArray, that is this array becomes affected
+		void muliColumnVector(const NDArray<T> *column);
+
         // this method returns number of bytes used by buffer & shapeInfo
         Nd4jIndex memoryFootprint();
 
@@ -280,12 +283,12 @@ namespace nd4j {
         }
 
         // this method returns true if this ndarray is vector
-        bool isVector() {
+        bool isVector() const {
             return !isScalar() && shape::isVector(this->_shapeInfo);
         }
 
         // this method returns true if this ndarray is column vector
-        bool isColumnVector() {
+        bool isColumnVector() const {
             return !isScalar() && shape::isColumnVector(this->_shapeInfo);
         }
 
@@ -295,7 +298,7 @@ namespace nd4j {
         }
 
         // this method returns true if this ndarray is scalar
-        bool isScalar() {
+        bool isScalar() const {
             return this->lengthOf() == 1;
         }
 
