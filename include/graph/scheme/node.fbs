@@ -8,6 +8,7 @@ table IntPair {
 table IntTriple {
     first:int; // node id
     second:int; // time spent
+    third:int; // something else
 }
 
 enum OpType:byte {
@@ -50,7 +51,7 @@ table FlatNode {
     id:int; // unique id for this node
     name: string; // literal id of this node (optional)
     opType:OpType;
-    opNum:short;
+    opNum:long;
     input:[int]; // ID's of input nodes for this node !!! only used if inputPaired in unset !!!
     inputPaired:[IntPair]; //
     dataType:DataType;

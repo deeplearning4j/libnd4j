@@ -18,7 +18,7 @@ public final class FlatNode extends Table {
   public String name() { int o = __offset(6); return o != 0 ? __string(o + bb_pos) : null; }
   public ByteBuffer nameAsByteBuffer() { return __vector_as_bytebuffer(6, 1); }
   public byte opType() { int o = __offset(8); return o != 0 ? bb.get(o + bb_pos) : 0; }
-  public short opNum() { int o = __offset(10); return o != 0 ? bb.getShort(o + bb_pos) : 0; }
+  public long opNum() { int o = __offset(10); return o != 0 ? bb.getLong(o + bb_pos) : 0L; }
   public int input(int j) { int o = __offset(12); return o != 0 ? bb.getInt(__vector(o) + j * 4) : 0; }
   public int inputLength() { int o = __offset(12); return o != 0 ? __vector_len(o) : 0; }
   public ByteBuffer inputAsByteBuffer() { return __vector_as_bytebuffer(12, 4); }
@@ -45,7 +45,7 @@ public final class FlatNode extends Table {
       int id,
       int nameOffset,
       byte opType,
-      short opNum,
+      long opNum,
       int inputOffset,
       int inputPairedOffset,
       byte dataType,
@@ -56,6 +56,7 @@ public final class FlatNode extends Table {
       int device,
       float scalar) {
     builder.startObject(13);
+    FlatNode.addOpNum(builder, opNum);
     FlatNode.addScalar(builder, scalar);
     FlatNode.addDevice(builder, device);
     FlatNode.addDimensions(builder, dimensionsOffset);
@@ -66,7 +67,6 @@ public final class FlatNode extends Table {
     FlatNode.addInput(builder, inputOffset);
     FlatNode.addName(builder, nameOffset);
     FlatNode.addId(builder, id);
-    FlatNode.addOpNum(builder, opNum);
     FlatNode.addDataType(builder, dataType);
     FlatNode.addOpType(builder, opType);
     return FlatNode.endFlatNode(builder);
@@ -76,7 +76,7 @@ public final class FlatNode extends Table {
   public static void addId(FlatBufferBuilder builder, int id) { builder.addInt(0, id, 0); }
   public static void addName(FlatBufferBuilder builder, int nameOffset) { builder.addOffset(1, nameOffset, 0); }
   public static void addOpType(FlatBufferBuilder builder, byte opType) { builder.addByte(2, opType, 0); }
-  public static void addOpNum(FlatBufferBuilder builder, short opNum) { builder.addShort(3, opNum, 0); }
+  public static void addOpNum(FlatBufferBuilder builder, long opNum) { builder.addLong(3, opNum, 0L); }
   public static void addInput(FlatBufferBuilder builder, int inputOffset) { builder.addOffset(4, inputOffset, 0); }
   public static int createInputVector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addInt(data[i]); return builder.endVector(); }
   public static void startInputVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
