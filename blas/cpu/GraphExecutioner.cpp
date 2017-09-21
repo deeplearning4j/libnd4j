@@ -37,7 +37,12 @@ namespace nd4j{
             OpType opType = node->opType();
             int opNum = node->opNum();
 
-            nd4j_debug("Executing node_%i{%i}\n", node->id(), opNum);
+            if (opType != OpType_CUSTOM) {
+                nd4j_debug("Executing node_%i{%i}\n", node->id(), opNum);
+            } else {
+                nd4j_debug("Executing node_%i{%s}\n", node->id(), node->getCustomOp()->getOpName()->c_str());
+            }
+
             fflush(stdout);
             if (node->hasCustomOp()) {
 
@@ -452,11 +457,14 @@ namespace nd4j{
             for (int l = 0; l < (int) graph->getOnion()->size(); l++) {
                 int layerSize = graph->getOnion()->count(l) == 1 ? graph->getOnion()->at(l)->size() : 0;
 
-#pragma omp parallel for if (layerSize > 1 && pe) schedule(dynamic) proc_bind(spread)
+//#pragma omp parallel for if (layerSize > 1 && pe) schedule(dynamic) proc_bind(spread)
                 for (int n = 0; n < layerSize; n++) {
                     auto node = graph->getOnion()->at(l)->at(n);
 
-                    executeFlatNode(graph, node, __variableSpace);
+                    Nd4jStatus status = executeFlatNode(graph, node, __variableSpace);
+
+                    if (status != ND4J_STATUS_OK)
+                        return status;
                 }
             }
 

@@ -648,7 +648,7 @@ TEST_F(DeclarableOpsTests, ReverseSubtractMatrices1) {
 	Block<float>* block = new Block<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
-	nd4j::ops::reverseSubtract<float> subOp;
+	nd4j::ops::reversesubtract<float> subOp;
  
 	subOp.execute(block);
 
@@ -671,7 +671,7 @@ TEST_F(DeclarableOpsTests, ReverseSubtractMatrixVector1) {
 	Block<float>* block = new Block<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
-	nd4j::ops::reverseSubtract<float> subOp;
+	nd4j::ops::reversesubtract<float> subOp;
  
 	subOp.execute(block);
 
@@ -694,7 +694,7 @@ TEST_F(DeclarableOpsTests, ReverseSubtractVectorVector1) {
 	Block<float>* block = new Block<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
-	nd4j::ops::reverseSubtract<float> subOp;
+	nd4j::ops::reversesubtract<float> subOp;
  
 	subOp.execute(block);
 
@@ -718,7 +718,7 @@ TEST_F(DeclarableOpsTests, ReverseSubtractMatrixScalar1) {
 	Block<float>* block = new Block<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
-	nd4j::ops::reverseSubtract<float> subOp;
+	nd4j::ops::reversesubtract<float> subOp;
  
 	subOp.execute(block);
 
@@ -743,7 +743,7 @@ TEST_F(DeclarableOpsTests, ReverseSubtractScalarScalar1) {
 	Block<float>* block = new Block<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
-	nd4j::ops::reverseSubtract<float> subOp;
+	nd4j::ops::reversesubtract<float> subOp;
  
 	subOp.execute(block);
 
@@ -997,7 +997,7 @@ TEST_F(DeclarableOpsTests, ReverseDivideMatrices1) {
 	Block<float>* block = new Block<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
-	nd4j::ops::reverseDivide<float> div;
+	nd4j::ops::reversedivide<float> div;
  
 	div.execute(block);
 
@@ -1020,7 +1020,7 @@ TEST_F(DeclarableOpsTests, ReverseDivideMatrixVector1) {
 	Block<float>* block = new Block<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
-	nd4j::ops::reverseDivide<float> div;
+	nd4j::ops::reversedivide<float> div;
  
 	div.execute(block);
 
@@ -1043,7 +1043,7 @@ TEST_F(DeclarableOpsTests, ReverseDivideVectorVector1) {
 	Block<float>* block = new Block<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
-	nd4j::ops::reverseDivide<float> div;
+	nd4j::ops::reversedivide<float> div;
  
 	div.execute(block);
 
@@ -1066,7 +1066,7 @@ TEST_F(DeclarableOpsTests, ReverseDivideMatrixScalar1) {
 	Block<float>* block = new Block<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
-	nd4j::ops::reverseDivide<float> div;
+	nd4j::ops::reversedivide<float> div;
  
 	div.execute(block);
 
@@ -1089,7 +1089,7 @@ TEST_F(DeclarableOpsTests, ReverseDivideScalarScalar1) {
 	Block<float>* block = new Block<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
-	nd4j::ops::reverseDivide<float> div;
+	nd4j::ops::reversedivide<float> div;
  
 	div.execute(block);
 

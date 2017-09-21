@@ -5,6 +5,7 @@
 #ifndef LIBND4J_CONVO_OPS_H
 #define LIBND4J_CONVO_OPS_H
 
+#include <memory>
 #include <NDArray.h>
 #include <NDArrayFactory.h>
 #include <op_boilerplate.h>

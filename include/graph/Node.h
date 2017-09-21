@@ -21,7 +21,7 @@ namespace nd4j {
             DataType _dataType;
             OpType _opType;
             Block<T>* _block = nullptr;
-            int _opNum;
+            Nd4jIndex _opNum;
             int _id;
             std::vector<std::pair<int, int>> _input;
             std::vector<int> _output;
@@ -36,6 +36,7 @@ namespace nd4j {
 
             // many ops require extra parameters to run
             T *_extraParams;
+
 
             // optional scalar. used in scalar ops and in summary stats
             float _scalar;
@@ -61,7 +62,7 @@ namespace nd4j {
             bool equals(Node *other);
 
             OpType opType();
-            int opNum();
+            Nd4jIndex opNum();
             int id();
             std::vector<std::pair<int,int>> *input();
             std::vector<int> *output();
@@ -303,7 +304,7 @@ int nd4j::graph::Node<T>::id() {
 }
 
 template <typename T>
-int nd4j::graph::Node<T>::opNum() {
+Nd4jIndex nd4j::graph::Node<T>::opNum() {
     return _opNum;
 }
 
@@ -420,6 +421,14 @@ nd4j::graph::Node<T>::Node(const nd4j::graph::FlatNode *node) {
             _opClass = OpClass_TRANSFORM;
         } else if (this->_opType == OpType_ACCUMULATION || this->_opType == OpType_SUMMARYSTATS) {
             _opClass = OpClass_REDUCTION;
+        } else if (this->_opType == OpType_CUSTOM) {
+            auto op = nd4j::ops::OpRegistrator::getInstance()->getOperationFloat(this->opNum());
+            if (op == nullptr) {
+                nd4j_verbose("Can't find operation: %lld\n", this->opNum());
+                throw "Boom";
+            }
+
+            this->setCustomOp(op);
         }
     } else {
         // empty dynamic node, tests probably
