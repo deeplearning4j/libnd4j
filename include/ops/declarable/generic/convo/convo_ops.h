@@ -18,8 +18,34 @@ namespace nd4j {
         //////////////////////////////////////////////////////////////////////////
         DECLARE_CUSTOM_OP(conv2d, 2, 1, false, 0, 9) {
             // basically im2col + gemm
+            NDArray<T>* input = block.getVariables().at(0)->getNDArray();
+            NDArray<T>* weights = block.getVariables().at(1)->getNDArray();
+
+            const int kY = block.getIArguments()->at(0);
+            const int kX = block.getIArguments()->at(1);
+            const int sY = block.getIArguments()->at(2);
+            const int sX = block.getIArguments()->at(3);
+            const int pY = block.getIArguments()->at(4);
+            const int pX = block.getIArguments()->at(5);
+            const int dY = block.getIArguments()->at(6);
+            const int dX = block.getIArguments()->at(7);
+            const bool isSameMode = block.getIArguments()->at(8) != 0;
+
+            int oY = 0;
+            int oX = 0;
+
+            const int batchSize = input->shapeOf()[0];
+            const int outDepth = weights->shapeOf()[0];
+            const int inY = input->shapeOf()[2];
+            const int inX = input->shapeOf()[3];
+
+            nd4j::ops::calcOutHWpool2D(oY, oX, kY, kX, sY, sX, pY, pX, dY, dX, inY, inX, isSameMode);
+
+            NDArray<T>* output = this->getZ(block);
 
             //Nd4j.createUninitialized(new int[] {miniBatch, outH, outW, inDepth, kH, kW}, 'c');
+
+            STORE_RESULT(*output);
 
             return ND4J_STATUS_OK;
         }
@@ -42,8 +68,8 @@ namespace nd4j {
 
             const int batchSize = inShape[1];
             const int outDepth = wShape[1];
-            const int inY = inShape[2];
-            const int inX = inShape[3];
+            const int inY = inShape[3];
+            const int inX = inShape[4];
 
             nd4j::ops::calcOutHWpool2D(oY, oX, kY, kX, sY, sX, pY, pX, dY, dX, inY, inX, isSameMode);
 

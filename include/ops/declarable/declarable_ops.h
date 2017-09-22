@@ -567,10 +567,22 @@ nd4j::NDArray<T>* nd4j::ops::DeclarableOp<T>::getZ(Block<T>& block, int inputId)
     if (block.isInplace()) {
         z = block.getVariables().at(inputId)->getNDArray();
     } else if (!block.isInplace() && block.getVariableSpace()->hasVariable(block.getNodeId())) {
-        auto var = block.getVariableSpace()->getVariable(block.getNodeId());
+        std::pair<int, int> pair(block.getNodeId(), inputId);
+
+        auto var = block.getVariableSpace()->getVariable(pair);
         if (var->getNDArray() != nullptr && var->getNDArray()->nonNull()) {
             z = var->getNDArray();
         } else {
+/*
+            auto shapeList = new ShapeList();
+            for (auto v: block.getVariables()) {
+                shapeList->push_back(v->getNDArray()->getShapeInfo());
+            }
+
+            auto shapes = this->calculateOutputShape(shapeList, block);
+            int *shape = shapes->at(inputId);
+            z = new NDArray<T>();
+*/
             nd4j_printf("Can't get Z variable!\n","");
         }
     }
