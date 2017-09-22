@@ -813,7 +813,7 @@ namespace nd4j {
 
 		//////////////////////////////////////////////////////////////////////////
 		// here iArgs is vector with shape dimensions at the beginning and last element in iArgs is order
-		DECLARE_CONFIGURABLE_OP(reshapei, 1, 1, true, 0, -1) {
+		DECLARE_CONFIGURABLE_OP(reshape, 1, 1, true, 0, -1) {
 			std::vector<int>* argumets = block.getIArguments();
 			int argsSize = argumets->size();
 			char order = (*argumets)[argsSize-1];
@@ -1074,6 +1074,29 @@ namespace nd4j {
 		
 		//////////////////////////////////////////////////////////////////////////
 		DECLARE_SHAPE_FN(avgpool2d_bp) {
+
+			// 0 - number of dimensions; 1,2 - kernel Height/Width; 3,4 - stride Height/Width; 5,6 - pad Height/Width; 7,8 - dilation Height/Width; 9,10 - input Height/Width; 11 - batch size; 12 - input depth; 13 - same mode; 
+			std::vector<int> argI = *(block.getIArguments());			
+			int iH = argI[9];
+			int iW = argI[10];
+			int bS = argI[11];
+			int iD = argI[12];
+			// calculate output Height/Width
+            int* newShapeInfo = nullptr;
+            ALLOCATE(newShapeInfo, block.getWorkspace(), 12, int);
+			newShapeInfo[0] = 4;		// rank
+			newShapeInfo[1] = iD;
+			newShapeInfo[2] = bS;
+			newShapeInfo[3] = iH;
+			newShapeInfo[4] = iW;
+            shape::updateStrides(newShapeInfo, 'c');
+			int dimensions[] = {1, 0, 2, 3};
+			shape::doPermuteShapeBuffer(4, newShapeInfo, dimensions);	
+			return new ShapeList(newShapeInfo);
+		}	
+		
+		//////////////////////////////////////////////////////////////////////////
+		DECLARE_SHAPE_FN(pnormpool2d_bp) {
 
 			// 0 - number of dimensions; 1,2 - kernel Height/Width; 3,4 - stride Height/Width; 5,6 - pad Height/Width; 7,8 - dilation Height/Width; 9,10 - input Height/Width; 11 - batch size; 12 - input depth; 13 - same mode; 
 			std::vector<int> argI = *(block.getIArguments());			

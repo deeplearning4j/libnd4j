@@ -662,7 +662,7 @@ TEST_F(DeclarableOpsTests, ReverseSubtractMatrices1) {
 	Block<float>* block = new Block<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
-	nd4j::ops::reverseSubtract<float> subOp;
+	nd4j::ops::reversesubtract<float> subOp;
  
 	subOp.execute(block);
 
@@ -685,7 +685,7 @@ TEST_F(DeclarableOpsTests, ReverseSubtractMatrixVector1) {
 	Block<float>* block = new Block<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
-	nd4j::ops::reverseSubtract<float> subOp;
+	nd4j::ops::reversesubtract<float> subOp;
  
 	subOp.execute(block);
 
@@ -708,7 +708,7 @@ TEST_F(DeclarableOpsTests, ReverseSubtractVectorVector1) {
 	Block<float>* block = new Block<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
-	nd4j::ops::reverseSubtract<float> subOp;
+	nd4j::ops::reversesubtract<float> subOp;
  
 	subOp.execute(block);
 
@@ -732,7 +732,7 @@ TEST_F(DeclarableOpsTests, ReverseSubtractMatrixScalar1) {
 	Block<float>* block = new Block<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
-	nd4j::ops::reverseSubtract<float> subOp;
+	nd4j::ops::reversesubtract<float> subOp;
  
 	subOp.execute(block);
 
@@ -757,7 +757,7 @@ TEST_F(DeclarableOpsTests, ReverseSubtractScalarScalar1) {
 	Block<float>* block = new Block<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
-	nd4j::ops::reverseSubtract<float> subOp;
+	nd4j::ops::reversesubtract<float> subOp;
  
 	subOp.execute(block);
 
@@ -1011,7 +1011,7 @@ TEST_F(DeclarableOpsTests, ReverseDivideMatrices1) {
 	Block<float>* block = new Block<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
-	nd4j::ops::reverseDivide<float> div;
+	nd4j::ops::reversedivide<float> div;
  
 	div.execute(block);
 
@@ -1034,7 +1034,7 @@ TEST_F(DeclarableOpsTests, ReverseDivideMatrixVector1) {
 	Block<float>* block = new Block<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
-	nd4j::ops::reverseDivide<float> div;
+	nd4j::ops::reversedivide<float> div;
  
 	div.execute(block);
 
@@ -1057,7 +1057,7 @@ TEST_F(DeclarableOpsTests, ReverseDivideVectorVector1) {
 	Block<float>* block = new Block<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
-	nd4j::ops::reverseDivide<float> div;
+	nd4j::ops::reversedivide<float> div;
  
 	div.execute(block);
 
@@ -1080,7 +1080,7 @@ TEST_F(DeclarableOpsTests, ReverseDivideMatrixScalar1) {
 	Block<float>* block = new Block<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
-	nd4j::ops::reverseDivide<float> div;
+	nd4j::ops::reversedivide<float> div;
  
 	div.execute(block);
 
@@ -1103,7 +1103,7 @@ TEST_F(DeclarableOpsTests, ReverseDivideScalarScalar1) {
 	Block<float>* block = new Block<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
-	nd4j::ops::reverseDivide<float> div;
+	nd4j::ops::reversedivide<float> div;
  
 	div.execute(block);
 
@@ -1258,7 +1258,7 @@ TEST_F(DeclarableOpsTests, Reshape1) {
 	*arguments = yShape;
 	arguments->push_back(y.ordering());
 	
-	nd4j::ops::reshapei<float> reshape;
+	nd4j::ops::reshape<float> reshape;
 	
 	reshape.execute(block);
 
@@ -1283,7 +1283,7 @@ TEST_F(DeclarableOpsTests, Reshape2) {
 	*arguments = yShape;
 	arguments->push_back(y.ordering());
 	
-	nd4j::ops::reshapei<float> reshape;
+	nd4j::ops::reshape<float> reshape;
 	
 	Nd4jStatus status = reshape.execute(block);
 	ASSERT_EQ(ND4J_STATUS_OK, status);
@@ -1833,6 +1833,7 @@ TEST_F(DeclarableOpsTests, MaxPool2dBP) {
 
 }
 
+//////////////////////////////////////////////////////////////////////
 TEST_F(DeclarableOpsTests, AvgPool2dBP) {
 
 	NDArray<float> input  ('c', {bS,iD,iH,iW});
@@ -1859,6 +1860,34 @@ TEST_F(DeclarableOpsTests, AvgPool2dBP) {
 
 }
 
+//////////////////////////////////////////////////////////////////////
+// TEST_F(DeclarableOpsTests, PnormPool2dBP) {
+
+	// NDArray<float> input  ('c', {bS,iD,iH,iW});
+	// NDArray<float> epsilon('c', {bS,iD,oH,oW});
+	// NDArray<float> exp    ('c', {bS,iD,iH,iW});
+	
+	// VariableSpace<float>* variableSpace = new VariableSpace<float>();
+    // variableSpace->putVariable(-1, &input);
+	// variableSpace->putVariable(-2, &epsilon);
+	// // variableSpace->putVariable(1, &z);
+
+	// Block<float>* block = new Block<float>(1, variableSpace, false);
+    // block->fillInputs({-1});
+	// block->fillInputs({-2});
+	// std::vector<int>* argI = block->getIArguments();
+	// *argI = {4, kH,kW, sH,sW, pH,pW, dW,dH, iH,iW, bS, iD, 0, 3};   // 0 - number of dimensions; 1,2 - kernel Height/Width; 3,4 - stride Height/Width; 5,6 - pad Height/Width; 7,8 - dilation Height/Width; 9,10 - input Height/Width; 11 - batch size; 12 - input depth; 13 - same mode; 14 - divisor
+	// std::vector<float>* argT = block->getTArguments();
+	// *argT = {0.000001};
+
+	// nd4j::ops::pnormpool2d_bp<float> bp;
+	// Nd4jStatus status = bp.execute(block);
+    // ASSERT_EQ(ND4J_STATUS_OK, status);
+	
+	// NDArray<float>* result = block->getVariableSpace()->getVariable(block->getNodeId())->getNDArray();
+    // ASSERT_TRUE(exp.isSameShape(result));
+
+// }
 
 //////////////////////////////////////////////////////////////////////
 // TEST_F(DeclarableOpsTests, Sum2) {
