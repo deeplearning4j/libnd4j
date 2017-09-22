@@ -267,6 +267,7 @@ namespace nd4j {
         }
         DECLARE_SYN(MaxPool2D, maxpool2d);
         DECLARE_SYN(MaxPool, maxpool2d);
+        DECLARE_SYN(maxpool, maxpool2d);
 
 //////////////////////////////////////////////////////////////////////////
         // avgpool2d corresponds to poolingMode=1
@@ -285,8 +286,10 @@ namespace nd4j {
 
             return ND4J_STATUS_OK;
         }
+
 		DECLARE_SYN(AvgPool2D, avgpool2d);
-        DECLARE_SYN(AvgPool, avgpool2d);        
+        DECLARE_SYN(AvgPool, avgpool2d);
+        DECLARE_SYN(avgpool, avgpool2d);
         
 //////////////////////////////////////////////////////////////////////////
 		// pnormpool2d corresponds to poolingMode=2	
@@ -307,6 +310,7 @@ namespace nd4j {
         }
 		DECLARE_SYN(PnormPool2D, pnormpool2d);
         DECLARE_SYN(PnormPool, pnormpool2d);
+        DECLARE_SYN(pnormpool, pnormpool2d);
 
 //////////////////////////////////////////////////////////////////////////
         DECLARE_CONFIGURABLE_OP(maxpool3d, 1, 2, true, 0, 13) {

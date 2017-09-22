@@ -305,7 +305,7 @@ TEST_F(FlatBuffersTest, ReadFile3) {
 TEST_F(FlatBuffersTest, ReadInception1) {
     auto graph = GraphExecutioner<float>::importFromFlatBuffers("../../../tests/resources/inception.fb");
 
-    Nd4jStatus status = GraphExecutioner<float>::execute(graph);
+    //Nd4jStatus status = GraphExecutioner<float>::execute(graph);
 
     //ASSERT_EQ(ND4J_STATUS_OK, status);
 }
