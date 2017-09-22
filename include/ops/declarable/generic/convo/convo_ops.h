@@ -36,6 +36,7 @@ namespace nd4j {
 
             const int batchSize = input->shapeOf()[0];
             const int outDepth = weights->shapeOf()[0];
+            const int inDepth = weights->shapeOf()[1];
             const int inY = input->shapeOf()[2];
             const int inX = input->shapeOf()[3];
 
@@ -47,9 +48,11 @@ namespace nd4j {
             REQUIRE_TRUE(output->lengthOf() == prod, 0, "Z should have total length of %i, but got %i instead", prod, output->lengthOf());
 
             //INDArray col = Nd4j.createUninitialized(new int[] {miniBatch, outH, outW, inDepth, kH, kW}, 'c');
-            std::unique_ptr<NDArray<T>> col(new NDArray<T>('c', ));
+            std::unique_ptr<NDArray<T>> col(new NDArray<T>('c', {batchSize, oY, oX, inDepth, kY, kX}));
+            std::unique_ptr<NDArray<T>> col2d(col->permute({0, 3, 4, 5, 1, 2}));
+            std::unique_ptr<T> extrasIm2Col(new T[9]{(T) kY, (T) kX, (T) sY, (T) sX, (T) pY, (T) pX, (T) dY, (T) dX, isSameMode ? (T) 1.0f : (T) 0.0f});
 
-            //Nd4j.createUninitialized(new int[] {miniBatch, outH, outW, inDepth, kH, kW}, 'c');
+            input->template applyTransform<simdOps::Im2col<T>>(col2d.get(), extrasIm2Col.get());
 
 
 

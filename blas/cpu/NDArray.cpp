@@ -1276,8 +1276,9 @@ bool NDArray<T>::permutei(const std::vector<int>& dimensions) {
 template <typename T>
 NDArray<T>* NDArray<T>::permute(const int* dimensions, const int rank) {
 
-    if(_buffer==nullptr || rank != rankOf())
+    if (_buffer==nullptr || rank != rankOf())
         throw "Wrong arguments in permute method: either array is nullptr or rank is not suitable!";
+
 	int buffLength = lengthOf();
 	int shapeInfoLength = rankOf()*2 + 4;
 	// allocate memory for new array - buffer and shapeInfo
