@@ -8,6 +8,7 @@
 #include <atomic>
 #include <string>
 #include <NDArray.h>
+#include "Block.h"
 #include <ops/declarable/declarable_ops.h>
 #include <graph/generated/node_generated.h>
 
@@ -105,6 +106,7 @@ namespace nd4j {
 
             void setBlock(Block<T> *block);
             Block<T>* getBlock();
+            bool hasBlockAttached();
 
             void setCustomOp(nd4j::ops::DeclarableOp<T> *customOp = nullptr);
             nd4j::ops::DeclarableOp<T>* getCustomOp();
@@ -125,6 +127,11 @@ void nd4j::graph::Node<T>::markInplace(bool reallyInplace) {
 template <typename T>
 OpClass nd4j::graph::Node<T>::getOpClass() {
     return _opClass;
+}
+
+template <typename T>
+bool nd4j::graph::Node<T>::hasBlockAttached() {
+    return _block != nullptr;
 }
 
 template <typename T>
@@ -427,6 +434,18 @@ nd4j::graph::Node<T>::Node(const nd4j::graph::FlatNode *node) {
                 nd4j_verbose("Can't find operation: %lld\n", this->opNum());
                 throw "Boom";
             }
+
+            auto block = new Block<T>(this->id(), nullptr);
+
+            if (node->extraInteger() != nullptr)
+                for (uint32_t e = 0; e < node->extraInteger()->size(); e++)
+                    block->getIArguments()->push_back(node->extraInteger()->Get(e));
+
+            if (node->extraParams() != nullptr)
+                for (uint32_t e = 0; e < node->extraParams()->size(); e++)
+                    block->getTArguments()->push_back(node->extraParams()->Get(e));
+
+            this->setBlock(block);
 
             this->setCustomOp(op);
         }

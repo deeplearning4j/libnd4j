@@ -1283,7 +1283,7 @@ TEST_F(DeclarableOpsTests, Reshape2) {
 	*arguments = yShape;
 	arguments->push_back(y.ordering());
 	
-	nd4j::ops::reshapen<float> reshape;
+	nd4j::ops::reshape<float> reshape;
 	
 	Nd4jStatus status = reshape.execute(block);
 	ASSERT_EQ(ND4J_STATUS_OK, status);

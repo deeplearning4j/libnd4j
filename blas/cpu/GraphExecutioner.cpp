@@ -46,7 +46,8 @@ namespace nd4j{
             fflush(stdout);
             if (node->hasCustomOp()) {
 
-                node->getCustomOp()->execute(node->getBlock());
+                auto status = node->getCustomOp()->execute(node->getBlock());
+                return status;
             } else if (opType == OpType_TRANSFORM) {
                 auto in = node->input()->at(0);
 
