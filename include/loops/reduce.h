@@ -571,7 +571,7 @@ template<typename OpType>
 
                 if (tadEWS > 0 && (numTads == 1 || shape::isVector(tadOnlyShapeInfo) || shape::isScalar(tadOnlyShapeInfo))) {
 
-//#pragma omp parallel for schedule(guided) num_threads(num_threads) if (num_threads > 1) proc_bind(AFFINITY) default(shared)
+#pragma omp parallel for schedule(guided) num_threads(num_threads) if (num_threads > 1) proc_bind(AFFINITY) default(shared)
                     for (int i = 0; i < resultLength; i++) {
                         T *iter = x + tadOffsets[i];
                         T start = OpType::startingValue(iter);
