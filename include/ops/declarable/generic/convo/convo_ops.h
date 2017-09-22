@@ -16,9 +16,44 @@
 namespace nd4j {
     namespace ops {
         //////////////////////////////////////////////////////////////////////////
-        DECLARE_CONFIGURABLE_OP(conv2d, 2, 1, false, 0, 7) {
+        DECLARE_CUSTOM_OP(conv2d, 2, 1, false, 0, 9) {
             // basically im2col + gemm
+
+            //Nd4j.createUninitialized(new int[] {miniBatch, outH, outW, inDepth, kH, kW}, 'c');
+
             return ND4J_STATUS_OK;
+        }
+        DECLARE_SHAPE_FN(conv2d) {
+            auto inShape = inputShape->at(0);
+            auto wShape = inputShape->at(1);
+
+            const int kY = block.getIArguments()->at(0);
+            const int kX = block.getIArguments()->at(1);
+            const int sY = block.getIArguments()->at(2);
+            const int sX = block.getIArguments()->at(3);
+            const int pY = block.getIArguments()->at(4);
+            const int pX = block.getIArguments()->at(5);
+            const int dY = block.getIArguments()->at(6);
+            const int dX = block.getIArguments()->at(7);
+            const bool isSameMode = block.getIArguments()->at(8) != 0;
+
+            int oY = 0;
+            int oX = 0;
+
+            const int batchSize = inShape[1];
+            const int outDepth = wShape[1];
+            const int inY = inShape[2];
+            const int inX = inShape[3];
+
+            nd4j::ops::calcOutHWpool2D(oY, oX, kY, kX, sY, sX, pY, pX, dY, dX, inY, inX, isSameMode);
+
+            //z = Shape.newShapeNoCopy(z, new int[] {outW, outH, miniBatch, outDepth}, true);
+            int *newShape;
+            ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(4), int);
+            std::vector<int> shape({batchSize, outDepth, oY, oX});
+            shape::shapeBuffer(4, shape.data(), newShape);
+
+            return new ShapeList(newShape);
         }
 
 //////////////////////////////////////////////////////////////////////////
