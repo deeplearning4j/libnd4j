@@ -43,7 +43,15 @@ namespace nd4j {
 
             NDArray<T>* output = this->getZ(block);
 
+            Nd4jIndex prod = batchSize * outDepth * oY * oX;
+            REQUIRE_TRUE(output->lengthOf() == prod, 0, "Z should have total length of %i, but got %i instead", prod, output->lengthOf());
+
+            //INDArray col = Nd4j.createUninitialized(new int[] {miniBatch, outH, outW, inDepth, kH, kW}, 'c');
+            std::unique_ptr<NDArray<T>> col(new NDArray<T>('c', ));
+
             //Nd4j.createUninitialized(new int[] {miniBatch, outH, outW, inDepth, kH, kW}, 'c');
+
+
 
             STORE_RESULT(*output);
 
