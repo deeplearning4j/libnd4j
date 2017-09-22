@@ -71,22 +71,29 @@ namespace nd4j {
 
 //////////////////////////////////////////////////////////////////////////
         DECLARE_OP(biasadd, 2, 1, true) {
-            REQUIRE_OK(this->validateInput2D(block));
+            //REQUIRE_OK(this->validateInput2D(block));
 
-            NDArray<T> *x = block.getVariables().at(0)->getNDArray();
-            NDArray<T> *y = block.getVariables().at(1)->getNDArray();
+            NDArray<T> *input = block.getVariables().at(0)->getNDArray();
+            NDArray<T> *bias = block.getVariables().at(1)->getNDArray();
+
+            REQUIRE_TRUE(bias->isRowVector(), 0, "Bias array should be a vector");
+
             NDArray<T> *z = this->getZ(block);
 
-            if (x->isMatrix() && y->isVector()) {
-                x->addiRowVector(y);
-            } else if (y->isMatrix() && x->isVector()) {
-                y->addiRowVector(x);
+            if (input->isMatrix())
+                input->addiRowVector(bias);
+            else {
+                std::vector<int> shape({-1, (int) bias->lengthOf()});
+                auto tArr = input->reshape(input->ordering(), shape);
+                tArr->addiRowVector(bias);
+                delete tArr;
             }
 
             STORE_RESULT(*z);
 
             return ND4J_STATUS_OK;
         }
+        DECLARE_SYN(bias_add, biasadd);
 
 //////////////////////////////////////////////////////////////////////////
         DECLARE_OP(matmul, 2, 1, false) {

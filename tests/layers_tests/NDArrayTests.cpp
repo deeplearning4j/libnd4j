@@ -3,6 +3,7 @@
 //
 
 #include "testlayers.h"
+#include <memory>
 #include <NDArrayFactory.h>
 #include <cpu/NDArrayFactory.cpp>
 
@@ -792,6 +793,25 @@ TEST_F(NDArrayTest, TestAllTensors1) {
     std::unique_ptr<ArrayList<float>> rows(NDArrayFactory::allTensorsAlongDimension<float>(&matrix, {1}));
 
     ASSERT_EQ(3, rows->size());
+}
+
+
+TEST_F(NDArrayTest, TestReshapeNegative1) {
+    std::unique_ptr<NDArray<float>> array(new NDArray<float>('c', {2, 3, 4, 64}));
+
+    array->reshapei('c', {-1, 64});
+
+    ASSERT_EQ(24, array->sizeAt(0));
+    ASSERT_EQ(64, array->sizeAt(1));
+}
+
+TEST_F(NDArrayTest, TestReshapeNegative2) {
+    std::unique_ptr<NDArray<float>> array(new NDArray<float>('c', {2, 3, 4, 64}));
+
+    std::unique_ptr<NDArray<float>> reshaped(array->reshape('c', {-1, 64}));
+
+    ASSERT_EQ(24, reshaped->sizeAt(0));
+    ASSERT_EQ(64, reshaped->sizeAt(1));
 }
 
 //////////////////////////////////////////////////////////////////////
