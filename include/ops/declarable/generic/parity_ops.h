@@ -813,7 +813,7 @@ namespace nd4j {
 
 		//////////////////////////////////////////////////////////////////////////
 		// here iArgs is vector with shape dimensions at the beginning and last element in iArgs is order
-		DECLARE_CONFIGURABLE_OP(reshape, 1, 1, true, 0, -1) {
+		DECLARE_CONFIGURABLE_OP(reshapei, 1, 1, true, 0, -1) {
 			std::vector<int>* argumets = block.getIArguments();
 			int argsSize = argumets->size();
 			char order = (*argumets)[argsSize-1];

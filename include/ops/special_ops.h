@@ -62,7 +62,7 @@ namespace simdOps {
 			int dH = (int)extraParams[6];			//Dilation, height dimension
 			int dW = (int)extraParams[7];			//Dilation,  width dimension
 			int poolingMode = (int)extraParams[9];
-			int extraParam0 = (int)extraParams[10];
+			T extraParam0 = extraParams[10];
 			
 			int kSize = kernelWidth * kernelHeight;
 
@@ -191,7 +191,7 @@ namespace simdOps {
 			int dH = (int)extraParams[6];			//Dilation, height dimension
 			int dW = (int)extraParams[7];			//Dilation, width dimension
 			int poolingMode = (int)extraParams[9];
-			int extraParam0 = (int)extraParams[10];
+			T extraParam0 = extraParams[10];
 
 			int kSize = kernelWidth * kernelHeight;
 
@@ -391,8 +391,8 @@ namespace simdOps {
 			int strideX = (int)extraParams[3];
 			int padHeight = (int)extraParams[4];
 			int padWidth = (int)extraParams[5];
-			int dY = (int)extraParams[6];			//Dilation, height/x dimension
-			int dX = (int)extraParams[7];			//Dilation, width/y dimension
+			int dY = (int)extraParams[6];			//Dilation, height/y dimension
+			int dX = (int)extraParams[7];			//Dilation, width/x dimension
 			int kSize = kernelWidth * kernelHeight;
 
 			int *outShape = shape::shapeOf(resultShapeBuffer);
@@ -487,7 +487,7 @@ namespace simdOps {
 			int padHeight = (int)extraParams[4];
 			int padWidth = (int)extraParams[5];
 			int dY = (int)extraParams[6];			//Dilation, height/y dimension
-			int dX = (int)extraParams[7];			//Dilation in width/x dimension
+			int dX = (int)extraParams[7];			//Dilation, width/x dimension
 			int kSize = kernelWidth * kernelHeight;
 
 			int *outShape = shape::shapeOf(resultShapeBuffer);
@@ -816,12 +816,12 @@ namespace simdOps {
 
 			int strideY = (int)extraParams[0];
 			int strideX = (int)extraParams[1];
-			int padHeight = (int)extraParams[2];
+            int padHeight = (int)extraParams[2];
 			int padWidth = (int)extraParams[3];
-			int imgHeight = (int)extraParams[4];
-			int imgWidth = (int)extraParams[5];
-			int dY = (int)extraParams[6];			//Dilation in height/x dimension
-			int dX = (int)extraParams[7];			//Dilation in width/y dimension
+            int imgHeight = (int)extraParams[4];
+            int imgWidth = (int)extraParams[5];
+			int dY = (int)extraParams[6];			//Dilation in height/y dimension
+            int dX = (int)extraParams[7];			//Dilation in width/x dimension
 
 			int *outShape = shape::shapeOf(resultShapeBuffer);
 			char resultOrder = shape::order(resultShapeBuffer);
@@ -913,13 +913,14 @@ namespace simdOps {
             // C
 
             int strideY = (int)extraParams[0];
-            int strideX = (int)extraParams[1];
+			int strideX = (int)extraParams[1];
             int padHeight = (int)extraParams[2];
-            int padWidth = (int)extraParams[3];
+			int padWidth = (int)extraParams[3];
             int imgHeight = (int)extraParams[4];
             int imgWidth = (int)extraParams[5];
-            int dY = (int)extraParams[6];			//Dilation in height/y dimension
+			int dY = (int)extraParams[6];			//Dilation in height/y dimension
             int dX = (int)extraParams[7];			//Dilation in width/x dimension
+
 
             int *outShape = shape::shapeOf(resultShapeBuffer);
             char resultOrder = shape::order(resultShapeBuffer);
