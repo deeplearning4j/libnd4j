@@ -25,18 +25,14 @@ namespace nd4j {
     namespace ops {
 
 //////////////////////////////////////////////////////////////////////////
-        DECLARE_OP(concat, -1, 1, false){
+        DECLARE_CUSTOM_OP(concat, -1, 1, false, 0, 1){
             // do something here{
-            Nd4jIndex _length;
-            int _dimension = 0;
+
+            int _dimension = block.getIArguments()->at(0);
 
             // we want to ensure that all
             NDArray<T> *first = block.getVariables().at(0)->getNDArray();
-
-            std::unique_ptr<int> shapePtr(new int[shape::shapeInfoLength(first->rankOf())]);
-
-            std::memcpy(shapePtr.get(), first->getShapeInfo(), shape::shapeInfoByteLength(first->getShapeInfo()));
-            _length = shape::length(shapePtr.get());
+            NDArray<T> *output = this->getZ(block);
 
             std::unique_ptr<Nd4jPointer> buffers(new Nd4jPointer[block.getVariables().size()]);
             std::unique_ptr<Nd4jPointer> shapes(new Nd4jPointer[block.getVariables().size()]);
@@ -44,29 +40,41 @@ namespace nd4j {
             buffers.get()[0] = (Nd4jPointer) first->getBuffer();
             shapes.get()[0] = (Nd4jPointer) first->getShapeInfo();
 
+            printf("Shape %i: ", 0);
+            shape::printShapeInfoLinear((int *)shapes.get()[0]);
+
             for (int e = 1; e < (int) block.getVariables().size(); e++) {
                 Variable<T> *var = block.getVariables().at(e);
-                _length += var->getNDArray()->lengthOf();
-
-                shapePtr.get()[_dimension + 1] += var->getNDArray()->shapeOf()[_dimension];
 
                 buffers.get()[e] = (Nd4jPointer) var->getNDArray()->getBuffer();
                 shapes.get()[e] = (Nd4jPointer) var->getNDArray()->getShapeInfo();
+
+                printf("Shape %i: ", e);
+                shape::printShapeInfoLinear((int *)shapes.get()[e]);
             }
+            fflush(stdout);
 
-            if (!block.getVariableSpace()->hasVariable(block.getNodeId()))
-                throw "VariableSpace has no registered node";
+            concatCpuGeneric(_dimension, block.getVariables().size(), buffers.get(), shapes.get(), output->getBuffer(), output->getShapeInfo());
 
-            if (!this->allocateResult(block, shapePtr.get())){
-                nd4j_printf("Allocation failed: %i\n", block.getNodeId());
-                throw "Allocation failed";
-            }
-
-            auto variable = block.getVariableSpace()->getVariable(block.getNodeId());
-
-            concatCpuGeneric(_dimension, block.getVariables().size(), buffers.get(), shapes.get(), variable->getNDArray()->getBuffer(), variable->getNDArray()->getShapeInfo());
+            STORE_RESULT(*output);
 
             return ND4J_STATUS_OK;
+        }
+        DECLARE_SHAPE_FN(concat) {
+            int* inp = inputShape->at(0);
+            int _dimension = block.getIArguments()->at(0);
+
+            int *newShape;
+            ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(inp), int);
+
+            std::memcpy(newShape, inp, shape::shapeInfoByteLength(inp));
+            for (int i = 1; i < inputShape->size(); i++) {
+                newShape[_dimension + 1] += shape::shapeOf(inputShape->at(i))[_dimension];
+            }
+
+            shape::updateStrides(newShape, shape::order(inp));
+
+            return new ShapeList(newShape);
         }
 
 //////////////////////////////////////////////////////////////////////////
@@ -84,6 +92,7 @@ namespace nd4j {
                 input->addiRowVector(bias);
             else {
                 std::vector<int> shape({-1, (int) bias->lengthOf()});
+                nd4j_debug("Reshaping to: [%i, %i]\n", -1, (int) bias->lengthOf());
                 auto tArr = input->reshape(input->ordering(), shape);
                 tArr->addiRowVector(bias);
                 delete tArr;

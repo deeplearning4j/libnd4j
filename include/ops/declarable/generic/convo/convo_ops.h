@@ -58,6 +58,8 @@ namespace nd4j {
 
             STORE_RESULT(*output);
 
+            output->printShapeInfo("Conv2D result shape");
+
             return ND4J_STATUS_OK;
         }
         DECLARE_SHAPE_FN(conv2d) {
@@ -343,6 +345,8 @@ namespace nd4j {
             x->template applyTransform<simdOps::Pooling2D<T>>(z, argT.data());
 
             STORE_RESULT(*z);
+
+            z->printShapeInfo("MaxPool2D result shape");
 
             return ND4J_STATUS_OK;
         }
