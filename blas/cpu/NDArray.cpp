@@ -1788,6 +1788,11 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
     vt.transposei();
 }
 
+    template<typename T>
+    NDArray<T>* NDArray<T>::subarray(IndicesList& indices) {
+
+    }
+
     // default destructor
     template<typename T>
     NDArray<T>::~NDArray() {
