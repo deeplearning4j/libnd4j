@@ -625,7 +625,10 @@ bool nd4j::ops::DeclarableOp<T>::prepareOutputs(Block<T> &block) {
 
             auto outArr = new NDArray<T>(out, workspace);
 
-            block.getVariableSpace()->putVariable(pair, outArr);
+            auto var = block.getVariableSpace()->getVariable(pair);
+
+            //block.getVariableSpace()->putVariable(pair, outArr);
+            var->setNDArray(outArr);
         }
 
         outSha->destroy();
@@ -793,11 +796,14 @@ Nd4jStatus nd4j::ops::DeclarableOp<T>::validateNonEmptyInput(Block<T>& block) {
         return ND4J_STATUS_BAD_INPUT;
 
 
+    int cnt = 0;
     for (auto v: block.getVariables()) {
         NDArray<T> *aV = v->getNDArray();
 
         if (aV == nullptr || !aV->nonNull())
             return ND4J_STATUS_BAD_INPUT;
+
+        cnt++;
     }
 
     return ND4J_STATUS_OK;

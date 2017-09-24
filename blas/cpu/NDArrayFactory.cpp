@@ -279,11 +279,12 @@ namespace nd4j {
 
         int* newShape;
         ALLOCATE(newShape, workspace, shape::shapeInfoLength(other->getShapeInfo()), int);
-        memcpy(newShape, other->getShapeInfo(), shape::shapeInfoLength(other->getShapeInfo()));
+        memcpy(newShape, other->getShapeInfo(), shape::shapeInfoByteLength(other->getShapeInfo()));
 
         T* buffer;
         ALLOCATE(buffer, workspace, other->lengthOf(), T);
         auto result = new NDArray<T>(buffer, newShape, workspace);
+        result->triggerAllocationFlag(true, true);
 
         return result;
     }

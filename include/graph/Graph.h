@@ -394,7 +394,7 @@ void nd4j::graph::Graph<T>::addNode(nd4j::graph::Node<T> *node) {
 
         // and might have > 1 output
         if (node->getCustomOp()->getOpDescriptor()->getNumberOfOutputs() > 1) {
-            for (int e = 0; e < node->getCustomOp()->getOpDescriptor()->getNumberOfOutputs(); e++) {
+            for (int e = 1; e < node->getCustomOp()->getOpDescriptor()->getNumberOfOutputs(); e++) {
                 auto deepVar = new Variable<T>();
                 //deepVar->setId(node->id(), e);
 

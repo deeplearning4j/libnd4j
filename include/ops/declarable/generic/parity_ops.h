@@ -141,7 +141,7 @@ namespace nd4j {
         DECLARE_SYN(dot, matmul);
 
 //////////////////////////////////////////////////////////////////////////
-        DECLARE_CONFIGURABLE_OP(lrn, 1, 3, true, 4, 0) {
+        DECLARE_CUSTOM_OP(lrn, 1, 3, true, 4, 0) {
             // LocalResponseNormalization
 
             NDArray<T>* input = block.getVariables().at(0)->getNDArray();
@@ -197,9 +197,27 @@ namespace nd4j {
 
             STORE_3_RESULTS(*z, *unitScale, *scale);
 
+            delete activitySqr;
+            delete sumPart;
+
             return ND4J_STATUS_OK;
         }
         DECLARE_SYN(LRN, lrn);
+
+        DECLARE_SHAPE_FN(lrn) {
+            int *inp = inputShape->at(0);
+
+            auto shapeList = new ShapeList();
+            for(int e = 0; e < 3; e++) {
+                int *newShape;
+                ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(inp), int);
+                memcpy(newShape, inp, shape::shapeInfoByteLength(inp));
+
+                shapeList->push_back(newShape);
+            }
+
+            return shapeList;
+        }
 
 
         DECLARE_CONFIGURABLE_OP(lrn_bp, 1, 1, true, 4, 0) {

@@ -180,7 +180,6 @@ void nd4j::graph::VariableSpace<T>::putVariable(std::pair<int,int>& pair, Variab
 
 template <typename T>
 void nd4j::graph::VariableSpace<T>::putVariable(int id, Variable<T> *variable) {
-
     // we don't want to add variables more then once
     if (_variables.count(id) > 0 || _temporary.count(id) > 0) {
         nd4j_verbose("Trying to update variable for node_%i\n", id);
