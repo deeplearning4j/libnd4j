@@ -167,6 +167,17 @@ namespace nd4j {
             for (int i = 1; i < halfDepth + 1; i++) {
                 IndicesList indA({NDIndex::all(), NDIndex::interval(i, channel), NDIndex::all(), NDIndex::all()});
                 IndicesList indB({NDIndex::all(), NDIndex::interval(0, channel - i), NDIndex::all(), NDIndex::all()});
+
+                std::unique_ptr<NDArray<T>> tmp(sumPart->subarray(indA));
+                std::unique_ptr<NDArray<T>> addVal(activitySqr->subarray(indB));
+
+                tmp.get()->template applyPairwiseTransform<simdOps::Add<T>>(addVal.get(), nullptr);
+
+
+                std::unique_ptr<NDArray<T>> tmp2(sumPart->subarray(indB));
+                std::unique_ptr<NDArray<T>> addVal2(activitySqr->subarray(indA));
+
+                tmp2.get()->template applyPairwiseTransform<simdOps::Add<T>>(addVal2.get(), nullptr);
             }
 
             /*
