@@ -274,7 +274,7 @@ namespace nd4j {
 
 
     template<typename T>
-    static NDArray<T>* NDArrayFactory::createUninitialized(NDArray<T>* other) {
+    NDArray<T>* NDArrayFactory::createUninitialized(NDArray<T>* other) {
         auto workspace = other->getWorkspace();
 
         int* newShape;

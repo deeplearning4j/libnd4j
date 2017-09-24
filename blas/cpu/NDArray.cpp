@@ -12,6 +12,8 @@
 #include <memory>
 #include <helpers/logger.h>
 #include <loops/broadcasting.h>
+#include <indexing/NDIndex.h>
+#include <indexing/IndicesList.h>
 
 namespace nd4j {
 
@@ -1789,8 +1791,38 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
 }
 
     template<typename T>
-    NDArray<T>* NDArray<T>::subarray(IndicesList& indices) {
+    NDArray<T>* NDArray<T>::subarray(IndicesList& idx) {
+        if (idx.size() != this->rankOf())
+            throw "Number of indices should match";
 
+        int *newShape;
+        ALLOCATE(newShape, _workspace, shape::shapeInfoLength(this->rankOf()), int);
+        memcpy(newShape, this->_shapeInfo, shape::shapeInfoByteLength(this->rankOf()));
+        newShape[shape::shapeInfoLength(this->rankOf()) - 2] = -1;
+
+        int *shapeOf = shape::shapeOf(newShape);
+        int *stridesOf = shape::stride(newShape);
+
+        Nd4jIndex offset = 0;
+
+        for (int d = 0; d < idx.size(); d++) {
+            // building new shape first
+            auto index = idx.at(d);
+            if (index->isAll()) {
+                // shape is unchanged  for this dimension
+            } else {
+                // size at this dimension equals to either 1 or interval
+                shapeOf[d] = index->getIndices().size();
+
+                // for offset we're taking only the first index
+                int first = index->getIndices().at(0);
+                offset += first * stridesOf[d];
+            }
+        }
+
+        auto result = new NDArray<T>(this->_buffer + offset, newShape, this->_workspace);
+
+        return result;
     }
 
     // default destructor

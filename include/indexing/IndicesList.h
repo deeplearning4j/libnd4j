@@ -18,12 +18,22 @@ namespace nd4j {
                 _indices.push_back(v);
         }
 
+        int size();
+        NDIndex* at(int idx);
 
         ~IndicesList() {
             for(auto v: _indices)
                 delete v;
         }
     };
+}
+
+int nd4j::IndicesList::size() {
+    return (int) _indices.size();
+}
+
+nd4j::NDIndex* nd4j::IndicesList::at(int idx) {
+    return _indices.at(idx);
 }
 
 #endif //LIBND4J_INDICESLIST_H

@@ -796,6 +796,44 @@ TEST_F(NDArrayTest, TestAllTensors1) {
 }
 
 
+TEST_F(NDArrayTest, TestIndexing1) {
+    NDArray<float> matrix(5, 5, 'c');
+    for (int e = 0; e < matrix.lengthOf(); e++)
+        matrix.putScalar(e, (float) e);
+
+    IndicesList idx({NDIndex::interval(2,4), NDIndex::all()});
+    auto sub = matrix.subarray(idx);
+
+    ASSERT_TRUE(sub != nullptr);
+
+    ASSERT_EQ(2, sub->rows());
+    ASSERT_EQ(5, sub->columns());
+
+    ASSERT_NEAR(10, sub->getScalar(0), 1e-5);
+}
+
+
+TEST_F(NDArrayTest, TestIndexing2) {
+    NDArray<float> matrix('c', {2, 5, 4, 4});
+    for (int e = 0; e < matrix.lengthOf(); e++)
+        matrix.putScalar(e, (float) e);
+
+    IndicesList idx({ NDIndex::all(), NDIndex::interval(2,4), NDIndex::all(),  NDIndex::all()});
+    auto sub = matrix.subarray(idx);
+
+    ASSERT_TRUE(sub != nullptr);
+
+    ASSERT_EQ(2, sub->sizeAt(0));
+    ASSERT_EQ(2, sub->sizeAt(1));
+    ASSERT_EQ(4, sub->sizeAt(2));
+    ASSERT_EQ(4, sub->sizeAt(3));
+
+
+    ASSERT_EQ(64, sub->lengthOf());
+    ASSERT_NEAR(32, sub->getScalar(0), 1e-5);
+    ASSERT_NEAR(112, sub->getIndexedScalar(32), 1e-5);
+}
+
 TEST_F(NDArrayTest, TestReshapeNegative1) {
     std::unique_ptr<NDArray<float>> array(new NDArray<float>('c', {2, 3, 4, 64}));
 

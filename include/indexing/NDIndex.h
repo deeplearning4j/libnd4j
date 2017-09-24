@@ -20,7 +20,14 @@ namespace nd4j {
             //
         }
 
+        bool isAll() {
+            return _indices.size() == 1 && _indices.at(0) == -1;
+        }
         std::vector<int>& getIndices();
+
+        static NDIndex* all();
+        static NDIndex* point(int pt);
+        static NDIndex* interval(int start, int end);
     };
 
     class NDIndexAll : public NDIndex {
@@ -62,6 +69,17 @@ namespace nd4j {
 
 std::vector<int>& nd4j::NDIndex::getIndices() {
     return _indices;
+}
+
+nd4j::NDIndex* nd4j::NDIndex::all() {
+    return new NDIndexAll();
+}
+nd4j::NDIndex* nd4j::NDIndex::point(int pt) {
+    return new NDIndexPoint(pt);
+}
+
+nd4j::NDIndex* nd4j::NDIndex::interval(int start, int end) {
+    return new NDIndexInterval(start, end);
 }
 
 #endif //LIBND4J_NDINDEX_H

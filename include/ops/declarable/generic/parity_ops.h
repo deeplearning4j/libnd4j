@@ -149,6 +149,8 @@ namespace nd4j {
             NDArray<T>* unitScale = this->getZ(block, 1);
             NDArray<T>* scale = this->getZ(block, 2);
 
+            REQUIRE_TRUE(input->rankOf() == 4, 0, "Input rank of 4 expected, but got %i instead", input->rankOf());
+
             T alpha = block.getTArguments()->at(0);
             T beta = block.getTArguments()->at(1);
             T bias = block.getTArguments()->at(2);
@@ -163,7 +165,8 @@ namespace nd4j {
             auto sumPart = activitySqr->dup('c');
 
             for (int i = 1; i < halfDepth + 1; i++) {
-                // TODO: indexing to be implented
+                IndicesList indA({NDIndex::all(), NDIndex::interval(i, channel), NDIndex::all(), NDIndex::all()});
+                IndicesList indB({NDIndex::all(), NDIndex::interval(0, channel - i), NDIndex::all(), NDIndex::all()});
             }
 
             /*
@@ -174,12 +177,12 @@ namespace nd4j {
                 activations = input.mul(scale).leverageTo(ComputationGraph.workspaceExternal);
              */
 
-            sumPart->applyScalar<simdOps::Multiply<T>>(alpha, unitScale, nullptr);
-            unitScale->applyScalar<simdOps::Add<T>>(bias);
+            sumPart->template applyScalar<simdOps::Multiply<T>>(alpha, unitScale, nullptr);
+            unitScale->template applyScalar<simdOps::Add<T>>(bias);
 
             T p = -beta;
-            unitScale->applyTransform<simdOps::Pow<T>>(scale, &p);
-            input->applyPairwiseTransform<simdOps::Multiply<T>>(scale, z, nullptr);
+            unitScale->template applyTransform<simdOps::Pow<T>>(scale, &p);
+            input->template applyPairwiseTransform<simdOps::Multiply<T>>(scale, z, nullptr);
 
             STORE_3_RESULTS(*z, *unitScale, *scale);
 
