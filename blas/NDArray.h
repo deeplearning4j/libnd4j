@@ -72,6 +72,10 @@ namespace nd4j {
 
         NDArray<T>* getView();
 
+        nd4j::memory::Workspace* getWorkspace() {
+            return _workspace;
+        }
+
         T* getBuffer();
 
         int* getShapeInfo();

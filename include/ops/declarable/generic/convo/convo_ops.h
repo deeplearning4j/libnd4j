@@ -322,13 +322,22 @@ namespace nd4j {
 
 //////////////////////////////////////////////////////////////////////////
         // maxpool2d corresponds to poolingMode=0
-        DECLARE_CUSTOM_OP(maxpool2d, 1, 1, false, 0, 14) {
+        DECLARE_CUSTOM_OP(maxpool2d, 1, 1, false, 0, 9) {
 
-            REQUIRE_OK(this->validateInputLengthMatch(block));
-            REQUIRE_OK(this->validateInputDimensionsMatch(block));
-            NDArray<T> *x = block.getVariables().at(0)->getNDArray();			
-            std::vector<int> argI = *(block.getIArguments());					// 0 - number of dimensions; 1,2 - kernel Height/Width; 3,4 - stride Height/Width; 5,6 - pad Height/Width; 7,8 - dilation Height/Width; 9,10 - input Height/Width; 11 - batch size; 12 - input depth; 13 - same mode;
-            std::vector<T> argT = {(T)argI[1], (T)argI[2], (T)argI[3], (T)argI[4], (T)argI[5], (T)argI[6], (T)argI[7], (T)argI[8], (T)0.f, (T)0.f, (T)1.f};  // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8,9 - poolingMode; 10 - divisor;
+            NDArray<T> *x = block.getVariables().at(0)->getNDArray();
+
+            REQUIRE_TRUE(x->rankOf() == 4, 0, "Input should have rank of 4, but got %i instead", x->rankOf());
+
+            const int bSize = x->sizeAt(0);
+            const int inD = x->sizeAt(1);
+            const int inY = x->sizeAt(2);
+            const int inX = x->sizeAt(3);
+
+            // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8 - same mode;
+            std::vector<int> argI = *(block.getIArguments());
+
+            // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8,9 - poolingMode; 10 - divisor;
+            std::vector<T> argT = {(T)argI[0], (T)argI[1], (T)argI[2], (T)argI[3], (T)argI[4], (T)argI[5], (T)argI[6], (T)argI[7], (T)0.f, (T)0.f, (T)1.f};
 
             auto z = this->getZ(block);
             x->template applyTransform<simdOps::Pooling2D<T>>(z, argT.data());
@@ -340,16 +349,61 @@ namespace nd4j {
         DECLARE_SYN(MaxPool2D, maxpool2d);
         DECLARE_SYN(MaxPool, maxpool2d);
         DECLARE_SYN(maxpool, maxpool2d);
+        //////////////////////////////////////////////////////////////////////////
+        DECLARE_SHAPE_FN(maxpool2d) {
+            //NDArray<T> *x = block.getVariables().at(0)->getNDArray();
+            int* inShape = inputShape->at(0);
+            int* shapeOf = shape::shapeOf(inShape);
+            // 0 - number of dimensions; 1,2 - kernel Height/Width; 3,4 - stride Height/Width; 5,6 - pad Height/Width; 7,8 - dilation Height/Width; 9,10 - input Height/Width; 11 - batch size; 12 - input depth; 13 - same mode;
+            std::vector<int> argI = *(block.getIArguments());
+            int kH = argI[0];
+            int kW = argI[1];
+            int sH = argI[2];
+            int sW = argI[3];
+            int pH = argI[4];
+            int pW = argI[5];
+            int dH = argI[6];
+            int dW = argI[7];
+            int isSameMode = argI[8];
+
+            int bS = shapeOf[0];
+            int iD = shapeOf[1];
+            int iH = shapeOf[2];
+            int iW = shapeOf[3];
+
+
+
+            char order = shape::order(inShape); // output order must be equal to input order
+
+            // calculate output Height/Width
+            int oH, oW;
+            nd4j::ops::calcOutHWpool2D(oH, oW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);
+            // allocate memory for new shape
+            int* newShapeInfo = nullptr;
+            ALLOCATE(newShapeInfo, block.getWorkspace(), 12, int);
+            newShapeInfo[0] = 4;		// rank
+            newShapeInfo[1] = bS;
+            newShapeInfo[2] = iD;
+            newShapeInfo[3] = oH;
+            newShapeInfo[4] = oW;
+            shape::updateStrides(newShapeInfo, order);
+
+            return new ShapeList(newShapeInfo);
+        }
 
 //////////////////////////////////////////////////////////////////////////
         // avgpool2d corresponds to poolingMode=1
-        DECLARE_CUSTOM_OP(avgpool2d, 1, 1, false, 0, 14) {
+        DECLARE_CUSTOM_OP(avgpool2d, 1, 1, false, 0, 9) {
 
-            REQUIRE_OK(this->validateInputLengthMatch(block));
-            REQUIRE_OK(this->validateInputDimensionsMatch(block));
-            NDArray<T> *x = block.getVariables().at(0)->getNDArray();			
-            std::vector<int> argI = *(block.getIArguments());					// 0 - number of dimensions; 1,2 - kernel Height/Width; 3,4 - stride Height/Width; 5,6 - pad Height/Width; 7,8 - dilation Height/Width; 9,10 - input Height/Width; 11 - batch size; 12 - input depth; 13 - same mode;
-            std::vector<T> argT = {(T) argI[1], (T) argI[2], (T) argI[3], (T) argI[4], (T) argI[5], (T) argI[6], (T)argI[7], (T)argI[8], (T)1.f, (T)1.f, (T)1.f};  // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8,9 - poolingMode; 10 - divisor;
+            NDArray<T> *x = block.getVariables().at(0)->getNDArray();
+
+            REQUIRE_TRUE(x->rankOf() == 4, 0, "Input should have rank of 4, but got %i instead", x->rankOf());
+
+            // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8 - same mode;
+            std::vector<int> argI = *(block.getIArguments());
+
+            // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8,9 - poolingMode; 10 - divisor;
+            std::vector<T> argT = {(T) argI[0], (T) argI[1], (T) argI[2], (T) argI[3], (T) argI[4], (T) argI[5], (T)argI[6], (T)argI[7], (T)1.f, (T)1.f, (T)1.f};
 
             auto z = this->getZ(block);
             x->template applyTransform<simdOps::Pooling2D<T>>(z, argT.data());
@@ -362,7 +416,47 @@ namespace nd4j {
 		DECLARE_SYN(AvgPool2D, avgpool2d);
         DECLARE_SYN(AvgPool, avgpool2d);
         DECLARE_SYN(avgpool, avgpool2d);
-        
+        //////////////////////////////////////////////////////////////////////////
+        DECLARE_SHAPE_FN(avgpool2d) {
+            int* inShape = inputShape->at(0);
+            int* shapeOf = shape::shapeOf(inShape);
+
+            // 0 - number of dimensions; 1,2 - kernel Height/Width; 3,4 - stride Height/Width; 5,6 - pad Height/Width; 7,8 - dilation Height/Width; 9,10 - input Height/Width; 11 - batch size; 12 - input depth; 13 - same mode;
+            std::vector<int> argI = *(block.getIArguments());
+            int kH = argI[0];
+            int kW = argI[1];
+            int sH = argI[2];
+            int sW = argI[3];
+            int pH = argI[4];
+            int pW = argI[5];
+            int dH = argI[6];
+            int dW = argI[7];
+            int isSameMode = argI[8];
+
+            int bS = shapeOf[0];
+            int iD = shapeOf[1];
+            int iH = shapeOf[2];
+            int iW = shapeOf[3];
+
+
+            char order = shape::order(inShape); // output order must be equal to input order
+
+            // calculate output Height/Width
+            int oH, oW;
+            nd4j::ops::calcOutHWpool2D(oH, oW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);
+            // allocate memory for new shape
+            int* newShapeInfo = nullptr;
+            ALLOCATE(newShapeInfo, block.getWorkspace(), 12, int);
+            newShapeInfo[0] = 4;		// rank
+            newShapeInfo[1] = bS;
+            newShapeInfo[2] = iD;
+            newShapeInfo[3] = oH;
+            newShapeInfo[4] = oW;
+            shape::updateStrides(newShapeInfo, order);
+
+            return new ShapeList(newShapeInfo);
+        }
+
 //////////////////////////////////////////////////////////////////////////
 		// pnormpool2d corresponds to poolingMode=2	
         DECLARE_CUSTOM_OP(pnormpool2d, 1, 1, false, 0, 14) {
@@ -370,8 +464,12 @@ namespace nd4j {
             REQUIRE_OK(this->validateInputLengthMatch(block));
             REQUIRE_OK(this->validateInputDimensionsMatch(block));
             NDArray<T> *x = block.getVariables().at(0)->getNDArray();
-            std::vector<int> argI = *(block.getIArguments());					// 0 - number of dimensions; 1,2 - kernel Height/Width; 3,4 - stride Height/Width; 5,6 - pad Height/Width; 7,8 - dilation Height/Width; 9,10 - input Height/Width; 11 - batch size; 12 - input depth; 13 - same mode;
-            std::vector<T> argT = {(T) argI[1], (T) argI[2], (T) argI[3], (T) argI[4], (T) argI[5], (T) argI[6], (T) argI[7], (T) argI[8], (T)2.f, (T)2.f, (T)1.f};  // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8,9 - poolingMode; 10 - divisor;
+
+            // 0 - number of dimensions; 1,2 - kernel Height/Width; 3,4 - stride Height/Width; 5,6 - pad Height/Width; 7,8 - dilation Height/Width; 9,10 - input Height/Width; 11 - batch size; 12 - input depth; 13 - same mode;
+            std::vector<int> argI = *(block.getIArguments());
+
+            // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8,9 - poolingMode; 10 - divisor;
+            std::vector<T> argT = {(T) argI[1], (T) argI[2], (T) argI[3], (T) argI[4], (T) argI[5], (T) argI[6], (T) argI[7], (T) argI[8], (T)2.f, (T)2.f, (T)1.f};
 
             auto z = this->getZ(block);
             x->template applyTransform<simdOps::Pooling2D<T>>(z, argT.data());

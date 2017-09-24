@@ -141,12 +141,56 @@ namespace nd4j {
         DECLARE_SYN(dot, matmul);
 
 //////////////////////////////////////////////////////////////////////////
-        DECLARE_OP(lrn, 2, 1, true) {
+        DECLARE_CONFIGURABLE_OP(lrn, 1, 3, true, 4, 0) {
             // LocalResponseNormalization
+
+            NDArray<T>* input = block.getVariables().at(0)->getNDArray();
+            NDArray<T>* z = this->getZ(block);
+            NDArray<T>* unitScale = this->getZ(block, 1);
+            NDArray<T>* scale = this->getZ(block, 2);
+
+            T alpha = block.getTArguments()->at(0);
+            T beta = block.getTArguments()->at(1);
+            T bias = block.getTArguments()->at(2);
+            T depth = block.getTArguments()->at(3);
+
+            int halfDepth = (int) (depth / (T) 2.f);
+
+            const int channel =  input->sizeAt(1);
+
+            auto activitySqr = NDArrayFactory::createUninitialized<T>(input);
+            input->template applyPairwiseTransform<simdOps::Multiply<T>>(input, activitySqr, nullptr);
+            auto sumPart = activitySqr->dup('c');
+
+            for (int i = 1; i < halfDepth + 1; i++) {
+                // TODO: indexing to be implented
+            }
+
+            /*
+             *  // taken from java
+                unitScale = sumPart.mul(alpha).addi(k).leverageTo(ComputationGraph.workspaceExternal);
+                // y = x * unitScale**-beta
+                scale = Transforms.pow(unitScale, -beta).leverageTo(ComputationGraph.workspaceExternal);
+                activations = input.mul(scale).leverageTo(ComputationGraph.workspaceExternal);
+             */
+
+            sumPart->applyScalar<simdOps::Multiply<T>>(alpha, unitScale, nullptr);
+            unitScale->applyScalar<simdOps::Add<T>>(bias);
+
+            T p = -beta;
+            unitScale->applyTransform<simdOps::Pow<T>>(scale, &p);
+            input->applyPairwiseTransform<simdOps::Multiply<T>>(scale, z, nullptr);
+
+            STORE_3_RESULTS(*z, *unitScale, *scale);
+
             return ND4J_STATUS_OK;
         }
         DECLARE_SYN(LRN, lrn);
 
+
+        DECLARE_CONFIGURABLE_OP(lrn_bp, 1, 1, true, 4, 0) {
+
+        }
 
 ///////////////////////
         /**
@@ -912,77 +956,6 @@ namespace nd4j {
 			return ND4J_STATUS_OK;
 		}
 
-		//////////////////////////////////////////////////////////////////////////
-		DECLARE_SHAPE_FN(maxpool2d) {
-			NDArray<T> *x = block.getVariables().at(0)->getNDArray();
-			// 0 - number of dimensions; 1,2 - kernel Height/Width; 3,4 - stride Height/Width; 5,6 - pad Height/Width; 7,8 - dilation Height/Width; 9,10 - input Height/Width; 11 - batch size; 12 - input depth; 13 - same mode;
-			std::vector<int> argI = *(block.getIArguments());			
-			int kH = argI[1];
-			int kW = argI[2];
-			int sH = argI[3];
-			int sW = argI[4];
-			int pH = argI[5];
-			int pW = argI[6];
-			int dH = argI[7];
-			int dW = argI[8];
-			int iH = argI[9];
-			int iW = argI[10];
-			int bS = argI[11];
-			int iD = argI[12];
-			int isSameMode = argI[13];
-			char order = (block.getVariables().at(0)->getNDArray())->ordering();  // output order must be equal to input order
-
-			// calculate output Height/Width
-			int oH, oW;
-			nd4j::ops::calcOutHWpool2D(oH, oW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);
-			// allocate memory for new shape
-            int* newShapeInfo = nullptr;
-            ALLOCATE(newShapeInfo, block.getWorkspace(), 12, int);
-			newShapeInfo[0] = 4;		// rank
-			newShapeInfo[1] = bS;
-			newShapeInfo[2] = iD;
-			newShapeInfo[3] = oH;
-			newShapeInfo[4] = oW;
-            shape::updateStrides(newShapeInfo, order);
-
-			return new ShapeList(newShapeInfo);
-		}	
-		
-		//////////////////////////////////////////////////////////////////////////
-		DECLARE_SHAPE_FN(avgpool2d) {
-			NDArray<T> *x = block.getVariables().at(0)->getNDArray();
-			// 0 - number of dimensions; 1,2 - kernel Height/Width; 3,4 - stride Height/Width; 5,6 - pad Height/Width; 7,8 - dilation Height/Width; 9,10 - input Height/Width; 11 - batch size; 12 - input depth; 13 - same mode; 
-			std::vector<int> argI = *(block.getIArguments());			
-			int kH = argI[1];
-			int kW = argI[2];
-			int sH = argI[3];
-			int sW = argI[4];
-			int pH = argI[5];
-			int pW = argI[6];
-			int dH = argI[7];
-			int dW = argI[8];
-			int iH = argI[9];
-			int iW = argI[10];
-			int bS = argI[11];
-			int iD = argI[12];
-			int isSameMode = argI[13];
-			char order = (block.getVariables().at(0)->getNDArray())->ordering();  // output order must be equal to input order
-
-			// calculate output Height/Width
-			int oH, oW;
-			nd4j::ops::calcOutHWpool2D(oH, oW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);
-			// allocate memory for new shape
-            int* newShapeInfo = nullptr;
-            ALLOCATE(newShapeInfo, block.getWorkspace(), 12, int);
-			newShapeInfo[0] = 4;		// rank
-			newShapeInfo[1] = bS;
-			newShapeInfo[2] = iD;
-			newShapeInfo[3] = oH;
-			newShapeInfo[4] = oW;
-            shape::updateStrides(newShapeInfo, order);
-
-			return new ShapeList(newShapeInfo);
-		}	
 
 		//////////////////////////////////////////////////////////////////////////
 		DECLARE_SHAPE_FN(pnormpool2d) {
