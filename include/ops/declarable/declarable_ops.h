@@ -567,10 +567,22 @@ nd4j::NDArray<T>* nd4j::ops::DeclarableOp<T>::getZ(Block<T>& block, int inputId)
     if (block.isInplace()) {
         z = block.getVariables().at(inputId)->getNDArray();
     } else if (!block.isInplace() && block.getVariableSpace()->hasVariable(block.getNodeId())) {
-        auto var = block.getVariableSpace()->getVariable(block.getNodeId());
+        std::pair<int, int> pair(block.getNodeId(), inputId);
+
+        auto var = block.getVariableSpace()->getVariable(pair);
         if (var->getNDArray() != nullptr && var->getNDArray()->nonNull()) {
             z = var->getNDArray();
         } else {
+/*
+            auto shapeList = new ShapeList();
+            for (auto v: block.getVariables()) {
+                shapeList->push_back(v->getNDArray()->getShapeInfo());
+            }
+
+            auto shapes = this->calculateOutputShape(shapeList, block);
+            int *shape = shapes->at(inputId);
+            z = new NDArray<T>();
+*/
             nd4j_printf("Can't get Z variable!\n","");
         }
     }
@@ -613,7 +625,10 @@ bool nd4j::ops::DeclarableOp<T>::prepareOutputs(Block<T> &block) {
 
             auto outArr = new NDArray<T>(out, workspace);
 
-            block.getVariableSpace()->putVariable(pair, outArr);
+            auto var = block.getVariableSpace()->getVariable(pair);
+
+            //block.getVariableSpace()->putVariable(pair, outArr);
+            var->setNDArray(outArr);
         }
 
         outSha->destroy();
@@ -719,16 +734,20 @@ Nd4jStatus nd4j::ops::DeclarableOp<T>::validateArguments(Block<T>& block) {
      * If number of args is variable (-1), but variables MUST be present - we check for non-zero number of arguments
      */
     if (_descriptor->getNumberOfTArgs() > 0) {
-        if ((int) block.getTArguments()->size() != _descriptor->getNumberOfTArgs())
+        if ((int) block.getTArguments()->size() != _descriptor->getNumberOfTArgs()) {
+            nd4j_debug("% T args expected, but %i received", _descriptor->getNumberOfTArgs(), block.getTArguments()->size());
             return ND4J_STATUS_BAD_PARAMS;
+        }
     } else
         if (_descriptor->getNumberOfTArgs() == -1)
             if (block.getTArguments()->size() == 0)
                 return ND4J_STATUS_BAD_PARAMS;
 
     if (_descriptor->getNumberOfIArgs() > 0) {
-        if ((int) block.getIArguments()->size() != _descriptor->getNumberOfIArgs())
+        if ((int) block.getIArguments()->size() != _descriptor->getNumberOfIArgs()) {
+            nd4j_debug("% int args expected, but %i received", _descriptor->getNumberOfIArgs(), block.getIArguments()->size());
             return ND4J_STATUS_BAD_PARAMS;
+        }
     } else
         if (_descriptor->getNumberOfIArgs() == -1)
             if (block.getIArguments()->size() == 0)
@@ -777,11 +796,14 @@ Nd4jStatus nd4j::ops::DeclarableOp<T>::validateNonEmptyInput(Block<T>& block) {
         return ND4J_STATUS_BAD_INPUT;
 
 
+    int cnt = 0;
     for (auto v: block.getVariables()) {
         NDArray<T> *aV = v->getNDArray();
 
         if (aV == nullptr || !aV->nonNull())
             return ND4J_STATUS_BAD_INPUT;
+
+        cnt++;
     }
 
     return ND4J_STATUS_OK;

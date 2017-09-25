@@ -7,6 +7,8 @@
 #include <shape.h>
 #include "NativeOpExcutioner.h"
 #include <memory/Workspace.h>
+#include <indexing/NDIndex.h>
+#include <indexing/IndicesList.h>
 
 namespace nd4j {
 
@@ -71,6 +73,12 @@ namespace nd4j {
         NDArray<T>* repeat(int dimension, const std::vector<int>& reps);
 
         NDArray<T>* getView();
+
+        NDArray<T> *subarray(IndicesList& indices);
+
+        nd4j::memory::Workspace* getWorkspace() {
+            return _workspace;
+        }
 
         T* getBuffer();
 
