@@ -626,9 +626,13 @@ bool nd4j::ops::DeclarableOp<T>::prepareOutputs(Block<T> &block) {
             auto outArr = new NDArray<T>(out, workspace);
 
             auto var = block.getVariableSpace()->getVariable(pair);
-
-            //block.getVariableSpace()->putVariable(pair, outArr);
-            var->setNDArray(outArr);
+            if (var == nullptr) {
+                var = new Variable<T>(outArr);
+                block.getVariableSpace()->putVariable(pair, var);
+            } else {
+                //block.getVariableSpace()->putVariable(pair, outArr);
+                var->setNDArray(outArr);
+            }
         }
 
         outSha->destroy();

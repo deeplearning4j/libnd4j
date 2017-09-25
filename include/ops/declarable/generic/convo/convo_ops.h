@@ -25,8 +25,8 @@ namespace nd4j {
             const int kX = block.getIArguments()->at(1);
             const int sY = block.getIArguments()->at(2);
             const int sX = block.getIArguments()->at(3);
-            const int pY = block.getIArguments()->at(4);
-            const int pX = block.getIArguments()->at(5);
+            int pY = block.getIArguments()->at(4);
+            int pX = block.getIArguments()->at(5);
             const int dY = block.getIArguments()->at(6);
             const int dX = block.getIArguments()->at(7);
             const bool isSameMode = block.getIArguments()->at(8) != 0;
@@ -41,6 +41,10 @@ namespace nd4j {
             const int inX = input->shapeOf()[3];
 
             nd4j::ops::calcOutHWpool2D(oY, oX, kY, kX, sY, sX, pY, pX, dY, dX, inY, inX, isSameMode);
+
+            if (isSameMode) {
+                nd4j::ops::_calcPadding2D(pY, pX, oY, oX, inY, inX, kY, kX, sY, sX, dY, dX);
+            }
 
             NDArray<T>* output = this->getZ(block);
 
@@ -70,8 +74,8 @@ namespace nd4j {
             const int kX = block.getIArguments()->at(1);
             const int sY = block.getIArguments()->at(2);
             const int sX = block.getIArguments()->at(3);
-            const int pY = block.getIArguments()->at(4);
-            const int pX = block.getIArguments()->at(5);
+            int pY = block.getIArguments()->at(4);
+            int pX = block.getIArguments()->at(5);
             const int dY = block.getIArguments()->at(6);
             const int dX = block.getIArguments()->at(7);
             const bool isSameMode = block.getIArguments()->at(8) != 0;
@@ -85,6 +89,11 @@ namespace nd4j {
             const int inX = inShape[4];
 
             nd4j::ops::calcOutHWpool2D(oY, oX, kY, kX, sY, sX, pY, pX, dY, dX, inY, inX, isSameMode);
+
+            if (isSameMode) {
+                nd4j::ops::_calcPadding2D(pY, pX, oY, oX, inY, inX, kY, kX, sY, sX, dY, dX);
+                nd4j::ops::calcOutHWpool2D(oY, oX, kY, kX, sY, sX, pY, pX, dY, dX, inY, inX, isSameMode);
+            }
 
             //z = Shape.newShapeNoCopy(z, new int[] {outW, outH, miniBatch, outDepth}, true);
             int *newShape;
@@ -140,7 +149,7 @@ namespace nd4j {
 
 
             REQUIRE_TRUE(output->sizeAt(0) == input->sizeAt(0) && output->sizeAt(1) == nOutputPlane && output->sizeAt(2) == outputDepth && output->sizeAt(3) == outputHeight && output->sizeAt(4) == outputWidth, 0,
-                         "Expected output shape: [%i, %i, %i, %i, %i]", input->sizeAt(0), nOutputPlane, outputDepth, outputHeight, outputWidth);
+                         "Expected output shape: [%i, %i, %i, %i, %i] but got [%i, %i, %i, %i, %i] instead", input->sizeAt(0), nOutputPlane, outputDepth, outputHeight, outputWidth, output->sizeAt(0), output->sizeAt(1), output->sizeAt(2), output->sizeAt(3), output->sizeAt(4));
 
             std::unique_ptr<ArrayList<T>> batchIn(NDArrayFactory::allExamples<T>(input));
             std::unique_ptr<ArrayList<T>> batchOut(NDArrayFactory::allExamples<T>(output));
@@ -330,27 +339,44 @@ namespace nd4j {
 
             REQUIRE_TRUE(x->rankOf() == 4, 0, "Input should have rank of 4, but got %i instead", x->rankOf());
 
-            // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8 - same mode;
+            const int bSize = x->sizeAt(0);
+            const int inD = x->sizeAt(1);
+            const int inY = x->sizeAt(2);
+            const int inX = x->sizeAt(3);
+
             std::vector<int> argI = *(block.getIArguments());
-
-            // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8,9 - poolingMode; 10 - extraParam0 for pnorm case;
-            std::vector<T> argT = {(T)argI[0], (T)argI[1], (T)argI[2], (T)argI[3], (T)argI[4], (T)argI[5], (T)argI[6], (T)argI[7], (T)0.f, (T)0.f, (T)1.f};
-
             auto z = this->getZ(block);
+
+            int pY = argI[4];
+            int pX = argI[5];
+
+            const bool isSameMode = block.getIArguments()->at(8) > 0;
+            if (isSameMode)
+                nd4j::ops::_calcPadding2D(pY, pX, z->sizeAt(2), z->sizeAt(3), inY, inX, argI[0], argI[1], argI[2], argI[3], argI[6], argI[7]);
+
+            // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8 - same mode;
+
+
+            // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8,9 - poolingMode; 10 - divisor;
+            std::vector<T> argT = {(T)argI[0], (T)argI[1], (T)argI[2], (T)argI[3], (T) pY, (T) pX, (T)argI[6], (T)argI[7], (T)0.f, (T)0.f, (T)1.f};
+
             x->template applyTransform<simdOps::Pooling2D<T>>(z, argT.data());
 
             STORE_RESULT(*z);
+
+            z->printShapeInfo("MaxPool2D result shape");
 
             return ND4J_STATUS_OK;
         }
         DECLARE_SYN(MaxPool2D, maxpool2d);
         DECLARE_SYN(MaxPool, maxpool2d);
         DECLARE_SYN(maxpool, maxpool2d);
-       
-		//////////////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////////////
         DECLARE_SHAPE_FN(maxpool2d) {
+            //NDArray<T> *x = block.getVariables().at(0)->getNDArray();
             int* inShape = inputShape->at(0);
-            // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8 - same mode;
+            int* shapeOf = shape::shapeOf(inShape);
+            // 0 - number of dimensions; 1,2 - kernel Height/Width; 3,4 - stride Height/Width; 5,6 - pad Height/Width; 7,8 - dilation Height/Width; 9,10 - input Height/Width; 11 - batch size; 12 - input depth; 13 - same mode;
             std::vector<int> argI = *(block.getIArguments());
             int kH = argI[0];
             int kW = argI[1];
@@ -362,16 +388,21 @@ namespace nd4j {
             int dW = argI[7];
             int isSameMode = argI[8];
 
-            int bS = inShape[1];
-            int iD = inShape[2];
-            int iH = inShape[3];
-            int iW = inShape[4];
+            int bS = shapeOf[0];
+            int iD = shapeOf[1];
+            int iH = shapeOf[2];
+            int iW = shapeOf[3];
 
             char order = shape::order(inShape); // output order must be equal to input order
 
             // calculate output Height/Width
             int oH, oW;
             nd4j::ops::calcOutHWpool2D(oH, oW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);
+
+            const bool bisSameMode = block.getIArguments()->at(8) > 0;
+            if (bisSameMode)
+                nd4j::ops::_calcPadding2D(pH, pW, oH, oW, iH, iW, argI[0], argI[1], argI[2], argI[3], argI[6], argI[7]);
+
             // allocate memory for new shape
             int* newShapeInfo = nullptr;
             ALLOCATE(newShapeInfo, block.getWorkspace(), 12, int);
@@ -393,13 +424,24 @@ namespace nd4j {
 
             REQUIRE_TRUE(x->rankOf() == 4, 0, "Input should have rank of 4, but got %i instead", x->rankOf());
 
+            const int inY = x->sizeAt(2);
+            const int inX = x->sizeAt(3);
+
             // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8 - same mode;
             std::vector<int> argI = *(block.getIArguments());
+            auto z = this->getZ(block);
 
-            // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8,9 - poolingMode; 10 -  extraParam0 for pnorm case;
+            int pY = argI[4];
+            int pX = argI[5];
+
+            const bool isSameMode = block.getIArguments()->at(8) > 0;
+            if (isSameMode)
+                nd4j::ops::_calcPadding2D(pY, pX, z->sizeAt(2), z->sizeAt(3), inY, inX, argI[0], argI[1], argI[2], argI[3], argI[6], argI[7]);
+
+            // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8,9 - poolingMode; 10 - divisor;
             std::vector<T> argT = {(T) argI[0], (T) argI[1], (T) argI[2], (T) argI[3], (T) argI[4], (T) argI[5], (T)argI[6], (T)argI[7], (T)1.f, (T)1.f, (T)1.f};
 
-            auto z = this->getZ(block);
+
             x->template applyTransform<simdOps::Pooling2D<T>>(z, argT.data());
 
             STORE_RESULT(*z);
@@ -413,6 +455,8 @@ namespace nd4j {
         //////////////////////////////////////////////////////////////////////////
         DECLARE_SHAPE_FN(avgpool2d) {
             int* inShape = inputShape->at(0);
+            int* shapeOf = shape::shapeOf(inShape);
+
             // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8 - same mode;
             std::vector<int> argI = *(block.getIArguments());
             int kH = argI[0];
@@ -425,16 +469,23 @@ namespace nd4j {
             int dW = argI[7];
             int isSameMode = argI[8];
 
-            int bS = inShape[1];
-            int iD = inShape[2];
-            int iH = inShape[3];
-            int iW = inShape[4];
+            int bS = shapeOf[0];
+            int iD = shapeOf[1];
+            int iH = shapeOf[2];
+            int iW = shapeOf[3];
+
 
             char order = shape::order(inShape); // output order must be equal to input order
 
             // calculate output Height/Width
             int oH, oW;
             nd4j::ops::calcOutHWpool2D(oH, oW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);
+
+            const bool bisSameMode = block.getIArguments()->at(8) > 0;
+            if (bisSameMode)
+                nd4j::ops::_calcPadding2D(pH, pW, oH, oW, iH, iW, argI[0], argI[1], argI[2], argI[3], argI[6], argI[7]);
+
+
             // allocate memory for new shape
             int* newShapeInfo = nullptr;
             ALLOCATE(newShapeInfo, block.getWorkspace(), 12, int);
@@ -452,6 +503,8 @@ namespace nd4j {
 		// pnormpool2d corresponds to poolingMode=2	
         DECLARE_CUSTOM_OP(pnormpool2d, 1, 1, false, 0, 10) {
 
+            REQUIRE_OK(this->validateInputLengthMatch(block));
+            REQUIRE_OK(this->validateInputDimensionsMatch(block));
             NDArray<T> *x = block.getVariables().at(0)->getNDArray();
 			REQUIRE_TRUE(x->rankOf() == 4, 0, "Input should have rank of 4, but got %i instead", x->rankOf());
 

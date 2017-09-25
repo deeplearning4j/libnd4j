@@ -68,7 +68,7 @@ TEST_F(DeclarableOpsTests, BasicInitialization1) {
     variableSpace->putVariable(1, nodeVar);
 
     Block<float> block(1, variableSpace);
-
+    block.getIArguments()->push_back(1);
     block.fillInputs({-1, -2, -3, -4, -5});
 
     ASSERT_TRUE(nodeVar->getNDArray() == nullptr);
@@ -1254,9 +1254,11 @@ TEST_F(DeclarableOpsTests, Reshape1) {
     
 	Block<float>* block = new Block<float>(1, variableSpace, true);
     block->fillInputs({-1});	
-	std::vector<int>* arguments = block->getIArguments();	
-	*arguments = yShape;
+	std::vector<int>* arguments = block->getIArguments();
 	arguments->push_back(y.ordering());
+    arguments->push_back(3);
+    arguments->push_back(5);
+    arguments->push_back(4);
 	
 	nd4j::ops::reshape<float> reshape;
 	
@@ -1279,9 +1281,11 @@ TEST_F(DeclarableOpsTests, Reshape2) {
     
 	Block<float>* block = new Block<float>(1, variableSpace, false);
     block->fillInputs({-1});	
-	std::vector<int>* arguments = block->getIArguments();	
-	*arguments = yShape;
+	std::vector<int>* arguments = block->getIArguments();
 	arguments->push_back(y.ordering());
+    arguments->push_back(3);
+    arguments->push_back(5);
+    arguments->push_back(4);
 	
 	nd4j::ops::reshape<float> reshape;
 	
