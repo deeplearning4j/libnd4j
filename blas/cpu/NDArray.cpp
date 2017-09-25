@@ -1039,6 +1039,7 @@ template <typename T> bool NDArray<T>::reshapei(const char order, const std::vec
 
     if(_buffer==nullptr || arrLength != this->lengthOf()) {
         this->printShapeInfo("Mismatched shape");
+        nd4j::Logger::printv("Shape requested: ", shape);
         nd4j_debug("Requested length in reshape: %i; Existing length: %i;\n", arrLength, this->lengthOf());
         throw "Bad shape!";
     }

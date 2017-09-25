@@ -25,8 +25,8 @@ namespace nd4j {
             const int kX = block.getIArguments()->at(1);
             const int sY = block.getIArguments()->at(2);
             const int sX = block.getIArguments()->at(3);
-            const int pY = block.getIArguments()->at(4);
-            const int pX = block.getIArguments()->at(5);
+            int pY = block.getIArguments()->at(4);
+            int pX = block.getIArguments()->at(5);
             const int dY = block.getIArguments()->at(6);
             const int dX = block.getIArguments()->at(7);
             const bool isSameMode = block.getIArguments()->at(8) != 0;
@@ -41,6 +41,10 @@ namespace nd4j {
             const int inX = input->shapeOf()[3];
 
             nd4j::ops::calcOutHWpool2D(oY, oX, kY, kX, sY, sX, pY, pX, dY, dX, inY, inX, isSameMode);
+
+            if (isSameMode) {
+                nd4j::ops::_calcPadding2D(pY, pX, oY, oX, inY, inX, kY, kX, sY, sX, dY, dX);
+            }
 
             NDArray<T>* output = this->getZ(block);
 
@@ -70,8 +74,8 @@ namespace nd4j {
             const int kX = block.getIArguments()->at(1);
             const int sY = block.getIArguments()->at(2);
             const int sX = block.getIArguments()->at(3);
-            const int pY = block.getIArguments()->at(4);
-            const int pX = block.getIArguments()->at(5);
+            int pY = block.getIArguments()->at(4);
+            int pX = block.getIArguments()->at(5);
             const int dY = block.getIArguments()->at(6);
             const int dX = block.getIArguments()->at(7);
             const bool isSameMode = block.getIArguments()->at(8) != 0;
@@ -85,6 +89,11 @@ namespace nd4j {
             const int inX = inShape[4];
 
             nd4j::ops::calcOutHWpool2D(oY, oX, kY, kX, sY, sX, pY, pX, dY, dX, inY, inX, isSameMode);
+
+            if (isSameMode) {
+                nd4j::ops::_calcPadding2D(pY, pX, oY, oX, inY, inX, kY, kX, sY, sX, dY, dX);
+                nd4j::ops::calcOutHWpool2D(oY, oX, kY, kX, sY, sX, pY, pX, dY, dX, inY, inX, isSameMode);
+            }
 
             //z = Shape.newShapeNoCopy(z, new int[] {outW, outH, miniBatch, outDepth}, true);
             int *newShape;
@@ -335,13 +344,22 @@ namespace nd4j {
             const int inY = x->sizeAt(2);
             const int inX = x->sizeAt(3);
 
-            // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8 - same mode;
             std::vector<int> argI = *(block.getIArguments());
+            auto z = this->getZ(block);
+
+            int pY = argI[4];
+            int pX = argI[5];
+
+            const bool isSameMode = block.getIArguments()->at(8) > 0;
+            if (isSameMode)
+                nd4j::ops::_calcPadding2D(pY, pX, z->sizeAt(2), z->sizeAt(3), inY, inX, argI[0], argI[1], argI[2], argI[3], argI[6], argI[7]);
+
+            // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8 - same mode;
+
 
             // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8,9 - poolingMode; 10 - divisor;
-            std::vector<T> argT = {(T)argI[0], (T)argI[1], (T)argI[2], (T)argI[3], (T)argI[4], (T)argI[5], (T)argI[6], (T)argI[7], (T)0.f, (T)0.f, (T)1.f};
+            std::vector<T> argT = {(T)argI[0], (T)argI[1], (T)argI[2], (T)argI[3], (T) pY, (T) pX, (T)argI[6], (T)argI[7], (T)0.f, (T)0.f, (T)1.f};
 
-            auto z = this->getZ(block);
             x->template applyTransform<simdOps::Pooling2D<T>>(z, argT.data());
 
             STORE_RESULT(*z);
@@ -375,13 +393,16 @@ namespace nd4j {
             int iH = shapeOf[2];
             int iW = shapeOf[3];
 
-
-
             char order = shape::order(inShape); // output order must be equal to input order
 
             // calculate output Height/Width
             int oH, oW;
             nd4j::ops::calcOutHWpool2D(oH, oW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);
+
+            const bool bisSameMode = block.getIArguments()->at(8) > 0;
+            if (bisSameMode)
+                nd4j::ops::_calcPadding2D(pH, pW, oH, oW, iH, iW, argI[0], argI[1], argI[2], argI[3], argI[6], argI[7]);
+
             // allocate memory for new shape
             int* newShapeInfo = nullptr;
             ALLOCATE(newShapeInfo, block.getWorkspace(), 12, int);
@@ -403,13 +424,24 @@ namespace nd4j {
 
             REQUIRE_TRUE(x->rankOf() == 4, 0, "Input should have rank of 4, but got %i instead", x->rankOf());
 
+            const int inY = x->sizeAt(2);
+            const int inX = x->sizeAt(3);
+
             // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8 - same mode;
             std::vector<int> argI = *(block.getIArguments());
+            auto z = this->getZ(block);
+
+            int pY = argI[4];
+            int pX = argI[5];
+
+            const bool isSameMode = block.getIArguments()->at(8) > 0;
+            if (isSameMode)
+                nd4j::ops::_calcPadding2D(pY, pX, z->sizeAt(2), z->sizeAt(3), inY, inX, argI[0], argI[1], argI[2], argI[3], argI[6], argI[7]);
 
             // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8,9 - poolingMode; 10 - divisor;
             std::vector<T> argT = {(T) argI[0], (T) argI[1], (T) argI[2], (T) argI[3], (T) argI[4], (T) argI[5], (T)argI[6], (T)argI[7], (T)1.f, (T)1.f, (T)1.f};
 
-            auto z = this->getZ(block);
+
             x->template applyTransform<simdOps::Pooling2D<T>>(z, argT.data());
 
             STORE_RESULT(*z);
@@ -448,6 +480,12 @@ namespace nd4j {
             // calculate output Height/Width
             int oH, oW;
             nd4j::ops::calcOutHWpool2D(oH, oW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);
+
+            const bool bisSameMode = block.getIArguments()->at(8) > 0;
+            if (bisSameMode)
+                nd4j::ops::_calcPadding2D(pH, pW, oH, oW, iH, iW, argI[0], argI[1], argI[2], argI[3], argI[6], argI[7]);
+
+
             // allocate memory for new shape
             int* newShapeInfo = nullptr;
             ALLOCATE(newShapeInfo, block.getWorkspace(), 12, int);
