@@ -1695,7 +1695,7 @@ TEST_F(DeclarableOpsTests, Maxpool2d1) {
 	Block<float>* block = new Block<float>(1, variableSpace, false);
     block->fillInputs({-1});
 	std::vector<int>* argI = block->getIArguments();
-	*argI = {4, kH,kW, sH,sW, pH,pW, dW,dH, iH,iW, bS, iD, 0};  // 0 - number of dimensions; 1,2 - kernel Height/Width; 3,4 - stride Height/Width; 5,6 - pad Height/Width; 7,8 - dilation Height/Width; 9,10 - input Height/Width; 11 - batch size; 12 - input depth; 13 - same mode;
+	*argI = { kH,kW, sH,sW, pH,pW, dW,dH, 0};  // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8 - same mode;
 
 	nd4j::ops::maxpool2d<float> pooling;
 	Nd4jStatus status = pooling.execute(block);
@@ -1720,7 +1720,7 @@ TEST_F(DeclarableOpsTests, Avgpool2d1) {
 	Block<float>* block = new Block<float>(1, variableSpace, false);
     block->fillInputs({-1});
 	std::vector<int>* argI = block->getIArguments();
-	*argI = {4, kH,kW, sH,sW, pH,pW, dW,dH, iH,iW, bS, iD, 0};  // 0 - number of dimensions; 1,2 - kernel Height/Width; 3,4 - stride Height/Width; 5,6 - pad Height/Width; 7,8 - dilation Height/Width; 9,10 - input Height/Width; 11 - batch size; 12 - input depth; 13 - same mode;
+	*argI = {kH,kW, sH,sW, pH,pW, dW,dH, 0};  // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8 - same mode;
 
 	nd4j::ops::avgpool2d<float> pooling;
 	Nd4jStatus status = pooling.execute(block);
@@ -1745,7 +1745,7 @@ TEST_F(DeclarableOpsTests, Pnormpool2d1) {
 	Block<float>* block = new Block<float>(1, variableSpace, false);
     block->fillInputs({-1});
 	std::vector<int>* argI = block->getIArguments();
-	*argI = {4, kH,kW, sH,sW, pH,pW, dW,dH, iH,iW, bS, iD, 0};  // 0 - number of dimensions; 1,2 - kernel Height/Width; 3,4 - stride Height/Width; 5,6 - pad Height/Width; 7,8 - dilation Height/Width; 9,10 - input Height/Width; 11 - batch size; 12 - input depth; 13 - same mode;
+	*argI = {kH,kW, sH,sW, pH,pW, dW,dH, 0, 1};  // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8 - same mode; 9 - extraParam0 for pnorm case;
 
 	nd4j::ops::pnormpool2d<float> pooling;
 	Nd4jStatus status = pooling.execute(block);
@@ -1795,9 +1795,9 @@ TEST_F(DeclarableOpsTests, Pooling2d1) {
 	Block<float>* block = new Block<float>(1, variableSpace, false);
     block->fillInputs({-1});
 	std::vector<int>* argI = block->getIArguments();
-	std::vector<float>* argT = block->getTArguments();	
-	*argI = {4, kH,kW, sH,sW, pH,pW, dW,dH, iH,iW, bS, iD, 0, 2};		// 0 - number of dimensions; 1,2 - kernel Height/Width; 3,4 - stride Height/Width; 5,6 - pad Height/Width; 7,8 - dilation Height/Width; 9,10 - input Height/Width; 11 - batch size; 12 - input depth; 13 - same mode; 14 - pooling mode
-	*argT = {8};														// 0 - divisor for pnorm mode -> extraParam0
+		
+	*argI = {kH,kW, sH,sW, pH,pW, dW,dH, 0, 2, 3};		// 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8 - same mode; 9 - pooling mode; 10 - divisor extraParam0 for pnorm case
+
 	nd4j::ops::pooling2d<float> pooling;
 	Nd4jStatus status = pooling.execute(block);
     ASSERT_EQ(ND4J_STATUS_OK, status);
@@ -1822,7 +1822,7 @@ TEST_F(DeclarableOpsTests, MaxPool2dBP) {
     block->fillInputs({-1});
 	block->fillInputs({-2});
 	std::vector<int>* argI = block->getIArguments();
-	*argI = {4, kH,kW, sH,sW, pH,pW, dW,dH, iH,iW, bS, iD, 0};   // 0 - number of dimensions; 1,2 - kernel Height/Width; 3,4 - stride Height/Width; 5,6 - pad Height/Width; 7,8 - dilation Height/Width; 9,10 - input Height/Width; 11 - batch size; 12 - input depth; 13 - same mode;
+	*argI = {kH,kW, sH,sW, pH,pW, dW,dH, 0};   // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8 - same mode;
 
 	nd4j::ops::maxpool2d_bp<float> bp;
 	Nd4jStatus status = bp.execute(block);
@@ -1849,7 +1849,7 @@ TEST_F(DeclarableOpsTests, AvgPool2dBP) {
     block->fillInputs({-1});
 	block->fillInputs({-2});
 	std::vector<int>* argI = block->getIArguments();
-	*argI = {4, kH,kW, sH,sW, pH,pW, dW,dH, iH,iW, bS, iD, 0};   // 0 - number of dimensions; 1,2 - kernel Height/Width; 3,4 - stride Height/Width; 5,6 - pad Height/Width; 7,8 - dilation Height/Width; 9,10 - input Height/Width; 11 - batch size; 12 - input depth; 13 - same mode;
+	*argI = {kH,kW, sH,sW, pH,pW, dW,dH, 0};   // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8 - same mode;
 
 	nd4j::ops::avgpool2d_bp<float> bp;
 	Nd4jStatus status = bp.execute(block);
