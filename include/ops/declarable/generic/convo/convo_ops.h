@@ -140,7 +140,7 @@ namespace nd4j {
 
 
             REQUIRE_TRUE(output->sizeAt(0) == input->sizeAt(0) && output->sizeAt(1) == nOutputPlane && output->sizeAt(2) == outputDepth && output->sizeAt(3) == outputHeight && output->sizeAt(4) == outputWidth, 0,
-                         "Expected output shape: [%i, %i, %i, %i, %i]", input->sizeAt(0), nOutputPlane, outputDepth, outputHeight, outputWidth);
+                         "Expected output shape: [%i, %i, %i, %i, %i] but got [%i, %i, %i, %i, %i] instead", input->sizeAt(0), nOutputPlane, outputDepth, outputHeight, outputWidth, output->sizeAt(0), output->sizeAt(1), output->sizeAt(2), output->sizeAt(3), output->sizeAt(4));
 
             std::unique_ptr<ArrayList<T>> batchIn(NDArrayFactory::allExamples<T>(input));
             std::unique_ptr<ArrayList<T>> batchOut(NDArrayFactory::allExamples<T>(output));
