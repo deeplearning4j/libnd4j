@@ -71,6 +71,10 @@ namespace nd4j {
 
             NDArrayFactory::mmulHelper<T>(im2col2d.get(), reshapedW.get(), output, 1.0f, 0.0f);
 
+            // bias addition is optional
+            if (bias != nullptr)
+                output->addiRowVector(bias);
+
             output->reshapei('c', {input->sizeAt(0),outDepth, oY, oX });
 
             if (debug && verbose)
