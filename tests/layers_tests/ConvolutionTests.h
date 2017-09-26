@@ -25,7 +25,7 @@ TEST_F(ConvolutionTests, TestConv2D_1) {
     double _expB[]{664.0, 700.0, 736.0, 344.0, 808.0, 844.0, 880.0, 408.0, 952.0, 988.0, 1024.0, 472.0, 1096.0, 1132.0, 1168.0, 536.0, 466.0, 480.0, 494.0, 220.0, 1528.0, 1628.0, 1728.0, 856.0, 1928.0, 2028.0, 2128.0, 1048.0, 2328.0, 2428.0, 2528.0, 1240.0, 2728.0, 2828.0, 2928.0, 1432.0, 1346.0, 1392.0, 1438.0, 700.0, 2392.0, 2556.0, 2720.0, 1368.0, 3048.0, 3212.0, 3376.0, 1688.0, 3704.0, 3868.0, 4032.0, 2008.0, 4360.0, 4524.0, 4688.0, 2328.0, 2226.0, 2304.0, 2382.0, 1180.0};
     int _expS[]{4, 1, 3, 5, 4, 60, 20, 4, 1, 0, 1, 99};
     auto input = new NDArray<double>('c', {1, 2, 5, 4});
-    auto weights = new NDArray<double> ('c', {3, 2, 5, 4});
+    auto weights = new NDArray<double> ('c', {3, 2, 2, 2});
 
     for (int e = 0; e < input->lengthOf(); e++)
         input->putScalar(e, e + 1);
@@ -44,8 +44,8 @@ TEST_F(ConvolutionTests, TestConv2D_1) {
     block->fillInputs({-1, -2});
 
     // 5,5 kernel
-    block->getIArguments()->push_back(5);
-    block->getIArguments()->push_back(4);
+    block->getIArguments()->push_back(2);
+    block->getIArguments()->push_back(2);
 
     // 1,1 stride
     block->getIArguments()->push_back(1);
@@ -82,6 +82,7 @@ TEST_F(ConvolutionTests, TestConv2D_1) {
     // just for visual validation
     exp->printBuffer("Expected");
     res->printBuffer("Actual  ");
+    res->printShapeInfo("Result shape");
 
     // final check
     ASSERT_TRUE(res->equalsTo(exp));

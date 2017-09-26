@@ -58,38 +58,26 @@ namespace nd4j {
             //INDArray col = Nd4j.createUninitialized(new int[] {miniBatch, outH, outW, inDepth, kH, kW}, 'c');
             std::unique_ptr<NDArray<T>> col(new NDArray<T>('c', {batchSize, oY, oX, inDepth, kY, kX}));
             std::unique_ptr<NDArray<T>> col2(col.get()->permute({0, 3, 4, 5, 1, 2}));
+
             std::unique_ptr<T> extrasIm2Col(new T[9]{(T) kY, (T) kX, (T) sY, (T) sX, (T) pY, (T) pX, (T) dY, (T) dX, isSameMode ? (T) 1.0f : (T) 0.0f});
 
             input->template applyTransform<simdOps::Im2col<T>>(col2.get(), extrasIm2Col.get());
 
             std::unique_ptr<NDArray<T>> im2col2d(col->reshape('c', {batchSize * oY * oX, inDepth * kY * kX}));
-
             std::unique_ptr<NDArray<T>> permutedW(weights->permute({3, 2, 1, 0}));
             std::unique_ptr<NDArray<T>> reshapedW(permutedW.get()->reshape('f', {kX * kY * inDepth, outDepth}));
 
+            output->reshapei('f', {im2col2d.get()->rows(), reshapedW.get()->columns()});
 
-            col.get()->printBuffer("col buffer");
-            col2.get()->printBuffer("col2 buffer");
-            im2col2d.get()->printBuffer("im2col2d buffer");
-            im2col2d.get()->printShapeInfo("im2col shape");
-            reshapedW.get()->printShapeInfo("weights shape");
-            output->printShapeInfo("output shape: ");
+            NDArrayFactory::mmulHelper<T>(im2col2d.get(), reshapedW.get(), output, 1.0f, 0.0f);
 
-            //im2col2d.mmul(reshapedW);
-            NDArray<T>* z = NDArrayFactory::mmulHelper<T>(im2col2d.get(), reshapedW.get(), nullptr, 1.0f, 0.0f);
-
-            z->printShapeInfo("z shape");
-
-            auto temp = output->reshape(output->ordering(), {z->rows(), z->columns()});
-            temp->assign(z);
+            output->reshapei('c', {input->sizeAt(0),outDepth, oY, oX });
 
             if (debug && verbose)
                 output->printShapeInfo("Conv2D result shape");
 
 
             STORE_RESULT(*output);
-
-            delete temp;
 
             return ND4J_STATUS_OK;
         }
@@ -119,7 +107,6 @@ namespace nd4j {
 
             if (isSameMode) {
                 nd4j::ops::_calcPadding2D(pY, pX, oY, oX, inY, inX, kY, kX, sY, sX, dY, dX);
-                nd4j::ops::calcOutHWpool2D(oY, oX, kY, kX, sY, sX, pY, pX, dY, dX, inY, inX, isSameMode);
             }
 
             //z = Shape.newShapeNoCopy(z, new int[] {outW, outH, miniBatch, outDepth}, true);
