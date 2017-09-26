@@ -1066,6 +1066,23 @@ template <typename T> bool NDArray<T>::reshapei(const char order, const std::vec
 
     return true;
 }
+    template <typename T>
+    Nd4jIndex NDArray<T>::argMax(std::initializer_list<int> dimensions) {
+        if (dimensions.size() == 0) {
+            Nd4jIndex max = 0;
+            T mv = -MAX_FLOAT;
+            for (Nd4jIndex e = 0; e < this->lengthOf(); e++) {
+                T val = this->getScalar(e);
+                if (mv < val) {
+                    mv = val;
+                    max = e;
+                }
+            }
+
+            return max;
+        } else
+            throw "Not implemented yet";
+    }
 
 //////////////////////////////////////////////////////////////////////////
 // create new array with corresponding order and shape, new array will point to the same _buffer as this array

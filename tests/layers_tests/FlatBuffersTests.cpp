@@ -308,4 +308,17 @@ TEST_F(FlatBuffersTest, ReadInception1) {
     Nd4jStatus status = GraphExecutioner<float>::execute(graph);
 
     ASSERT_EQ(ND4J_STATUS_OK, status);
+    ASSERT_TRUE(graph->getVariableSpace()->hasVariable(227));
+
+    auto lastNode = graph->getVariableSpace()->getVariable(227)->getNDArray();
+
+    lastNode->printShapeInfo("Result shape");
+
+    auto argMax = lastNode->argMax();
+
+    nd4j_printf("Predicted class: %i\n", (int) argMax);
+
+    lastNode->printBuffer("Whole output");
+
+    delete graph;
 }

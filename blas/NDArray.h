@@ -214,6 +214,7 @@ namespace nd4j {
         template<typename OpName>
         T reduceNumber(T *extraParams = nullptr);
 
+        Nd4jIndex argMax(std::initializer_list<int> dimensions = {});
 
         // perform array transformation
         template<typename OpName>
