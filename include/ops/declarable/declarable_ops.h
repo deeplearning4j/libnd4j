@@ -647,8 +647,10 @@ void nd4j::ops::DeclarableOp<T>::storeResult(Block<T> &block, int outputNumber, 
     // if that's the only output - treat it as singular variable
     if (outputNumber == 0 && this->getOpDescriptor()->getNumberOfOutputs() == 1) {
         // we're adding this check, to avoid saving in legacy execution mechanism
-        if (!block.getVariableSpace()->hasVariable(block.getNodeId()))
+        if (!block.getVariableSpace()->hasVariable(block.getNodeId())) {
+            nd4j_debug("Skipping storeResult for node_%i:%i", block.getNodeId(), outputNumber);
             return;
+        }
 
         auto variable = block.getVariableSpace()->getVariable(block.getNodeId());
         variable->setNDArray(&array);

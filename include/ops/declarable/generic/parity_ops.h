@@ -113,7 +113,7 @@ namespace nd4j {
         DECLARE_SYN(bias_add, biasadd);
 
 //////////////////////////////////////////////////////////////////////////
-        DECLARE_CUSTOM_OP(matmul, 2, 1, false, -1, 0) {
+        DECLARE_CUSTOM_OP(matmul, 2, 1, false, -2, 0) {
             // FIXME: we might want to have gemv/dot fallback here
             REQUIRE_OK(this->validateInput2D(block));
 
