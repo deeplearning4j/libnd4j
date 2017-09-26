@@ -1286,29 +1286,26 @@ NDArray<T>* NDArray<T>::permute(const int* dimensions, const int rank) {
 	int shapeInfoLength = rankOf()*2 + 4;
 	// allocate memory for new array - buffer and shapeInfo
 
-
-    T* bufferNew;
     int* shapeInfoNew;
 
     if (_workspace == nullptr) {
-        bufferNew = new T[buffLength];
         shapeInfoNew = new int[shapeInfoLength];
     } else {
-        bufferNew = (T*) _workspace->allocateBytes(lengthOf() * sizeOfT());
         shapeInfoNew = (int*) _workspace->allocateBytes(shape::shapeInfoByteLength(rankOf()));
     }
 
 	// copy this arrays _buffer and _shapeInfo into new array	
-	memcpy(bufferNew, _buffer, buffLength*sizeOfT());	
+	//memcpy(bufferNew, _buffer, buffLength*sizeOfT());
 	memcpy(shapeInfoNew, _shapeInfo, shapeInfoLength*sizeof(int));	
 	// perform buffer permutation	
 	shape::doPermuteShapeBuffer(rank, shapeInfoNew, const_cast<int*>(dimensions));	
 
         // create array to be returned
-    NDArray<T>* ret = new NDArray<T>(bufferNew, shapeInfoNew, _workspace);
+    NDArray<T>* ret = new NDArray<T>(_buffer, shapeInfoNew, _workspace);
 	// don't forget to indicate that memory for new array was allocated
-    ret->_isBuffAlloc = true;
+    ret->_isBuffAlloc = false;
     ret->_isShapeAlloc = true;
+    ret->_isView = true;
 
     return ret;
 }

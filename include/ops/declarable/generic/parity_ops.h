@@ -40,8 +40,10 @@ namespace nd4j {
             buffers.get()[0] = (Nd4jPointer) first->getBuffer();
             shapes.get()[0] = (Nd4jPointer) first->getShapeInfo();
 
-            printf("Shape %i: ", 0);
-            shape::printShapeInfoLinear((int *)shapes.get()[0]);
+            if (debug && verbose) {
+                printf("Shape %i: ", 0);
+                shape::printShapeInfoLinear((int *) shapes.get()[0]);
+            }
 
             for (int e = 1; e < (int) block.getVariables().size(); e++) {
                 Variable<T> *var = block.getVariables().at(e);
@@ -49,14 +51,20 @@ namespace nd4j {
                 buffers.get()[e] = (Nd4jPointer) var->getNDArray()->getBuffer();
                 shapes.get()[e] = (Nd4jPointer) var->getNDArray()->getShapeInfo();
 
-                printf("Shape %i: ", e);
-                shape::printShapeInfoLinear((int *)shapes.get()[e]);
+                if (debug && verbose) {
+                    printf("Shape %i: ", e);
+                    shape::printShapeInfoLinear((int *) shapes.get()[e]);
+                }
             }
-            fflush(stdout);
+            if (debug && verbose)
+                fflush(stdout);
 
             concatCpuGeneric(_dimension, block.getVariables().size(), buffers.get(), shapes.get(), output->getBuffer(), output->getShapeInfo());
 
             STORE_RESULT(*output);
+
+            if (debug && verbose)
+                output->printShapeInfo("Concat result shape");
 
             return ND4J_STATUS_OK;
         }
