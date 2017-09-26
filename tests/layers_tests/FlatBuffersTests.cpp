@@ -317,7 +317,8 @@ TEST_F(FlatBuffersTest, ReadInception1) {
     auto argMax = lastNode->argMax();
 
     nd4j_printf("Predicted class: %i\n", (int) argMax);
-
+    nd4j_printf("Probability: %f\n", lastNode->getScalar(argMax));
+    nd4j_printf("Probability ipod: %f\n", lastNode->getScalar(980));
     lastNode->printBuffer("Whole output");
 
     delete graph;

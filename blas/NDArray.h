@@ -292,6 +292,8 @@ namespace nd4j {
         // This method adds given row to all rows in this NDArray, that is this array becomes affected
         void addiRowVector(const NDArray<T> *row);
 
+        void addRowVector(const NDArray<T> *row, NDArray<T>* target);
+
 		// This method adds given column to all columns in this NDArray, that is this array becomes affected
 		void addiColumnVector(const NDArray<T> *column);
 

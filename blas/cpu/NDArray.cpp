@@ -840,6 +840,25 @@ T& NDArray<T>::operator()(const int i, const int j) {
     return _buffer[xOffset];
 }
 
+    template<typename T>
+    void NDArray<T>::addRowVector(const NDArray<T> *row, NDArray<T>* target) {
+        if (rankOf() != 2)
+            throw std::invalid_argument("addRowVector can be called only for Matrix");
+
+        if (!shape::isRowVector(row->_shapeInfo))
+            throw std::invalid_argument("Argument should be row vector");
+
+        int dimension[1] = {1};
+
+        std::unique_ptr<shape::TAD> tad(new shape::TAD(_shapeInfo, dimension, 1));
+        tad->createTadOnlyShapeInfo();
+        tad->createOffsets();
+
+        NativeOpExcutioner<T>::execBroadcast(0, _buffer, _shapeInfo, row->_buffer, row->_shapeInfo, target->getBuffer(), target->getShapeInfo(),
+                                             dimension, 1, tad->tadOnlyShapeInfo, tad->tadOffsets,
+                                             tad->tadOnlyShapeInfo, tad->tadOffsets);
+    }
+
 //////////////////////////////////////////////////////////////////////////
 // This method adds given row to all rows in this NDArray, that is this array becomes affected
     template<typename T>
@@ -1096,6 +1115,7 @@ template <typename T> NDArray<T>* NDArray<T>::reshape(const char order, const st
 	NDArray<T>* newArr = new NDArray<T>(_buffer, newShapeInfo, _workspace);
 	newArr->_isShapeAlloc = true;
 	newArr->_isBuffAlloc  = false;
+    newArr->_isView = true;
 	newArr->reshapei(order, shape);
 
 	return newArr;

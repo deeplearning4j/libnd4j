@@ -102,8 +102,11 @@ namespace nd4j {
                 std::vector<int> shape({-1, (int) bias->lengthOf()});
                 nd4j_debug("Reshaping to: [%i, %i]\n", -1, (int) bias->lengthOf());
                 auto tArr = input->reshape(input->ordering(), shape);
-                tArr->addiRowVector(bias);
+                auto zArr = z->reshape(z->ordering(), shape);
+                tArr->addRowVector(bias, zArr);
+
                 delete tArr;
+                delete zArr;
             }
 
             STORE_RESULT(*z);
