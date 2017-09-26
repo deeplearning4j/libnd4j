@@ -462,23 +462,58 @@ template <typename T> NDArray<T>* NDArray<T>::dup(const char newOrder) {
     template<typename T>
     template<typename OpName>
     NDArray<T> *NDArray<T>::reduceAlongDimension(const std::vector<int> &dimensions) const {
-
-        std::vector<int> copy(dimensions);
-
+		
+		int dimSize = dimensions.size();
+		int rank = rankOf();
+		int newRank = rank - dimSize;
+		if(newRank<=0)
+			throw "NDArray::reduceAlongDimension method: the size of dimensions to reduce along must be < rank of array!";
+        
+		std::vector<int> copy(dimensions);
         if (copy.size() > 1)
             std::sort(copy.begin(), copy.end());
 
+		int* newShape = nullptr; 
+		
+		if (dimSize==1 && copy[0]==INT_MAX) { 			// check whether given dimension is meant for the whole dimension
+			ALLOCATE(newShape, _workspace, 8, int);		// set newRank = 2
+			newShape[0] = 2;
+			newShape[1] = 1;
+			newShape[2] = 1;			
+		}
+		else {
+			ALLOCATE(newShape, _workspace, newRank*2 + 4, int);
+			int* tempShape = shape::removeIndex(shapeOf(), copy.data(), rank, dimSize);
+			for(int i=0; i<newRank; ++i)
+				newShape[i+1] = tempShape[i]; 			// ignore zero index (rank)
+			delete []tempShape;
+		}		
+		//ensure vector is proper shape 
+		if (newRank == 1) {
+			int oldValue = newShape[1];
+			RELEASE(newShape, _workspace);
+			ALLOCATE(newShape, _workspace, 8, int);		// set newRank = 2
+			newShape[0] = 2;
+            if (dimensions[0] == 0) {
+                newShape[1] = 1; 
+				newShape[2] = oldValue;
+			}
+            else {
+                newShape[1] = oldValue;
+				newShape[2] = 1; 				
+			}
+        } 
+		shape::updateStrides(newShape, 'c');
 
-        shape::TAD tad(_shapeInfo, copy.data(), copy.size());
+        shape::TAD tad(_shapeInfo, copy.data(), dimSize);
         tad.createTadOnlyShapeInfo();
         tad.createOffsets();
 
-        auto result = new NDArray<T>(1, tad.numTads, 'c', _workspace);
+        auto result = new NDArray<T>(newShape, _workspace);
 
         functions::reduce::ReduceFunction<T>::template exec<OpName>(_buffer, _shapeInfo, nullptr, result->_buffer,
                                                                     result->_shapeInfo, copy.data(), copy.size(),
-                                                                    tad.tadOnlyShapeInfo, tad.tadOffsets);
-
+                                                                    tad.tadOnlyShapeInfo, tad.tadOffsets);		
         return result;
     }
 
