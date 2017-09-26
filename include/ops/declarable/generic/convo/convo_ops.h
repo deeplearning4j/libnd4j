@@ -5,7 +5,6 @@
 #ifndef LIBND4J_CONVO_OPS_H
 #define LIBND4J_CONVO_OPS_H
 
-#include <memory>
 #include <NDArray.h>
 #include <NDArrayFactory.h>
 #include <op_boilerplate.h>
@@ -16,92 +15,9 @@
 namespace nd4j {
     namespace ops {
         //////////////////////////////////////////////////////////////////////////
-        DECLARE_CUSTOM_OP(conv2d, 2, 1, false, 0, 9) {
+        DECLARE_CONFIGURABLE_OP(conv2d, 2, 1, false, 0, 7) {
             // basically im2col + gemm
-            NDArray<T>* input = block.getVariables().at(0)->getNDArray();
-            NDArray<T>* weights = block.getVariables().at(1)->getNDArray();
-
-            const int kY = block.getIArguments()->at(0);
-            const int kX = block.getIArguments()->at(1);
-            const int sY = block.getIArguments()->at(2);
-            const int sX = block.getIArguments()->at(3);
-            int pY = block.getIArguments()->at(4);
-            int pX = block.getIArguments()->at(5);
-            const int dY = block.getIArguments()->at(6);
-            const int dX = block.getIArguments()->at(7);
-            const bool isSameMode = block.getIArguments()->at(8) != 0;
-
-            int oY = 0;
-            int oX = 0;
-
-            const int batchSize = input->shapeOf()[0];
-            const int outDepth = weights->shapeOf()[0];
-            const int inDepth = weights->shapeOf()[1];
-            const int inY = input->shapeOf()[2];
-            const int inX = input->shapeOf()[3];
-
-            nd4j::ops::calcOutHWpool2D(oY, oX, kY, kX, sY, sX, pY, pX, dY, dX, inY, inX, isSameMode);
-
-            if (isSameMode) {
-                nd4j::ops::_calcPadding2D(pY, pX, oY, oX, inY, inX, kY, kX, sY, sX, dY, dX);
-            }
-
-            NDArray<T>* output = this->getZ(block);
-
-            Nd4jIndex prod = batchSize * outDepth * oY * oX;
-            REQUIRE_TRUE(output->lengthOf() == prod, 0, "Z should have total length of %i, but got %i instead", prod, output->lengthOf());
-
-            //INDArray col = Nd4j.createUninitialized(new int[] {miniBatch, outH, outW, inDepth, kH, kW}, 'c');
-            std::unique_ptr<NDArray<T>> col(new NDArray<T>('c', {batchSize, oY, oX, inDepth, kY, kX}));
-            std::unique_ptr<NDArray<T>> col2d(col->permute({0, 3, 4, 5, 1, 2}));
-            std::unique_ptr<T> extrasIm2Col(new T[9]{(T) kY, (T) kX, (T) sY, (T) sX, (T) pY, (T) pX, (T) dY, (T) dX, isSameMode ? (T) 1.0f : (T) 0.0f});
-
-            input->template applyTransform<simdOps::Im2col<T>>(col2d.get(), extrasIm2Col.get());
-
-
-
-            STORE_RESULT(*output);
-
-            output->printShapeInfo("Conv2D result shape");
-
             return ND4J_STATUS_OK;
-        }
-        DECLARE_SHAPE_FN(conv2d) {
-            auto inShape = inputShape->at(0);
-            auto wShape = inputShape->at(1);
-
-            const int kY = block.getIArguments()->at(0);
-            const int kX = block.getIArguments()->at(1);
-            const int sY = block.getIArguments()->at(2);
-            const int sX = block.getIArguments()->at(3);
-            int pY = block.getIArguments()->at(4);
-            int pX = block.getIArguments()->at(5);
-            const int dY = block.getIArguments()->at(6);
-            const int dX = block.getIArguments()->at(7);
-            const bool isSameMode = block.getIArguments()->at(8) != 0;
-
-            int oY = 0;
-            int oX = 0;
-
-            const int batchSize = inShape[1];
-            const int outDepth = wShape[1];
-            const int inY = inShape[3];
-            const int inX = inShape[4];
-
-            nd4j::ops::calcOutHWpool2D(oY, oX, kY, kX, sY, sX, pY, pX, dY, dX, inY, inX, isSameMode);
-
-            if (isSameMode) {
-                nd4j::ops::_calcPadding2D(pY, pX, oY, oX, inY, inX, kY, kX, sY, sX, dY, dX);
-                nd4j::ops::calcOutHWpool2D(oY, oX, kY, kX, sY, sX, pY, pX, dY, dX, inY, inX, isSameMode);
-            }
-
-            //z = Shape.newShapeNoCopy(z, new int[] {outW, outH, miniBatch, outDepth}, true);
-            int *newShape;
-            ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(4), int);
-            std::vector<int> shape({batchSize, outDepth, oY, oX});
-            shape::shapeBuffer(4, shape.data(), newShape);
-
-            return new ShapeList(newShape);
         }
 
 //////////////////////////////////////////////////////////////////////////
@@ -149,7 +65,7 @@ namespace nd4j {
 
 
             REQUIRE_TRUE(output->sizeAt(0) == input->sizeAt(0) && output->sizeAt(1) == nOutputPlane && output->sizeAt(2) == outputDepth && output->sizeAt(3) == outputHeight && output->sizeAt(4) == outputWidth, 0,
-                         "Expected output shape: [%i, %i, %i, %i, %i] but got [%i, %i, %i, %i, %i] instead", input->sizeAt(0), nOutputPlane, outputDepth, outputHeight, outputWidth, output->sizeAt(0), output->sizeAt(1), output->sizeAt(2), output->sizeAt(3), output->sizeAt(4));
+                         "Expected output shape: [%i, %i, %i, %i, %i]", input->sizeAt(0), nOutputPlane, outputDepth, outputHeight, outputWidth);
 
             std::unique_ptr<ArrayList<T>> batchIn(NDArrayFactory::allExamples<T>(input));
             std::unique_ptr<ArrayList<T>> batchOut(NDArrayFactory::allExamples<T>(output));
@@ -362,9 +278,7 @@ namespace nd4j {
 
             x->template applyTransform<simdOps::Pooling2D<T>>(z, argT.data());
 
-            STORE_RESULT(*z);
-
-            z->printShapeInfo("MaxPool2D result shape");
+            STORE_RESULT(*z);            
 
             return ND4J_STATUS_OK;
         }

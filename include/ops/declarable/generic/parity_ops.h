@@ -25,14 +25,18 @@ namespace nd4j {
     namespace ops {
 
 //////////////////////////////////////////////////////////////////////////
-        DECLARE_CUSTOM_OP(concat, -1, 1, false, 0, 1){
+        DECLARE_OP(concat, -1, 1, false){
             // do something here{
-
-            int _dimension = block.getIArguments()->at(0);
+            Nd4jIndex _length;
+            int _dimension = 0;
 
             // we want to ensure that all
             NDArray<T> *first = block.getVariables().at(0)->getNDArray();
-            NDArray<T> *output = this->getZ(block);
+
+            std::unique_ptr<int> shapePtr(new int[shape::shapeInfoLength(first->rankOf())]);
+
+            std::memcpy(shapePtr.get(), first->getShapeInfo(), shape::shapeInfoByteLength(first->getShapeInfo()));
+            _length = shape::length(shapePtr.get());
 
             std::unique_ptr<Nd4jPointer> buffers(new Nd4jPointer[block.getVariables().size()]);
             std::unique_ptr<Nd4jPointer> shapes(new Nd4jPointer[block.getVariables().size()]);
@@ -40,69 +44,49 @@ namespace nd4j {
             buffers.get()[0] = (Nd4jPointer) first->getBuffer();
             shapes.get()[0] = (Nd4jPointer) first->getShapeInfo();
 
-            printf("Shape %i: ", 0);
-            shape::printShapeInfoLinear((int *)shapes.get()[0]);
-
             for (int e = 1; e < (int) block.getVariables().size(); e++) {
                 Variable<T> *var = block.getVariables().at(e);
+                _length += var->getNDArray()->lengthOf();
+
+                shapePtr.get()[_dimension + 1] += var->getNDArray()->shapeOf()[_dimension];
 
                 buffers.get()[e] = (Nd4jPointer) var->getNDArray()->getBuffer();
                 shapes.get()[e] = (Nd4jPointer) var->getNDArray()->getShapeInfo();
-
-                printf("Shape %i: ", e);
-                shape::printShapeInfoLinear((int *)shapes.get()[e]);
             }
-            fflush(stdout);
 
-            concatCpuGeneric(_dimension, block.getVariables().size(), buffers.get(), shapes.get(), output->getBuffer(), output->getShapeInfo());
+            if (!block.getVariableSpace()->hasVariable(block.getNodeId()))
+                throw "VariableSpace has no registered node";
 
-            STORE_RESULT(*output);
+            if (!this->allocateResult(block, shapePtr.get())){
+                nd4j_printf("Allocation failed: %i\n", block.getNodeId());
+                throw "Allocation failed";
+            }
+
+            auto variable = block.getVariableSpace()->getVariable(block.getNodeId());
+
+            concatCpuGeneric(_dimension, block.getVariables().size(), buffers.get(), shapes.get(), variable->getNDArray()->getBuffer(), variable->getNDArray()->getShapeInfo());
 
             return ND4J_STATUS_OK;
-        }
-        DECLARE_SHAPE_FN(concat) {
-            int* inp = inputShape->at(0);
-            int _dimension = block.getIArguments()->at(0);
-
-            int *newShape;
-            ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(inp), int);
-
-            std::memcpy(newShape, inp, shape::shapeInfoByteLength(inp));
-            for (int i = 1; i < inputShape->size(); i++) {
-                newShape[_dimension + 1] += shape::shapeOf(inputShape->at(i))[_dimension];
-            }
-
-            shape::updateStrides(newShape, shape::order(inp));
-
-            return new ShapeList(newShape);
         }
 
 //////////////////////////////////////////////////////////////////////////
         DECLARE_OP(biasadd, 2, 1, true) {
-            //REQUIRE_OK(this->validateInput2D(block));
+            REQUIRE_OK(this->validateInput2D(block));
 
-            NDArray<T> *input = block.getVariables().at(0)->getNDArray();
-            NDArray<T> *bias = block.getVariables().at(1)->getNDArray();
-
-            REQUIRE_TRUE(bias->isRowVector(), 0, "Bias array should be a vector");
-
+            NDArray<T> *x = block.getVariables().at(0)->getNDArray();
+            NDArray<T> *y = block.getVariables().at(1)->getNDArray();
             NDArray<T> *z = this->getZ(block);
 
-            if (input->isMatrix())
-                input->addiRowVector(bias);
-            else {
-                std::vector<int> shape({-1, (int) bias->lengthOf()});
-                nd4j_debug("Reshaping to: [%i, %i]\n", -1, (int) bias->lengthOf());
-                auto tArr = input->reshape(input->ordering(), shape);
-                tArr->addiRowVector(bias);
-                delete tArr;
+            if (x->isMatrix() && y->isVector()) {
+                x->addiRowVector(y);
+            } else if (y->isMatrix() && x->isVector()) {
+                y->addiRowVector(x);
             }
 
             STORE_RESULT(*z);
 
             return ND4J_STATUS_OK;
         }
-        DECLARE_SYN(bias_add, biasadd);
 
 //////////////////////////////////////////////////////////////////////////
         DECLARE_OP(matmul, 2, 1, false) {
@@ -150,88 +134,12 @@ namespace nd4j {
         DECLARE_SYN(dot, matmul);
 
 //////////////////////////////////////////////////////////////////////////
-        DECLARE_CUSTOM_OP(lrn, 1, 3, true, 4, 0) {
+        DECLARE_OP(lrn, 2, 1, true) {
             // LocalResponseNormalization
-
-            NDArray<T>* input = block.getVariables().at(0)->getNDArray();
-            NDArray<T>* z = this->getZ(block);
-            NDArray<T>* unitScale = this->getZ(block, 1);
-            NDArray<T>* scale = this->getZ(block, 2);
-
-            REQUIRE_TRUE(input->rankOf() == 4, 0, "Input rank of 4 expected, but got %i instead", input->rankOf());
-
-            T alpha = block.getTArguments()->at(0);
-            T beta = block.getTArguments()->at(1);
-            T bias = block.getTArguments()->at(2);
-            T depth = block.getTArguments()->at(3);
-
-            int halfDepth = (int) (depth / (T) 2.f);
-
-            const int channel =  input->sizeAt(1);
-
-            auto activitySqr = NDArrayFactory::createUninitialized<T>(input);
-            input->template applyPairwiseTransform<simdOps::Multiply<T>>(input, activitySqr, nullptr);
-            auto sumPart = activitySqr->dup('c');
-
-            for (int i = 1; i < halfDepth + 1; i++) {
-                IndicesList indA({NDIndex::all(), NDIndex::interval(i, channel), NDIndex::all(), NDIndex::all()});
-                IndicesList indB({NDIndex::all(), NDIndex::interval(0, channel - i), NDIndex::all(), NDIndex::all()});
-
-                std::unique_ptr<NDArray<T>> tmp(sumPart->subarray(indA));
-                std::unique_ptr<NDArray<T>> addVal(activitySqr->subarray(indB));
-
-                tmp.get()->template applyPairwiseTransform<simdOps::Add<T>>(addVal.get(), nullptr);
-
-
-                std::unique_ptr<NDArray<T>> tmp2(sumPart->subarray(indB));
-                std::unique_ptr<NDArray<T>> addVal2(activitySqr->subarray(indA));
-
-                tmp2.get()->template applyPairwiseTransform<simdOps::Add<T>>(addVal2.get(), nullptr);
-            }
-
-            /*
-             *  // taken from java
-                unitScale = sumPart.mul(alpha).addi(k).leverageTo(ComputationGraph.workspaceExternal);
-                // y = x * unitScale**-beta
-                scale = Transforms.pow(unitScale, -beta).leverageTo(ComputationGraph.workspaceExternal);
-                activations = input.mul(scale).leverageTo(ComputationGraph.workspaceExternal);
-             */
-
-            sumPart->template applyScalar<simdOps::Multiply<T>>(alpha, unitScale, nullptr);
-            unitScale->template applyScalar<simdOps::Add<T>>(bias);
-
-            T p = -beta;
-            unitScale->template applyTransform<simdOps::Pow<T>>(scale, &p);
-            input->template applyPairwiseTransform<simdOps::Multiply<T>>(scale, z, nullptr);
-
-            STORE_3_RESULTS(*z, *unitScale, *scale);
-
-            delete activitySqr;
-            delete sumPart;
-
             return ND4J_STATUS_OK;
         }
         DECLARE_SYN(LRN, lrn);
 
-        DECLARE_SHAPE_FN(lrn) {
-            int *inp = inputShape->at(0);
-
-            auto shapeList = new ShapeList();
-            for(int e = 0; e < 3; e++) {
-                int *newShape;
-                ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(inp), int);
-                memcpy(newShape, inp, shape::shapeInfoByteLength(inp));
-
-                shapeList->push_back(newShape);
-            }
-
-            return shapeList;
-        }
-
-
-        DECLARE_CONFIGURABLE_OP(lrn_bp, 1, 1, true, 4, 0) {
-
-        }
 
 ///////////////////////
         /**
@@ -653,7 +561,7 @@ namespace nd4j {
             std::unique_ptr<ArrayList<T>> tadsOperand(nd4j::NDArrayFactory::multipleTensorsAlongDimension(operand, indices, tadDimension));
             std::unique_ptr<ArrayList<T>> tadsUpdate(nd4j::NDArrayFactory::multipleTensorsAlongDimension(updates, indicesU, tadDimension));
 
-#pragma omp parallel for schedule(dynamic) proc_bind(close) shared(tadsOperand, tadsUpdate)
+//#pragma omp parallel for schedule(dynamic) proc_bind(close) shared(tadsOperand, tadsUpdate)
             for (unsigned long x = 0; x < indices.size(); x++) {
                 NDArray<T> *tad = tadsOperand->at(x);
                 NDArray<T> *tadUpdates = tadsUpdate->at(x);
