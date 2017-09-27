@@ -281,11 +281,6 @@ namespace nd4j {
             return shapeList;
         }
 
-
-        DECLARE_CONFIGURABLE_OP(lrn_bp, 1, 1, true, 4, 0) {
-
-        }
-
 ///////////////////////
         /**
          * uniform distribution
