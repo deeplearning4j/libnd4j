@@ -462,23 +462,58 @@ template <typename T> NDArray<T>* NDArray<T>::dup(const char newOrder) {
     template<typename T>
     template<typename OpName>
     NDArray<T> *NDArray<T>::reduceAlongDimension(const std::vector<int> &dimensions) const {
-
-        std::vector<int> copy(dimensions);
-
+		
+		int dimSize = dimensions.size();
+		int rank = rankOf();
+		int newRank = rank - dimSize;
+		if(newRank<=0)
+			throw "NDArray::reduceAlongDimension method: the size of dimensions to reduce along must be < rank of array!";
+        
+		std::vector<int> copy(dimensions);
         if (copy.size() > 1)
             std::sort(copy.begin(), copy.end());
 
+		int* newShape = nullptr; 
+		
+		if (dimSize==1 && copy[0]==INT_MAX) { 			// check whether given dimension is meant for the whole dimension
+			ALLOCATE(newShape, _workspace, 8, int);		// set newRank = 2
+			newShape[0] = 2;
+			newShape[1] = 1;
+			newShape[2] = 1;			
+		}
+		else {
+			ALLOCATE(newShape, _workspace, newRank*2 + 4, int);
+			int* tempShape = shape::removeIndex(shapeOf(), copy.data(), rank, dimSize);
+			for(int i=0; i<newRank; ++i)
+				newShape[i+1] = tempShape[i]; 			// ignore zero index (rank)
+			delete []tempShape;
+		}		
+		//ensure vector is proper shape 
+		if (newRank == 1) {
+			int oldValue = newShape[1];
+			RELEASE(newShape, _workspace);
+			ALLOCATE(newShape, _workspace, 8, int);		// set newRank = 2
+			newShape[0] = 2;
+            if (dimensions[0] == 0) {
+                newShape[1] = 1; 
+				newShape[2] = oldValue;
+			}
+            else {
+                newShape[1] = oldValue;
+				newShape[2] = 1; 				
+			}
+        } 
+		shape::updateStrides(newShape, 'c');
 
-        shape::TAD tad(_shapeInfo, copy.data(), copy.size());
+        shape::TAD tad(_shapeInfo, copy.data(), dimSize);
         tad.createTadOnlyShapeInfo();
         tad.createOffsets();
 
-        auto result = new NDArray<T>(1, tad.numTads, 'c', _workspace);
+        auto result = new NDArray<T>(newShape, _workspace);
 
         functions::reduce::ReduceFunction<T>::template exec<OpName>(_buffer, _shapeInfo, nullptr, result->_buffer,
                                                                     result->_shapeInfo, copy.data(), copy.size(),
-                                                                    tad.tadOnlyShapeInfo, tad.tadOffsets);
-
+                                                                    tad.tadOnlyShapeInfo, tad.tadOffsets);		
         return result;
     }
 
@@ -840,25 +875,6 @@ T& NDArray<T>::operator()(const int i, const int j) {
     return _buffer[xOffset];
 }
 
-    template<typename T>
-    void NDArray<T>::addRowVector(const NDArray<T> *row, NDArray<T>* target) {
-        if (rankOf() != 2)
-            throw std::invalid_argument("addRowVector can be called only for Matrix");
-
-        if (!shape::isRowVector(row->_shapeInfo))
-            throw std::invalid_argument("Argument should be row vector");
-
-        int dimension[1] = {1};
-
-        std::unique_ptr<shape::TAD> tad(new shape::TAD(_shapeInfo, dimension, 1));
-        tad->createTadOnlyShapeInfo();
-        tad->createOffsets();
-
-        NativeOpExcutioner<T>::execBroadcast(0, _buffer, _shapeInfo, row->_buffer, row->_shapeInfo, target->getBuffer(), target->getShapeInfo(),
-                                             dimension, 1, tad->tadOnlyShapeInfo, tad->tadOffsets,
-                                             tad->tadOnlyShapeInfo, tad->tadOffsets);
-    }
-
 //////////////////////////////////////////////////////////////////////////
 // This method adds given row to all rows in this NDArray, that is this array becomes affected
     template<typename T>
@@ -1085,23 +1101,6 @@ template <typename T> bool NDArray<T>::reshapei(const char order, const std::vec
 
     return true;
 }
-    template <typename T>
-    Nd4jIndex NDArray<T>::argMax(std::initializer_list<int> dimensions) {
-        if (dimensions.size() == 0) {
-            Nd4jIndex max = 0;
-            T mv = -MAX_FLOAT;
-            for (Nd4jIndex e = 0; e < this->lengthOf(); e++) {
-                T val = this->getScalar(e);
-                if (mv < val) {
-                    mv = val;
-                    max = e;
-                }
-            }
-
-            return max;
-        } else
-            throw "Not implemented yet";
-    }
 
 //////////////////////////////////////////////////////////////////////////
 // create new array with corresponding order and shape, new array will point to the same _buffer as this array
@@ -1115,7 +1114,6 @@ template <typename T> NDArray<T>* NDArray<T>::reshape(const char order, const st
 	NDArray<T>* newArr = new NDArray<T>(_buffer, newShapeInfo, _workspace);
 	newArr->_isShapeAlloc = true;
 	newArr->_isBuffAlloc  = false;
-    newArr->_isView = true;
 	newArr->reshapei(order, shape);
 
 	return newArr;
@@ -1325,24 +1323,22 @@ NDArray<T>* NDArray<T>::permute(const int* dimensions, const int rank) {
 
     int* shapeInfoNew;
 
-    if (_workspace == nullptr) {
+    if (_workspace == nullptr)         
         shapeInfoNew = new int[shapeInfoLength];
-    } else {
-        shapeInfoNew = (int*) _workspace->allocateBytes(shape::shapeInfoByteLength(rankOf()));
-    }
+    else         
+        shapeInfoNew = (int*) _workspace->allocateBytes(shape::shapeInfoByteLength(rankOf()));    
 
-	// copy this arrays _buffer and _shapeInfo into new array	
-	//memcpy(bufferNew, _buffer, buffLength*sizeOfT());
+	// copy this arrays  _shapeInfo into new array		
 	memcpy(shapeInfoNew, _shapeInfo, shapeInfoLength*sizeof(int));	
 	// perform buffer permutation	
 	shape::doPermuteShapeBuffer(rank, shapeInfoNew, const_cast<int*>(dimensions));	
 
-        // create array to be returned
-    NDArray<T>* ret = new NDArray<T>(_buffer, shapeInfoNew, _workspace);
+    // create array to be returned
+    NDArray<T>* ret = new NDArray<T>(this->_buffer, shapeInfoNew, _workspace);
 	// don't forget to indicate that memory for new array was allocated
     ret->_isBuffAlloc = false;
     ret->_isShapeAlloc = true;
-    ret->_isView = true;
+	ret->_isView = true;
 
     return ret;
 }
