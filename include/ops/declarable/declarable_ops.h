@@ -644,11 +644,20 @@ bool nd4j::ops::DeclarableOp<T>::prepareOutputs(Block<T> &block) {
 
 template <typename T>
 void nd4j::ops::DeclarableOp<T>::storeResult(Block<T> &block, int outputNumber, NDArray<T>& array) {
+
+    if (debug) {
+        T mean = array.meanNumber();
+        if (mean == (T) 0.0f || (mean < (T) 1e-5f && mean > (T) -1e-5f))
+            nd4j_debug("node_%i:%i result has 0.0 as mean\n", block.getNodeId(), outputNumber);
+    }
+
     // if that's the only output - treat it as singular variable
     if (outputNumber == 0 && this->getOpDescriptor()->getNumberOfOutputs() == 1) {
         // we're adding this check, to avoid saving in legacy execution mechanism
-        if (!block.getVariableSpace()->hasVariable(block.getNodeId()))
+        if (!block.getVariableSpace()->hasVariable(block.getNodeId())) {
+            nd4j_debug("Skipping storeResult for node_%i:%i", block.getNodeId(), outputNumber);
             return;
+        }
 
         auto variable = block.getVariableSpace()->getVariable(block.getNodeId());
         variable->setNDArray(&array);

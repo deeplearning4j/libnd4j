@@ -25,18 +25,14 @@ namespace nd4j {
     namespace ops {
 
 //////////////////////////////////////////////////////////////////////////
-        DECLARE_OP(concat, -1, 1, false){
+        DECLARE_CUSTOM_OP(concat, -1, 1, false, 0, 1){
             // do something here{
-            Nd4jIndex _length;
-            int _dimension = 0;
+
+            int _dimension = block.getIArguments()->at(0);
 
             // we want to ensure that all
             NDArray<T> *first = block.getVariables().at(0)->getNDArray();
-
-            std::unique_ptr<int> shapePtr(new int[shape::shapeInfoLength(first->rankOf())]);
-
-            std::memcpy(shapePtr.get(), first->getShapeInfo(), shape::shapeInfoByteLength(first->getShapeInfo()));
-            _length = shape::length(shapePtr.get());
+            NDArray<T> *output = this->getZ(block);
 
             std::unique_ptr<Nd4jPointer> buffers(new Nd4jPointer[block.getVariables().size()]);
             std::unique_ptr<Nd4jPointer> shapes(new Nd4jPointer[block.getVariables().size()]);
@@ -44,81 +40,119 @@ namespace nd4j {
             buffers.get()[0] = (Nd4jPointer) first->getBuffer();
             shapes.get()[0] = (Nd4jPointer) first->getShapeInfo();
 
+            if (debug && verbose) {
+                printf("Shape %i: ", 0);
+                shape::printShapeInfoLinear((int *) shapes.get()[0]);
+            }
+
             for (int e = 1; e < (int) block.getVariables().size(); e++) {
                 Variable<T> *var = block.getVariables().at(e);
-                _length += var->getNDArray()->lengthOf();
-
-                shapePtr.get()[_dimension + 1] += var->getNDArray()->shapeOf()[_dimension];
 
                 buffers.get()[e] = (Nd4jPointer) var->getNDArray()->getBuffer();
                 shapes.get()[e] = (Nd4jPointer) var->getNDArray()->getShapeInfo();
+
+                if (debug && verbose) {
+                    printf("Shape %i: ", e);
+                    shape::printShapeInfoLinear((int *) shapes.get()[e]);
+                }
             }
+            if (debug && verbose)
+                fflush(stdout);
 
-            if (!block.getVariableSpace()->hasVariable(block.getNodeId()))
-                throw "VariableSpace has no registered node";
+            concatCpuGeneric(_dimension, block.getVariables().size(), buffers.get(), shapes.get(), output->getBuffer(), output->getShapeInfo());
 
-            if (!this->allocateResult(block, shapePtr.get())){
-                nd4j_printf("Allocation failed: %i\n", block.getNodeId());
-                throw "Allocation failed";
-            }
+            STORE_RESULT(*output);
 
-            auto variable = block.getVariableSpace()->getVariable(block.getNodeId());
-
-            concatCpuGeneric(_dimension, block.getVariables().size(), buffers.get(), shapes.get(), variable->getNDArray()->getBuffer(), variable->getNDArray()->getShapeInfo());
+            if (debug && verbose)
+                output->printShapeInfo("Concat result shape");
 
             return ND4J_STATUS_OK;
+        }
+        DECLARE_SHAPE_FN(concat) {
+            int* inp = inputShape->at(0);
+            int _dimension = block.getIArguments()->at(0);
+
+            int *newShape;
+            ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(inp), int);
+
+            std::memcpy(newShape, inp, shape::shapeInfoByteLength(inp));
+            for (int i = 1; i < inputShape->size(); i++) {
+                newShape[_dimension + 1] += shape::shapeOf(inputShape->at(i))[_dimension];
+            }
+
+            shape::updateStrides(newShape, shape::order(inp));
+
+            return new ShapeList(newShape);
         }
 
 //////////////////////////////////////////////////////////////////////////
         DECLARE_OP(biasadd, 2, 1, true) {
-            REQUIRE_OK(this->validateInput2D(block));
+            //REQUIRE_OK(this->validateInput2D(block));
 
-            NDArray<T> *x = block.getVariables().at(0)->getNDArray();
-            NDArray<T> *y = block.getVariables().at(1)->getNDArray();
+            NDArray<T> *input = block.getVariables().at(0)->getNDArray();
+            NDArray<T> *bias = block.getVariables().at(1)->getNDArray();
+
+            REQUIRE_TRUE(bias->isRowVector(), 0, "Bias array should be a vector");
+
             NDArray<T> *z = this->getZ(block);
 
-            if (x->isMatrix() && y->isVector()) {
-                x->addiRowVector(y);
-            } else if (y->isMatrix() && x->isVector()) {
-                y->addiRowVector(x);
+            if (input->isMatrix())
+                input->addiRowVector(bias);
+            else {
+                std::vector<int> shape({-1, (int) bias->lengthOf()});
+                nd4j_debug("Reshaping to: [%i, %i]\n", -1, (int) bias->lengthOf());
+                auto tArr = input->reshape(input->ordering(), shape);
+                auto zArr = z->reshape(z->ordering(), shape);
+                tArr->addRowVector(bias, zArr);
+
+                delete tArr;
+                delete zArr;
             }
 
             STORE_RESULT(*z);
 
             return ND4J_STATUS_OK;
         }
+        DECLARE_SYN(bias_add, biasadd);
 
 //////////////////////////////////////////////////////////////////////////
-        DECLARE_OP(matmul, 2, 1, false) {
+        DECLARE_CUSTOM_OP(matmul, 2, 1, false, -2, 0) {
             // FIXME: we might want to have gemv/dot fallback here
             REQUIRE_OK(this->validateInput2D(block));
 
 
             NDArray<T> *x = block.getVariables().at(0)->getNDArray();
             NDArray<T> *y = block.getVariables().at(1)->getNDArray();
-            NDArray<T> *z = nullptr;
+            NDArray<T> *z = this->getZ(block);
+
+            T alpha = (T) 1.0f;
+            T beta = (T) 0.0f;
+            if (block.getTArguments()->size() > 0)
+                alpha = block.getTArguments()->at(0);
+
+            if (block.getTArguments()->size() > 1)
+                beta = block.getTArguments()->at(1);
+
 
             if (x->isMatrix() && y->isVector()) {
                 // gemv
-                z = nd4j::NDArrayFactory::mmulHelper<T>(x, y, nullptr, 1.0, 0.0);
+                nd4j::NDArrayFactory::mmulHelper<T>(x, y, z, alpha, beta);
 
             } else if (x->isVector() && y->isMatrix()) {
                 // gemm
-                z = nd4j::NDArrayFactory::mmulHelper<T>(x, y, nullptr, 1.0, 0.0);
+                nd4j::NDArrayFactory::mmulHelper<T>(x, y, z, alpha, beta);
             }  else if (x->isVector() && y->isVector()) {
                 // dot
-                z = nd4j::NDArrayFactory::mmulHelper<T>(x, y, nullptr, 1.0, 0.0);
+                nd4j::NDArrayFactory::mmulHelper<T>(x, y, z, alpha, beta);
             } else if (x->isMatrix() && y->isMatrix()) {
                 // gemm
-                z = nd4j::NDArrayFactory::mmulHelper<T>(x, y, nullptr, 1.0, 0.0);
+                nd4j::NDArrayFactory::mmulHelper<T>(x, y, z, alpha, beta);
             } else if (x->isVector() && y->isScalar()) {
                 // elementwise mul
-                z = this->getZ(block);
 
                 x->template applyScalar<simdOps::Multiply<T>>(y->getScalar(0), z, nullptr);
              } else if (x->isScalar() && y->isVector()) {
                 // elementwise mul, reverse op
-                z = this->getZ(block, 1);
 
                 y->template applyScalar<simdOps::Multiply<T>>(x->getScalar(0), z, nullptr);
             }
@@ -132,14 +166,120 @@ namespace nd4j {
         DECLARE_SYN(gemm, matmul);
         DECLARE_SYN(gemv, matmul);
         DECLARE_SYN(dot, matmul);
+        DECLARE_SHAPE_FN(matmul) {
+            int *inA = inputShape->at(0);
+            int *inB = inputShape->at(1);
+            int *shape;
+            ALLOCATE(shape, block.getWorkspace(), 2, int);
+
+            if (shape::isScalar(inA) && shape::isScalar(inB)) {
+                // just scalar vs scalar
+                shape[0] = 1;
+                shape[1] = 1;
+            } else if ((shape::isVector(inA) && shape::isScalar(inB)) || (shape::isScalar(inA) && shape::isVector(inB))) {
+                // element-wise
+                shape[0] = 1;
+                shape[1] = (int) nd4j::math::nd4j_max<Nd4jIndex>(shape::length(inA), shape::length(inB));
+            } else if (shape::isVector(inA) && shape::isVector(inB)) {
+                // dot case
+                shape[0] = 1;
+                shape[1] = 1;
+            } else if (shape::isMatrix(inA) && shape::isVector(inB)) {
+                // gemv case
+                shape[0] = 1;
+                shape[1] = (int) shape::length(inB);
+            } else if ((shape::isMatrix(inA) && shape::isMatrix(inB)) || (shape::isVector(inA) && shape::isMatrix(inB))) {
+                // gemv case
+                shape[0] = inA[1];
+                shape[1] = inB[2];
+            }
+
+            int *newShape;
+            ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(2), int);
+            shape::shapeBufferFortran(2, shape, newShape);
+
+            RELEASE(shape, block.getWorkspace());
+            return new ShapeList(newShape);
+        }
 
 //////////////////////////////////////////////////////////////////////////
-        DECLARE_OP(lrn, 2, 1, true) {
+        DECLARE_CUSTOM_OP(lrn, 1, 3, true, 4, 0) {
             // LocalResponseNormalization
+
+            NDArray<T>* input = block.getVariables().at(0)->getNDArray();
+            NDArray<T>* z = this->getZ(block);
+            NDArray<T>* unitScale = this->getZ(block, 1);
+            NDArray<T>* scale = this->getZ(block, 2);
+
+            REQUIRE_TRUE(input->rankOf() == 4, 0, "Input rank of 4 expected, but got %i instead", input->rankOf());
+
+            T alpha = block.getTArguments()->at(0);
+            T beta = block.getTArguments()->at(1);
+            T bias = block.getTArguments()->at(2);
+            T depth = block.getTArguments()->at(3);
+
+            int halfDepth = (int) (depth / (T) 2.f);
+
+            const int channel =  input->sizeAt(1);
+
+            auto activitySqr = NDArrayFactory::createUninitialized<T>(input);
+            input->template applyPairwiseTransform<simdOps::Multiply<T>>(input, activitySqr, nullptr);
+            auto sumPart = activitySqr->dup('c');
+
+            for (int i = 1; i < halfDepth + 1; i++) {
+                IndicesList indA({NDIndex::all(), NDIndex::interval(i, channel), NDIndex::all(), NDIndex::all()});
+                IndicesList indB({NDIndex::all(), NDIndex::interval(0, channel - i), NDIndex::all(), NDIndex::all()});
+
+                std::unique_ptr<NDArray<T>> tmp(sumPart->subarray(indA));
+                std::unique_ptr<NDArray<T>> addVal(activitySqr->subarray(indB));
+
+                tmp.get()->template applyPairwiseTransform<simdOps::Add<T>>(addVal.get(), nullptr);
+
+
+                std::unique_ptr<NDArray<T>> tmp2(sumPart->subarray(indB));
+                std::unique_ptr<NDArray<T>> addVal2(activitySqr->subarray(indA));
+
+                tmp2.get()->template applyPairwiseTransform<simdOps::Add<T>>(addVal2.get(), nullptr);
+            }
+
+            /*
+             *  // taken from java
+                unitScale = sumPart.mul(alpha).addi(k).leverageTo(ComputationGraph.workspaceExternal);
+                // y = x * unitScale**-beta
+                scale = Transforms.pow(unitScale, -beta).leverageTo(ComputationGraph.workspaceExternal);
+                activations = input.mul(scale).leverageTo(ComputationGraph.workspaceExternal);
+             */
+
+            sumPart->template applyScalar<simdOps::Multiply<T>>(alpha, unitScale, nullptr);
+            unitScale->template applyScalar<simdOps::Add<T>>(bias);
+
+            T p = -beta;
+            unitScale->template applyTransform<simdOps::Pow<T>>(scale, &p);
+            input->template applyPairwiseTransform<simdOps::Multiply<T>>(scale, z, nullptr);
+
+            STORE_3_RESULTS(*z, *unitScale, *scale);
+
+            delete activitySqr;
+            delete sumPart;
+
             return ND4J_STATUS_OK;
         }
         DECLARE_SYN(LRN, lrn);
 
+        DECLARE_SHAPE_FN(lrn) {
+            int *inp = inputShape->at(0);
+
+            auto shapeList = new ShapeList();
+            for(int e = 0; e < 3; e++) {
+                int *newShape;
+                ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(inp), int);
+                memcpy(newShape, inp, shape::shapeInfoByteLength(inp));
+
+                shapeList->push_back(newShape);
+            }
+
+            return shapeList;
+        }
 
 ///////////////////////
         /**
