@@ -951,3 +951,22 @@ TEST_F(NDArrayTest, SVD4) {
 	ASSERT_TRUE(expVt.hasOrthonormalBasis(1));
 	ASSERT_TRUE(expVt.isUnitary());	
 }
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest, TestApplyIndexReduce1) {
+    float xBuff[] = {1, 5, 2, 12, 9, 3, 10, 7, 4, 11, 6, 8};
+    int xShapeInfo[] = {3, 2, 3, 2, 6, 2, 1, 0, 1, 99};    
+    float expBuff[] = {0,0};
+    int expShapeInfo[] = {2, 1, 2, 2, 1, 0, 1, 99};
+    
+    NDArray<float> x(xBuff, xShapeInfo);
+    NDArray<float> exp(expBuff, expShapeInfo);
+    
+    NDArray<float>* result = x.applyIndexReduce<simdOps::IndexMax<float>>({1,0});
+    result->printShapeInfo();
+    result->printBuffer();
+    ASSERT_TRUE(exp.isSameShapeStrict(result));
+    ASSERT_TRUE(exp.equalsTo(result));
+    
+    delete result;
+}

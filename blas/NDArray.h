@@ -363,9 +363,12 @@ namespace nd4j {
 		// check whether array is unitary matrix
 		bool isUnitary(); 
         
-        // 
+        // evaluate resulting shape after reduce operation
+        int* evalReduceShapeInfo(const char order, const std::vector<int>& dimensions) const;
+        
+        // reduce dimensions in this array relying on index operations
         template<typename OpName>
-        NDArray<T>* applyIndexReduce(const std::vector<int> &dimensions) const;
+        NDArray<T>* applyIndexReduce(const std::vector<int> &dimensions, const T *extraParams = nullptr) const;
 		
 		// default destructor
         ~NDArray();
