@@ -362,6 +362,10 @@ namespace nd4j {
 
 		// check whether array is unitary matrix
 		bool isUnitary(); 
+        
+        // 
+        template<typename OpName>
+        NDArray<T>* applyIndexReduce(const std::vector<int> &dimensions) const;
 		
 		// default destructor
         ~NDArray();
