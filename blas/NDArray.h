@@ -204,11 +204,11 @@ namespace nd4j {
 
 		// eventually this method reduces this array to 1xN row 
         template<typename OpName>
-        NDArray<T> *reduceAlongDimension(const std::vector<int> &dimensions) const;
+        NDArray<T> *reduceAlongDimension(const std::vector<int>& dimensions) const;
 		
         // eventually this method reduces this array to 1xN row 
         template<typename OpName>
-        NDArray<T> *reduceAlongDimension(const std::initializer_list<int> &dimensions) const;
+        NDArray<T> *reduceAlongDimension(const std::initializer_list<int>& dimensions) const;
 
         // 
         template<typename OpName>
@@ -251,13 +251,13 @@ namespace nd4j {
         // This method applies in-place transpose to this array, so this array becomes transposed 
         void transposei();
 
-        NDArray<T>* tensorAlongDimension(int index, std::initializer_list<int> dimensions);
+        NDArray<T>* tensorAlongDimension(int index, const std::initializer_list<int>& dimensions) const;
 
-        NDArray<T>* tensorAlongDimension(int index, std::vector<int>& dimensions);
+        NDArray<T>* tensorAlongDimension(int index, const std::vector<int>& dimensions) const;
 
         // this method returns number of tensors along specified dimension(s)
-        Nd4jIndex tensorsAlongDimension(std::initializer_list<int> dimensions);
-        Nd4jIndex tensorsAlongDimension(std::vector<int>& dimensions);
+        Nd4jIndex tensorsAlongDimension(const std::initializer_list<int> dimensions) const ;
+        Nd4jIndex tensorsAlongDimension(const std::vector<int>& dimensions) const ;
 
         // This method returns true if buffer && shapeInfo were defined
         bool nonNull() const {
@@ -364,11 +364,11 @@ namespace nd4j {
 		bool isUnitary(); 
         
         // evaluate resulting shape after reduce operation
-        int* evalReduceShapeInfo(const char order, const std::vector<int>& dimensions) const;
+        int* evalReduceShapeInfo(const char order, std::vector<int>& dimensions) const;
         
         // reduce dimensions in this array relying on index operations
         template<typename OpName>
-        NDArray<T>* applyIndexReduce(const std::vector<int> &dimensions, const T *extraParams = nullptr) const;
+        NDArray<T>* applyIndexReduce(const std::vector<int>& dimensions, const T *extraParams = nullptr) const;
 		
 		// default destructor
         ~NDArray();
