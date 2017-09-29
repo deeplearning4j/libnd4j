@@ -659,7 +659,10 @@ namespace nd4j {
 //////////////////////////////////////////////////////////////////////////
         DECLARE_OP(softmax, 1, 1, true) {
             // YaY
+            NDArray<T>* input = block.getVariables().at(0)->getNDArray();
             NDArray<T>* z = this->getZ(block);
+
+            input->template applyTransform<simdOps::SoftMax<T>>(z, nullptr);
 
             STORE_RESULT(*z);
 
