@@ -1383,37 +1383,37 @@ namespace simdOps {
 					if (elementWiseStride == 1 && resultElementWiseStride == 1) {
 
 
-#pragma omp simd reduction(max:max)
+//#pragma omp simd reduction(max:max)
 						for (int i = 0; i < length; i++) {
 							max = nd4j::math::nd4j_max<T>(max, dx[i]);
 						}
 
-#pragma omp parallel for simd reduction(+:sum)
+//#pragma omp parallel for simd reduction(+:sum)
 						for (int i = 0; i < length; i++) {
                             result[i] = nd4j::math::nd4j_exp<T>(dx[i] - max);
 							sum += result[i];
 						}
 
-#pragma omp simd
+//#pragma omp simd
 						for (int i = 0; i < length; i++) {
 							result[i] /= sum;
 						}
 					}
 					else {
 
-#pragma omp simd reduction(max:max)
+//#pragma omp simd reduction(max:max)
 						for (int i = 0; i < length; i++) {
 							max = nd4j::math::nd4j_max<T>(max, dx[i * elementWiseStride]);
 						}
 
-#pragma omp parallel for simd reduction(+:sum)
+//#pragma omp parallel for simd reduction(+:sum)
 						for (int i = 0; i < length; i++) {
                             T r = nd4j::math::nd4j_exp<T>(dx[i * elementWiseStride] - max);
                             result[i * resultElementWiseStride] = r;
 							sum += r;
 						}
 
-#pragma omp simd
+//#pragma omp simd
 						for (int i = 0; i < length; i++) {
 							result[i * resultElementWiseStride] /= sum;
 						}
