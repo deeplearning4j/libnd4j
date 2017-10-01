@@ -134,7 +134,7 @@ template <typename T> NDArray<T>::NDArray(const int rows, const int columns, con
 template <typename T> NDArray<T>::NDArray(const int* shapeInfo, nd4j::memory::Workspace* workspace) {
    
     int arrLength = shape::length(const_cast<int*>(shapeInfo));
-    int shapeLength = shape::rank(const_cast<int*>(shapeInfo))*2 + 4;
+    int shapeLength = shape::shapeInfoLength(const_cast<int*>(shapeInfo));
 
     _workspace = workspace;
     if (workspace == nullptr) {
@@ -142,12 +142,12 @@ template <typename T> NDArray<T>::NDArray(const int* shapeInfo, nd4j::memory::Wo
         _shapeInfo = new int[shapeLength];
     } else {
         _buffer = (T*) _workspace->allocateBytes(arrLength * sizeOfT());
-        _shapeInfo = (int*) _workspace->allocateBytes(shapeLength * 4);
+        _shapeInfo = (int*) _workspace->allocateBytes(shape::shapeInfoByteLength(const_cast<int*>(shapeInfo)));
     }
 
     memset(_buffer, 0, arrLength*sizeOfT());          // set all elements in new array to be zeros
 
-    memcpy(_shapeInfo, shapeInfo, shapeLength*sizeof(int));     // copy shape information into new array
+    memcpy(_shapeInfo, shapeInfo, shape::shapeInfoByteLength(const_cast<int*>(shapeInfo)));     // copy shape information into new array
 
     _isBuffAlloc = true;
     _isShapeAlloc = true;

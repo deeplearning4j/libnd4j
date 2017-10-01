@@ -170,6 +170,7 @@ namespace nd4j {
                 }
                 printf("]\n");
             }
+            fflush(stdout);
         }
 
         void printBuffer(const char* msg = nullptr);

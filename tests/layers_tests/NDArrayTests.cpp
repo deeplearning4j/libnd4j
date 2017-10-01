@@ -997,8 +997,8 @@ TEST_F(NDArrayTest, applyAllReduce3EuclideanDistance) {
     NDArray<float> exp(expBuff, expShapeInfo);
     
     NDArray<float>* result = x.applyAllReduce3<simdOps::EuclideanDistance<float>>(&y,{0});
+    result->printShapeInfo("Result shape");
     result->printBuffer();
-    result->printShapeInfo();
     ASSERT_TRUE(exp.isSameShapeStrict(result));
     ASSERT_TRUE(exp.equalsTo(result));
     
