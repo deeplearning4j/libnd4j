@@ -1982,7 +1982,7 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
                                                                     other->_buffer, other->_shapeInfo, result->_buffer,result->_shapeInfo,
                                                                     copy.data(), copy.size(), tadX.tadOnlyShapeInfo, tadX.tadOffsets, tadY.tadOnlyShapeInfo, tadY.tadOffsets);            
         }                
-        // delete []extraParamsVals;
+        delete []extraParamsVals;
 
         return result;                
     }
