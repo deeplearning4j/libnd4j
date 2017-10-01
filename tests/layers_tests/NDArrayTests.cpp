@@ -967,3 +967,42 @@ TEST_F(NDArrayTest, TestApplyIndexReduce1) {
     
     delete result;
 }
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest, applyReduce3Dot) {
+    float xBuff[] = {1, 2, 3, 4, 5, 6};    
+    float yBuff[] = {2, 2, 2, 2, 2, 2};    
+    int xShapeInfo[] = {2, 2, 3, 3, 1, 0, 1, 99};        
+        
+    NDArray<float> x(xBuff, xShapeInfo);
+    NDArray<float> y(yBuff, xShapeInfo);
+    
+    NDArray<float>* result = x.applyReduce3<simdOps::Dot<float>>(&y);
+    ASSERT_TRUE(result->lengthOf() == 1);
+    ASSERT_NEAR(42, result->getScalar(0), 1e-5);
+    
+    delete result;
+}
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest, applyAllReduce3EuclideanDistance) {
+    float xBuff[] =   {1, 2, 3, 4, 5, 6};    
+    float yBuff[] =   {2, 2, 2, 2, 2, 2};
+    float expBuff[] = {2.236068, 2.236068, 2.236068};
+    int expShapeInfo[] = {2, 1, 3, 3, 1, 0, 1, 99};        
+    int xShapeInfo[] =   {2, 2, 3, 3, 1, 0, 1, 99};        
+        
+    NDArray<float> x(xBuff, xShapeInfo);
+    NDArray<float> y(yBuff, xShapeInfo);
+    NDArray<float> exp(expBuff, expShapeInfo);
+    
+    NDArray<float>* result = x.applyAllReduce3<simdOps::EuclideanDistance<float>>(&y,{0});
+    result->printBuffer();
+    result->printShapeInfo();
+    ASSERT_TRUE(exp.isSameShapeStrict(result));
+    ASSERT_TRUE(exp.equalsTo(result));
+    
+    delete result;
+}
+
+
