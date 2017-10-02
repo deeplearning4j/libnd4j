@@ -1074,4 +1074,43 @@ TEST_F(NDArrayTest, TestVarianceAlongDimension1) {
     delete result;
 }
 
+//////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest, TestSubRowVector1) {    
+    float xBuff[] = {6, 7, 8, 9};
+    float yBuff[] = {1, 2};
+    float expBuff[] =  {5, 5, 7, 7};
+    int xShapeInfo[] = {2, 2, 2, 2, 1, 0, 1, 99};        
+    int yShapeInfo[] = {2, 1, 2, 2, 1, 0, 1, 99};        
+    
+    NDArray<float> x(xBuff, xShapeInfo);
+    NDArray<float> y(yBuff, yShapeInfo);
+    NDArray<float> target(x);
+    NDArray<float> exp(expBuff, xShapeInfo);
+
+    x.subRowVector(&y,&target);    
+
+    ASSERT_TRUE(exp.isSameShapeStrict(&target));
+    ASSERT_TRUE(exp.equalsTo(&target));
+}
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest, TestDivRowVector1) {    
+    float xBuff[] = {6, 8, 10, 12};
+    float yBuff[] = {2, 4};
+    float expBuff[] =  {3, 2, 5, 3};
+    int xShapeInfo[] = {2, 2, 2, 2, 1, 0, 1, 99};        
+    int yShapeInfo[] = {2, 1, 2, 2, 1, 0, 1, 99};        
+    
+    NDArray<float> x(xBuff, xShapeInfo);
+    NDArray<float> y(yBuff, yShapeInfo);
+    NDArray<float> target(x);
+    NDArray<float> exp(expBuff, xShapeInfo);
+
+    x.divRowVector(&y,&target);    
+
+    ASSERT_TRUE(exp.isSameShapeStrict(&target));
+    ASSERT_TRUE(exp.equalsTo(&target));
+}
+
+
 

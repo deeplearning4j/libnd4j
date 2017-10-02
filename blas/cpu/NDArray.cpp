@@ -412,7 +412,7 @@ template <typename T> NDArray<T>* NDArray<T>::dup(const char newOrder) {
     newShapeInfo[rankOf() * 2 + 2] = 1;
 
     NDArray<T> *result = new NDArray<T>(newBuffer, newShapeInfo, _workspace);
-    // this value should be set, to avoid memleak
+    // this values should be set, to avoid memleak
     result->_isBuffAlloc = true;
     result->_isShapeAlloc = true;
 
@@ -857,6 +857,43 @@ template<typename T>
                                              dimension, 1, tad->tadOnlyShapeInfo, tad->tadOffsets,
                                              tad->tadOnlyShapeInfo, tad->tadOffsets);
 }
+
+//////////////////////////////////////////////////////////////////////////
+template<typename T>
+    void NDArray<T>::subRowVector(const NDArray<T> *row, NDArray<T>* target) {
+        if (rankOf() != 2 || target->rankOf() != 2 || rows() != target->rows() || columns() != target->columns() || !row->isRowVector() || columns() != row->columns())
+            throw std::invalid_argument("NDArray::subRowVector: wrong arguments !");
+
+        int dimension[1] = {1};
+
+        std::unique_ptr<shape::TAD> tad(new shape::TAD(_shapeInfo, dimension, 1));
+        tad->createTadOnlyShapeInfo();
+        tad->createOffsets();
+
+        NativeOpExcutioner<T>::execBroadcast(1, _buffer, _shapeInfo, row->_buffer, row->_shapeInfo, target->getBuffer(), target->getShapeInfo(),
+                                             dimension, 1, tad->tadOnlyShapeInfo, tad->tadOffsets,
+                                             tad->tadOnlyShapeInfo, tad->tadOffsets);
+}
+
+//////////////////////////////////////////////////////////////////////////
+// This method multiplies each column of this array by given argument-column, this array becomes affected
+    template<typename T>
+    void NDArray<T>::divRowVector(const NDArray<T> *row, NDArray<T>* target) {
+        if (rankOf() != 2 || target->rankOf() != 2 || rows() != target->rows() || columns() != target->columns() || !row->isRowVector() || columns() != row->columns())
+            throw std::invalid_argument("NDArray::divRowVector: wrong arguments !");
+
+        int dimension[1] = {1};
+
+        std::unique_ptr<shape::TAD> tad(new shape::TAD(_shapeInfo, dimension, 1));
+        tad->createTadOnlyShapeInfo();
+        tad->createOffsets();
+
+        NativeOpExcutioner<T>::execBroadcast(3, _buffer, _shapeInfo, row->_buffer, row->_shapeInfo, target->getBuffer(), target->getShapeInfo(),
+                                             dimension, 1, tad->tadOnlyShapeInfo, tad->tadOffsets,
+                                             tad->tadOnlyShapeInfo, tad->tadOffsets);
+
+    }
+
 //////////////////////////////////////////////////////////////////////////
 // This method adds given row to all rows in this NDArray, this array becomes affected
     template<typename T>
@@ -892,7 +929,6 @@ template<typename T>
                                              dimension, 1, tad->tadOnlyShapeInfo, tad->tadOffsets,
                                              tad->tadOnlyShapeInfo, tad->tadOffsets);
     }
-
 
 //////////////////////////////////////////////////////////////////////////
 // This method multiplies each column of this array by given argument-column, this array becomes affected

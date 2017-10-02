@@ -298,6 +298,10 @@ namespace nd4j {
         void addiRowVector(const NDArray<T> *row);
 
         void addRowVector(const NDArray<T> *row, NDArray<T>* target);
+        
+        void subRowVector(const NDArray<T> *row, NDArray<T>* target);
+        
+        void divRowVector(const NDArray<T> *row, NDArray<T>* target);
 
 		// This method adds given column to all columns in this NDArray, that is this array becomes affected
 		void addiColumnVector(const NDArray<T> *column);
