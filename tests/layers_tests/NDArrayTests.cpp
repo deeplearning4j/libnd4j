@@ -1112,5 +1112,23 @@ TEST_F(NDArrayTest, TestDivRowVector1) {
     ASSERT_TRUE(exp.equalsTo(&target));
 }
 
+//////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest, TestMulRowVector1) {    
+    float xBuff[] = {6, 8, 10, 12};
+    float yBuff[] = {2, 4};
+    float expBuff[] =  {12, 32, 20, 48};
+    int xShapeInfo[] = {2, 2, 2, 2, 1, 0, 1, 99};        
+    int yShapeInfo[] = {2, 1, 2, 2, 1, 0, 1, 99};        
+    
+    NDArray<float> x(xBuff, xShapeInfo);
+    NDArray<float> y(yBuff, yShapeInfo);
+    NDArray<float> target(x);
+    NDArray<float> exp(expBuff, xShapeInfo);
+
+    x.mulRowVector(&y,&target);    
+    
+    ASSERT_TRUE(exp.isSameShapeStrict(&target));
+    ASSERT_TRUE(exp.equalsTo(&target));
+}
 
 

@@ -876,7 +876,24 @@ template<typename T>
 }
 
 //////////////////////////////////////////////////////////////////////////
-// This method multiplies each column of this array by given argument-column, this array becomes affected
+    template<typename T>
+    void NDArray<T>::mulRowVector(const NDArray<T> *row, NDArray<T>* target) {
+        if (rankOf() != 2 || target->rankOf() != 2 || rows() != target->rows() || columns() != target->columns() || !row->isRowVector() || columns() != row->columns())
+            throw std::invalid_argument("NDArray::divRowVector: wrong arguments !");
+
+        int dimension[1] = {1};
+
+        std::unique_ptr<shape::TAD> tad(new shape::TAD(_shapeInfo, dimension, 1));
+        tad->createTadOnlyShapeInfo();
+        tad->createOffsets();
+
+        NativeOpExcutioner<T>::execBroadcast(2, _buffer, _shapeInfo, row->_buffer, row->_shapeInfo, target->getBuffer(), target->getShapeInfo(),
+                                             dimension, 1, tad->tadOnlyShapeInfo, tad->tadOffsets,
+                                             tad->tadOnlyShapeInfo, tad->tadOffsets);
+
+    }
+
+//////////////////////////////////////////////////////////////////////////
     template<typename T>
     void NDArray<T>::divRowVector(const NDArray<T> *row, NDArray<T>* target) {
         if (rankOf() != 2 || target->rankOf() != 2 || rows() != target->rows() || columns() != target->columns() || !row->isRowVector() || columns() != row->columns())

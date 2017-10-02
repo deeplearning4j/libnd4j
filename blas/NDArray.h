@@ -301,6 +301,8 @@ namespace nd4j {
         
         void subRowVector(const NDArray<T> *row, NDArray<T>* target);
         
+        void mulRowVector(const NDArray<T> *row, NDArray<T>* target);
+
         void divRowVector(const NDArray<T> *row, NDArray<T>* target);
 
 		// This method adds given column to all columns in this NDArray, that is this array becomes affected
