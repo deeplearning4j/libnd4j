@@ -999,7 +999,7 @@ TEST_F(NDArrayTest, TestApplyIndexReduce1) {
 }
 
 //////////////////////////////////////////////////////////////////////
-TEST_F(NDArrayTest, applyReduce3Dot) {
+TEST_F(NDArrayTest, TestApplyReduce3Dot) {
     float xBuff[] = {1, 2, 3, 4, 5, 6};    
     float yBuff[] = {2, 2, 2, 2, 2, 2};    
     int xShapeInfo[] = {2, 2, 3, 3, 1, 0, 1, 99};        
@@ -1033,9 +1033,8 @@ TEST_F(NDArrayTest, applyAllReduce3EuclideanDistance) {
     delete result;
 }
 
-
 //////////////////////////////////////////////////////////////////////
-TEST_F(NDArrayTest, applyReduce3EuclideanDistance) {
+TEST_F(NDArrayTest, TestApplyReduce3EuclideanDistance) {
     float xBuff[] =   {1, 2, 3, 4, 5, 6};    
     float yBuff[] =   {2, 2, 2, 2, 2, 2};
     float expBuff[] = {1.414214, 1.414214, 5.385165, 5.385165};
@@ -1047,6 +1046,27 @@ TEST_F(NDArrayTest, applyReduce3EuclideanDistance) {
     NDArray<float> exp(expBuff, expShapeInfo);
     
     NDArray<float>* result = x.applyAllReduce3<simdOps::EuclideanDistance<float>>(&y,{1});
+
+    ASSERT_TRUE(exp.isSameShapeStrict(result));
+    ASSERT_TRUE(exp.equalsTo(result));
+    
+    delete result;
+}
+
+
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest, TestVarianceAlongDimension1) {
+    float xBuff[] =   {1, 2, 3, 4, 5, 6};        
+    float expBuff[] = {0.666667, 0.666667};
+    int xShapeInfo[] =   {2, 2, 3, 3, 1, 0, 1, 99};        
+    int expShapeInfo[] = {2, 2, 1, 1, 1, 0, 1, 99};        
+    
+        
+    NDArray<float> x(xBuff, xShapeInfo);    
+    NDArray<float> exp(expBuff, expShapeInfo);
+    
+    NDArray<float>* result = x.varianceAlongDimension<simdOps::SummaryStatsVariance<float>>(false, {1});
 
     ASSERT_TRUE(exp.isSameShapeStrict(result));
     ASSERT_TRUE(exp.equalsTo(result));

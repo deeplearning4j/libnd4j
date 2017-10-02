@@ -2044,7 +2044,27 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
         return result;
     }
 
+    ////////////////////////////////////////////////////////////////////////
+    template<typename T>
+    template<typename OpName>
+    NDArray<T>* NDArray<T>::varianceAlongDimension(const bool biasCorrected, const std::vector<int>& dimensions) const {
+    
+        std::vector<int> copy(dimensions);
+            
+        int* newShape = evalReduceShapeInfo('c', copy);  
+        NDArray<T>* result = new NDArray<T>(newShape, _workspace);
+        RELEASE(newShape, _workspace);        
+        
+        if(rankOf() == copy.size())
+            result->_buffer[0] = functions::summarystats::SummaryStatsReduce<T>::template execScalar<OpName>(biasCorrected, _buffer, _shapeInfo, nullptr);
+        else
+            functions::summarystats::SummaryStatsReduce<T>::template exec<OpName>(biasCorrected, _buffer, _shapeInfo, nullptr,
+                                                                              result->_buffer, result->_shapeInfo, copy.data(), copy.size());
+        return result;    
+    
+    }
 
+    ////////////////////////////////////////////////////////////////////////
     // default destructor
     template<typename T>
     NDArray<T>::~NDArray() {

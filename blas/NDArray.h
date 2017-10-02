@@ -387,6 +387,9 @@ namespace nd4j {
         template<typename OpName>
         NDArray<T>* applyReduce3(const NDArray<T>* other, const std::vector<int>& dimensions, const T* extraParams = nullptr) const;
 
+        template<typename OpName>
+        NDArray<T>* varianceAlongDimension(const bool biasCorrected, const std::vector<int>& dimensions) const;
+
 		// default destructor
         ~NDArray(); 
 
