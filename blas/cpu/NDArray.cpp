@@ -2116,6 +2116,14 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
         return result;    
     
     }
+    
+    ////////////////////////////////////////////////////////////////////////
+    template<typename T>
+    template<typename OpName>
+    NDArray<T>* NDArray<T>::varianceAlongDimension(const bool biasCorrected, const std::initializer_list<int>& dimensions) const {
+    
+        return varianceAlongDimension<OpName>(biasCorrected, std::vector<int>(dimensions));
+    }
 
     ////////////////////////////////////////////////////////////////////////
     // default destructor

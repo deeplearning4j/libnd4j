@@ -396,7 +396,10 @@ namespace nd4j {
         template<typename OpName>
         NDArray<T>* varianceAlongDimension(const bool biasCorrected, const std::vector<int>& dimensions) const;
 
-		// default destructor
+        template<typename OpName>
+        NDArray<T>* varianceAlongDimension(const bool biasCorrected, const std::initializer_list<int>& dimensions) const;
+		
+        // default destructor
         ~NDArray(); 
 
     };
