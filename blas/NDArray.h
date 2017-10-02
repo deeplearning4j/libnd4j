@@ -379,6 +379,10 @@ namespace nd4j {
         template<typename OpName>
         NDArray<T>* applyAllReduce3(const NDArray<T>* other, const std::vector<int>& dimensions, const T* extraParams = nullptr) const;
         
+        // apply reduce3 (exec) operations to this and other array, return result in new output array
+        template<typename OpName>
+        NDArray<T>* applyReduce3(const NDArray<T>* other, const std::vector<int>& dimensions, const T* extraParams = nullptr) const;
+
 		// default destructor
         ~NDArray(); 
 
