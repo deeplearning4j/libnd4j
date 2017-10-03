@@ -37,11 +37,20 @@ namespace nd4j {
 
 		// forbid assignment operator
 		NDArray<T>& operator=(const NDArray<T>& other);
-        // accessing operator for 2D matrix, i - row, j - column
-        // be careful this method doesn't check the rank of array
-        T operator()(const int i, const int j) const;
+        
+        // accessing operator for matrix, i - absolute index
+        // be careful this method doesn't check the boundaries of array
+        T operator()(const Nd4jIndex i) const;
 
-        // modifying operator for 2D matrix, i - row, j - column
+        // modifying operator for matrix, i - absolute index
+        // be careful this method doesn't check the boundaries of array
+        T& operator()(const Nd4jIndex i);
+    
+        // accessing operator for 2D array, i - row, j - column
+        // be careful this method doesn't check the rank of array
+        T operator()(const int i, const int j) const;        
+
+        // modifying operator for 2D array, i - row, j - column
         // be careful this method doesn't check the rank of array
         T& operator()(const int i, const int j);
 

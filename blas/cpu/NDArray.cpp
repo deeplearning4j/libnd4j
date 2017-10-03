@@ -820,6 +820,22 @@ template <typename T> void NDArray<T>::transposei() {
     }
 
 //////////////////////////////////////////////////////////////////////////
+// accessing operator for matrix, i - absolute index
+// be careful this method doesn't check the boundaries of array
+template<typename T>
+T NDArray<T>::operator()(const Nd4jIndex i) const {    
+    return _buffer[i];
+}
+
+//////////////////////////////////////////////////////////////////////////
+// modifying operator for matrix, i - absolute index
+// be careful this method doesn't check the boundaries of array
+template<typename T>
+T& NDArray<T>::operator()(const Nd4jIndex i) {
+    return _buffer[i];
+}
+
+//////////////////////////////////////////////////////////////////////////
 // accessing operator for 2D matrix, i - row, j - column
 // be careful this method doesn't check the rank of array
 template<typename T>
