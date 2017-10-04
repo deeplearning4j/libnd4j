@@ -72,12 +72,20 @@ namespace nd4j {
             int internalEntries();
             int totalEntries();
 
+            nd4j::graph::VariableSpace<T>* clone();
+
             std::vector<nd4j::graph::Variable<T> *> * getExternalVariables() {
                 return &_external;
             }
         };
     }
 }
+
+template <typename T>
+nd4j::graph::VariableSpace<T>* nd4j::graph::VariableSpace<T>::clone() {
+    return nullptr;
+}
+
 template <typename T>
 std::vector<nd4j::graph::Variable<T>*> * nd4j::graph::VariableSpace<T>::getPlaceholders() {
     return &_placeholders;
