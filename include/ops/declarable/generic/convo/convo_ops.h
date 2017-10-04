@@ -242,6 +242,47 @@ namespace nd4j {
             return new ShapeList(newShape);
         }
 
+        /**
+         *
+         *
+         */
+        DECLARE_CUSTOM_OP(sconv2d_bp, 4, 2, false, 0, 9) {
+            NDArray<T> *input = block.getVariables().at(0)->getNDArray();
+            NDArray<T> *weights = block.getVariables().at(1)->getNDArray();
+
+
+            return ND4J_STATUS_OK;
+        }
+        DECLARE_SHAPE_FN(sconv2d_bp) {
+            auto inShape = inputShape->at(0);
+            auto wShape = inputShape->at(1);
+            auto eShape = inputShape->at(2);
+            int *bShape = nullptr;
+            if (inputShape->size() == 4)
+                bShape = inputShape->at(3);
+
+            int *newInShape;
+            int *newWShape;
+            ALLOCATE(newInShape, block.getWorkspace(), shape::shapeInfoLength(inShape), int);
+            ALLOCATE(newWShape, block.getWorkspace(), shape::shapeInfoLength(wShape), int);
+
+            memcpy(newInShape, inShape, shape::shapeInfoByteLength(inShape));
+            memcpy(newWShape, wShape, shape::shapeInfoByteLength(wShape));
+
+            auto shapes = new ShapeList({newInShape, newWShape});
+
+            if (bShape != nullptr) {
+                int *newBShape;
+                ALLOCATE(newBShape, block.getWorkspace(), shape::shapeInfoLength(bShape), int);
+                memcpy(newBShape, bShape, shape::shapeInfoByteLength(bShape));
+
+                shapes->push_back(newBShape);
+            }
+
+
+            return shapes;
+        }
+
 //////////////////////////////////////////////////////////////////////////
         DECLARE_CONFIGURABLE_OP(conv3d, 2, 1, false, 0, 7) {
             // cubic convo
