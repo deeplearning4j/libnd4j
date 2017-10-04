@@ -16,7 +16,8 @@ public:
 };
 
 TEST_F(SessionLocalTests, BasicTests_1) {
-    SessionLocalStorage<float> storage(nullptr, nullptr);
+    VariableSpace<float> variableSpace;
+    SessionLocalStorage<float> storage(&variableSpace, nullptr);
 
 #pragma omp parallel for num_threads(4)
     for (int e = 0; e < 4; e++) {

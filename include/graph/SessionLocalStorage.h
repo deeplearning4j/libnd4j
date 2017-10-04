@@ -28,9 +28,11 @@ namespace nd4j{
             Nd4jIndex getSessionId();
             Nd4jIndex getThreadId();
         public:
-            SessionLocalStorage(VariableSpace<T>* variableSpace, Stash<T>* stash) {
+            SessionLocalStorage(VariableSpace<T>* variableSpace = nullptr, Stash<T>* stash = nullptr) {
                 // we start from 1, since key 0 holds original VariableSpace
                 _sessionCounter.store(1);
+                _variableSpace = variableSpace;
+                _stash = stash;
             }
 
             ~SessionLocalStorage() {
@@ -130,6 +132,7 @@ Nd4jIndex nd4j::graph::SessionLocalStorage<T>::startSession() {
     _mutex.lock();
 
     _threadSession[tid] = ntid;
+    _threadVariableSpace[ntid] = _variableSpace->clone();
 
     _mutex.unlock();
 

@@ -6,6 +6,7 @@
 #include "DenseLayerTests.cpp"
 #include "NDArrayTests.cpp"
 #include "VariableSpaceTests.cpp"
+#include "VariableTests.h"
 #include "DeclarableOpsTests.cpp"
 #include "HashUtilsTests.cpp"
 #include "WorkspaceTests.h"

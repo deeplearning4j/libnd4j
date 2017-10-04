@@ -83,7 +83,29 @@ namespace nd4j {
 
 template <typename T>
 nd4j::graph::VariableSpace<T>* nd4j::graph::VariableSpace<T>::clone() {
-    return nullptr;
+    auto result = new VariableSpace<T>();
+
+    for (auto const& x : _paired) {
+        std::pair<int, int> pair(x.first.first, x.first.second);
+
+        Variable<T>* clonedVar = x.second->clone();
+
+        if (pair.second == 0) {
+            if (pair.first < 0)
+                result->_variables[pair.first] = clonedVar;
+            else
+                result->_temporary[pair.first] = clonedVar;
+        }
+
+        if (clonedVar->getName() != nullptr && clonedVar->getName()->length() > 0)
+            result->_symbolic[*(clonedVar->getName())] = clonedVar;
+
+        result->_paired[pair] = clonedVar;
+
+        result->_handles->push_back(clonedVar);
+    }
+
+    return result;
 }
 
 template <typename T>
@@ -205,6 +227,10 @@ void nd4j::graph::VariableSpace<T>::putVariable(std::pair<int,int>& pair, Variab
     if (pair.second == 0 && !this->hasVariable(pair.first)) {
         this->putVariable(pair.first, variable);
     } else {
+        if (variable->getName() != nullptr && variable->getName()->length() != 0) {
+            _symbolic[*(variable->getName())] = variable;
+        }
+
         _varmap.lock();
 
         _handles->push_back(variable);
