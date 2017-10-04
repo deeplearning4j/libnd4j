@@ -12,16 +12,25 @@
 
 namespace nd4j{
     namespace graph {
+        template <typename T>
         class SessionLocalStorage {
         protected:
-            // we start from 1, since key 0 holds original VariableSpace
-            std::atomic<Nd4jIndex> _sessionCounter = 1;
+            std::atomic<Nd4jIndex> _sessionCounter;
             std::map<Nd4jIndex, Nd4jIndex> _threadSession;
 
             Nd4jIndex getThreadId();
 
 
         public:
+            SessionLocalStorage() {
+                // we start from 1, since key 0 holds original VariableSpace
+                _sessionCounter.store(1);
+            }
+
+            ~SessionLocalStorage() {
+                //
+            }
+
             Nd4jIndex startSession();
             void endSession(Nd4jIndex sessionId);
         };

@@ -18,18 +18,18 @@ public:
 TEST_F(StashTests, BasicTests_1) {
     Stash<float> stash;
 
-    NDArray<float> alpha(5, 5, 'c');
-    alpha.assign(1.0);
+    auto alpha = new NDArray<float> (5, 5, 'c');
+    alpha->assign(1.0);
 
-    NDArray<float> beta(5, 5, 'c');
-    beta.assign(2.0);
+    auto beta = new NDArray<float> (5, 5, 'c');
+    beta->assign(2.0);
 
-    NDArray<float> cappa(5, 5, 'c');
-    cappa.assign(3.0);
+    auto cappa = new NDArray<float> (5, 5, 'c');
+    cappa->assign(3.0);
 
-    stash.storeArray(1, "alpha", &alpha);
-    stash.storeArray(2, "alpha", &beta);
-    stash.storeArray(3, "cappa", &cappa);
+    stash.storeArray(1, "alpha", alpha);
+    stash.storeArray(2, "alpha", beta);
+    stash.storeArray(3, "cappa", cappa);
 
     ASSERT_TRUE(stash.checkStash(1, "alpha"));
     ASSERT_TRUE(stash.checkStash(2, "alpha"));
@@ -44,26 +44,26 @@ TEST_F(StashTests, BasicTests_1) {
 TEST_F(StashTests, BasicTests_2) {
     Stash<float> stash;
 
-    NDArray<float> alpha(5, 5, 'c');
-    alpha.assign(1.0);
+    auto alpha = new NDArray<float>(5, 5, 'c');
+    alpha->assign(1.0);
 
-    NDArray<float> beta(5, 5, 'c');
-    beta.assign(2.0);
+    auto beta = new NDArray<float>(5, 5, 'c');
+    beta->assign(2.0);
 
-    NDArray<float> cappa(5, 5, 'c');
-    cappa.assign(3.0);
+    auto cappa = new NDArray<float>(5, 5, 'c');
+    cappa->assign(3.0);
 
-    stash.storeArray(1, "alpha1", &alpha);
-    stash.storeArray(1, "alpha2", &beta);
-    stash.storeArray(1, "alpha3", &cappa);
+    stash.storeArray(1, "alpha1", alpha);
+    stash.storeArray(1, "alpha2", beta);
+    stash.storeArray(1, "alpha3", cappa);
 
     ASSERT_FALSE(stash.checkStash(2, "alpha1"));
     ASSERT_FALSE(stash.checkStash(2, "alpha2"));
     ASSERT_FALSE(stash.checkStash(2, "alpha3"));
 
-    ASSERT_TRUE(&alpha == stash.extractArray(1, "alpha1"));
-    ASSERT_TRUE(&beta == stash.extractArray(1, "alpha2"));
-    ASSERT_TRUE(&cappa == stash.extractArray(1, "alpha3"));
+    ASSERT_TRUE(alpha == stash.extractArray(1, "alpha1"));
+    ASSERT_TRUE(beta == stash.extractArray(1, "alpha2"));
+    ASSERT_TRUE(cappa == stash.extractArray(1, "alpha3"));
 
 }
 
