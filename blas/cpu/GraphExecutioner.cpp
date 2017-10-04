@@ -22,6 +22,9 @@
 
 #include <fcntl.h>
 
+#include <chrono>
+#include <ctime>
+
 namespace nd4j{
     namespace graph {
 
@@ -541,9 +544,16 @@ namespace nd4j{
 
 //#pragma omp parallel for if (layerSize > 1 && pe) schedule(dynamic) proc_bind(spread)
                 for (int n = 0; n < layerSize; n++) {
-                    auto node = graph->getOnion()->at(l)->at(n);
+                    Node<T>* node = graph->getOnion()->at(l)->at(n);
+
+                    auto timeStart = std::chrono::system_clock::now();
 
                     Nd4jStatus status = executeFlatNode(graph, node, __variableSpace);
+
+                    auto timeEnd = std::chrono::system_clock::now();
+
+                    auto outerTime = std::chrono::duration_cast<std::chrono::microseconds> (timeEnd - timeStart).count();
+                    node->getBlock()->setOuterTime(outerTime);
 
                     if (status != ND4J_STATUS_OK)
                         return status;

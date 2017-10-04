@@ -17,6 +17,8 @@
 #include <memory/MemoryRegistrator.h>
 #include <ShapeList.h>
 
+#include <chrono>
+#include <ctime>
 
 using namespace nd4j::graph;
 
@@ -737,7 +739,15 @@ Nd4jStatus nd4j::ops::DeclarableOp<T>::execute(Block<T>* block) {
     // this method will allocate output NDArrays for this op
     this->prepareOutputs(*block);
 
-    return this->validateAndExecute(*block);
+    auto timeStart = std::chrono::system_clock::now();
+
+    Nd4jStatus status = this->validateAndExecute(*block);
+
+    auto timeEnd = std::chrono::system_clock::now();
+    auto outerTime = std::chrono::duration_cast<std::chrono::microseconds> (timeEnd - timeStart).count();
+    block->setInnerTime(outerTime);
+
+    return status;
 }
 
 template <typename T>
