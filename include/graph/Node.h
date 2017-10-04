@@ -31,7 +31,7 @@ namespace nd4j {
             std::vector<int> _output;
             std::vector<int> _dimensions;
 
-            int * _dim;
+            int * _dim = nullptr;
             std::string _name;
 
 
@@ -39,7 +39,7 @@ namespace nd4j {
             int _layer = -1;
 
             // many ops require extra parameters to run
-            T *_extraParams;
+            T *_extraParams = nullptr;
 
 
             // optional scalar. used in scalar ops and in summary stats

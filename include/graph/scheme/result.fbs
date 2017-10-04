@@ -5,7 +5,7 @@ namespace nd4j.graph;
 table FlatTiming {
     id:int; // ID of the node for this time report
     name:string; // name of the node for this time report (if was specified)
-    timing:IntPair; // outer time, inner time
+    timing:LongPair; // outer time, inner time
 }
 
 table FlatResult {
