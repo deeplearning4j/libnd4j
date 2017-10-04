@@ -10,6 +10,7 @@
 #include <map>
 //#include <NDArray.h>
 #include <graph/Node.h>
+#include <graph/Stash.h>
 #include <graph/Variable.h>
 #include <graph/VariableSpace.h>
 #include <graph/generated/node_generated.h>
@@ -25,6 +26,7 @@ namespace nd4j {
         protected:
             ExecutorConfiguration *_configuration;
             VariableSpace<T> *_variableSpace;
+            Stash<T>* _stash;
 
             // vector holds ID's of top nodes only
             std::vector<int32_t > *_nodes;

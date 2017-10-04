@@ -11,6 +11,8 @@
 #include "WorkspaceTests.h"
 #include "ConvolutionTests.h"
 #include "TadTests.h"
+#include "StashTests.h"
+#include "SessionLocalTests.h"
 #include "GraphTests.cpp"
 #include "FlatBuffersTests.cpp"
 ///////
