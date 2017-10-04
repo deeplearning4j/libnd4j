@@ -258,6 +258,8 @@ namespace nd4j {
             auto wShape = inputShape->at(1);
             auto eShape = inputShape->at(2);
             int *bShape = nullptr;
+
+            // bias is optional thing, and might be absent
             if (inputShape->size() == 4)
                 bShape = inputShape->at(3);
 
