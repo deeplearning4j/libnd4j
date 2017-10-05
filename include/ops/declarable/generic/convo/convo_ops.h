@@ -406,6 +406,13 @@ namespace nd4j {
             REQUIRE_TRUE(input->rankOf() == 4, 0, "Input should be 4D, but got %iD instead", input->rankOf());
             REQUIRE_TRUE(weights->rankOf() == 4, 0, "Weights should be 4D, but got %iD instead", weights->rankOf());
 
+            int oD = weights->sizeAt(0);
+
+            if (bias != nullptr) {
+                REQUIRE_TRUE(bias->isVector(), 0, "Bias should be vector");
+                REQUIRE_TRUE(bias->lengthOf() == oD, 0, "Bias length be equal to outpuDepth, but got %i instead", bias->lengthOf());
+            }
+
             int iY = input->sizeAt(2);
             int iX = input->sizeAt(3);
 
@@ -431,15 +438,13 @@ namespace nd4j {
 
             gcol->template applyTransform<simdOps::Col2Im<T>>(z, extrasCol2Im.get());
 
-            STORE_RESULT(*z);
-
             delete gcol;
 
             if (bias != nullptr) {
-                auto b_ = bias->reshape('c', {(int) bias->lengthOf(), 1, 1});
-
-                delete b_;
+                z->template applyBroadcast<simdOps::Add<double>>({1}, bias);
             }
+
+            STORE_RESULT(*z);
 
             return ND4J_STATUS_OK;
         }

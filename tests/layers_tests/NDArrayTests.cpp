@@ -1408,3 +1408,21 @@ TEST_F(NDArrayTest, TestTensorDotAgain_1) {
 
     delete result;
 }
+
+
+TEST_F(NDArrayTest, TestBroadcast_1) {
+    double _expB[] = {1.000000, 1.000000, 1.000000, 1.000000, 2.000000, 2.000000, 2.000000, 2.000000, 3.000000, 3.000000, 3.000000, 3.000000, 1.000000, 1.000000, 1.000000, 1.000000, 2.000000, 2.000000, 2.000000, 2.000000, 3.000000, 3.000000, 3.000000, 3.000000};
+    int _expS[] = {4, 2, 3, 2, 2, 12, 4, 2, 1, 0, 1, 99};
+    NDArray<double> exp(_expB, _expS);
+    exp.triggerAllocationFlag(false, false);
+
+    NDArray<double> input('c',{ 2, 3, 2, 2});
+    NDArray<double> bias('c', {1, 3});
+
+    NDArrayFactory::linspace<double>(1, bias);
+
+    input.template applyBroadcast<simdOps::Add<double>>({1}, &bias);
+
+    //input.printBuffer("result");
+    ASSERT_TRUE(exp.equalsTo(&input));
+}
