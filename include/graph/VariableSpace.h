@@ -14,6 +14,7 @@
 //#include <NDArray.h>
 #include <graph/Variable.h>
 #include <memory/Workspace.h>
+#include <graph/Stash.h>
 
 namespace nd4j {
     namespace graph {
@@ -23,6 +24,9 @@ namespace nd4j {
         protected:
 
             nd4j::memory::Workspace _workspace;
+
+            // stash is NOT cloned
+            nd4j::graph::Stash<T> _stash;
 
             std::map<std::pair<int, int>, nd4j::graph::Variable<T> *> _paired;
             std::map<std::string, nd4j::graph::Variable<T> *> _symbolic;
@@ -74,11 +78,18 @@ namespace nd4j {
 
             nd4j::graph::VariableSpace<T>* clone();
 
+            nd4j::graph::Stash<T>* getStash();
+
             std::vector<nd4j::graph::Variable<T> *> * getExternalVariables() {
                 return &_external;
             }
         };
     }
+}
+
+template <typename T>
+nd4j::graph::Stash<T>* nd4j::graph::VariableSpace<T>::getStash() {
+    return &_stash;
 }
 
 template <typename T>

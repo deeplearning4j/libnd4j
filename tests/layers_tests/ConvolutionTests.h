@@ -246,4 +246,63 @@ TEST_F(ConvolutionTests, SeparableConv2D_FF_NoBias_1) {
     ASSERT_TRUE(exp.equalsTo(output));
 }
 
+TEST_F(ConvolutionTests, SeparableConv2D_BP_NoBias_1) {
+    int sY = 1;
+    int sX = 1;
+    int pY = 0;
+    int pX = 0;
+    int iC = 2;
+    int oC = 2;
+    int kY = 5;
+    int kX = 5;
+    int iY = 10;
+    int iX = 10;
+    int B = 2;
+
+    auto input = new NDArray<float>('c', {B, iC, iY, iX});
+    for (int e = 0; e < input->lengthOf(); e++)
+        input->putScalar(e, e+1);
+
+    auto weights = new NDArray<float> ('c', {oC, iC, kY, kX});
+    for (int e = 0; e < weights->lengthOf(); e++)
+        weights->putScalar(e, e+1);
+
+
+    auto epsilonNext = new NDArray<float>('c', {2, 4, 6, 6});
+    for (int e = 0; e < epsilonNext->lengthOf(); e++)
+        epsilonNext->putScalar(e, e+1);
+
+
+    auto variableSpace = new VariableSpace<float>();
+    variableSpace->putVariable(-1, input);
+    variableSpace->putVariable(-2, weights);
+    variableSpace->putVariable(-3, epsilonNext);
+
+    auto block = new Block<float>(1, variableSpace, false);
+    block->fillInputs({-1, -2, -3});
+
+    block->getIArguments()->push_back(kY);
+    block->getIArguments()->push_back(kX);
+
+    block->getIArguments()->push_back(sY);
+    block->getIArguments()->push_back(sX);
+
+    block->getIArguments()->push_back(pY);
+    block->getIArguments()->push_back(pX);
+
+    // dilation
+    block->getIArguments()->push_back(1);
+    block->getIArguments()->push_back(1);
+
+    // NOT same mode
+    block->getIArguments()->push_back(0);
+
+
+    nd4j::ops::sconv2d_bp<float> op;
+
+    Nd4jStatus status = op.execute(block);
+
+    ASSERT_EQ(ND4J_STATUS_OK, status);
+}
+
 #endif //LIBND4J_CONVOLUTIONTESTS_H

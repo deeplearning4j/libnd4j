@@ -11,6 +11,7 @@
 #include <NDArray.h>
 #include <Variable.h>
 #include <Block.h>
+#include <Stash.h>
 #include "OpDescriptor.h"
 #include <helpers/helper_hash.h>
 #include <memory/Workspace.h>

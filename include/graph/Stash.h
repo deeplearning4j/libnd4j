@@ -5,7 +5,7 @@
 #ifndef LIBND4J_STASH_H
 #define LIBND4J_STASH_H
 
-#include <Block.h>
+//#include <graph/Block.h>
 #include <NDArray.h>
 #include <map>
 #include <string>
@@ -49,24 +49,25 @@ namespace nd4j {
                     this->clear();
             }
 
-            void storeArray(nd4j::graph::Block<T>& block, const char *name, nd4j::NDArray<T> *array);
+            //void storeArray(nd4j::graph::Block<T>& block, const char *name, nd4j::NDArray<T> *array);
             void storeArray(int nodeId, const char *name, nd4j::NDArray<T> *array);
 
-            bool checkStash(nd4j::graph::Block<T>& block, const char *name);
+            //bool checkStash(nd4j::graph::Block<T>& block, const char *name);
             bool checkStash(int nodeId, const char *name);
 
-            nd4j::NDArray<T>* extractArray(nd4j::graph::Block<T>& block, const char *name);
+            //nd4j::NDArray<T>* extractArray(nd4j::graph::Block<T>& block, const char *name);
             nd4j::NDArray<T>* extractArray(int nodeId, const char *name);
 
             void clear();
         };
     }
 }
-
+/*
 template <typename T>
 bool nd4j::graph::Stash<T>::checkStash(nd4j::graph::Block<T>& block, const char *name) {
     return checkStash(block.getNodeId(), name);
 }
+ */
 
 template <typename T>
 bool nd4j::graph::Stash<T>::checkStash(int nodeId, const char *name) {
@@ -74,21 +75,24 @@ bool nd4j::graph::Stash<T>::checkStash(int nodeId, const char *name) {
     return _stash.count(kp) > 0;
 }
 
+/*
 template <typename T>
 nd4j::NDArray<T>* nd4j::graph::Stash<T>::extractArray(nd4j::graph::Block<T>& block, const char *name) {
     return extractArray(block.getNodeId(), name);
 }
+*/
 
 template <typename T>
 nd4j::NDArray<T>* nd4j::graph::Stash<T>::extractArray(int nodeId, const char *name) {
     KeyPair kp(nodeId, name);
     return _stash[kp];
 }
-
+/*
 template <typename T>
 void nd4j::graph::Stash<T>::storeArray(nd4j::graph::Block<T>& block, const char *name, nd4j::NDArray<T> *array) {
     storeArray(block.getNodeId(), name, array);
 }
+*/
 
 template <typename T>
 void nd4j::graph::Stash<T>::storeArray(int nodeId, const char *name, nd4j::NDArray<T> *array) {

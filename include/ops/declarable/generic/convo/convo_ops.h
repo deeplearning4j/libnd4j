@@ -247,9 +247,75 @@ namespace nd4j {
          *
          */
         DECLARE_CUSTOM_OP(sconv2d_bp, 4, 2, false, 0, 9) {
-            NDArray<T> *input = block.getVariables().at(0)->getNDArray();
-            NDArray<T> *weights = block.getVariables().at(1)->getNDArray();
+            NDArray<T> *input = INPUT_VARIABLE(0);
+            NDArray<T> *weights = INPUT_VARIABLE(1);
+            NDArray<T> *epsilonNext = INPUT_VARIABLE(2);
+            NDArray<T> *bias = nullptr;
 
+            // bias is still optional
+            if (block.getVariables().size() > 3)
+                bias = INPUT_VARIABLE(3);
+
+            //epsilonNext->rankOf() == 4 && weights->rankOf() == 4
+            REQUIRE_TRUE(input->rankOf() == 4, 0, "Input should be 4D, but got %iD instead", input->rankOf());
+            REQUIRE_TRUE(weights->rankOf() == 4, 0, "Weights should be 4D, but got %iD instead", weights->rankOf());
+            REQUIRE_TRUE(epsilonNext->rankOf() == 4, 0, "Epsilon should be 4D, but got %iD instead", epsilonNext->rankOf());
+
+            NDArray<T> * epsilon = this->getZ(block);
+            NDArray<T> * gradW = this->getZ(block, 1);
+            NDArray<T> * gradB = nullptr;
+            if (bias != nullptr)
+                gradB = this->getZ(block, 2);
+
+            const int kY = block.getIArguments()->at(0);
+            const int kX = block.getIArguments()->at(1);
+            const int sY = block.getIArguments()->at(2);
+            const int sX = block.getIArguments()->at(3);
+            int pY = block.getIArguments()->at(4);
+            int pX = block.getIArguments()->at(5);
+            const int dY = block.getIArguments()->at(6);
+            const int dX = block.getIArguments()->at(7);
+            const bool isSameMode = block.getIArguments()->at(8) != 0;
+
+            int oY = epsilon->sizeAt(2);
+            int oX = epsilon->sizeAt(3);
+
+            const int batchSize = input->shapeOf()[0];
+            const int outDepth = weights->shapeOf()[0];
+            const int inDepth = weights->shapeOf()[1];
+            const int inY = input->shapeOf()[2];
+            const int inX = input->shapeOf()[3];
+
+            bool hasCol = CHECK_STASH("im2col");
+            NDArray<T> *col = nullptr;
+            if (hasCol)
+                col = UNSTASH("im2col")
+            else {
+
+            }
+            /*
+             gy_ = gy.reshape((B, C, D, IY * IX)).transpose(1, 2, 0, 3).reshape((C, D, B * IY * IX))
+             */
+            auto eN_ = epsilonNext->reshape('c', {batchSize, inDepth, outDepth, oY * oX});
+            eN_->permutei({1, 2, 0, 3});
+            eN_->reshapei('c', {inDepth, outDepth, batchSize * oY * oX});
+
+            auto col_ = col->permute({1, 0, 4, 5, 2, 3});
+            col_->reshapei('c', {inDepth, batchSize * oY * oX, kY * kX});
+
+            /*
+             # (C, D, B*IY*IX), (C, B*IY*IX, KY*KX) -> (C, D, KY*KX)
+                gW_ = _matmul(gy_, c_, xp)
+             */
+             NDArrayFactory::mmulHelper(eN_, col_);
+
+
+
+            if (bias != nullptr) {
+                STORE_3_RESULTS(*epsilon, *gradW, *gradB);
+            } else {
+                STORE_2_RESULTS(*epsilon, *gradW);
+            }
 
             return ND4J_STATUS_OK;
         }
