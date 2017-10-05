@@ -277,8 +277,8 @@ namespace nd4j {
             const int dX = block.getIArguments()->at(7);
             const bool isSameMode = block.getIArguments()->at(8) != 0;
 
-            int oY = epsilon->sizeAt(2);
-            int oX = epsilon->sizeAt(3);
+            int oY = epsilonNext->sizeAt(2);
+            int oX = epsilonNext->sizeAt(3);
 
             const int batchSize = input->shapeOf()[0];
             const int outDepth = weights->shapeOf()[0];
@@ -293,6 +293,9 @@ namespace nd4j {
             else {
 
             }
+
+//            epsilonNext->printShapeInfo("eps next");
+
             /*
              gy_ = gy.reshape((B, C, D, IY * IX)).transpose(1, 2, 0, 3).reshape((C, D, B * IY * IX))
              */
@@ -307,11 +310,43 @@ namespace nd4j {
              # (C, D, B*IY*IX), (C, B*IY*IX, KY*KX) -> (C, D, KY*KX)
                 gW_ = _matmul(gy_, c_, xp)
              */
-             NDArrayFactory::mmulHelper(eN_, col_);
+
+            // calculating wieghts gradients here
+            //auto gW_ = gradW->reshape('c', {inDepth, outDepth, kY * kX});
+            auto gW_ = NDArrayFactory::mmulHelper(eN_, col_);
+
+            gW_->reshapei('c',{inDepth, outDepth, kY, kX});
+            gW_->permutei({1, 0, 2, 3});
+            gradW->assign(gW_);
+
+            delete gW_;
+
+            // calculating epsilon here
+            auto w_ = weights->permute({1, 2, 3, 0});
+            w_->reshapei('c', {inDepth, kY * kX, outDepth});
+
+            auto gcol = NDArrayFactory::mmulHelper(w_, eN_);
+            gcol->reshapei('c', {inDepth, kY, kX, batchSize, oY, oX});
+            gcol->permutei({3, 0, 1, 2, 4, 5});
+
+            std::unique_ptr<T> extrasCol2Im(new T[9]{(T) sY, (T) sX, (T) pY, (T) pX, (T) inY, (T) inX, (T) dY, (T) dX, isSameMode ? (T) 1.0f : (T) 0.0f});
+
+            // we're sure that col2im result will have the same size as original image
+            //auto rCol = new NDArray<T>('c', {batchSize, inDepth, inY, inX});
+            gcol->template applyTransform<simdOps::Col2Im<T>>(epsilon, extrasCol2Im.get());
 
 
+            delete eN_;
+            delete gcol;
+            delete w_;
 
             if (bias != nullptr) {
+                // calculating gradB, if defined
+                auto eN_ = epsilonNext->permute({0, 2, 3, 1});
+                auto sum = eN_->template reduceAlongDimension<simdOps::Sum<T>>({0, 1, 2});
+                gradB->assign(sum);
+                delete sum;
+
                 STORE_3_RESULTS(*epsilon, *gradW, *gradB);
             } else {
                 STORE_2_RESULTS(*epsilon, *gradW);
