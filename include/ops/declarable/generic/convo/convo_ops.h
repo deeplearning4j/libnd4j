@@ -291,7 +291,12 @@ namespace nd4j {
             if (hasCol)
                 col = UNSTASH("im2col")
             else {
+                std::unique_ptr<NDArray<T>> col2(new NDArray<T>('c', {batchSize, inDepth, kY, kX, oY, oX}));
 
+                // col2d now has shape of [bS, inDepth, kY, kX, oY, oX]
+                std::unique_ptr<T> extrasIm2Col(new T[9]{(T) kY, (T) kX, (T) sY, (T) sX, (T) pY, (T) pX, (T) dY, (T) dX, isSameMode ? (T) 1.0f : (T) 0.0f});
+
+                input->template applyTransform<simdOps::Im2col<T>>(col2.get(), extrasIm2Col.get());
             }
 
 //            epsilonNext->printShapeInfo("eps next");
@@ -320,6 +325,9 @@ namespace nd4j {
             gradW->assign(gW_);
 
             delete gW_;
+            delete col_;
+            if (!hasCol)
+                delete col;
 
             // calculating epsilon here
             auto w_ = weights->permute({1, 2, 3, 0});
@@ -339,6 +347,8 @@ namespace nd4j {
             delete eN_;
             delete gcol;
             delete w_;
+
+
 
             if (bias != nullptr) {
                 // calculating gradB, if defined
@@ -382,8 +392,17 @@ namespace nd4j {
                 shapes->push_back(newBShape);
             }
 
-
             return shapes;
+        }
+
+//////////////////////////////////////////////////////////////////////////
+        DECLARE_CUSTOM_OP(deconv2d, 2, 1, false, 0, 9) {
+
+            return ND4J_STATUS_OK;
+        }
+        DECLARE_SHAPE_FN(deconv2d) {
+
+            return new ShapeList();
         }
 
 //////////////////////////////////////////////////////////////////////////
