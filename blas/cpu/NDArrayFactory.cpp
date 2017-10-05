@@ -186,14 +186,21 @@ namespace nd4j {
                 oldShapeB[i] = b->sizeAt(oldShapeB[i]);
         }
 
+        //d4j::Logger::printv("newAxesA: ", newAxesA);
+        //nd4j::Logger::printv("newAxesB: ", newAxesB);
         auto aT = a->permute(newAxesA);
         auto bT = b->permute(newAxesB);
 
+        //aT->printShapeInfo("at pshape");
+        //bT->printShapeInfo("bt pshape");
+
         //aT->permutei(newAxesA);
         aT->reshapei('c', newShapeA);
+        //aT->printShapeInfo("at rshape");
 
         //bT->permutei(newAxesB);
         bT->reshapei('c', newShapeB);
+        //bT->printShapeInfo("bt rshape");
 
         auto c = nd4j::NDArrayFactory::mmulHelper<T>(aT, bT, nullptr, 1.0, 0.0);
 
@@ -201,7 +208,7 @@ namespace nd4j {
         for (auto v: oldShapeB)
             aPlusB.push_back(v);
 
-        c->reshapei('f', aPlusB);
+        c->reshapei('c', aPlusB);
 
         if (aT != a)
             delete aT;

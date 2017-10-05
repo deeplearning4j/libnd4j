@@ -397,12 +397,78 @@ namespace nd4j {
 
 //////////////////////////////////////////////////////////////////////////
         DECLARE_CUSTOM_OP(deconv2d, 2, 1, false, 0, 9) {
+            NDArray<T>* input = INPUT_VARIABLE(0);
+            NDArray<T>* weights = INPUT_VARIABLE(1);
+            NDArray<T>* bias = nullptr;
+            if (block.getVariables().size() > 2)
+                bias = INPUT_VARIABLE(2);
+
+            REQUIRE_TRUE(input->rankOf() == 4, 0, "Input should be 4D, but got %iD instead", input->rankOf());
+            REQUIRE_TRUE(weights->rankOf() == 4, 0, "Weights should be 4D, but got %iD instead", weights->rankOf());
+
+            int iY = input->sizeAt(2);
+            int iX = input->sizeAt(3);
+
+            int kY = block.getIArguments()->at(0);
+            int kX = block.getIArguments()->at(1);
+            int sY = block.getIArguments()->at(2);
+            int sX = block.getIArguments()->at(3);
+            int pY = block.getIArguments()->at(4);
+            int pX = block.getIArguments()->at(5);
+            int dY = block.getIArguments()->at(6);
+            int dX = block.getIArguments()->at(7);
+            const bool isSameMode = block.getIArguments()->at(8) != 0;
+
+            NDArray<T> *z = this->getZ(block);
+
+            int oY = z->sizeAt(2);
+            int oX = z->sizeAt(3);
+
+            auto gcol = nd4j::NDArrayFactory::tensorDot<T>(weights, input, nullptr, {0}, {1});
+            gcol->permutei({3, 0, 1, 2, 4, 5});
+
+            std::unique_ptr<T> extrasCol2Im(new T[9]{(T) sY, (T) sX, (T) pY, (T) pX, (T) oY, (T) oX, (T) dY, (T) dX, isSameMode ? (T) 1.0f : (T) 0.0f});
+
+            gcol->template applyTransform<simdOps::Col2Im<T>>(z, extrasCol2Im.get());
+
+            STORE_RESULT(*z);
+
+            delete gcol;
+
+            if (bias != nullptr) {
+                auto b_ = bias->reshape('c', {(int) bias->lengthOf(), 1, 1});
+
+                delete b_;
+            }
 
             return ND4J_STATUS_OK;
         }
         DECLARE_SHAPE_FN(deconv2d) {
+            auto inShape = inputShape->at(0);
+            auto wShape = inputShape->at(1);
 
-            return new ShapeList();
+            int B = shape::shapeOf(inShape)[0];
+            int iC = shape::shapeOf(inShape)[1];
+            int iY = shape::shapeOf(inShape)[2];
+            int iX = shape::shapeOf(inShape)[3];
+
+            int oC = shape::shapeOf(wShape)[0];
+            int kY = block.getIArguments()->at(0);
+            int kX = block.getIArguments()->at(1);
+            int sY = block.getIArguments()->at(2);
+            int sX = block.getIArguments()->at(3);
+            int pY = block.getIArguments()->at(4);
+            int pX = block.getIArguments()->at(5);
+
+            int oY = sY * (iY - 1) + kY - 2 * pY;
+            int oX = sX * (iX - 1) + kX - 2 * pX;
+
+            int *newShape;
+            ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(4), int);
+            std::vector<int> shape({B, oC, oY, oX});
+            shape::shapeBuffer(4, shape.data(), newShape);
+
+            return new ShapeList(newShape);
         }
 
 //////////////////////////////////////////////////////////////////////////
