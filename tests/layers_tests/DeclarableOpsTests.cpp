@@ -2095,23 +2095,21 @@ TEST_F(DeclarableOpsTests, CompactLaunchTests1) {
     exp.triggerAllocationFlag(false, false);
 
 
-    auto input = new NDArray<double>('c', {2, 3, 4, 4});
-    auto weights = new NDArray<double>('c', {3, 3, 5, 5});
+    NDArray<double> input('c', {2, 3, 4, 4});
+    NDArray<double> weights('c', {3, 3, 5, 5});
 
-    nd4j::NDArrayFactory::linspace<double>(1, *input);
-    nd4j::NDArrayFactory::linspace<double>(1, *weights);
+    nd4j::NDArrayFactory::linspace<double>(1, input);
+    nd4j::NDArrayFactory::linspace<double>(1, weights);
 
     nd4j::ops::deconv2d<double> op;
-    auto result = op.execute({input, weights}, {}, {5, 5, 1, 1, 0, 0, 1, 1, 0});
+    auto result = op.execute({&input, &weights}, {}, {5, 5, 1, 1, 0, 0, 1, 1, 0});
 
     auto z = result->at(0);
-    
+
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
 
     delete result;
-    delete input;
-    delete weights;
 }
 
 
