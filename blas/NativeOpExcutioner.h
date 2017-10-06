@@ -494,7 +494,7 @@ public:
     }
 
     inline static void execSortCooIndices(int *indices, T *values, Nd4jIndex length, int rank) {
-        sortCooIndicesGeneric<T>(indices, values, length, rank);
+        nd4j::sparse::SparseUtils<T>::sortCooIndicesGeneric(indices, values, length, rank);
     }
 
 

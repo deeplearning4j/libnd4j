@@ -29,9 +29,6 @@
 #include <unistd.h>
 
 #include <layers/layers_factory.h>
-#include "NDArray.cpp"
-#include "GraphExecutioner.cpp"
-#include "NDArrayFactory.cpp"
 #include <ops/declarable/declarable_ops.h>
 #include <ops/declarable/generic/parity_ops.h>
 #include <ops/declarable/generic/third_party.h>
@@ -47,16 +44,18 @@ bool experimentalSupport = false;
 #endif
 
 #include <ops/specials.h>
+#include "../Environment.h"
+#include <TAD.h>
 
 
 void NativeOps::setElementThreshold(int num) {
     if (num > 0)
-        element_threshold = num;
+        nd4j::Environment::getInstance()->setElementwiseThreshold(num);
 }
 
 void NativeOps::setTADThreshold(int num) {
     if (num > 0)
-        tad_threshold = num;
+        nd4j::Environment::getInstance()->setTadThreshold(num);
 }
 
 /**
@@ -2005,11 +2004,11 @@ int NativeOps::getAvailableDevices() {
 }
 
 void NativeOps::enableDebugMode(bool reallyEnable) {
-    debug = reallyEnable;
+    nd4j::Environment::getInstance()->setDebug(reallyEnable);
 }
 
 void NativeOps::enableVerboseMode(bool reallyEnable) {
-    verbose = reallyEnable;
+    nd4j::Environment::getInstance()->setVerbose(reallyEnable);
 }
 
 void NativeOps::setGridLimit(int gridSize) {

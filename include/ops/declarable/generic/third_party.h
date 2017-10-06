@@ -44,7 +44,7 @@ namespace nd4j {
                 sparse2dense.insert(pair);
             }
 
-            std::unique_ptr<ArrayList<T>> rows(NDArrayFactory::allTensorsAlongDimension<T>(x, {1}));
+            std::unique_ptr<ArrayList<T>> rows(NDArrayFactory<T>::allTensorsAlongDimension(x, {1}));
 
 #pragma omp parallel for schedule(dynamic) proc_bind(close)
             for (int r = 0; r < batchSize; r++) {

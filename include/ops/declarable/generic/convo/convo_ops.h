@@ -73,7 +73,7 @@ namespace nd4j {
 
             output->reshapei('f', {im2col2d.get()->rows(), reshapedW.get()->columns()});
 
-            auto res = NDArrayFactory::mmulHelper<T>(im2col2d.get(), reshapedW.get(), output, 1.0, 0.0);
+            auto res = NDArrayFactory<T>::mmulHelper(im2col2d.get(), reshapedW.get(), output, 1.0, 0.0);
 
             // bias addition is optional
             if (bias != nullptr)
@@ -187,7 +187,7 @@ namespace nd4j {
 
             // matmul here
             z->reshapei('c', {inDepth, batchSize * oY * oX, outDepth});
-            NDArrayFactory::mmulHelper<T>(c_, w_, z);
+            NDArrayFactory<T>::mmulHelper(c_, w_, z);
 
             if (bias != nullptr) {
                 z->reshapei('c', {-1, (int) bias->lengthOf()});
@@ -318,7 +318,7 @@ namespace nd4j {
 
             // calculating wieghts gradients here
             //auto gW_ = gradW->reshape('c', {inDepth, outDepth, kY * kX});
-            auto gW_ = NDArrayFactory::mmulHelper(eN_, col_);
+            auto gW_ = NDArrayFactory<T>::mmulHelper(eN_, col_);
 
             gW_->reshapei('c',{inDepth, outDepth, kY, kX});
             gW_->permutei({1, 0, 2, 3});
@@ -333,7 +333,7 @@ namespace nd4j {
             auto w_ = weights->permute({1, 2, 3, 0});
             w_->reshapei('c', {inDepth, kY * kX, outDepth});
 
-            auto gcol = NDArrayFactory::mmulHelper(w_, eN_);
+            auto gcol = NDArrayFactory<T>::mmulHelper(w_, eN_);
             gcol->reshapei('c', {inDepth, kY, kX, batchSize, oY, oX});
             gcol->permutei({3, 0, 1, 2, 4, 5});
 
@@ -431,7 +431,7 @@ namespace nd4j {
             int oY = z->sizeAt(2);
             int oX = z->sizeAt(3);
 
-            auto gcol = nd4j::NDArrayFactory::tensorDot<T>(weights, input, nullptr, {0}, {1});
+            auto gcol = nd4j::NDArrayFactory<T>::tensorDot(weights, input, nullptr, {0}, {1});
             gcol->permutei({3, 0, 1, 2, 4, 5});
 
             std::unique_ptr<T> extrasCol2Im(new T[9]{(T) sY, (T) sX, (T) pY, (T) pX, (T) oY, (T) oX, (T) dY, (T) dX, isSameMode ? (T) 1.0f : (T) 0.0f});
@@ -544,7 +544,7 @@ namespace nd4j {
                     gy, col, ((0, 2, 3), (0, 4, 5))).
             */
 
-            auto gW = NDArrayFactory::tensorDot<T>(input, gcol, nullptr, {0, 2, 3}, {0, 4, 5});
+            auto gW = NDArrayFactory<T>::tensorDot(input, gcol, nullptr, {0, 2, 3}, {0, 4, 5});
             gradW->assign(gW);
 
             delete gW;
@@ -644,8 +644,8 @@ namespace nd4j {
             REQUIRE_TRUE(output->sizeAt(0) == input->sizeAt(0) && output->sizeAt(1) == nOutputPlane && output->sizeAt(2) == outputDepth && output->sizeAt(3) == outputHeight && output->sizeAt(4) == outputWidth, 0,
                          "Expected output shape: [%i, %i, %i, %i, %i] but got [%i, %i, %i, %i, %i] instead", input->sizeAt(0), nOutputPlane, outputDepth, outputHeight, outputWidth, output->sizeAt(0), output->sizeAt(1), output->sizeAt(2), output->sizeAt(3), output->sizeAt(4));
 
-            std::unique_ptr<ArrayList<T>> batchIn(NDArrayFactory::allExamples<T>(input));
-            std::unique_ptr<ArrayList<T>> batchOut(NDArrayFactory::allExamples<T>(output));
+            std::unique_ptr<ArrayList<T>> batchIn(NDArrayFactory<T>::allExamples(input));
+            std::unique_ptr<ArrayList<T>> batchOut(NDArrayFactory<T>::allExamples(output));
 
             // TODO: eventually we want OMP being used here
             for (int e = 0; e < batchIn->size(); e++) {
@@ -653,7 +653,7 @@ namespace nd4j {
                 auto tadOut = batchOut->at(e);
 
                 if (biasUsed) {
-                    std::unique_ptr<ArrayList<T>> outputBlock(NDArrayFactory::allExamples<T>(tadOut));
+                    std::unique_ptr<ArrayList<T>> outputBlock(NDArrayFactory<T>::allExamples(tadOut));
                     for (int i = 0; i < bias->lengthOf(); i++) {
                         auto oB = outputBlock->at(i);
                         oB->assign(bias->getScalar(i));
@@ -1606,8 +1606,8 @@ namespace nd4j {
 
             REQUIRE_TRUE(output->isSameShape({ (int) batchSize, (int)nOutputPlane, (int)outputDepth, (int)outputHeight, (int)outputWidth}), 0, "Output should have shape of [%i, %i, %i, %i, %i], but got [%i, %i, %i, %i, %i] instead", (int) batchSize, (int)nOutputPlane, (int)outputDepth, (int)outputHeight, (int)outputWidth, output->sizeAt(0), output->sizeAt(1), output->sizeAt(2), output->sizeAt(3), output->sizeAt(4));
 
-            std::unique_ptr<ArrayList<T>> inputs(NDArrayFactory::allExamples(input));
-            std::unique_ptr<ArrayList<T>> outputs(NDArrayFactory::allExamples(output));
+            std::unique_ptr<ArrayList<T>> inputs(NDArrayFactory<T>::allExamples(input));
+            std::unique_ptr<ArrayList<T>> outputs(NDArrayFactory<T>::allExamples(output));
             for (int e = 0; e < batchSize; e++) {
                 auto tadIn = inputs->at(e);
                 auto tadOut = outputs->at(e);
@@ -1753,8 +1753,8 @@ namespace nd4j {
             NDArray<T> *gradColumns;
             //auto gradColumns = finput->reshape('c', {nOutputPlane*kW*kH*kT, inputDepth*inputHeight*inputWidth });
 
-            std::unique_ptr<ArrayList<T>> tadsNext(NDArrayFactory::allExamples<T>(gradNext));
-            std::unique_ptr<ArrayList<T>> tadsOutput(NDArrayFactory::allExamples<T>(output));
+            std::unique_ptr<ArrayList<T>> tadsNext(NDArrayFactory<T>::allExamples(gradNext));
+            std::unique_ptr<ArrayList<T>> tadsOutput(NDArrayFactory<T>::allExamples(output));
             for (int e = 0; e < tadsNext->size(); e++) {
                 auto tadNext = tadsNext->at(e);
                 auto tadOutput = tadsOutput->at(e);
@@ -1851,8 +1851,8 @@ namespace nd4j {
 
             ones->assign(1.0);
 
-            std::unique_ptr<ArrayList<T>> tadsInput(NDArrayFactory::allExamples<T>(input));
-            std::unique_ptr<ArrayList<T>> tadsEpsilon(NDArrayFactory::allExamples<T>(epsilon));
+            std::unique_ptr<ArrayList<T>> tadsInput(NDArrayFactory<T>::allExamples(input));
+            std::unique_ptr<ArrayList<T>> tadsEpsilon(NDArrayFactory<T>::allExamples(epsilon));
 
             for (int e = 0; e < tadsInput->size(); e++) {
                 auto tadInput = tadsInput->at(e);
@@ -2611,7 +2611,7 @@ namespace nd4j {
 				col2d->template applyTransform<simdOps::Abs<T>>(absp2, nullptr);
 				T extraParams3[] = {pnorm - 2};
 				absp2->template applyTransform<simdOps::Pow<T>>(extraParams3);
-				nd4j::NDArrayFactory::mmulHelper(col2d, absp2, numerator, (T)1.f, (T)0.f);                
+				nd4j::NDArrayFactory<T>::mmulHelper(col2d, absp2, numerator, (T)1.f, (T)0.f);
 				delete absp2;
             }
 			NDArray<T>* denom = new NDArray<T>(pNorm->getShapeInfo(), block.getWorkspace()); 

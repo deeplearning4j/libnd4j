@@ -137,17 +137,17 @@ namespace nd4j {
 
             if (x->isMatrix() && y->isVector()) {
                 // gemv
-                nd4j::NDArrayFactory::mmulHelper<T>(x, y, z, alpha, beta);
+                nd4j::NDArrayFactory<T>::mmulHelper(x, y, z, alpha, beta);
 
             } else if (x->isVector() && y->isMatrix()) {
                 // gemm
-                nd4j::NDArrayFactory::mmulHelper<T>(x, y, z, alpha, beta);
+                nd4j::NDArrayFactory<T>::mmulHelper(x, y, z, alpha, beta);
             }  else if (x->isVector() && y->isVector()) {
                 // dot
-                nd4j::NDArrayFactory::mmulHelper<T>(x, y, z, alpha, beta);
+                nd4j::NDArrayFactory<T>::mmulHelper(x, y, z, alpha, beta);
             } else if (x->isMatrix() && y->isMatrix()) {
                 // gemm
-                nd4j::NDArrayFactory::mmulHelper<T>(x, y, z, alpha, beta);
+                nd4j::NDArrayFactory<T>::mmulHelper(x, y, z, alpha, beta);
             } else if (x->isVector() && y->isScalar()) {
                 // elementwise mul
 
@@ -223,7 +223,7 @@ namespace nd4j {
 
             const int channel =  input->sizeAt(1);
 
-            auto activitySqr = NDArrayFactory::createUninitialized<T>(input);
+            auto activitySqr = NDArrayFactory<T>::createUninitialized(input);
             input->template applyPairwiseTransform<simdOps::Multiply<T>>(input, activitySqr, nullptr);
             auto sumPart = activitySqr->dup('c');
 
@@ -379,7 +379,7 @@ namespace nd4j {
 
             nd4j_verbose("axe0: %i; axe1: %i;\n", axes_0.size(), axes_1.size());
 
-            auto c = nd4j::NDArrayFactory::tensorDot<T>(a, b, b, axes_0, axes_1);
+            auto c = nd4j::NDArrayFactory<T>::tensorDot(a, b, b, axes_0, axes_1);
 
             STORE_RESULT(*c);
 
@@ -640,8 +640,8 @@ namespace nd4j {
                 indicesU.push_back(cnt++);
             }
 
-            std::unique_ptr<ArrayList<T>> tadsOperand(nd4j::NDArrayFactory::multipleTensorsAlongDimension(operand, indices, tadDimension));
-            std::unique_ptr<ArrayList<T>> tadsUpdate(nd4j::NDArrayFactory::multipleTensorsAlongDimension(updates, indicesU, tadDimension));
+            std::unique_ptr<ArrayList<T>> tadsOperand(nd4j::NDArrayFactory<T>::multipleTensorsAlongDimension(operand, indices, tadDimension));
+            std::unique_ptr<ArrayList<T>> tadsUpdate(nd4j::NDArrayFactory<T>::multipleTensorsAlongDimension(updates, indicesU, tadDimension));
 
 //#pragma omp parallel for schedule(dynamic) proc_bind(close) shared(tadsOperand, tadsUpdate)
             for (unsigned long x = 0; x < indices.size(); x++) {

@@ -370,8 +370,13 @@ void NativeOpExcutioner<T>::execRandom(int opNum, Nd4jPointer state, T *x, int *
     functions::random::RandomFunction<T>::execTransform(opNum, state, x, xShapeBuffer, y, yShapeBuffer, z, zShapeBuffer, extraArguments);
 }
 
+template<typename T>
+void NativeOpExcutioner<T>::execReduce3(int opNum, T *x, int *xShapeInfo, T *extraParamsVals, T *y, int *yShapeInfo, T *result, int *resultShapeInfoBuffer, int *dimension, int dimensionLength) {
+    functions::reduce3::Reduce3<T>::exec(opNum, x, xShapeInfo, extraParamsVals, y, yShapeInfo, result, resultShapeInfoBuffer, dimension, dimensionLength);
+}
 
-// template class NativeOpExcutioner<float16>;
+
+template class NativeOpExcutioner<float16>;
 template class NativeOpExcutioner<float>;
 template class NativeOpExcutioner<double>;
 

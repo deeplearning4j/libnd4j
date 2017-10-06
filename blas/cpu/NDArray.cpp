@@ -1667,7 +1667,7 @@ bool NDArray<T>::hasOrthonormalBasis(const int arg) {
 		for(int j=0; j<columns(); ++j)	{	// check whether norm of column vector = 1
 			for(int i=0; i<rows(); ++i)
 				dot += getScalar(i,j)*getScalar(i,j);
-			if(dot!=0.f && nd4j::math::nd4j_abs(nd4j::math::nd4j_sqrt<T>(dot) - 1.f) > eps)
+			if(dot != (T) 0.f && nd4j::math::nd4j_abs(nd4j::math::nd4j_sqrt<T>(dot) - (T) 1.f) > eps)
 				return false;
 			dot = 0.f;
 		}
@@ -1679,12 +1679,12 @@ bool NDArray<T>::hasOrthonormalBasis(const int arg) {
 					dot += getScalar(i,j)*getScalar(k,j);
 				if(nd4j::math::nd4j_abs(dot) > eps )
 					return false;
-				dot = 0.f;
+				dot = (T) 0.f;
 			}
 		for(int i=0; i<rows(); ++i) {		// check whether norm of row vector = 1
 			for(int j=0; j<columns(); ++j)
 					dot += getScalar(i,j)*getScalar(i,j);
-			if(dot!=0.f && nd4j::math::nd4j_abs(nd4j::math::nd4j_sqrt<T>(dot) - 1.f) > eps)
+			if(dot!= (T) 0.f && nd4j::math::nd4j_abs(nd4j::math::nd4j_sqrt<T>(dot) - (T) 1.f) > eps)
 				return false;
 			dot = 0.f;
 		}
@@ -1720,7 +1720,7 @@ bool NDArray<T>::isUnitary() {
 		throw "isUnitary method: matrix must be square and have rank = 2 !";
 
 	NDArray<T> tr = *(this->transpose());
-	tr = *nd4j::NDArrayFactory::mmulHelper<T>(this, &tr, &tr, 1.f, 0.f);
+	tr = *nd4j::NDArrayFactory<T>::mmulHelper(this, &tr, &tr, 1.f, 0.f);
 
 	return tr.isIdentityMatrix();
 }
@@ -1740,7 +1740,7 @@ T pythag (T a, T b) {
     absa = fabs(a);
     absb = fabs(b);
     if (absa > absb) return absa*nd4j::math::nd4j_sqrt<T>(1.f + (absb/absa)*(absb/absa));
-    else return (absb == 0.f ? 0.f : absb*nd4j::math::nd4j_sqrt<T>(1.f + (absa/absb)*(absa/absb)));
+    else return (absb == (T) 0.f ? (T) 0.f : absb*nd4j::math::nd4j_sqrt<T>((T) 1.f + (absa/absb)*(absa/absb)));
 };
 
 
@@ -1770,7 +1770,7 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
 		g=s=scale=0.f;
 		if (i < m) {
 			for (k=i;k<m;k++) scale += nd4j::math::nd4j_abs<T>(u(k,i));
-			if (scale != 0.f) {
+			if (scale != (T) 0.f) {
 				for (k=i;k<m;k++) {
 					u(k,i) /= scale;
 					s += u(k,i)*u(k,i);
@@ -1791,7 +1791,7 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
 		g=s=scale=0.f;
 		if (i+1 <= m && i+1 != n) {
 			for (k=l-1;k<n;k++) scale += nd4j::math::nd4j_abs<T>(u(i,k));
-			if (scale != 0.f) {
+			if (scale != (T) 0.f) {
 				for (k=l-1;k<n;k++) {
 					u(i,k) /= scale;
 					s += u(i,k)*u(i,k);
@@ -1813,7 +1813,7 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
 	// accumulation of right-hand transformations
 	for (i=n-1;i>=0;i--) {
 		if (i < n-1) {
-			if (g != 0.f) {
+			if (g != (T) 0.f) {
 				for (j=l;j<n;j++)
 					vt(j,i)=(u(i,j)/u(i,l))/g;
 				for (j=l;j<n;j++) {
@@ -1832,8 +1832,8 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
 		l=i+1;
 		g=w(0,i);
 		for (j=l;j<n;j++) u(i,j)=0.f;
-		if (g != 0.f) {
-			g=1.0/g;
+		if (g != (T) 0.f) {
+			g= (T)1.0f / g;
 			for (j=l;j<n;j++) {
 				for (s=0.f,k=l;k<m;k++) s += u(k,i)*u(k,j);
 				f=(s/u(i,i))*g;
@@ -1842,7 +1842,7 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
 			for (j=i;j<m;j++) u(j,i) *= g;
 		}
 		else
-			for (j=i;j<m;j++) u(j,i)=0.f;
+			for (j=i;j<m;j++) u(j,i)= (T) 0.f;
 		++u(i,i);
 	}
 	// diagonalization of the bidiagonal form
@@ -1867,7 +1867,7 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
 					g=w(0,i);
 					h=pythag<T>(f,g);
 					w(i,0)=h;
-					h=1.f/h;
+					h= (T) 1.f / h;
 					c=g*h;
 					s = -f*h;
 					for (j=0;j<m;j++) {
@@ -1880,7 +1880,7 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
 			}
 			z=w(0,k);
 			if (l == k) {						// convergence
-				if (z < 0.f) {					// singular value is made nonnegative
+				if (z < (T) 0.f) {					// singular value is made nonnegative
 					w(0,k) = -z;
 					for (j=0;j<n;j++) vt(j,k) = -vt(j,k);
 				}
@@ -1919,7 +1919,7 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
 				z=pythag<T>(f,h);
 				w(0,j)=z;							// rotation can be arbitrary if z = 0
 				if (z) {
-					z=1.0/z;
+					z= (T) 1.0f /z;
 					c=f*z;
 					s=h*z;
 				}
@@ -1932,7 +1932,7 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
 					u(jj,i)=z*c-y*s;
 				}
 			}
-			rv1[l]=0.f;
+			rv1[l]= (T) 0.f;
 			rv1[k]=f;
 			w(0,k)=x;
 		}
@@ -2213,6 +2213,7 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
 
 
     template class NDArray<float>;
+    template class NDArray<float16>;
     template class NDArray<double>;
 }
 
