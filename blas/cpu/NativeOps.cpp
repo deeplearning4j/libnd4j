@@ -47,17 +47,16 @@ bool experimentalSupport = false;
 #endif
 
 #include <ops/specials.h>
-#include <Environment.h>
 
 
 void NativeOps::setElementThreshold(int num) {
     if (num > 0)
-        nd4j::Environment::getInstance()->setElementwiseThreshold(num);
+        element_threshold = num;
 }
 
 void NativeOps::setTADThreshold(int num) {
     if (num > 0)
-        nd4j::Environment::getInstance()->setTadThreshold(num);
+        tad_threshold = num;
 }
 
 /**
@@ -2006,11 +2005,11 @@ int NativeOps::getAvailableDevices() {
 }
 
 void NativeOps::enableDebugMode(bool reallyEnable) {
-    nd4j::Environment::getInstance()->setDebug(reallyEnable);
+    debug = reallyEnable;
 }
 
 void NativeOps::enableVerboseMode(bool reallyEnable) {
-    nd4j::Environment::getInstance()->setVerbose(reallyEnable);
+    verbose = reallyEnable;
 }
 
 void NativeOps::setGridLimit(int gridSize) {
@@ -3162,5 +3161,30 @@ int NativeOps::execCustomOpHalf(Nd4jPointer* extraPointers, Nd4jIndex hash, Nd4j
 
     return realExec<float16>(op, extraPointers, hash, inputBuffers, inputShapes, numInputs, outputBuffers, outputShapes, numOutputs, tArgs, numTArgs, iArgs, numIArgs, isInplace);
 }
+
+
+template void flattenGeneric<float16>(Nd4jPointer*, int, char, float16*, int*, float16*, int*);
+template void flattenGeneric<float>(Nd4jPointer*, int, char, float*, int*, float*, int*);
+template void flattenGeneric<double>(Nd4jPointer*, int, char, double*, int*, double*, int*);;
+
+template void pullRowsGeneric<float16>(float16*, int*, float16*, int*, const int, int*, int*, Nd4jIndex*, int*, Nd4jIndex*);
+template void pullRowsGeneric<float>(float*, int*, float*, int*, const int, int*, int*, Nd4jIndex*, int*, Nd4jIndex*);
+template void pullRowsGeneric<double>(double*, int*, double*, int*, const int, int*, int*, Nd4jIndex*, int*, Nd4jIndex*);
+
+template void tearGeneric<float16>(float16*, int*, Nd4jPointer*, int*, int*, Nd4jIndex*);
+template void tearGeneric<float>(float*, int*, Nd4jPointer*, int*, int*, Nd4jIndex*);
+template void tearGeneric<double>(double*, int*, Nd4jPointer*, int*, int*, Nd4jIndex*);
+
+template void shuffleGeneric<float16>(float16**, int**, float16**, int**, int, int*, int**, Nd4jIndex**);
+template void shuffleGeneric<float>(float**, int**, float**, int**, int, int*, int**, Nd4jIndex**);
+template void shuffleGeneric<double>(double**, int**, double**, int**, int, int*, int**, Nd4jIndex**);
+
+template Nd4jStatus realExec<float16>(nd4j::ops::DeclarableOp<float16>*, Nd4jPointer*, Nd4jIndex, Nd4jPointer*, Nd4jPointer*, int, Nd4jPointer*, Nd4jPointer*, int, float16*, int, int*, int, bool);
+template Nd4jStatus realExec<float> (nd4j::ops::DeclarableOp<float>*, Nd4jPointer*, Nd4jIndex, Nd4jPointer*, Nd4jPointer*, int, Nd4jPointer*, Nd4jPointer*, int, float*, int, int*, int, bool);
+template Nd4jStatus realExec<double>(nd4j::ops::DeclarableOp<double>*, Nd4jPointer*, Nd4jIndex, Nd4jPointer*, Nd4jPointer*, int, Nd4jPointer*, Nd4jPointer*, int, double*, int, int*, int, bool);
+
+
+
+
 
 #endif
