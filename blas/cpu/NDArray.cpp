@@ -14,6 +14,7 @@
 #include <climits>
 #include <helpers/logger.h>
 #include <loops/pairwise_transform.h>
+#include <loops/transform.h>
 #include <loops/broadcasting.h>
 #include <indexing/NDIndex.h>
 #include <indexing/IndicesList.h>
@@ -536,11 +537,13 @@ template <typename T> NDArray<T>* NDArray<T>::dup(const char newOrder) {
     template<typename OpName>
     void NDArray<T>::applyPairwiseTransform(NDArray<T> *other, NDArray<T> *target, T *extraParams) {
         if (other->lengthOf() != target->lengthOf())
-            throw std::invalid_argument("NDArray::applyPairwiseTransform method - lengths of arrays are mismatched");     
+            throw std::invalid_argument("NDArray::applyPairwiseTransform method - lengths of arrays are mismatched");
+        /*
         functions::pairwise_transforms::PairWiseTransform<T>::template exec<OpName>(this->_buffer, this->_shapeInfo,
                                                                                     other->_buffer, other->_shapeInfo,
                                                                                     target->_buffer, target->_shapeInfo,
                                                                                     extraParams);
+                                                                                    */
     }
 
 
@@ -2219,42 +2222,7 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
     template class NDArray<double>;
 
 
-    //NDArray<T> *other, T *extraParams
-    //BUILD_CALL_1(template void NDArray<float16>::applyPairwiseTransform, float16, (NDArray<float16>* other, float16* extraParams), PAIRWISE_TRANSFORM_OPS)
-    BUILD_CALL_1(template void NDArray<float>::template applyPairwiseTransform, float, (NDArray<float>* other, float* extraParams), PAIRWISE_TRANSFORM_OPS)
-    BUILD_CALL_1(template void NDArray<double>::applyPairwiseTransform, double, (NDArray<double>* other, double* extraParams), PAIRWISE_TRANSFORM_OPS)
-
-// NDArray<T> *other, NDArray<T> *target, T *extraParams
-    BUILD_CALL_1(template void nd4j::NDArray<float16>::applyPairwiseTransform, float16, (NDArray<float16>* other, NDArray<float16>* target, float16* extraParams), PAIRWISE_TRANSFORM_OPS)
-    BUILD_CALL_1(template void nd4j::NDArray<float>::applyPairwiseTransform, float, (NDArray<float>* other, NDArray<float>* target, float* extraParams), PAIRWISE_TRANSFORM_OPS)
-    BUILD_CALL_1(template void nd4j::NDArray<double>::applyPairwiseTransform, double, (NDArray<double>* other, NDArray<double>* target, double* extraParams), PAIRWISE_TRANSFORM_OPS)
-
-    BUILD_CALL_1(template void nd4j::NDArray<float16>::applyScalar, float16, (NDArray<float16>& scalar, NDArray<float16>* target, float16 *extraParams), SCALAR_OPS)
-    BUILD_CALL_1(template void nd4j::NDArray<float16>::applyScalar, float16, (float16 scalar, NDArray<float16>* target, float16 *extraParams), SCALAR_OPS)
-
-    BUILD_CALL_1(template void nd4j::NDArray<float>::applyScalar, float, (NDArray<float>& scalar, NDArray<float>* target, float *extraParams), SCALAR_OPS)
-    BUILD_CALL_1(template void nd4j::NDArray<float>::applyScalar, float, (float scalar, NDArray<float>* target, float *extraParams), SCALAR_OPS)
-
-    BUILD_CALL_1(template void nd4j::NDArray<double>::applyScalar, double, (NDArray<double>& scalar, NDArray<double>* target, double *extraParams), SCALAR_OPS)
-    BUILD_CALL_1(template void nd4j::NDArray<double>::applyScalar, double, (double scalar, NDArray<double>* target, double *extraParams), SCALAR_OPS)
-
-
-
-    BUILD_CALL_1(template float16 nd4j::NDArray<float16>::reduceNumber, float16, (float16 *extraParams), REDUCE_OPS)
-    BUILD_CALL_1(template float nd4j::NDArray<float>::reduceNumber, float, (float *extraParams), REDUCE_OPS)
-    BUILD_CALL_1(template double nd4j::NDArray<double>::reduceNumber, double, (double *extraParams), REDUCE_OPS)
-
-
-    BUILD_CALL_1(template void nd4j::NDArray<float16>::applyBroadcast, float16, (std::initializer_list<int> list, nd4j::NDArray<float16>* a, nd4j::NDArray<float16>* b, float16* c), BROADCAST_OPS)
-    BUILD_CALL_1(template void nd4j::NDArray<float>::applyBroadcast, float, (std::initializer_list<int> list, nd4j::NDArray<float>* a, nd4j::NDArray<float>* b, float* c), BROADCAST_OPS)
-    BUILD_CALL_1(template void nd4j::NDArray<double>::applyBroadcast, double, (std::initializer_list<int> list, nd4j::NDArray<double>* a, nd4j::NDArray<double>* b, double* c), BROADCAST_OPS)
-
-
-    BUILD_CALL_1(template void nd4j::NDArray<float16>::applyTransform, float16, (NDArray<float16>* target, float16* extraParams), TRANSFORM_OPS)
-    BUILD_CALL_1(template void nd4j::NDArray<float>::applyTransform, float, (NDArray<float>* target, float* extraParams), TRANSFORM_OPS)
-    BUILD_CALL_1(template void nd4j::NDArray<double>::applyTransform, double, (NDArray<double>* target, double* extraParams), TRANSFORM_OPS)
-
-
+#include "NDArray.macro"
 }
 
 #endif
