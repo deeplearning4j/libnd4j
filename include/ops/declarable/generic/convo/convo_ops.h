@@ -476,6 +476,61 @@ namespace nd4j {
             return new ShapeList(newShape);
         }
 
+
+        DECLARE_CUSTOM_OP(deconv2d_bp, 4, 2, false, 0, 9) {
+            NDArray<T> *input = INPUT_VARIABLE(0);
+            NDArray<T> *weights = INPUT_VARIABLE(1);
+            NDArray<T> *epsilonNext = INPUT_VARIABLE(2);
+            NDArray<T> *bias = nullptr;
+
+            // bias is still optional
+            if (block.getVariables().size() > 3)
+                bias = INPUT_VARIABLE(3);
+
+            //epsilonNext->rankOf() == 4 && weights->rankOf() == 4
+            REQUIRE_TRUE(input->rankOf() == 4, 0, "Input should be 4D, but got %iD instead", input->rankOf());
+            REQUIRE_TRUE(weights->rankOf() == 4, 0, "Weights should be 4D, but got %iD instead", weights->rankOf());
+            REQUIRE_TRUE(epsilonNext->rankOf() == 4, 0, "Epsilon should be 4D, but got %iD instead", epsilonNext->rankOf());
+
+
+            // epsilon for deconv2d is FF conv pass
+            //VariableSpace
+            //nd4j::ops::conv2d<T> op;
+
+
+            return ND4J_STATUS_OK;
+        }
+        DECLARE_SHAPE_FN(deconv2d_bp) {
+            auto inShape = inputShape->at(0);
+            auto wShape = inputShape->at(1);
+            auto eShape = inputShape->at(2);
+            int *bShape = nullptr;
+
+            // bias is optional thing, and might be absent
+            if (inputShape->size() == 4)
+                bShape = inputShape->at(3);
+
+            int *newInShape;
+            int *newWShape;
+            ALLOCATE(newInShape, block.getWorkspace(), shape::shapeInfoLength(inShape), int);
+            ALLOCATE(newWShape, block.getWorkspace(), shape::shapeInfoLength(wShape), int);
+
+            memcpy(newInShape, inShape, shape::shapeInfoByteLength(inShape));
+            memcpy(newWShape, wShape, shape::shapeInfoByteLength(wShape));
+
+            auto shapes = new ShapeList({newInShape, newWShape});
+
+            if (bShape != nullptr) {
+                int *newBShape;
+                ALLOCATE(newBShape, block.getWorkspace(), shape::shapeInfoLength(bShape), int);
+                memcpy(newBShape, bShape, shape::shapeInfoByteLength(bShape));
+
+                shapes->push_back(newBShape);
+            }
+
+            return shapes;
+        }
+
 //////////////////////////////////////////////////////////////////////////
         DECLARE_CONFIGURABLE_OP(conv3d, 2, 1, false, 0, 7) {
             // cubic convo
@@ -564,7 +619,7 @@ namespace nd4j {
          * IArgs map:
          * IArgs[0] - scale factor
          */
-        DECLARE_CONFIGURABLE_OP(upsampling, 1, 1, false, 0, 1) {
+        DECLARE_CONFIGURABLE_OP(upsampling2d, 1, 1, false, 0, 1) {
             NDArray<T>* input = block.getVariables().at(0)->getNDArray();
             NDArray<T>* output = this->getZ(block);
             int scale_factor = block.getIArguments()->at(0);
@@ -623,6 +678,7 @@ namespace nd4j {
 
             return ND4J_STATUS_OK;
         }
+        DECLARE_SYN(upsampling, upsampling2d);
 
 //////////////////////////////////////////////////////////////////////////
         /**
@@ -636,7 +692,7 @@ namespace nd4j {
          * IArgs map:
          * IArgs[0] - scale factor
          */
-        DECLARE_CONFIGURABLE_OP(upsampling_bp, 2, 1, false, 0, 1) {
+        DECLARE_CONFIGURABLE_OP(upsampling2d_bp, 2, 1, false, 0, 1) {
             //NDArray<T>* input = block.getVariables().at(0)->getNDArray();
             NDArray<T>* gradientNext = block.getVariables().at(1)->getNDArray();
             NDArray<T>* output = this->getZ(block);
@@ -704,6 +760,7 @@ namespace nd4j {
 
             return ND4J_STATUS_OK;
         }
+        DECLARE_SYN(upsampling_bp, upsampling2d_bp);
 
 //////////////////////////////////////////////////////////////////////////
         // maxpool2d corresponds to poolingMode=0
