@@ -492,10 +492,24 @@ namespace nd4j {
             REQUIRE_TRUE(weights->rankOf() == 4, 0, "Weights should be 4D, but got %iD instead", weights->rankOf());
             REQUIRE_TRUE(epsilonNext->rankOf() == 4, 0, "Epsilon should be 4D, but got %iD instead", epsilonNext->rankOf());
 
+            int kY = block.getIArguments()->at(0);
+            int kX = block.getIArguments()->at(1);
+            int sY = block.getIArguments()->at(2);
+            int sX = block.getIArguments()->at(3);
+            int pY = block.getIArguments()->at(4);
+            int pX = block.getIArguments()->at(5);
+            int dY = block.getIArguments()->at(6);
+            int dX = block.getIArguments()->at(7);
+            const bool isSameMode = block.getIArguments()->at(8) != 0;
+
+            NDArray<T>* epsilon = this->getZ(block);
 
             // epsilon for deconv2d is FF conv pass
-            //VariableSpace
-            //nd4j::ops::conv2d<T> op;
+
+            nd4j::ops::conv2d<T> op;
+            auto convRes = op.execute({input, weights}, {}, {kY, kX, sY, sX, pY, pX, dY, dX, block.getIArguments()->at(8)});
+
+
 
 
             return ND4J_STATUS_OK;

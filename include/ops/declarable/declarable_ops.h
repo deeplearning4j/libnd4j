@@ -137,7 +137,8 @@ namespace nd4j {
              */
             Nd4jStatus execute(Block<T>* block);
 
-            nd4j::ArrayList<T>* execute(std::initializer_list<NDArray<T>*> inputs, std::initializer_list<T> tArgs, std::initializer_list<int> iArgs);
+            nd4j::ArrayList<T>* execute(std::initializer_list<NDArray<T>*> inputs, std::initializer_list<T> tArgs = {}, std::initializer_list<int> iArgs = {});
+            Nd4jStatus execute(std::initializer_list<NDArray<T>*> inputs, std::initializer_list<NDArray<T>*> outputs = {}, std::initializer_list<T> tArgs = {}, std::initializer_list<int> iArgs = {});
 
             // There methods provide various validation options
             Nd4jStatus validateNonEmptyInput(Block<T>& block);
@@ -849,6 +850,44 @@ Nd4jStatus nd4j::ops::DeclarableOp<T>::validateOrdersMatch(Block<T>& block) {
     }
 
     return ND4J_STATUS_OK;
+}
+
+template <typename T>
+Nd4jStatus nd4j::ops::DeclarableOp<T>::execute(std::initializer_list<NDArray<T>*> inputs, std::initializer_list<NDArray<T>*> outputs, std::initializer_list<T> tArgs, std::initializer_list<int> iArgs) {
+    VariableSpace<T> variableSpace;
+
+    int cnt = -1;
+    std::vector<int> in;
+    for (auto v: inputs) {
+        auto var = new Variable<T>(v);
+        var->markRemovable(false);
+        in.push_back(cnt);
+        variableSpace.putVariable(cnt--, var);
+    }
+
+    int et = 0;
+    for (auto v: outputs) {
+        auto var = new Variable<T>(v);
+        var->markRemovable(false);
+        std::pair<int,int> pair(1, et++);
+        variableSpace.putVariable(pair, var);
+    }
+
+    Block<T> block(1, &variableSpace, false);
+    block.fillInputs(in);
+
+    std::vector<T> tt(tArgs);
+    for (int e = 0; e < tt.size(); e++)
+        block.getTArguments()->push_back(tt.at(e));
+
+
+    std::vector<int> ii(iArgs);
+    for (int e = 0; e < ii.size(); e++)
+        block.getIArguments()->push_back(ii.at(e));
+
+    Nd4jStatus result = this->execute(&block);
+
+    return result;
 }
 
 template <typename T>
