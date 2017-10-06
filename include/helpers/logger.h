@@ -5,8 +5,11 @@
 #ifndef LIBND4J_LOGGER_H
 #define LIBND4J_LOGGER_H
 
+#include <vector>
 #include <cstdarg>
 #include <Environment.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 #ifndef __CUDACC__
 
