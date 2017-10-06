@@ -41,7 +41,7 @@ namespace nd4j {
             buffers.get()[0] = (Nd4jPointer) first->getBuffer();
             shapes.get()[0] = (Nd4jPointer) first->getShapeInfo();
 
-            if (debug && verbose) {
+            if (nd4j::Environment::getInstance()->isDebugAndVerbose()) {
                 printf("Shape %i: ", 0);
                 shape::printShapeInfoLinear((int *) shapes.get()[0]);
             }
@@ -52,19 +52,19 @@ namespace nd4j {
                 buffers.get()[e] = (Nd4jPointer) var->getNDArray()->getBuffer();
                 shapes.get()[e] = (Nd4jPointer) var->getNDArray()->getShapeInfo();
 
-                if (debug && verbose) {
+                if (nd4j::Environment::getInstance()->isDebugAndVerbose()) {
                     printf("Shape %i: ", e);
                     shape::printShapeInfoLinear((int *) shapes.get()[e]);
                 }
             }
-            if (debug && verbose)
+            if (nd4j::Environment::getInstance()->isDebugAndVerbose())
                 fflush(stdout);
 
             concatCpuGeneric(_dimension, block.getVariables().size(), buffers.get(), shapes.get(), output->getBuffer(), output->getShapeInfo());
 
             STORE_RESULT(*output);
 
-            if (debug && verbose)
+            if (nd4j::Environment::getInstance()->isDebugAndVerbose())
                 output->printShapeInfo("Concat result shape");
 
             return ND4J_STATUS_OK;

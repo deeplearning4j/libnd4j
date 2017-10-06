@@ -48,7 +48,7 @@ static Nd4jStatus executeFlatNode(Graph<T> *graph, Node<T> *node, VariableSpace<
         nd4j_debug("Executing node_%i{%s}\n", node->id(), node->getCustomOp()->getOpName()->c_str());
     }
 
-    if (debug && verbose) {
+    if (nd4j::Environment::getInstance()->isDebug() && nd4j::Environment::getInstance()->isVerbose()) {
         //nd4j_debug("Input variables: %i\n", node->input()->size());
         printf("       Inputs: {");
         for (int e = 0; e < node->input()->size(); e++) {
@@ -560,7 +560,7 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph) {
             if (status != ND4J_STATUS_OK)
                 return status;
 
-            if (debug && verbose) {
+            if (nd4j::Environment::getInstance()->isDebug() && nd4j::Environment::getInstance()->isVerbose()) {
                 NDArray<T> * array = __variableSpace->getVariable(node->id())->getNDArray();
                 nd4j_debug("node_%i finished. result meanNumber: %f\n", node->id(), array->meanNumber());
             }

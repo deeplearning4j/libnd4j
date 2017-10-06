@@ -47,16 +47,17 @@ bool experimentalSupport = false;
 #endif
 
 #include <ops/specials.h>
+#include <Environment.h>
 
 
 void NativeOps::setElementThreshold(int num) {
     if (num > 0)
-        element_threshold = num;
+        nd4j::Environment::getInstance()->setElementwiseThreshold(num);
 }
 
 void NativeOps::setTADThreshold(int num) {
     if (num > 0)
-        tad_threshold = num;
+        nd4j::Environment::getInstance()->setTadThreshold(num);
 }
 
 /**
@@ -2005,11 +2006,11 @@ int NativeOps::getAvailableDevices() {
 }
 
 void NativeOps::enableDebugMode(bool reallyEnable) {
-    debug = reallyEnable;
+    nd4j::Environment::getInstance()->setDebug(reallyEnable);
 }
 
 void NativeOps::enableVerboseMode(bool reallyEnable) {
-    verbose = reallyEnable;
+    nd4j::Environment::getInstance()->setVerbose(reallyEnable);
 }
 
 void NativeOps::setGridLimit(int gridSize) {

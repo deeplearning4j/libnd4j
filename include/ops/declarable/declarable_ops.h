@@ -652,7 +652,7 @@ bool nd4j::ops::DeclarableOp<T>::prepareOutputs(Block<T> &block) {
 template <typename T>
 void nd4j::ops::DeclarableOp<T>::storeResult(Block<T> &block, int outputNumber, NDArray<T>& array) {
 
-    if (debug) {
+    if (nd4j::Environment::getInstance()->isDebug()) {
         T mean = array.meanNumber();
         if (mean == (T) 0.0f || (mean < (T) 1e-5f && mean > (T) -1e-5f))
             nd4j_debug("node_%i:%i result has 0.0 as mean\n", block.getNodeId(), outputNumber);

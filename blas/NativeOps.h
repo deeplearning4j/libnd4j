@@ -39,12 +39,15 @@
 #endif
 #include <dll.h>
 
+#include <Environment.h>
+
+/*
 int tad_threshold = 1;
 int element_threshold = 32;
 
 bool debug = false;
 bool verbose = false;
-
+*/
 
 
 class ND4J_EXPORT NativeOps {

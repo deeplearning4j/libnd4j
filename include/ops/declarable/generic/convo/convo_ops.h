@@ -82,7 +82,7 @@ namespace nd4j {
             output->reshapei('f', {oX, oY, input->sizeAt(0),outDepth});
             output->permutei({2, 3, 1, 0});
 
-            if (debug && verbose)
+            if (nd4j::Environment::getInstance()->isDebugAndVerbose())
                 output->printShapeInfo("Conv2D result shape");
 
             STORE_RESULT(*output);
