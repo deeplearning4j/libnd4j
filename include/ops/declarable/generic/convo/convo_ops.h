@@ -441,7 +441,7 @@ namespace nd4j {
             delete gcol;
 
             if (bias != nullptr) {
-                z->template applyBroadcast<simdOps::Add<double>>({1}, bias);
+                z->template applyBroadcast<simdOps::Add<T>>({1}, bias);
             }
 
             STORE_RESULT(*z);
