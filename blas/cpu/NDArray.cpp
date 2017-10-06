@@ -2210,6 +2210,10 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
         if (_isShapeAlloc  && _workspace == nullptr && _shapeInfo != nullptr)
             delete[] _shapeInfo;
     }
+
+
+    template class NDArray<float>;
+    template class NDArray<double>;
 }
 
 #endif

@@ -373,7 +373,7 @@ void NativeOpExcutioner<T>::execRandom(int opNum, Nd4jPointer state, T *x, int *
 
 // template class NativeOpExcutioner<float16>;
 template class NativeOpExcutioner<float>;
-// template class NativeOpExcutioner<double>;
+template class NativeOpExcutioner<double>;
 
 
 
