@@ -6,9 +6,7 @@
 #include <Block.h>
 #include <Variable.h>
 #include <VariableSpace.h>
-#include <ops/declarable/DeclarableOp.h>
-#include <ops/declarable/generic/parity_ops.h>
-#include <ops/declarable/generic/third_party.h>
+#include <ops/declarable/CustomOperations.h>
 #include <helpers/helper_hash.h>
 #include <NativeOps.h>
 #include <ops/gemm.h>

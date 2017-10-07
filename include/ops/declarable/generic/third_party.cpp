@@ -10,11 +10,11 @@
 #include <op_boilerplate.h>
 #include <memory>
 #include <shape.h>
-#include <ops/ops.h>
 #include <loops/random.h>
 #include <NDArray.h>
 #include <ops/declarable/DeclarableOp.h>
 #include <ops/declarable/OpRegistrator.h>
+#include <ops/declarable/CustomOperations.h>
 #include <NDArrayFactory.h>
 
 namespace nd4j {
@@ -28,7 +28,7 @@ namespace nd4j {
          *
          * @tparam T
          */
-        DECLARE_CONFIGURABLE_OP(firas_sparse, 1, 1, false, 0, -1) {
+        CONFIGURABLE_OP_IMPL(firas_sparse, 1, 1, false, 0, -1) {
             NDArray<T> *x = block.getVariables().at(0)->getNDArray();
             NDArray<T> *z = this->getZ(block);
 

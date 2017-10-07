@@ -29,9 +29,8 @@
 #include <unistd.h>
 
 #include <layers/layers_factory.h>
-#include <ops/declarable/DeclarableOp.h>
-#include <ops/declarable/generic/parity_ops.h>
-#include <ops/declarable/generic/third_party.h>
+#include <ops/declarable/CustomOperations.h>
+
 
 char *name;
 bool nameSet = false;
