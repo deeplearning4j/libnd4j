@@ -16,5 +16,9 @@ namespace nd4j {
         DeclarableCustomOp<T>::~DeclarableCustomOp()  {
             //
         }
+
+        template class DeclarableCustomOp<float>;
+        template class DeclarableCustomOp<float16>;
+        template class DeclarableCustomOp<double>;
     }
 }

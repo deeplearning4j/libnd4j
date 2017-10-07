@@ -9,13 +9,9 @@
 #include <types/float16.h>
 #include <pointercast.h>
 #include <NDArray.h>
-#include <Variable.h>
 #include <Block.h>
-#include <Stash.h>
 #include "OpDescriptor.h"
 #include <helpers/helper_hash.h>
-#include <memory/Workspace.h>
-#include <memory/MemoryRegistrator.h>
 #include <ShapeList.h>
 #include <ArrayList.h>
 //#include <ops/declarable/declarable_ops.h>
@@ -122,7 +118,6 @@ namespace nd4j {
 
             Nd4jStatus validateArguments(Block<T>& block);
         };
-
     }
 }
 

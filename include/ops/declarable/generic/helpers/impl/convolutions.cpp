@@ -319,5 +319,10 @@ namespace nd4j {
                 oW = (iW - kW - (kW-1)*(dW-1) + 2*pW)/sW + 1;
             }
         }
+
+
+        template class ConvolutionUtils<float>;
+        template class ConvolutionUtils<float16>;
+        template class ConvolutionUtils<double>;
     }
 }

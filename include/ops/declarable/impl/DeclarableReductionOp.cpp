@@ -67,5 +67,9 @@ namespace nd4j {
 
             return new ShapeList(newShape);
         }
+
+        template class DeclarableReductionOp<float>;
+        template class DeclarableReductionOp<float16>;
+        template class DeclarableReductionOp<double>;
     }
 }
