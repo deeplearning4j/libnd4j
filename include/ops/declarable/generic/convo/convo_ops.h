@@ -5,6 +5,7 @@
 #ifndef LIBND4J_CONVO_OPS_H
 #define LIBND4J_CONVO_OPS_H
 
+#include <op_boilerplate.h>
 #include <memory>
 #include <NDArray.h>
 #include <NDArrayFactory.h>
@@ -16,7 +17,7 @@
 namespace nd4j {
     namespace ops {
         //////////////////////////////////////////////////////////////////////////
-        DECLARE_CUSTOM_OP(conv2d, 2, 1, false, 0, 9) {
+        CUSTOM_OP_IMPL(conv2d, 2, 1, false, 0, 9) {
             // basically im2col + gemm
             NDArray<T>* input = block.getVariables().at(0)->getNDArray();
             NDArray<T>* weights = block.getVariables().at(1)->getNDArray();
