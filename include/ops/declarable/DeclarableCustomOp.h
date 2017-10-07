@@ -5,6 +5,8 @@
 #ifndef LIBND4J_DECLARABLECUSTOMOP_H
 #define LIBND4J_DECLARABLECUSTOMOP_H
 
+#include <ops/declarable/DeclarableOp.h>
+
 namespace nd4j {
     namespace ops {
         template <typename T>

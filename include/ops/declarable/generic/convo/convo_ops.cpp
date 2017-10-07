@@ -48,10 +48,10 @@ namespace nd4j {
 
             REQUIRE_TRUE(weights->shapeOf()[2] == kY && weights->shapeOf()[3] == kX, 0, "Kernels should have dimensions of [%i, %i], but got [%i, %i] instead", kY, kX, weights->sizeAt(2), weights->sizeAt(3));
 
-            ConvolutionUtils::calcOutHWpool2D(oY, oX, kY, kX, sY, sX, pY, pX, dY, dX, inY, inX, isSameMode);
+            ConvolutionUtils<T>::calcOutHWpool2D(oY, oX, kY, kX, sY, sX, pY, pX, dY, dX, inY, inX, isSameMode);
 
             if (isSameMode) {
-                ConvolutionUtils::_calcPadding2D(pY, pX, oY, oX, inY, inX, kY, kX, sY, sX, dY, dX);
+                ConvolutionUtils<T>::_calcPadding2D(pY, pX, oY, oX, inY, inX, kY, kX, sY, sX, dY, dX);
             }
 
             NDArray<T>* output = this->getZ(block);
@@ -113,10 +113,10 @@ namespace nd4j {
             const int inY = inShape[3];
             const int inX = inShape[4];
 
-            ConvolutionUtils::calcOutHWpool2D(oY, oX, kY, kX, sY, sX, pY, pX, dY, dX, inY, inX, isSameMode);
+            ConvolutionUtils<T>::calcOutHWpool2D(oY, oX, kY, kX, sY, sX, pY, pX, dY, dX, inY, inX, isSameMode);
 
             if (isSameMode) {
-                ConvolutionUtils::_calcPadding2D(pY, pX, oY, oX, inY, inX, kY, kX, sY, sX, dY, dX);
+                ConvolutionUtils<T>::_calcPadding2D(pY, pX, oY, oX, inY, inX, kY, kX, sY, sX, dY, dX);
             }
 
             //z = Shape.newShapeNoCopy(z, new int[] {outW, outH, miniBatch, outDepth}, true);
@@ -168,10 +168,10 @@ namespace nd4j {
                 return c2d.execute(&block);
             }
 
-            ConvolutionUtils::calcOutHWpool2D(oY, oX, kY, kX, sY, sX, pY, pX, dY, dX, inY, inX, isSameMode);
+            ConvolutionUtils<T>::calcOutHWpool2D(oY, oX, kY, kX, sY, sX, pY, pX, dY, dX, inY, inX, isSameMode);
 
             if (isSameMode) {
-                ConvolutionUtils::_calcPadding2D(pY, pX, oY, oX, inY, inX, kY, kX, sY, sX, dY, dX);
+                ConvolutionUtils<T>::_calcPadding2D(pY, pX, oY, oX, inY, inX, kY, kX, sY, sX, dY, dX);
             }
 
             std::unique_ptr<NDArray<T>> col2(new NDArray<T>('c', {batchSize, inDepth, kY, kX, oY, oX}));
@@ -229,10 +229,10 @@ namespace nd4j {
             const int inY = inShape[3];
             const int inX = inShape[4];
 
-            ConvolutionUtils::calcOutHWpool2D(oY, oX, kY, kX, sY, sX, pY, pX, dY, dX, inY, inX, isSameMode);
+            ConvolutionUtils<T>::calcOutHWpool2D(oY, oX, kY, kX, sY, sX, pY, pX, dY, dX, inY, inX, isSameMode);
 
             if (isSameMode) {
-                ConvolutionUtils::_calcPadding2D(pY, pX, oY, oX, inY, inX, kY, kX, sY, sX, dY, dX);
+                ConvolutionUtils<T>::_calcPadding2D(pY, pX, oY, oX, inY, inX, kY, kX, sY, sX, dY, dX);
             }
 
             //z = Shape.newShapeNoCopy(z, new int[] {outW, outH, miniBatch, outDepth}, true);
@@ -531,10 +531,10 @@ namespace nd4j {
             int inY = epsilonNext->sizeAt(2);
             int inX = epsilonNext->sizeAt(3);
 
-            ConvolutionUtils::calcOutHWpool2D(oY, oX, kY, kX, sY, sX, pY, pX, dY, dX, inY, inX, isSameMode);
+            ConvolutionUtils<T>::calcOutHWpool2D(oY, oX, kY, kX, sY, sX, pY, pX, dY, dX, inY, inX, isSameMode);
 
             if (isSameMode) {
-                ConvolutionUtils::_calcPadding2D(pY, pX, oY, oX, inY, inX, kY, kX, sY, sX, dY, dX);
+                ConvolutionUtils<T>::_calcPadding2D(pY, pX, oY, oX, inY, inX, kY, kX, sY, sX, dY, dX);
             }
 
             std::unique_ptr<T> extrasIm2Col(new T[9]{(T) kY, (T) kX, (T) sY, (T) sX, (T) pY, (T) pX, (T) dY, (T) dX, isSameMode ? (T) 1.0f : (T) 0.0f});
@@ -663,7 +663,7 @@ namespace nd4j {
                 } else
                     output->assign(0.0);
 
-                Nd4jStatus  res = ConvolutionUtils::conv3Dmv(tadOut, (T) 1.0f, (T) 1.0f, tadIn, weights, dT, dH, dW, "V", "X");
+                Nd4jStatus  res = ConvolutionUtils<T>::conv3Dmv(tadOut, (T) 1.0f, (T) 1.0f, tadIn, weights, dT, dH, dW, "V", "X");
                 if (res != ND4J_STATUS_OK)
                     throw "Boom";
             }
@@ -849,7 +849,7 @@ namespace nd4j {
 
             const bool isSameMode = block.getIArguments()->at(8) > 0;
             if (isSameMode)
-                ConvolutionUtils::_calcPadding2D(pY, pX, z->sizeAt(2), z->sizeAt(3), inY, inX, argI[0], argI[1], argI[2], argI[3], argI[6], argI[7]);
+                ConvolutionUtils<T>::_calcPadding2D(pY, pX, z->sizeAt(2), z->sizeAt(3), inY, inX, argI[0], argI[1], argI[2], argI[3], argI[6], argI[7]);
 
             // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8 - same mode;
 
@@ -894,11 +894,11 @@ namespace nd4j {
 
             // calculate output Height/Width
             int oH, oW;
-            ConvolutionUtils::calcOutHWpool2D(oH, oW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);
+            ConvolutionUtils<T>::calcOutHWpool2D(oH, oW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);
 
             const bool bisSameMode = block.getIArguments()->at(8) > 0;
             if (bisSameMode)
-                ConvolutionUtils::_calcPadding2D(pH, pW, oH, oW, iH, iW, argI[0], argI[1], argI[2], argI[3], argI[6], argI[7]);
+                ConvolutionUtils<T>::_calcPadding2D(pH, pW, oH, oW, iH, iW, argI[0], argI[1], argI[2], argI[3], argI[6], argI[7]);
 
             // allocate memory for new shape
             int* newShapeInfo = nullptr;
@@ -933,7 +933,7 @@ namespace nd4j {
 
             const bool isSameMode = block.getIArguments()->at(8) > 0;
             if (isSameMode)
-                nd4j::ops::_calcPadding2D(pY, pX, z->sizeAt(2), z->sizeAt(3), inY, inX, argI[0], argI[1], argI[2], argI[3], argI[6], argI[7]);
+                ConvolutionUtils<T>::_calcPadding2D(pY, pX, z->sizeAt(2), z->sizeAt(3), inY, inX, argI[0], argI[1], argI[2], argI[3], argI[6], argI[7]);
 
             // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8,9 - poolingMode; 10 - divisor;
             std::vector<T> argT = {(T) argI[0], (T) argI[1], (T) argI[2], (T) argI[3], (T) argI[4], (T) argI[5], (T)argI[6], (T)argI[7], (T)1.f, (T)1.f, (T)1.f};
@@ -976,11 +976,11 @@ namespace nd4j {
 
             // calculate output Height/Width
             int oH, oW;
-            ConvolutionUtils::calcOutHWpool2D(oH, oW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);
+            ConvolutionUtils<T>::calcOutHWpool2D(oH, oW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);
 
             const bool bisSameMode = block.getIArguments()->at(8) > 0;
             if (bisSameMode)
-                ConvolutionUtils::_calcPadding2D(pH, pW, oH, oW, iH, iW, argI[0], argI[1], argI[2], argI[3], argI[6], argI[7]);
+                ConvolutionUtils<T>::_calcPadding2D(pH, pW, oH, oW, iH, iW, argI[0], argI[1], argI[2], argI[3], argI[6], argI[7]);
 
 
             // allocate memory for new shape
@@ -1043,7 +1043,7 @@ namespace nd4j {
 
 			// calculate output Height/Width
 			int oH, oW;
-			ConvolutionUtils::calcOutHWpool2D(oH, oW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);
+			ConvolutionUtils<T>::calcOutHWpool2D(oH, oW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);
 			// allocate memory for new shape
             int* newShapeInfo = nullptr;
             ALLOCATE(newShapeInfo, block.getWorkspace(), 12, int);
@@ -1168,7 +1168,7 @@ namespace nd4j {
             indices_data = indices->getBuffer();
 
             for (int n = 0; n < input->sizeAt(0); n++) {
-                ConvolutionUtils::_dilatedMaxPool3D(
+                ConvolutionUtils<T>::_dilatedMaxPool3D(
                         input_data   + n * istride,
                         output_data  + n * ostride,
                         indices_data + n * ostride,
@@ -1274,7 +1274,7 @@ namespace nd4j {
             Nd4jIndex ostride = nslices * otime * owidth * oheight;
 
             for (int p = 0; p < nBatch; p++) {
-                ConvolutionUtils::_dilatedMaxPool3D_bp(
+                ConvolutionUtils<T>::_dilatedMaxPool3D_bp(
                         gradInput_data + p * istride,
                         gradOutput_data + p * ostride,
                         indices_data + p * ostride,
@@ -1377,7 +1377,7 @@ namespace nd4j {
             for (int p=0; p < nBatch; p++)
             {
 
-                ConvolutionUtils::_avgPool3D(
+                ConvolutionUtils<T>::_avgPool3D(
                         input_data + p * istride, output_data + p * ostride, nslices,
                         itime, iwidth, iheight,
                         otime, owidth, oheight,
@@ -1523,7 +1523,7 @@ namespace nd4j {
 
             for (int p = 0; p < nBatch; p++)
             {
-                ConvolutionUtils::_avgPool3D_bp(
+                ConvolutionUtils<T>::_avgPool3D_bp(
                         gradInput_data  + p * istride,
                         gradOutput_data + p * ostride,
                         nslices,
@@ -1625,7 +1625,7 @@ namespace nd4j {
                                         0.0,
                                         columns->getBuffer(), n);
 
-                ConvolutionUtils::_col2vol(columns->getBuffer(),
+                ConvolutionUtils<T>::_col2vol(columns->getBuffer(),
                         nOutputPlane, outputDepth, outputHeight, outputWidth,
                         inputDepth, inputHeight, inputWidth,
                         kT, kH, kW,
@@ -1761,7 +1761,7 @@ namespace nd4j {
                 auto tadNext = tadsNext->at(e);
                 auto tadOutput = tadsOutput->at(e);
 
-                nd4j::ops::_vol2col<T>(
+                ConvolutionUtils<T>::_vol2col(
                         tadNext->getBuffer(),
                         nOutputPlane, outputDepth, outputHeight, outputWidth,
                         kT, kH, kW,
@@ -1860,7 +1860,7 @@ namespace nd4j {
                 auto tadInput = tadsInput->at(e);
                 auto tadEpsilon = tadsEpsilon->at(e);
 
-                ConvolutionUtils::_vol2col(
+                ConvolutionUtils<T>::_vol2col(
                         tadEpsilon->getBuffer(), nOutputPlane,
                         outputDepth, outputHeight, outputWidth,
                         kT, kH, kW,
@@ -1936,7 +1936,7 @@ namespace nd4j {
 			
 			// calculate output Height/Width
 			int oH, oW;
-			ConvolutionUtils::calcOutHWpool2D(oH, oW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);
+			ConvolutionUtils<T>::calcOutHWpool2D(oH, oW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);
 
 			bool cOrderStrides = false;
 			bool isEpsilonDup = false;
@@ -2408,7 +2408,7 @@ namespace nd4j {
 
 			// calculate output Height/Width
 			int oH, oW;
-			ConvolutionUtils::calcOutHWpool2D(oH, oW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);
+			ConvolutionUtils<T>::calcOutHWpool2D(oH, oW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);
 			// allocate memory for new shape
             int* newShapeInfo = nullptr;
             ALLOCATE(newShapeInfo, block.getWorkspace(), 12, int);
@@ -2448,7 +2448,7 @@ namespace nd4j {
 						
 			// calculate output Height/Width
 			int oH, oW;
-			ConvolutionUtils::calcOutHWpool2D(oH, oW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);
+			ConvolutionUtils<T>::calcOutHWpool2D(oH, oW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);
 
 			bool cOrderStrides = false;
 			bool isEpsilonDup = false;
@@ -2556,7 +2556,7 @@ namespace nd4j {
 			
 			// calculate output Height/Width
 			int oH, oW;
-			nd4j::ops::calcOutHWpool2D(oH, oW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);			
+            ConvolutionUtils<T>::calcOutHWpool2D(oH, oW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);
 
 			bool cOrderStrides = false;
 			bool isEpsilonDup = false;

@@ -46,6 +46,9 @@
  * @author raver119@gmail.com
  */
 
+#define ELEMENT_THRESHOLD nd4j::Environment::getInstance()->elementwiseThreshold()
+#define TAD_THRESHOLD nd4j::Environment::getInstance()->tadThreshold()
+
 #pragma once
 #ifndef OP_BOILERPLATE_HH
 #define OP_BOILERPLATE_HH
@@ -948,7 +951,7 @@
 
 
 #define OP_IMPL(NAME, NIN, NOUT, INPLACEABLE)   template <typename T>\
-                                                NAME<T>::NAME : nd4j::ops::DeclarableOp<T>(NIN, NOUT, #NAME, INPLACEABLE) { }; \
+                                                NAME<T>::NAME() : nd4j::ops::DeclarableOp<T>(NIN, NOUT, #NAME, INPLACEABLE) { }; \
                                                 template <typename T>\
                                                 nd4j::ShapeList* nd4j::ops::NAME<T>::calculateOutputShape(nd4j::ShapeList* inputShape, nd4j::graph::Block<T>& block) { \
                                                     int* newshape; \
