@@ -1308,6 +1308,19 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
         return 1;
     }
 
+
+
+#ifdef __CUDACC__
+    __host__ __device__
+#endif
+    INLINEDEF void traceNew(int id) {
+        //printf("new happened: [%i]\n", id);
+
+#ifndef __CUDACC__
+        //fflush(stdout);
+#endif
+    }
+
 /**
  * Permute the shape information
  * @param info the shape information to permute

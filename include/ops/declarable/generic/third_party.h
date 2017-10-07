@@ -14,6 +14,7 @@
 #include <loops/random.h>
 #include <NDArray.h>
 #include <ops/declarable/declarable_ops.h>
+#include <ops/declarable/OpRegistrator.h>
 #include <NDArrayFactory.h>
 
 namespace nd4j {

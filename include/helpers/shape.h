@@ -30,9 +30,9 @@
 
 
 #ifdef __CUDACC__
-#define INLINEDEF inline
+#define INLINEDEF
 #else
-#define INLINEDEF inline
+#define INLINEDEF
 #endif
 
 #include "../pairwise_util.h"
@@ -108,16 +108,10 @@ namespace shape {
     INLINEDEF bool equalsStrict(int *shapeA, int *shapeB);
 
 #ifdef __CUDACC__
-    __host__ __device__
-    INLINEDEF void traceNew(int id) {
-        //printf("new happened: [%i]\n", id);
-    }
-#else
-    INLINEDEF void traceNew(int id) {
-        //printf("new happened: [%i]\n", id);
-        //fflush(stdout);
-    }
+__host__ __device__
 #endif
+    INLINEDEF void traceNew(int id);
+
 
 #ifdef __CUDACC__
     __host__ __device__

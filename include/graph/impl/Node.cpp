@@ -3,6 +3,7 @@
 //
 
 #include <graph/Node.h>
+#include <ops/declarable/OpRegistrator.h>
 
 namespace nd4j {
     namespace graph {
