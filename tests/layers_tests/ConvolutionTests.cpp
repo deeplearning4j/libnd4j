@@ -356,8 +356,8 @@ TEST_F(ConvolutionTests, deconv2D_FF_NoBias_1) {
     auto input = new NDArray<double>('c', {2, 3, 4, 4});
     auto weights = new NDArray<double>('c', {3, 3, 5, 5});
 
-    nd4j::NDArrayFactory::linspace<double>(1, *input);
-    nd4j::NDArrayFactory::linspace<double>(1, *weights);
+    nd4j::NDArrayFactory<double>::linspace(1, *input);
+    nd4j::NDArrayFactory<double>::linspace(1, *weights);
 
     auto variableSpace = new VariableSpace<double>();
     variableSpace->putVariable(-1, input);

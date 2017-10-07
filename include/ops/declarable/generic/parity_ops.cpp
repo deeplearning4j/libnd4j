@@ -61,7 +61,7 @@ namespace nd4j {
             if (nd4j::Environment::getInstance()->isDebugAndVerbose())
                 fflush(stdout);
 
-            concatCpuGeneric(_dimension, block.getVariables().size(), buffers.get(), shapes.get(), output->getBuffer(), output->getShapeInfo());
+            nd4j::SpecialMethods<T>::concatCpuGeneric(_dimension, block.getVariables().size(), buffers.get(), shapes.get(), output->getBuffer(), output->getShapeInfo());
 
             STORE_RESULT(*output);
 

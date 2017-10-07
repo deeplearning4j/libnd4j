@@ -6,8 +6,11 @@
 #include <Block.h>
 #include <Variable.h>
 #include <VariableSpace.h>
+#include <ops/declarable/OpRegistrator.h>
 #include <ops/declarable/CustomOperations.h>
 #include <helpers/helper_hash.h>
+#include <NDArray.h>
+#include <NDArrayFactory.h>
 #include <NativeOps.h>
 #include <ops/gemm.h>
 
@@ -2043,7 +2046,7 @@ TEST_F(DeclarableOpsTests, BatchNorm4D) {
     NDArray<float> gamma('c', {1, iD});
     NDArray<float> beta ('c', {1, iD});
     gamma.assign(1.);
-    nd4j::NDArrayFactory::linspace<float>(1.,input);   
+    nd4j::NDArrayFactory<float>::linspace(1.,input);
 
     NDArray<float> xHat ('c', {bS, iD, iH, iW});    
     NDArray<float> globalMeanView('c', {1, iD});
@@ -2096,8 +2099,8 @@ TEST_F(DeclarableOpsTests, CompactLaunchTests1) {
     NDArray<double> input('c', {2, 3, 4, 4});
     NDArray<double> weights('c', {3, 3, 5, 5});
 
-    nd4j::NDArrayFactory::linspace<double>(1, input);
-    nd4j::NDArrayFactory::linspace<double>(1, weights);
+    nd4j::NDArrayFactory<double>::linspace(1, input);
+    nd4j::NDArrayFactory<double>::linspace(1, weights);
 
     nd4j::ops::deconv2d<double> op;
     auto result = op.execute({&input, &weights}, {}, {5, 5, 1, 1, 0, 0, 1, 1, 0});
@@ -2122,8 +2125,8 @@ TEST_F(DeclarableOpsTests, CompactLaunchTests2) {
     NDArray<double> weights('c', {3, 3, 5, 5});
     NDArray<double> z('c', {2, 3, 8, 8});
 
-    nd4j::NDArrayFactory::linspace<double>(1, input);
-    nd4j::NDArrayFactory::linspace<double>(1, weights);
+    nd4j::NDArrayFactory<double>::linspace(1, input);
+    nd4j::NDArrayFactory<double>::linspace(1, weights);
 
 
     nd4j::ops::deconv2d<double> op;

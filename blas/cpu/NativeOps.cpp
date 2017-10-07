@@ -1677,7 +1677,7 @@ void NativeOps::concatFloat(
         Nd4jPointer *inputShapeInfo,
         float *result,
         int *resultShapeInfo, Nd4jPointer *tadPointers, Nd4jPointer *offsetPointers) {
-    concatCpuGeneric<float>(
+    nd4j::SpecialMethods<float>::concatCpuGeneric(
             dimension,
             numArrays,
             data,
@@ -1696,7 +1696,7 @@ void NativeOps::concatHalf(
         Nd4jPointer *inputShapeInfo,
         float16 *result,
         int *resultShapeInfo, Nd4jPointer *tadPointers, Nd4jPointer *offsetPointers) {
-    concatCpuGeneric<float16>(
+    nd4j::SpecialMethods<float16>::concatCpuGeneric(
             dimension,
             numArrays,
             data,
@@ -1716,7 +1716,7 @@ void NativeOps::concatDouble(
         Nd4jPointer *inputShapeInfo,
         double *result,
         int *resultShapeInfo, Nd4jPointer *tadPointers, Nd4jPointer *offsetPointers) {
-    concatCpuGeneric<double>(
+    nd4j::SpecialMethods<double>::concatCpuGeneric(
             dimension,
             numArrays,
             data,
@@ -1734,7 +1734,7 @@ void NativeOps::specialConcatFloat(
         Nd4jPointer *inputShapeInfo,
         float *result,
         int *resultShapeInfo, Nd4jPointer *tadPointers, Nd4jPointer *offsetPointers) {
-    concatCpuGeneric<float>(
+    nd4j::SpecialMethods<float>::concatCpuGeneric(
             dimension,
             numArrays,
             data,
@@ -1753,7 +1753,7 @@ void NativeOps::specialConcatHalf(
         Nd4jPointer *inputShapeInfo,
         float16 *result,
         int *resultShapeInfo, Nd4jPointer *tadPointers, Nd4jPointer *offsetPointers) {
-    concatCpuGeneric<float16>(
+    nd4j::SpecialMethods<float16>::concatCpuGeneric(
             dimension,
             numArrays,
             data,
@@ -1773,7 +1773,7 @@ void NativeOps::specialConcatDouble(
         Nd4jPointer *inputShapeInfo,
         double *result,
         int *resultShapeInfo, Nd4jPointer *tadPointers, Nd4jPointer *offsetPointers) {
-    concatCpuGeneric<double>(
+    nd4j::SpecialMethods<double>::concatCpuGeneric(
             dimension,
             numArrays,
             data,
@@ -2176,27 +2176,27 @@ void NativeOps::averageHalf(Nd4jPointer *extras, Nd4jPointer *dx, float16 *dz, i
 
 void NativeOps::averageFloat(Nd4jPointer *extras, Nd4jPointer *dx, float *dz, int n, Nd4jIndex length, bool propagate) {
     float **x = reinterpret_cast<float **>(dx);
-    averageGeneric<float>(x, dz, n, length, propagate);
+    nd4j::SpecialMethods<float>::averageGeneric(x, dz, n, length, propagate);
 }
 
 void NativeOps::averageDouble(Nd4jPointer *extras, Nd4jPointer *dx, double *dz, int n, Nd4jIndex length, bool propagate) {
     double **x = reinterpret_cast<double **>(dx);
-    averageGeneric<double>(x, dz, n, length, propagate);
+    nd4j::SpecialMethods<double>::averageGeneric(x, dz, n, length, propagate);
 }
 
 void NativeOps::accumulateHalf(Nd4jPointer *extras, Nd4jPointer *dx, float16 *dz, int n, Nd4jIndex length) {
     float16 **x = reinterpret_cast<float16 **>(dx);
-    accumulateGeneric<float16>(x, dz, n, length);
+    nd4j::SpecialMethods<float16>::accumulateGeneric(x, dz, n, length);
 }
 
 void NativeOps::accumulateFloat(Nd4jPointer *extras, Nd4jPointer *dx, float *dz, int n, Nd4jIndex length) {
     float **x = reinterpret_cast<float **>(dx);
-    accumulateGeneric<float>(x, dz, n, length);
+    nd4j::SpecialMethods<float>::accumulateGeneric(x, dz, n, length);
 }
 
 void NativeOps::accumulateDouble(Nd4jPointer *extras, Nd4jPointer *dx, double *dz, int n, Nd4jIndex length) {
     double **x = reinterpret_cast<double **>(dx);
-    accumulateGeneric<double>(x, dz, n, length);
+    nd4j::SpecialMethods<double>::accumulateGeneric(x, dz, n, length);
 }
 
 void NativeOps::enableP2P(bool enable) {

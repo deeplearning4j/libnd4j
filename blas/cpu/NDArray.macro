@@ -52,4 +52,20 @@ BUILD_CALL_1(template NDArray<float> *nd4j::NDArray<float>::template varianceAlo
 BUILD_CALL_1(template NDArray<float16> *nd4j::NDArray<float16>::template varianceAlongDimension, float16, (const bool biasCorrected, const std::initializer_list<int>& dimensions) const, SUMMARY_STATS_OPS)
 BUILD_CALL_1(template NDArray<double> *nd4j::NDArray<double>::template varianceAlongDimension, double, (const bool biasCorrected, const std::initializer_list<int>& dimensions) const, SUMMARY_STATS_OPS)
 
+BUILD_CALL_1(template float nd4j::NDArray<float>::template varianceNumber, float, (bool biasCorrected), SUMMARY_STATS_OPS)
+BUILD_CALL_1(template float16 nd4j::NDArray<float16>::template varianceNumber, float16, (bool biasCorrected), SUMMARY_STATS_OPS)
+BUILD_CALL_1(template double nd4j::NDArray<double>::template varianceNumber, double, (bool biasCorrected), SUMMARY_STATS_OPS)
+
+BUILD_CALL_1(template NDArray<float> *nd4j::NDArray<float>::template applyReduce3, float, (const NDArray<float>* other, const float* extraParams) const, REDUCE3_OPS)
+BUILD_CALL_1(template NDArray<float16> *nd4j::NDArray<float16>::template applyReduce3, float16, (const NDArray<float16>* other, const float16* extraParams) const, REDUCE3_OPS)
+BUILD_CALL_1(template NDArray<double> *nd4j::NDArray<double>::template applyReduce3, double, (const NDArray<double>* other, const double* extraParams) const, REDUCE3_OPS)
+
+BUILD_CALL_1(template NDArray<float> *nd4j::NDArray<float>::template applyIndexReduce, float, (const std::vector<int> & alpha, const float* beta) const, INDEX_REDUCE_OPS)
+BUILD_CALL_1(template NDArray<float16> *nd4j::NDArray<float16>::template applyIndexReduce, float16, (const std::vector<int> & alpha, const float16* beta) const, INDEX_REDUCE_OPS)
+BUILD_CALL_1(template NDArray<double> *nd4j::NDArray<double>::template applyIndexReduce, double, (const std::vector<int> & alpha, const double* beta) const, INDEX_REDUCE_OPS)
+
+BUILD_CALL_1(template NDArray<float> *nd4j::NDArray<float>::template applyAllReduce3, float, (const nd4j::NDArray<float>* alpha, const std::vector<int> & beta, float const* gamma) const, REDUCE3_OPS)
+BUILD_CALL_1(template NDArray<float16> *nd4j::NDArray<float16>::template applyAllReduce3, float16, (const nd4j::NDArray<float16>* alpha, const std::vector<int> & beta, float16 const* gamma) const, REDUCE3_OPS)
+BUILD_CALL_1(template NDArray<double> *nd4j::NDArray<double>::template applyAllReduce3, double, (const nd4j::NDArray<double>* alpha, const std::vector<int> & beta, double const* gamma) const, REDUCE3_OPS)
+
 #endif

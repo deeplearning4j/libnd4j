@@ -486,11 +486,11 @@ public:
                            T *extraArguments);
 
     inline static void execSort(T *x, int *xShapeInfo, bool descending) {
-        sortGeneric<T>(x, xShapeInfo, descending);
+        nd4j::SpecialMethods<T>::sortGeneric(x, xShapeInfo, descending);
     }
 
     static void execSort(T *x, int *xShapeInfo, int *dimension, int dimensionLength, int *tadShapeInfo, Nd4jIndex *tadOffsets, bool descending) {
-        sortTadGeneric<T>(x, xShapeInfo, dimension, dimensionLength, tadShapeInfo, tadOffsets, descending);
+        nd4j::SpecialMethods<T>::sortTadGeneric(x, xShapeInfo, dimension, dimensionLength, tadShapeInfo, tadOffsets, descending);
     }
 
     inline static void execSortCooIndices(int *indices, T *values, Nd4jIndex length, int rank) {
@@ -499,11 +499,11 @@ public:
 
 
     inline static Nd4jIndex encodeBitmap(T *dx, Nd4jIndex N, int *dz, float threshold) {
-        return encodeBitmapGeneric<T>(dx, N, dz, threshold);
+        return nd4j::SpecialMethods<T>::encodeBitmapGeneric(dx, N, dz, threshold);
     }
 
     inline static void decodeBitmap(void *dx, Nd4jIndex N, T *dz) {
-        decodeBitmapGeneric<T>(dx, N, dz);
+        nd4j::SpecialMethods<T>::decodeBitmapGeneric(dx, N, dz);
     }
 
 };
