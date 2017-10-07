@@ -15,7 +15,7 @@
 #include <loops/random.h>
 #include <NDArray.h>
 #include <graph/Variable.h>
-#include <ops/declarable/declarable_ops.h>
+#include <ops/declarable/DeclarableOp.h>
 #include <NDArrayFactory.h>
 #include <ops/declarable/generic/third_party.h>
 #include <ops/declarable/generic/convo/convo_ops.h>

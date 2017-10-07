@@ -2,7 +2,7 @@
 // Created by raver119 on 07.10.2017.
 //
 
-#include <ops/declarable/declarable_ops.h>
+#include <ops/declarable/DeclarableOp.h>
 
 namespace nd4j {
     namespace ops {

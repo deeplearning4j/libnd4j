@@ -9,7 +9,7 @@
 #include <vector>
 #include <map>
 #include <mutex>
-#include <ops/declarable/declarable_ops.h>
+#include <ops/declarable/DeclarableOp.h>
 
 namespace nd4j {
     namespace ops {

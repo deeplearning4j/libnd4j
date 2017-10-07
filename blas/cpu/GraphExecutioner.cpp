@@ -15,7 +15,7 @@
 #include <loops/scalar.h>
 #include <loops/pairwise_transform.h>
 #include <loops/transform.h>
-#include <ops/declarable/declarable_ops.h>
+#include <ops/declarable/DeclarableOp.h>
 
 //#include <google/protobuf/text_format.h>
 //#include <google/protobuf/io/zero_copy_stream_impl.h>

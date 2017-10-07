@@ -9,7 +9,7 @@
 #include <graph/Node.h>
 #include <graph/Graph.h>
 #include <NDArray.h>
-#include <ops/declarable/declarable_ops.h>
+#include <ops/declarable/DeclarableOp.h>
 #include <ops/declarable/generic/parity_ops.h>
 
 using namespace nd4j::graph;

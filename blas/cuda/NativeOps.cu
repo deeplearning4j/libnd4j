@@ -40,7 +40,7 @@
 #include "../cpu/NDArray.cpp"
 #include "../cpu/NDArrayFactory.cpp"
 #include "../cpu/GraphExecutioner.cpp"
-#include <ops/declarable/declarable_ops.h>
+#include <ops/declarable/DeclarableOp.h>
 #include <ops/declarable/generic/parity_ops.h>
 
 //#include <sys/time.h>

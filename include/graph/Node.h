@@ -9,7 +9,7 @@
 #include <string>
 #include <NDArray.h>
 #include "Block.h"
-#include <ops/declarable/declarable_ops.h>
+#include <ops/declarable/DeclarableOp.h>
 #include <graph/generated/node_generated.h>
 
 

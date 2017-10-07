@@ -9,7 +9,7 @@
 #include <NDArray.h>
 #include <NDArrayFactory.h>
 #include <op_boilerplate.h>
-#include <declarable/declarable_ops.h>
+#include <declarable/DeclarableOp.h>
 #include <declarable/generic/helpers/convolutions.h>
 #include <helpers/ArrayUtils.h>
 
