@@ -232,7 +232,7 @@ namespace nd4j {
                 throw "Ranks of A and B should match";
             }
 
-            int dims = A->rankOf();
+            //int dims = A->rankOf();
 
             std::vector<int> newShape;
             for (int e = 0; e < A->rankOf() - 2; e++)
@@ -254,7 +254,7 @@ namespace nd4j {
             newShape.push_back(pRows);
             newShape.push_back(pCols);
 
-            Nd4jIndex prod = shape::prodLong(newShape.data(), newShape.size());
+            //Nd4jIndex prod = shape::prodLong(newShape.data(), newShape.size());
 
             if (result == nullptr)
                 result = new NDArray<T>('c', newShape);

@@ -51,8 +51,8 @@
 #define op_def inline
 #define op_def_special inline
 #elif __GNUC__
-#define op_def _Pragma("omp declare simd") inline
-#define op_def_special _Pragma("omp declare simd") inline
+#define op_def _Pragma("omp declare simd") inline __attribute__((always_inline))
+#define op_def_special _Pragma("omp declare simd") inline __attribute__((always_inline))
 #endif
 
 #define SELU_ALPHA 1.6732632423543772848170429916717

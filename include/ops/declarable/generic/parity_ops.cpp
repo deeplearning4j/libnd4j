@@ -909,7 +909,7 @@ namespace nd4j {
 
 			std::vector<int> shapeNew;
 
-            for (int e = 1; e < argumets->size(); e++)
+            for (int e = 1; e < (int) argumets->size(); e++)
                 shapeNew.push_back((int) argumets->at(e));
 
             nd4j::Logger::printv("shapeNew: ", shapeNew);
@@ -942,7 +942,7 @@ namespace nd4j {
 
             std::vector<int> shapeNew;
 
-            for (int e = 1; e < arguments->size(); e++)
+            for (int e = 1; e < (int) arguments->size(); e++)
                 shapeNew.push_back((int) arguments->at(e));
 
             int* newShape;
@@ -1049,7 +1049,7 @@ namespace nd4j {
 
 			std::vector<int> argI = *(block.getIArguments());
 			std::vector<int> argItrunc(argI.size()-1);
-			for(int i=0; i<argItrunc.size(); ++i)
+			for(int i=0; i< (int) argItrunc.size(); ++i)
 				argItrunc[i] = argI[i+1];	
 			NDArray<T>* x = block.getVariables().at(0)->getNDArray();
 			NDArray<T> *z = this->getZ(block);
