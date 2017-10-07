@@ -201,8 +201,8 @@ case "$OS" in
         export CC=clang
         export CXX=clang++
     else
-        export CC="$(ls -1 /usr/local/bin/gcc-? | head -n 1)"
-        export CXX="$(ls -1 /usr/local/bin/g++-? | head -n 1)"
+        export CC="$(ls -1 /usr/local/bin/gcc-7 | head -n 1)"
+        export CXX="$(ls -1 /usr/local/bin/g++-7 | head -n 1)"
     fi
     ;;
 

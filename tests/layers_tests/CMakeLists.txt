@@ -82,4 +82,4 @@ endif()
 
 
 add_executable(runtests StashTests.cpp SessionLocalTests.cpp ConvolutionTests.cpp DeclarableOpsTests.cpp DenseLayerTests.cpp FlatBuffersTests.cpp GraphTests.cpp HashUtilsTests.cpp NDArrayTests.cpp TadTests.cpp VariableSpaceTests.cpp VariableTests.cpp WorkspaceTests.cpp)
-target_link_libraries(runtests nd4jcpu  gtest gtest_main)
+target_link_libraries(runtests nd4jcpu gtest gtest_main)

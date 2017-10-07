@@ -9,7 +9,7 @@
 #include "VariableSpace.h"
 #include "Block.h"
 #include "Stash.h"
-#include "Workspace.h"
+#include <memory/Workspace.h>
 
 namespace nd4j{
     namespace graph {
