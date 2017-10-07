@@ -555,6 +555,8 @@ TEST_F(DeclarableOpsTests, MergeMaxTest1) {
     z.assign(2);
     exp.assign(3);
 
+    NDArray<float> zu(5, 5, 'c');
+
     VariableSpace<float>* variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, &x);
     variableSpace->putVariable(-2, &y);
@@ -1001,7 +1003,7 @@ TEST_F(DeclarableOpsTests, DivideMatrixVector1) {
  
 	div.execute(block);
 
-    ASSERT_TRUE(x.equalsTo(&exp));	
+    ASSERT_TRUE(x.equalsTo(&exp));
 }
 
 //////////////////////////////////////////////////////////////////////

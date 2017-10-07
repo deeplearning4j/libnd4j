@@ -538,12 +538,11 @@ template <typename T> NDArray<T>* NDArray<T>::dup(const char newOrder) {
     void NDArray<T>::applyPairwiseTransform(NDArray<T> *other, NDArray<T> *target, T *extraParams) {
         if (other->lengthOf() != target->lengthOf())
             throw std::invalid_argument("NDArray::applyPairwiseTransform method - lengths of arrays are mismatched");
-        /*
+
         functions::pairwise_transforms::PairWiseTransform<T>::template exec<OpName>(this->_buffer, this->_shapeInfo,
                                                                                     other->_buffer, other->_shapeInfo,
                                                                                     target->_buffer, target->_shapeInfo,
                                                                                     extraParams);
-                                                                                    */
     }
 
 
