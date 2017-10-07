@@ -281,6 +281,27 @@ namespace simdOps {
 	};
 
 	template<typename T>
+	class Copy2 {
+	public:
+		op_def static T op(T d1, T d2) {
+			return d2;
+		}
+
+		op_def static T op(T d1, T d2, T *params) {
+			return d2;
+		}
+
+		op_def static T op(T d1) {
+			return d1;
+		}
+
+		// op for MetaOps
+		op_def static T op(T d1, T *params) {
+			return params[0];
+		}
+	};
+
+	template<typename T>
 	class Axpy {
 	public:
 		op_def static T op(T d1, T d2) {
