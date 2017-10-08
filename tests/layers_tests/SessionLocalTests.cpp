@@ -52,6 +52,18 @@ TEST_F(SessionLocalTests, BasicTests_2) {
         auto arr = varSpace->getVariable(-1)->getNDArray();
         arr->applyScalar<simdOps::Add<float>>((float) e+1);
     }
+
+    float lastValue = 0.0f;
+    for (int e = 1; e <= 4; e++) {
+        auto varSpace = storage.localVariableSpace((Nd4jIndex) e);
+
+        auto arr = varSpace->getVariable(-1)->getNDArray();
+
+        nd4j_printf("Last value: %f; Current value: %f\n", lastValue, arr->getScalar(0));
+
+        ASSERT_NE(lastValue, arr->getScalar(0));
+        lastValue = arr->getScalar(0);
+    }
 }
 
 #endif //LIBND4J_SESSIONLOCALTESTS_H
