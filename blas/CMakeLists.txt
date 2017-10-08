@@ -42,7 +42,7 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     # using GCC
     #  -fmax-errors=3
-    SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${ARCH_TUNE}")
+    SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${ARCH_TUNE} -fPIC")
 endif()
 
 
