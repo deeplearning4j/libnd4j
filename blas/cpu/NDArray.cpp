@@ -22,6 +22,9 @@
 namespace nd4j {
 
     template<typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
     void* NDArray<T>::operator new(size_t i) {
         if (nd4j::memory::MemoryRegistrator::getInstance()->hasWorkspaceAttached()) {
             nd4j::memory::Workspace* ws = nd4j::memory::MemoryRegistrator::getInstance()->getWorkspace();
@@ -33,6 +36,9 @@ namespace nd4j {
     }
 
     template<typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
     void NDArray<T>::operator delete(void* p) {
         if (!nd4j::memory::MemoryRegistrator::getInstance()->hasWorkspaceAttached()) {
             free(p);
@@ -40,6 +46,9 @@ namespace nd4j {
     }
 
     template <typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
     NDArray<T>* NDArray<T>::getView() {
         auto view = new NDArray<T>();
         view->_isView = true;
@@ -54,7 +63,11 @@ namespace nd4j {
 
 ////////////////////////////////////////////////////////////////////////
 // default constructor, do not allocate memory, memory for array is passed from outside 
-template <typename T> NDArray<T>::NDArray(T *buffer, int *shapeInfo, nd4j::memory::Workspace* workspace) {
+    template <typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
+    NDArray<T>::NDArray(T *buffer, int *shapeInfo, nd4j::memory::Workspace* workspace) {
     
     _buffer    = buffer;
     _shapeInfo = shapeInfo;
@@ -62,9 +75,13 @@ template <typename T> NDArray<T>::NDArray(T *buffer, int *shapeInfo, nd4j::memor
     _isShapeAlloc = false;
 
     _workspace = workspace;
-}
+    }
 
-template <typename T> NDArray<T>::NDArray(const Nd4jIndex length, const char order, nd4j::memory::Workspace* workspace) {
+template <typename T>
+#ifdef __CUDACC__
+__host__
+#endif
+NDArray<T>::NDArray(const Nd4jIndex length, const char order, nd4j::memory::Workspace* workspace) {
     if (length < 1)
         throw "Can't allocate non-positive number of elements";
     _workspace = workspace;
@@ -95,7 +112,11 @@ template <typename T> NDArray<T>::NDArray(const Nd4jIndex length, const char ord
 
 ////////////////////////////////////////////////////////////////////////
 // this constructor creates 2D NDArray, memory for array is allocated in this constructor 
-template <typename T> NDArray<T>::NDArray(const int rows, const int columns, const char order, nd4j::memory::Workspace* workspace) {
+template <typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
+    NDArray<T>::NDArray(const int rows, const int columns, const char order, nd4j::memory::Workspace* workspace) {
 
     Nd4jIndex length = rows * columns;
     int rank = 2;
@@ -134,7 +155,11 @@ template <typename T> NDArray<T>::NDArray(const int rows, const int columns, con
 
 ////////////////////////////////////////////////////////////////////////
 // creates new NDArray using shape information from "shape" array, set all elements in new array to be zeros
-template <typename T> NDArray<T>::NDArray(const int* shapeInfo, nd4j::memory::Workspace* workspace) {
+template <typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
+    NDArray<T>::NDArray(const int* shapeInfo, nd4j::memory::Workspace* workspace) {
    
     int arrLength = shape::length(const_cast<int*>(shapeInfo));
     int shapeLength = shape::shapeInfoLength(const_cast<int*>(shapeInfo));
@@ -158,6 +183,9 @@ template <typename T> NDArray<T>::NDArray(const int* shapeInfo, nd4j::memory::Wo
 
 ////////////////////////////////////////////////////////////////////////
     template<typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
     std::vector<T> NDArray<T>::getBufferAsVector() {
         std::vector<T> vector;
 
@@ -183,6 +211,9 @@ template <typename T> NDArray<T>::NDArray(const int* shapeInfo, nd4j::memory::Wo
     }
 
 template <typename T>
+#ifdef __CUDACC__
+__host__
+#endif
 NDArray<T>::NDArray(const NDArray<T> *other, nd4j::memory::Workspace* workspace) {
     int arrLength = shape::length(other->_shapeInfo);
     int shapeLength = shape::rank(other->_shapeInfo)*2 + 4;
@@ -206,7 +237,11 @@ NDArray<T>::NDArray(const NDArray<T> *other, nd4j::memory::Workspace* workspace)
 
 ////////////////////////////////////////////////////////////////////////
 // copy constructor
-template <typename T> NDArray<T>::NDArray(const NDArray<T>& other, nd4j::memory::Workspace* workspace)
+template <typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
+    NDArray<T>::NDArray(const NDArray<T>& other, nd4j::memory::Workspace* workspace)
 {
     int arrLength = shape::length(other._shapeInfo);
     int shapeLength = shape::rank(other._shapeInfo)*2 + 4;
@@ -230,7 +265,11 @@ template <typename T> NDArray<T>::NDArray(const NDArray<T>& other, nd4j::memory:
 
 ////////////////////////////////////////////////////////////////////////
 // this constructor creates new array using rank information contained in initializer_list argument
-template <typename T> NDArray<T>::NDArray(const char order, const std::initializer_list<int>& shape, nd4j::memory::Workspace* workspace) {
+template <typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
+    NDArray<T>::NDArray(const char order, const std::initializer_list<int>& shape, nd4j::memory::Workspace* workspace) {
     
     int rank = (int) shape.size();
 
@@ -278,7 +317,11 @@ template <typename T> NDArray<T>::NDArray(const char order, const std::initializ
 
 ////////////////////////////////////////////////////////////////////////
 // assignment operator
-template<typename T> NDArray<T>& NDArray<T>::operator=(const NDArray<T>& other) {
+template<typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
+    NDArray<T>& NDArray<T>::operator=(const NDArray<T>& other) {
 	if (this == &other) return *this;
 
     if (_shapeInfo != nullptr && _buffer != nullptr && shape::equalsStrict(_shapeInfo, other._shapeInfo))
@@ -306,6 +349,9 @@ template<typename T> NDArray<T>& NDArray<T>::operator=(const NDArray<T>& other) 
 }
 
 template <typename T>
+#ifdef __CUDACC__
+__host__
+#endif
 void NDArray<T>::replacePointers(T *buffer, int *shapeInfo, const bool releaseExisting ) {
     this->_buffer = buffer;
     this->_shapeInfo = shapeInfo;
@@ -322,6 +368,9 @@ void NDArray<T>::replacePointers(T *buffer, int *shapeInfo, const bool releaseEx
 
 
     template<typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
     NDArray<T>::NDArray(const char order, const std::vector<int> &shape, nd4j::memory::Workspace* workspace) {
 
         int rank = (int) shape.size();
@@ -362,6 +411,9 @@ void NDArray<T>::replacePointers(T *buffer, int *shapeInfo, const bool releaseEx
 
 // This method assigns values of given NDArray to this one, wrt order
     template<typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
     void NDArray<T>::assign(NDArray<T> *other) {
 
         if (other->lengthOf() != lengthOf())
@@ -388,7 +440,11 @@ void NDArray<T>::replacePointers(T *buffer, int *shapeInfo, const bool releaseEx
 
 ////////////////////////////////////////////////////////////////////////
 // This method returns new copy of this NDArray, optionally in different order
-template <typename T> NDArray<T>* NDArray<T>::dup(const char newOrder) {
+template <typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
+    NDArray<T>* NDArray<T>::dup(const char newOrder) {
     // op
     Nd4jIndex newLength = shape::length(_shapeInfo);
     T* newBuffer;
@@ -426,6 +482,9 @@ template <typename T> NDArray<T>* NDArray<T>::dup(const char newOrder) {
 
     template<typename T>
     template<typename OpName>
+#ifdef __CUDACC__
+    __host__
+#endif
     T NDArray<T>::varianceNumber(bool biasCorrected) {
         return functions::summarystats::SummaryStatsReduce<T>::template execScalar<OpName>(biasCorrected, this->getBuffer(), this->getShapeInfo(), nullptr);
     }
@@ -433,6 +492,9 @@ template <typename T> NDArray<T>* NDArray<T>::dup(const char newOrder) {
 
 // This method returns sum of all elements of this NDArray
     template<typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
     T NDArray<T>::sumNumber() const {
         return NativeOpExcutioner<T>::execReduceScalar(1, _buffer, _shapeInfo, nullptr);
     }
@@ -440,6 +502,9 @@ template <typename T> NDArray<T>* NDArray<T>::dup(const char newOrder) {
 
 // This method returns mean number of this NDArray
     template<typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
     T NDArray<T>::meanNumber() const {
         return NativeOpExcutioner<T>::execReduceScalar(0, _buffer, _shapeInfo, nullptr);
     }
@@ -447,6 +512,9 @@ template <typename T> NDArray<T>* NDArray<T>::dup(const char newOrder) {
 
 // method calculates sum along dimension(s) in this array and save it to row: as new NDArray with dimensions 1xN
     template<typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
     NDArray<T> *NDArray<T>::sum(const std::initializer_list<int> &dimensions) const {        
             
         return reduceAlongDimension<simdOps::Sum<T>>(dimensions);
@@ -471,6 +539,9 @@ template <typename T> NDArray<T>* NDArray<T>::dup(const char newOrder) {
 // eventually this method reduces this array to 1xN row
     template<typename T>
     template<typename OpName>
+#ifdef __CUDACC__
+    __host__
+#endif
     NDArray<T> *NDArray<T>::reduceAlongDimension(const std::vector<int>& dimensions) const {
         
         std::vector<int> copy(dimensions);
@@ -497,6 +568,9 @@ template <typename T> NDArray<T>* NDArray<T>::dup(const char newOrder) {
 // eventually this method reduces this array to 1xN row
     template<typename T>
     template<typename OpName>
+#ifdef __CUDACC__
+    __host__
+#endif
     NDArray<T> *NDArray<T>::reduceAlongDimension(const std::initializer_list<int>& dimensions) const {
 		        
         return reduceAlongDimension<OpName>(std::vector<int>(dimensions));
@@ -506,6 +580,9 @@ template <typename T> NDArray<T>* NDArray<T>::dup(const char newOrder) {
 //
     template<typename T>
     template<typename OpName>
+#ifdef __CUDACC__
+    __host__
+#endif
     T NDArray<T>::reduceNumber(T *extraParams) {
         return functions::reduce::ReduceFunction<T>::template execScalar<OpName>(_buffer, _shapeInfo, extraParams);
     }
@@ -513,6 +590,9 @@ template <typename T> NDArray<T>* NDArray<T>::dup(const char newOrder) {
 // perform array transformation
     template<typename T>
     template<typename OpName>
+#ifdef __CUDACC__
+    __host__
+#endif
     void NDArray<T>::applyTransform(NDArray<T> *target, T *extraParams) {
         functions::transform::Transform<T>::template exec<OpName>(this->_buffer, this->_shapeInfo, target->_buffer,
                                                                   target->_shapeInfo, extraParams, nullptr, nullptr);
@@ -521,6 +601,9 @@ template <typename T> NDArray<T>* NDArray<T>::dup(const char newOrder) {
 // perform array transformation
     template<typename T>
     template<typename OpName>
+#ifdef __CUDACC__
+    __host__
+#endif
     void NDArray<T>::applyTransform(T *extraParams) {
         applyTransform<OpName>(this, extraParams);
     }
@@ -535,6 +618,9 @@ template <typename T> NDArray<T>* NDArray<T>::dup(const char newOrder) {
 // perform pairwise transformation
     template<typename T>
     template<typename OpName>
+#ifdef __CUDACC__
+    __host__
+#endif
     void NDArray<T>::applyPairwiseTransform(NDArray<T> *other, NDArray<T> *target, T *extraParams) {
         if (other->lengthOf() != target->lengthOf())
             throw std::invalid_argument("NDArray::applyPairwiseTransform method - lengths of arrays are mismatched");
@@ -547,12 +633,18 @@ template <typename T> NDArray<T>* NDArray<T>::dup(const char newOrder) {
 
 
     template <typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
     Nd4jIndex NDArray<T>::tensorsAlongDimension(std::initializer_list<int> dimensions) const {
 
         return tensorsAlongDimension(std::vector<int>(dimensions));
     }
 
     template <typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
     Nd4jIndex NDArray<T>::tensorsAlongDimension(const std::vector<int>& dimensions) const {
         
         std::vector<int> copy(dimensions);
@@ -565,6 +657,9 @@ template <typename T> NDArray<T>* NDArray<T>::dup(const char newOrder) {
     }
 
     template <typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
     NDArray<T>* NDArray<T>::tensorAlongDimension(int index, const std::initializer_list<int>& dimensions) const {
 
         return tensorAlongDimension(index, std::vector<int>(dimensions));
@@ -573,6 +668,9 @@ template <typename T> NDArray<T>* NDArray<T>::dup(const char newOrder) {
 
 
     template <typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
     void NDArray<T>::printBuffer(const char* msg, int limit) {
         if (limit == -1)
             limit = (int) this->lengthOf();
@@ -591,6 +689,9 @@ template <typename T> NDArray<T>* NDArray<T>::dup(const char newOrder) {
     }
 
     template <typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
     void NDArray<T>::printIndexedBuffer(const char* msg, int limit) {
         if (limit == -1)
             limit = (int) this->lengthOf();
@@ -609,6 +710,9 @@ template <typename T> NDArray<T>* NDArray<T>::dup(const char newOrder) {
     }
 
     template <typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
     NDArray<T>* NDArray<T>::tensorAlongDimension(int index, const std::vector<int>& dimensions) const {
         
         std::vector<int> copy(dimensions);
@@ -643,7 +747,11 @@ template <typename T> NDArray<T>* NDArray<T>::dup(const char newOrder) {
     }
 
 // method makes copy of this array and applies to the copy the transpose operation, this array remains unaffected 
-template <typename T> NDArray<T>* NDArray<T>::transpose() const {
+template <typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
+    NDArray<T>* NDArray<T>::transpose() const {
     int *rearrange = new int[rankOf()];
     int cnt = 0;
     for (int d = rankOf() - 1; d >= 0; d--) {
@@ -680,7 +788,11 @@ template <typename T> NDArray<T>* NDArray<T>::transpose() const {
 
 ////////////////////////////////////////////////////////////////////////
 // This method applies in-place transpose to this array, so this array becomes transposed 
-template <typename T> void NDArray<T>::transposei() {
+template <typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
+    void NDArray<T>::transposei() {
     
     int *rearrange = new int[rankOf()];
     int cnt = 0;
@@ -716,6 +828,9 @@ template <typename T> void NDArray<T>::transposei() {
 
 // This method returns true if two arrays are equal, with custom or default Eps value of 1e-5, false otherwise
     template<typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
     bool NDArray<T>::equalsTo(const NDArray<T> *other, T eps) const {
 
         if (lengthOf() != other->lengthOf())
@@ -741,6 +856,9 @@ template <typename T> void NDArray<T>::transposei() {
 
 // Return value from linear buffer
     template<typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
     T NDArray<T>::getScalar(const Nd4jIndex i) const {
 
         // throw something right here
@@ -751,6 +869,9 @@ template <typename T> void NDArray<T>::transposei() {
     }
 
     template<typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
     T NDArray<T>::getIndexedScalar(const Nd4jIndex i)  {
         // throw something right here
         if (i >= shape::length(_shapeInfo))
@@ -765,6 +886,9 @@ template <typename T> void NDArray<T>::transposei() {
     }
 
     template<typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
     void NDArray<T>::putIndexedScalar(const Nd4jIndex i, const T value)  {
         // throw something right here
         if (i >= shape::length(_shapeInfo))
@@ -779,6 +903,9 @@ template <typename T> void NDArray<T>::transposei() {
 
 // Returns value from 2D matrix by coordinates/indexes 
     template<typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
     T NDArray<T>::getScalar(const int i, const int j) const {
         // throw something here
         if (rankOf() != 2)
@@ -793,6 +920,9 @@ template <typename T> void NDArray<T>::transposei() {
 
 // Returns value from 3D tensor by coordinates
     template<typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
     T NDArray<T>::getScalar(const int i, const int j, const int k) const {
         // throw something here
         if (rankOf() != 3)
@@ -808,6 +938,9 @@ template <typename T> void NDArray<T>::transposei() {
 
 // This method sets value in linear buffer to position i
     template<typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
     void NDArray<T>::putScalar(const Nd4jIndex i, const T value) {
         // throw something right here
         if (i >= shape::length(_shapeInfo))
@@ -819,6 +952,9 @@ template <typename T> void NDArray<T>::transposei() {
 
 // This method sets value in 2D matrix to position i, j 
     template<typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
     void NDArray<T>::putScalar(const int i, const int j, const T value) {
         // throw something here
         if (rankOf() != 2)
@@ -832,6 +968,9 @@ template <typename T> void NDArray<T>::transposei() {
 
 // This method sets value in 3D matrix to position i,j,k
     template<typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
     void NDArray<T>::putScalar(const int i, const int j, const int k, const T value) {
         // throw something here
         if (rankOf() != 3)
@@ -848,6 +987,9 @@ template <typename T> void NDArray<T>::transposei() {
 // accessing operator for matrix, i - absolute index
 // be careful this method doesn't check the boundaries of array
 template<typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
 T NDArray<T>::operator()(const Nd4jIndex i) const {    
     return _buffer[i];
 }
@@ -856,6 +998,9 @@ T NDArray<T>::operator()(const Nd4jIndex i) const {
 // modifying operator for matrix, i - absolute index
 // be careful this method doesn't check the boundaries of array
 template<typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
 T& NDArray<T>::operator()(const Nd4jIndex i) {
     return _buffer[i];
 }
@@ -864,6 +1009,9 @@ T& NDArray<T>::operator()(const Nd4jIndex i) {
 // accessing operator for 2D matrix, i - row, j - column
 // be careful this method doesn't check the rank of array
 template<typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
 T NDArray<T>::operator()(const int i, const int j) const {
 
     int coords[2] = {i, j};
@@ -875,6 +1023,9 @@ T NDArray<T>::operator()(const int i, const int j) const {
 // modifying operator for 2D matrix, i - row, j - column
 // be careful this method doesn't check the rank of array
 template<typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
 T& NDArray<T>::operator()(const int i, const int j) {
 
 	int coords[2] = {i, j};
@@ -884,6 +1035,9 @@ T& NDArray<T>::operator()(const int i, const int j) {
 
 //////////////////////////////////////////////////////////////////////////
 template<typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
     void NDArray<T>::addRowVector(const NDArray<T> *row, NDArray<T>* target) {
         if (rankOf() != 2 || target->rankOf() != 2 || rows() != target->rows() || columns() != target->columns() || !row->isRowVector() || columns() != row->columns())
             throw std::invalid_argument("NDArray::addRowVector: wrong arguments !");
@@ -901,6 +1055,9 @@ template<typename T>
 
 //////////////////////////////////////////////////////////////////////////
 template<typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
     void NDArray<T>::subRowVector(const NDArray<T> *row, NDArray<T>* target) {
         if (rankOf() != 2 || target->rankOf() != 2 || rows() != target->rows() || columns() != target->columns() || !row->isRowVector() || columns() != row->columns())
             throw std::invalid_argument("NDArray::subRowVector: wrong arguments !");
@@ -918,6 +1075,9 @@ template<typename T>
 
 //////////////////////////////////////////////////////////////////////////
     template<typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
     void NDArray<T>::mulRowVector(const NDArray<T> *row, NDArray<T>* target) {
         if (rankOf() != 2 || target->rankOf() != 2 || rows() != target->rows() || columns() != target->columns() || !row->isRowVector() || columns() != row->columns())
             throw std::invalid_argument("NDArray::divRowVector: wrong arguments !");
@@ -936,6 +1096,9 @@ template<typename T>
 
 //////////////////////////////////////////////////////////////////////////
     template<typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
     void NDArray<T>::divRowVector(const NDArray<T> *row, NDArray<T>* target) {
         if (rankOf() != 2 || target->rankOf() != 2 || rows() != target->rows() || columns() != target->columns() || !row->isRowVector() || columns() != row->columns())
             throw std::invalid_argument("NDArray::divRowVector: wrong arguments !");
@@ -955,6 +1118,9 @@ template<typename T>
 //////////////////////////////////////////////////////////////////////////
 // This method adds given row to all rows in this NDArray, this array becomes affected
     template<typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
     void NDArray<T>::addiRowVector(const NDArray<T> *row) {
     if (rankOf() != 2 || !row->isRowVector() || columns() != row->columns())
         throw std::invalid_argument("NDArray::addiRowVector: wrong arguments !");
@@ -973,6 +1139,9 @@ template<typename T>
 //////////////////////////////////////////////////////////////////////////
 // This method adds given column to all columns in this NDArray, this array becomes affected
     template<typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
     void NDArray<T>::addiColumnVector(const NDArray<T> *column) {
         if (rankOf() != 2 || !column->isColumnVector() || rows() != column->rows())
             throw std::invalid_argument("NDArray::addiColumnVector: wrong arguments !");
@@ -991,6 +1160,9 @@ template<typename T>
 //////////////////////////////////////////////////////////////////////////
 // This method multiplies each column of this array by given argument-column, this array becomes affected
     template<typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
     void NDArray<T>::muliColumnVector(const NDArray<T> *column) {
         if (rankOf() != 2 || !column->isColumnVector() || rows() != column->rows())
             throw std::invalid_argument("NDArray::muliColumnVector: wrong arguments !");
@@ -1009,6 +1181,9 @@ template<typename T>
 
     template<typename T>
     template<typename OpName>
+#ifdef __CUDACC__
+    __host__
+#endif
     void NDArray<T>::applyScalar(T scalar, NDArray<T>* target, T *extraParams) {
 
         if (target == nullptr)
@@ -1019,6 +1194,9 @@ template<typename T>
 
     template<typename T>
     template<typename OpName>
+#ifdef __CUDACC__
+    __host__
+#endif
     void NDArray<T>::applyScalar(NDArray<T>& scalar, NDArray<T>* target, T *extraParams) {
         if (!scalar.isScalar()) {
             throw "Operand is not a scalar!";
@@ -1030,7 +1208,11 @@ template<typename T>
 
 //////////////////////////////////////////////////////////////////////////
 // calculate strides 
-template <typename T> void NDArray<T>::updateStrides(const char order) {
+template <typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
+    void NDArray<T>::updateStrides(const char order) {
 	
 	int rank = rankOf();	
 	int doubleRank = 2*rank;
@@ -1052,7 +1234,11 @@ template <typename T> void NDArray<T>::updateStrides(const char order) {
 
 //////////////////////////////////////////////////////////////////////////
 // set new order and shape in case of suitable array length 
-template <typename T> bool NDArray<T>::reshapei(const char order, const std::initializer_list<int>& shape) {
+template <typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
+    bool NDArray<T>::reshapei(const char order, const std::initializer_list<int>& shape) {
         std::vector<int> vShape(shape);
         return reshapei(order, vShape);
 /*
@@ -1091,7 +1277,11 @@ template <typename T> bool NDArray<T>::reshapei(const char order, const std::ini
 
 //////////////////////////////////////////////////////////////////////////
 // set new order and shape in case of suitable array length 
-template <typename T> bool NDArray<T>::reshapei(const char order, const std::vector<int>& cshape) {
+template <typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
+    bool NDArray<T>::reshapei(const char order, const std::vector<int>& cshape) {
 
     std::vector<int> shape(cshape);
     int rank = shape.size();
@@ -1206,6 +1396,9 @@ template <typename T> bool NDArray<T>::reshapei(const char order, const std::vec
 
 //////////////////////////////////////////////////////////////////////////
 template <typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
     Nd4jIndex NDArray<T>::argMax(std::initializer_list<int> dimensions) {
         if (dimensions.size() == 0) {
             Nd4jIndex max = 0;
@@ -1225,7 +1418,11 @@ template <typename T>
 
 //////////////////////////////////////////////////////////////////////////
 // create new array with corresponding order and shape, new array will point to the same _buffer as this array
-template <typename T> NDArray<T>* NDArray<T>::reshape(const char order, const std::vector<int>& shape) {
+template <typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
+    NDArray<T>* NDArray<T>::reshape(const char order, const std::vector<int>& shape) {
 	int shapeInfoLength = shape::shapeInfoLength(rankOf());
 	int* newShapeInfo = nullptr;
 
@@ -1242,7 +1439,11 @@ template <typename T> NDArray<T>* NDArray<T>::reshape(const char order, const st
 
 //////////////////////////////////////////////////////////////////////////
 // change an array by repeating it the number of times given by reps.
-template <typename T> void NDArray<T>::tilei(const std::vector<int>& reps) {
+template <typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
+    void NDArray<T>::tilei(const std::vector<int>& reps) {
 	// check whether reps contains at least one zero (then throw exception) or whether all elements in reps are unities (then simply reshape or do nothing)
 	int dim = reps.size();	
 	int product = 1;
@@ -1330,6 +1531,9 @@ template <typename T> void NDArray<T>::tilei(const std::vector<int>& reps) {
 }
 
     template<typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
     int NDArray<T>::sizeAt(int dim) {
         if (dim >= this->rankOf() || dim < -this->rankOf())
             throw "Bad size index requested";
@@ -1343,7 +1547,11 @@ template <typename T> void NDArray<T>::tilei(const std::vector<int>& reps) {
 
 //////////////////////////////////////////////////////////////////////////
 // change an array by repeating it the number of times given by reps
-template<typename T> NDArray<T>* NDArray<T>::repeat(int dimension, const std::vector<int>& repeats) {
+template<typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
+    NDArray<T>* NDArray<T>::repeat(int dimension, const std::vector<int>& repeats) {
 
     if (dimension < 0)
         dimension += this->rankOf();
@@ -1401,6 +1609,9 @@ template<typename T> NDArray<T>* NDArray<T>::repeat(int dimension, const std::ve
 
 //////////////////////////////////////////////////////////////////////////
 template <typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
 bool NDArray<T>::permutei(const int* dimensions, const int rank) {
 
     if(_buffer==nullptr || rank != rankOf())
@@ -1422,6 +1633,9 @@ bool NDArray<T>::permutei(const int* dimensions, const int rank) {
 
 //////////////////////////////////////////////////////////////////////////
 template <typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
 bool NDArray<T>::permutei(const std::initializer_list<int>& dimensions) {
     std::vector<int> vec(dimensions);
     return permutei(vec);
@@ -1429,6 +1643,9 @@ bool NDArray<T>::permutei(const std::initializer_list<int>& dimensions) {
 
 //////////////////////////////////////////////////////////////////////////
 template <typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
 bool NDArray<T>::permutei(const std::vector<int>& dimensions) {
     return permutei(dimensions.data(), dimensions.size());
 }
@@ -1436,6 +1653,9 @@ bool NDArray<T>::permutei(const std::vector<int>& dimensions) {
 
 //////////////////////////////////////////////////////////////////////////
 template <typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
 NDArray<T>* NDArray<T>::permute(const int* dimensions, const int rank) {
 
     if (_buffer==nullptr || rank != rankOf())
@@ -1469,6 +1689,9 @@ NDArray<T>* NDArray<T>::permute(const int* dimensions, const int rank) {
 
 //////////////////////////////////////////////////////////////////////////
 template <typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
 NDArray<T>* NDArray<T>::permute(const std::vector<int>& dimensions) {
     return permute(dimensions.data(), dimensions.size());
 }
@@ -1476,6 +1699,9 @@ NDArray<T>* NDArray<T>::permute(const std::vector<int>& dimensions) {
 
 //////////////////////////////////////////////////////////////////////////
 template <typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
 NDArray<T>* NDArray<T>::permute(const std::initializer_list<int>& dimensions) {
     std::vector<int> vec(dimensions);
     return permute(vec);
@@ -1484,7 +1710,11 @@ NDArray<T>* NDArray<T>::permute(const std::initializer_list<int>& dimensions) {
 
 //////////////////////////////////////////////////////////////////////////
 // tile an array by repeating it the number of times given by reps.
-template<typename T> NDArray<T>* NDArray<T>::tile(const std::vector<int>& reps) {
+template<typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
+    NDArray<T>* NDArray<T>::tile(const std::vector<int>& reps) {
 	// check whether reps contains at least one zero (then throw exception) or whether all elements in reps are unities (then simply reshape or do nothing)
 	if(std::find(reps.begin(), reps.end(), 0) != reps.end())
 	    throw "Tile method: one of the elements in reps array is zero !";
@@ -1571,6 +1801,9 @@ template<typename T> NDArray<T>* NDArray<T>::tile(const std::vector<int>& reps) 
 
     template<typename T>
     template<typename OpName>
+#ifdef __CUDACC__
+    __host__
+#endif
     void NDArray<T>::applyBroadcast(std::initializer_list<int> dimensions, NDArray<T>* tadArray, NDArray<T>* target, T* extraArgs) {
         std::vector<int> vec(dimensions);
         applyBroadcast<OpName>(vec, tadArray, target, extraArgs);
@@ -1579,6 +1812,9 @@ template<typename T> NDArray<T>* NDArray<T>::tile(const std::vector<int>& reps) 
 
     template<typename T>
     template<typename OpName>
+#ifdef __CUDACC__
+    __host__
+#endif
     void NDArray<T>::applyBroadcast(std::vector<int>& dimensions, NDArray<T>* tadArray, NDArray<T>* target, T* extraArgs) {
         if (dimensions.size() == 0)
             return;
@@ -1605,6 +1841,9 @@ template<typename T> NDArray<T>* NDArray<T>::tile(const std::vector<int>& reps) 
 //////////////////////////////////////////////////////////////////////////
 // return array which is broadcasted from this and argument array  
 template<typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
 NDArray<T>* NDArray<T>::broadcast(const NDArray<T>& other) {	
 	// the orders must be the same
 	char order = ordering();
@@ -1649,6 +1888,9 @@ NDArray<T>* NDArray<T>::broadcast(const NDArray<T>& other) {
 //////////////////////////////////////////////////////////////////////////
 // check whether array's rows (arg=0) or columns (arg=1) create orthogonal basis
 template<typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
 bool NDArray<T>::hasOrthonormalBasis(const int arg) {
 
 	if(rankOf() !=2 )
@@ -1699,6 +1941,9 @@ bool NDArray<T>::hasOrthonormalBasis(const int arg) {
 //////////////////////////////////////////////////////////////////////////
 // check whether array is identity matrix
 template<typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
 bool NDArray<T>::isIdentityMatrix() {
 	if(rankOf() !=2 || rows() != columns())
 		throw "isIdentityMatrix method: matrix must be square and have rank = 2 !";
@@ -1718,6 +1963,9 @@ bool NDArray<T>::isIdentityMatrix() {
 //////////////////////////////////////////////////////////////////////////
 // check whether array is unitary matrix
 template<typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
 bool NDArray<T>::isUnitary() {
 
 	if(rankOf() !=2 || rows() != columns())
@@ -1739,6 +1987,9 @@ matrix of singular values W is output as a vector w[n].  The matrix vt is output
 *******************************************************************************/
 // compute (a2 + b2)^1/2 without destructive underflow or overflow
 template<typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
 T pythag (T a, T b) {
     T absa, absb;
     absa = fabs(a);
@@ -1749,6 +2000,9 @@ T pythag (T a, T b) {
 
 
 template<typename T>
+#ifdef __CUDACC__
+__host__
+#endif
 void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
 {
     if(rankOf() !=2 || w.rankOf() !=2 || vt.rankOf() !=2)
@@ -1947,6 +2201,9 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
 
     ////////////////////////////////////////////////////////////////////////
     template<typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
     NDArray<T>* NDArray<T>::subarray(IndicesList& idx) {
         if (idx.size() != this->rankOf())
             throw "Number of indices should match";
@@ -1985,6 +2242,9 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
     ////////////////////////////////////////////////////////////////////////
     // evaluate resulting shape after reduce operation
     template<typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
     int* NDArray<T>::evalReduceShapeInfo(const char order, std::vector<int>& dimensions) const {
         
         int rank = rankOf();
@@ -2031,6 +2291,9 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
     // reduce dimensions in this array relying on index operations
     template<typename T>
     template<typename OpName>
+#ifdef __CUDACC__
+    __host__
+#endif
     NDArray<T>* NDArray<T>::applyIndexReduce(const std::vector<int>& dimensions, const T* extraParams ) const {
         
         std::vector<int> copy(dimensions);
@@ -2058,6 +2321,9 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
     // apply reduce3 operations to this and other array, return result in new output array
     template<typename T>
     template<typename OpName>
+#ifdef __CUDACC__
+    __host__
+#endif
     NDArray<T>* NDArray<T>::applyReduce3(const NDArray<T>* other, const T* extraParams) const {
         // check shapes consistency
         if(!isSameShape(other))
@@ -2090,6 +2356,9 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
     // apply reduce3 (execAll) operations to this and other array, return result in new output array
     template<typename T>
     template<typename OpName>
+#ifdef __CUDACC__
+    __host__
+#endif
     NDArray<T>*  NDArray<T>::applyAllReduce3(const NDArray<T>* other, const std::vector<int>& dimensions, const T* extraParams) const {
         // be careful, copy array may undergo changes (sort, transformation of negative dimensions to positive, duplicates removing )
         std::vector<int> copy(dimensions);
@@ -2140,6 +2409,9 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
     // apply reduce3 (exec) operations to this and other array, return result in new output array
     template<typename T>
     template<typename OpName>
+#ifdef __CUDACC__
+    __host__
+#endif
     NDArray<T>* NDArray<T>::applyReduce3(const NDArray<T>* other, const std::vector<int>& dimensions, const T* extraParams) const {
         
         std::vector<int> copy(dimensions);
@@ -2179,6 +2451,9 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
     ////////////////////////////////////////////////////////////////////////
     template<typename T>
     template<typename OpName>
+#ifdef __CUDACC__
+    __host__
+#endif
     NDArray<T>* NDArray<T>::varianceAlongDimension(const bool biasCorrected, const std::vector<int>& dimensions) const {
     
         std::vector<int> copy(dimensions);
@@ -2199,6 +2474,9 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
     ////////////////////////////////////////////////////////////////////////
     template<typename T>
     template<typename OpName>
+#ifdef __CUDACC__
+    __host__
+#endif
     NDArray<T>* NDArray<T>::varianceAlongDimension(const bool biasCorrected, const std::initializer_list<int>& dimensions) const {
     
         return varianceAlongDimension<OpName>(biasCorrected, std::vector<int>(dimensions));
@@ -2207,6 +2485,9 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
     ////////////////////////////////////////////////////////////////////////
     // default destructor
     template<typename T>
+#ifdef __CUDACC__
+    __host__
+#endif
     NDArray<T>::~NDArray() {
         if (_isBuffAlloc && _workspace == nullptr && !_isView && _buffer != nullptr)
             delete[] _buffer;
