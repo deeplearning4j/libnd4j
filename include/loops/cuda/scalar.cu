@@ -7,9 +7,7 @@
 
 #ifdef __CUDACC__
 
-namespace functions {
-    namespace scalar {
-                    /**
+     /**
 	 * Cuda implementation of transform
 	 * @param dx
 	 * @param xShapeInfo
@@ -228,8 +226,6 @@ template<typename OpType>
 			UnifiedSharedMemory *manager) {
                     DISPATCH_BY_OPNUM(transformCuda, PARAMS(n, dx, dy, incy, params, result, resultStride, allocationBuffer, manager), SCALAR_OPS);
 		}
-    }
-}
 
 
 #endif // CUDA_CC
