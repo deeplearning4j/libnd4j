@@ -507,6 +507,8 @@ namespace nd4j {
                     pushToOutputOnce(ext->at(e)->id());
                 }
             }
+
+            return ND4J_STATUS_OK;
         }
 
         template <typename T>

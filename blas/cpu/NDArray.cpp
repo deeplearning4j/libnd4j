@@ -78,7 +78,7 @@ template <typename T> NDArray<T>::NDArray(const Nd4jIndex length, const char ord
     // todo make this optional
     memset(_buffer, 0, length * sizeOfT());              // set all elements in new array to be zeros
 
-    std::unique_ptr<int> shape(new int[2] {1, length});
+    std::unique_ptr<int> shape(new int[2] {1, (int) length});
 
     if (order == 'f') {
         _shapeInfo = shape::shapeBufferFortran(2, shape.get());
