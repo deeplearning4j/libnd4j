@@ -3,10 +3,11 @@
 
 #include <op_boilerplate.h>
 #include <helpers/TAD.h>
+#include <types/float16.h>
 #include <loops/scalar.h>
 #include <loops/pairwise_transform.h>
 #include "../grid.h"
-#include <types/float16.h>
+
 
 
 #define GRID_WIDTH 19 // number of pointers within single grid row

@@ -16,6 +16,7 @@
 #include <ops/ops.h>
 #include <op_boilerplate.h>
 #include "helpers/logger.h"
+#include <helper_cuda.h>
 
 #ifdef __CUDACC__
 #include <cuda.h>
@@ -56,7 +57,34 @@ namespace functions {
         public:
 
 #ifdef __CUDACC__
-#include "cuda/scalar.cu"
+            __host__
+            static void executeCudaStrided(dim3& launchDims, Nd4jPointer *extraPointers, int opNum, T *x, int xStride, T *result, int resultStride, T scalar, T *extraParams, Nd4jIndex n);
+
+            __host__
+            static void executeCudaShaped(dim3& launchDims, Nd4jPointer *extraPointers, int opNum, T *x, int *xShapeInfo, T *result, int *resultShapeInfo, T scalar, T *extraParams);
+
+            __host__
+            static void executeCudaAlongDimension(dim3& launchDims, Nd4jPointer *extraPointers,int opNum, T *x, int *xShapeInfo, T *z, int *zShapeInfo, T *scalars, T *extraParams, int *dimension, int dimensionLength);
+
+
+            template<typename OpType>
+            __device__
+            static void transformCuda(T *x, int *xShapeInfo, T *extraParams, T *z, int *zShapeInfo, T *scalars, int *dimension, int dimensionLength, int *tadShapeInfo, Nd4jIndex *tadOffsets, int *tadShapeInfoZ, Nd4jIndex *tadOffsetsZ);
+
+            template<typename OpType>
+            __device__
+            static void transformCuda(T scalar, T *dy, int *shapeInfo, T *params, T *result, int *resultShapeInfo, int *allocationBuffer, UnifiedSharedMemory *manager);
+
+
+            template<typename OpType>
+            __device__
+            static void transform(Nd4jIndex n, T scalar, T *dy, T *params, T *result, int *indexes, int *allocationBuffer, UnifiedSharedMemory *manager);
+
+
+            template<typename OpType>
+            __device__
+	        static void transformCuda(Nd4jIndex n, T dx, T *dy, int incy, T *params, T *result, int resultStride, int *allocationBuffer, UnifiedSharedMemory *manager);
+
 #endif
             template <typename OpType>
             static void transform(T *x, int *xShapeInfo, T *extraParams, T *z, int *zShapeInfo, T *scalars, int *dimension, int dimensionLength, int *tadShapeInfo, Nd4jIndex *tadOffsets, int *tadShapeInfoZ, Nd4jIndex *tadOffsetsZ);
@@ -128,9 +156,5 @@ namespace functions {
         };
     }
 }
-
-#ifdef __CUDACC__
-#include "cuda/scalar.kernels"
-#endif
 
 #endif /* SCALAR_H_ */
