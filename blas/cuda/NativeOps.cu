@@ -33,6 +33,7 @@
 #include <loops/grid.h>
 #include <loops/aggregates.h>
 #include <helpers/threshold.h>
+#include <ShapeList.h>
 #include <Block.h>
 #include <ops/specials_cuda.h>
 
@@ -6906,8 +6907,8 @@ const char* NativeOps::getAllCustomOps() {
 
 template<typename T>
 Nd4jPointer* _calculateOutputShapes(Nd4jPointer* extraPointers, nd4j::ops::DeclarableOp<T>* op, Nd4jPointer* inputShapes, int numInputShapes, T* tArgs, int numTArgs, int *iArgs, int numIArgs) {
-	Block<T> block(1);
-	ShapeList inShapes;
+    nd4j::graph::Block<T> block(1);
+	nd4j::ShapeList inShapes;
 
 	for (int e = 0; e < numIArgs; e++)
 		block.getIArguments()->push_back(iArgs[e]);
