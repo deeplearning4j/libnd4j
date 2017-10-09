@@ -3,6 +3,9 @@
 //
 
 #include "testlayers.h"
+#include <layers/layers_factory.h>
+#include <layers/layers.h>
+#include <layers/generic/available.h>
 #include <layers/generic/DenseLayer.h>
 
 class DenseLayerInputTest : public testing::Test {

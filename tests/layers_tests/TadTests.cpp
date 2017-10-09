@@ -9,6 +9,8 @@
 #include <NDArray.h>
 #include <NDArrayFactory.h>
 
+using namespace nd4j;
+
 class TadTests : public testing::Test {
 public:
     int numLoops = 100000000;

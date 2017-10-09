@@ -10,6 +10,7 @@
 #include <graph/Graph.h>
 #include <NDArray.h>
 
+using namespace nd4j;
 using namespace nd4j::graph;
 
 class VariableSpaceTest : public testing::Test {

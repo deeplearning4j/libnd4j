@@ -10,6 +10,7 @@
 #include <Workspace.h>
 #include <MemoryRegistrator.h>
 
+using namespace nd4j;
 using namespace nd4j::memory;
 
 class WorkspaceTests : public testing::Test {

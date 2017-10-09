@@ -14,6 +14,7 @@
 #include <NativeOps.h>
 #include <ops/gemm.h>
 
+using namespace nd4j;
 using namespace nd4j::graph;
 
 class DeclarableOpsTests : public testing::Test {

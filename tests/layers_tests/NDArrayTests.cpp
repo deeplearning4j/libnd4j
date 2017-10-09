@@ -4,8 +4,10 @@
 
 #include "testlayers.h"
 #include <memory>
+#include <NDArray.h>
 #include <NDArrayFactory.h>
-#include <cpu/NDArrayFactory.cpp>
+
+using namespace nd4j;
 
 //////////////////////////////////////////////////////////////////////
 class NDArrayTest : public testing::Test {

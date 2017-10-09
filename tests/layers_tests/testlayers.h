@@ -15,9 +15,6 @@
 #include <ops/ops.h>
 #include <helpers/shape.h>
 #include <ops/gemm.h>
-#include <layers/layers_factory.h>
-#include <layers/layers.h>
-#include <layers/generic/available.h>
 #include <GraphExecutioner.h>
 #include <gtest/gtest.h>
 

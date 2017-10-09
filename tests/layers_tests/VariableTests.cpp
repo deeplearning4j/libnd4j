@@ -6,8 +6,10 @@
 #define LIBND4J_VARIABLETESTS_H
 
 #include "testlayers.h"
+#include <NDArray.h>
 #include <graph/Variable.h>
 
+using namespace nd4j;
 using namespace nd4j::graph;
 
 class VariableTests : public testing::Test {

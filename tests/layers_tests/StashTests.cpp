@@ -5,9 +5,12 @@
 #ifndef LIBND4J_STASHTESTS_H
 #define LIBND4J_STASHTESTS_H
 
+#include <NDArray.h>
 #include "testlayers.h"
+#include <NDArrayFactory.h>
 #include <graph/Stash.h>
 
+using namespace nd4j;
 using namespace nd4j::graph;
 
 class StashTests : public testing::Test {

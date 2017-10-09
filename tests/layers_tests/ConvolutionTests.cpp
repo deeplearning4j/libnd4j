@@ -14,6 +14,7 @@
 #include <NDArrayFactory.h>
 #include <ops/declarable/CustomOperations.h>
 
+using namespace nd4j;
 using namespace nd4j::graph;
 
 class ConvolutionTests : public testing::Test {

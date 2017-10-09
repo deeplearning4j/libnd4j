@@ -12,6 +12,7 @@
 #include <ops/declarable/DeclarableOp.h>
 #include <ops/declarable/generic/parity_ops.cpp>
 
+using namespace nd4j;
 using namespace nd4j::graph;
 
 class GraphTests : public testing::Test {

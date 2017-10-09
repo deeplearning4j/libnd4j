@@ -11,6 +11,7 @@
 #include <graph/Graph.h>
 #include <GraphExecutioner.h>
 
+using namespace nd4j;
 using namespace nd4j::graph;
 
 class FlatBuffersTest : public testing::Test {
@@ -52,7 +53,7 @@ TEST_F(FlatBuffersTest, BasicTest1) {
 TEST_F(FlatBuffersTest, FlatGraphTest1) {
     flatbuffers::FlatBufferBuilder builder(4096);
 
-    NDArray<float> *array = new NDArray<float>(5, 5, 'c');
+    auto array = new NDArray<float>(5, 5, 'c');
     array->assign(-2.0f);
 
     auto fShape = builder.CreateVector(array->getShapeAsVector());
@@ -320,6 +321,8 @@ TEST_F(FlatBuffersTest, ReadInception1) {
     nd4j_printf("Probability: %f\n", lastNode->getScalar(argMax));
     nd4j_printf("Probability ipod: %f\n", lastNode->getScalar(980));
     lastNode->printBuffer("Whole output");
+
+    ASSERT_EQ(561, (int) argMax);
 
     delete graph;
 }
