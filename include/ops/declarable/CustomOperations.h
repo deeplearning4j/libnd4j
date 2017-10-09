@@ -91,8 +91,9 @@ namespace nd4j {
         DECLARE_CONFIGURABLE_OP(maxpool3d, 1, 2, true, 0, 13); // make this one custom
         DECLARE_CONFIGURABLE_OP(ismax, 1, 1, false, 0, -1);
 
-
         DECLARE_CONFIGURABLE_OP(firas_sparse, 1, 1, false, 0, -1);
+        DECLARE_CONFIGURABLE_OP(sru, 3, 2, true, 0, 0);
+        
     }
 }
 
