@@ -1321,7 +1321,7 @@ namespace nd4j {
 
             return ND4J_STATUS_OK;
         }
-    
+
 
     }
 }
