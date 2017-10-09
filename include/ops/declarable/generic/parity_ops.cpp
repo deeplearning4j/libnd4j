@@ -1318,6 +1318,8 @@ namespace nd4j {
             delete dxhat;
             delete dGammaView;
             delete dBetaView;
+
+            return ND4J_STATUS_OK;
         }
     
 
