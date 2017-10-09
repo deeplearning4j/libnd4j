@@ -200,11 +200,11 @@ case "$OS" in
     if [ "$CHIP" == "cuda" ]; then
         export CC=clang
         export CXX=clang++
-        PARALLEL = "false"
+        PARALLEL="false"
     else
         export CC="$(ls -1 /usr/local/bin/gcc-? | head -n 1)"
         export CXX="$(ls -1 /usr/local/bin/g++-? | head -n 1)"
-        PARALLEL = "true"
+        PARALLEL="true"
     fi
     ;;
 
@@ -213,11 +213,11 @@ case "$OS" in
     if [ "$CHIP" == "cuda" ]; then
         export CMAKE_COMMAND="cmake -G \"NMake Makefiles\""
         export MAKE_COMMAND="nmake"
-        PARALLEL = "false"
+        PARALLEL="false"
     else
         export CMAKE_COMMAND="cmake -G \"MSYS Makefiles\""
         export MAKE_COMMAND="make"
-        PARALLEL = "true"
+        PARALLEL="true"
 
     fi
     # Try some defaults for Visual Studio 2013 if user has not run vcvarsall.bat or something
