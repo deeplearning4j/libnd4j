@@ -32,7 +32,7 @@
 #ifdef __CUDACC__
 #define INLINEDEF
 #else
-#define INLINEDEF
+#define INLINEDEF ND4J_EXPORT
 #endif
 
 #include "../pairwise_util.h"
@@ -42,7 +42,7 @@ namespace shape {
  * Shape information approximating
  * the information on an ndarray
  */
-    struct ShapeInformation {
+    struct ND4J_EXPORT ShapeInformation {
 #ifdef __CUDACC__
         __host__ __device__
 #endif
@@ -62,7 +62,7 @@ namespace shape {
  * Indexing information
  * for bounds checking
  */
-    struct CurrentIndexing {
+    struct ND4J_EXPORT CurrentIndexing {
         int numElementsPerThread;
         int blockStartingIndex;
         int startingThreadIndex;
@@ -496,7 +496,7 @@ __host__ __device__
     __host__ __device__
 #endif
 
-    int *shapeOf(int *buffer);
+    INLINEDEF int *shapeOf(int *buffer);
 
 /**
  * Return a copy of a buffer.
@@ -507,7 +507,7 @@ __host__ __device__
     __host__ __device__
 #endif
 
-    int *copyOf(int length, int *toCopy);
+    INLINEDEF int *copyOf(int length, int *toCopy);
 
 
 #ifdef __CUDACC__
@@ -613,7 +613,7 @@ __host__ __device__
     __host__ __device__
 #endif
 
-    int rank( int *buffer);
+    INLINEDEF int rank( int *buffer);
 
 /**
  * Converts a raw int buffer of the layout:
@@ -629,7 +629,7 @@ __host__ __device__
     __host__ __device__
 #endif
 
-    ShapeInformation *infoFromBuffer(int *buffer);
+    INLINEDEF ShapeInformation *infoFromBuffer(int *buffer);
 
 /**
  * Returns the stride portion of an information
@@ -639,7 +639,7 @@ __host__ __device__
     __host__ __device__
 #endif
 
-    int *stride(int *buffer);
+    INLINEDEF int *stride(int *buffer);
 
 /**
  * Compute the length of the given shape
@@ -648,12 +648,12 @@ __host__ __device__
     __host__ __device__
 #endif
 
-    Nd4jIndex length(int *shapeInfo);
+    INLINEDEF Nd4jIndex length(int *shapeInfo);
 
 #ifdef __CUDACC__
     __host__ __device__
 #endif
-    Nd4jIndex length(std::initializer_list<int>& shape);
+    INLINEDEF Nd4jIndex length(std::initializer_list<int>& shape);
 
 /***
  * Returns the offset portion of an information buffer
@@ -662,7 +662,7 @@ __host__ __device__
     __host__ __device__
 #endif
 
-    int offset(int *buffer);
+    INLINEDEF int offset(int *buffer);
 
 /**
  * Returns the ordering
@@ -776,10 +776,10 @@ __host__ __device__
  * a global element given the shape information
  * and the offset to be read.
  */
-#ifdef __CUDACC__
-    __device__
-#endif
-    INLINEDEF int tadOffset(shape::ShapeInformation *xInfo, int offset);
+//#ifdef __CUDACC__
+//    __device__
+//#endif
+//    INLINEDEF int tadOffset(shape::ShapeInformation *xInfo, int offset);
 
 /**
  * Returns a shape
@@ -884,7 +884,7 @@ __host__ __device__
     __host__ __device__
 #endif
 
-    int *concat(int numArrays, int numTotalElements, int **arr, int *lengths);
+    INLINEDEF int *concat(int numArrays, int numTotalElements, int **arr, int *lengths);
 
 /**
  * Get the length per slice of the
@@ -943,15 +943,15 @@ __host__ __device__
  * @param info the shape information to use for tad
  * @param dimension the dimensions to use for computing the tensor along dimensions
  */
-#ifdef __CUDACC__
-    __host__ __device__
-#endif
-
-    INLINEDEF int offset(int index,
-                         int rank,
-                         shape::ShapeInformation *info,
-                         int *dimension,
-                         int dimensionLength);
+//#ifdef __CUDACC__
+//    __host__ __device__
+//#endif
+//
+//    INLINEDEF int offset(int index,
+//                         int rank,
+//                         shape::ShapeInformation *info,
+//                         int *dimension,
+//                         int dimensionLength);
 
 
 /**
@@ -1006,12 +1006,12 @@ __host__ __device__
 
     INLINEDEF int tadsPerBlock(int blockSize, int tads);
 
-#ifdef __CUDACC__
-    __host__ __device__
-#endif
-
-    INLINEDEF int *tadShapeInfo(int index, int *xShapeInfo, int *dimension,
-                                int dimensionLength);
+//#ifdef __CUDACC__
+//    __host__ __device__
+//#endif
+//
+//    INLINEDEF int *tadShapeInfo(int index, int *xShapeInfo, int *dimension,
+//                                int dimensionLength);
 
 /**
  * Returns a shape buffer
@@ -1032,43 +1032,43 @@ __host__ __device__
 /**
  * Returns the number of elements per thread
  */
-#ifdef __CUDACC__
-    __device__
-#endif
-    int numElementsPerThread(int N);
+//#ifdef __CUDACC__
+//    __device__
+//#endif
+//    int numElementsPerThread(int N);
 
 /**
  * Returns the block starting index
  */
-#ifdef __CUDACC__
-    __device__
-#endif
-    int blockStartingIndex(int N);
+//#ifdef __CUDACC__
+//    __device__
+//#endif
+//    int blockStartingIndex(int N);
 
 /**
  * Returns the thread starting index
  */
-#ifdef __CUDACC__
-    __device__
-#endif
-    int threadStartingIndex(int N, int stride, int offset);
+//#ifdef __CUDACC__
+//    __device__
+//#endif
+//    int threadStartingIndex(int N, int stride, int offset);
 
 /**
  * Returns the thread ending index
  */
-#ifdef __CUDACC__
-    __device__
-#endif
-    int threadEndingIndex(int N, int stride, int offset);
+//#ifdef __CUDACC__
+//    __device__
+//#endif
+//    int threadEndingIndex(int N, int stride, int offset);
 
 /**
  * Returns indexing information
  * for the current kernel invocation
  */
-#ifdef __CUDACC__
-    __device__
-#endif
-    CurrentIndexing *currentIndex(int N, int offset, int stride);
+//#ifdef __CUDACC__
+//    __device__
+//#endif
+//    CurrentIndexing *currentIndex(int N, int offset, int stride);
 
 /** Given an linear index, element wise stride
  * and the length of each tad
@@ -1081,7 +1081,7 @@ __host__ __device__
 #ifdef __CUDACC__
     __host__ __device__
 #endif
-    int tadIndex(int i, int elementWiseStride, int numElementsPerTad);
+    INLINEDEF int tadIndex(int i, int elementWiseStride, int numElementsPerTad);
 
 /**
  * Map a tad to a
@@ -1095,7 +1095,7 @@ __host__ __device__
     __host__ __device__
 #endif
 
-    int reductionIndexForTad(int tadIndexForOriginal, int tadsForReduced,
+    INLINEDEF int reductionIndexForTad(int tadIndexForOriginal, int tadsForReduced,
                              int tadsForOriginal);
 
 /**
@@ -1107,7 +1107,7 @@ __host__ __device__
     __host__ __device__
 #endif
 
-    int tadsPerReduceIndex(int tadsForReduce, int tadsForOriginal);
+    INLINEDEF int tadsPerReduceIndex(int tadsForReduce, int tadsForOriginal);
 
 /**
  * Maps a linear index to a reduction index
@@ -1121,7 +1121,7 @@ __host__ __device__
     __host__ __device__
 #endif
 
-    int reductionIndexForLinear(int i, int elementWiseStride, int numElementsPerTad,
+    INLINEDEF int reductionIndexForLinear(int i, int elementWiseStride, int numElementsPerTad,
                                 int tadNum, int originalTadNum);
 
 /**
@@ -1132,7 +1132,7 @@ __host__ __device__
     __host__ __device__
 #endif
 
-    int prod(int *data, int length);
+    INLINEDEF int prod(int *data, int length);
 #ifdef __CUDACC__
     __host__ __device__
 #endif
@@ -1153,10 +1153,10 @@ __host__ __device__
      * since the first item won't match
      * the last item of the dimension array
      */
-#ifdef __CUDACC__
-    __host__ __device__
-#endif
-    int rearMostLeftOverItem(int *data,int length,int *dimension,int dimensionLength);
+//#ifdef __CUDACC__
+//    __host__ __device__
+//#endif
+//    int rearMostLeftOverItem(int *data,int length,int *dimension,int dimensionLength);
 
     /**
 * Get an offset for retrieval
@@ -1176,12 +1176,12 @@ __host__ __device__
 #ifdef __CUDACC__
     __host__ __device__
 #endif
-    int* createShapeInfo(int *shape, int *stride, int rank);
+    INLINEDEF int* createShapeInfo(int *shape, int *stride, int rank);
 
 #ifdef __CUDACC__
     __host__ __device__
 #endif
-    int* createShapeInfo(int *shape, int *stride, int rank, int *buffer);
+    INLINEDEF int* createShapeInfo(int *shape, int *stride, int rank, int *buffer);
 
     /**
  * Convert a linear index to
@@ -1213,7 +1213,7 @@ __host__ __device__
 #ifdef __CUDACC__
     __host__ __device__
 #endif
-    void  ind2sub(int rank,int *shape,int index,int numIndices,int *out);
+    INLINEDEF void  ind2sub(int rank,int *shape,int index,int numIndices,int *out);
 
 /**
      * Convert a linear index to
@@ -1227,7 +1227,7 @@ __host__ __device__
 #ifdef __CUDACC__
     __host__ __device__
 #endif
-    void ind2sub(int rank, int *shape, int index, int *out);
+    INLINEDEF void ind2sub(int rank, int *shape, int index, int *out);
 
     /**
   * Convert a linear index to
@@ -1292,7 +1292,7 @@ __host__ __device__
 #ifdef __CUDACC__
     __host__ __device__
 #endif
-    int sub2Ind(int rank, int *shape, int *indices);
+    INLINEDEF int sub2Ind(int rank, int *shape, int *indices);
 
     /**
    * Compute the real linear indices for the given shape and stride
@@ -1300,7 +1300,7 @@ __host__ __device__
 #ifdef __CUDACC__
     __host__ __device__
 #endif
-    Nd4jIndex *computeIndices(int rank,  int *shape,  int *stride);
+    INLINEDEF Nd4jIndex *computeIndices(int rank,  int *shape,  int *stride);
 
     /**
    * Compute the real linear indices for the
@@ -1310,7 +1310,7 @@ __host__ __device__
 #ifdef __CUDACC__
     __host__ __device__
 #endif
-    Nd4jIndex *computeIndices( int *shapeBuffer);
+    INLINEDEF Nd4jIndex *computeIndices( int *shapeBuffer);
 
     /**
  * Convert a linear index to
@@ -1323,7 +1323,7 @@ __host__ __device__
 #ifdef __CUDACC__
     __host__ __device__
 #endif
-    void  ind2subOrder(int *shapeInfo,int index,int numIndices,int *out);
+    INLINEDEF void  ind2subOrder(int *shapeInfo,int index,int numIndices,int *out);
 
     /**
  * Convert a linear index to
@@ -1336,18 +1336,18 @@ __host__ __device__
 #ifdef __CUDACC__
     __host__ __device__
 #endif
-    void  ind2subOrder(int *shapeInfo,int index,int *out);
+    INLINEDEF void  ind2subOrder(int *shapeInfo,int index,int *out);
 
 
 #ifdef __CUDACC__
     __host__ __device__
 #endif
-    void printShapeInfo(int *shapeInfo);
+    INLINEDEF void printShapeInfo(int *shapeInfo);
 
 #ifdef __CUDACC__
     __host__ __device__
 #endif
-    void printShapeInfoLinear(int *shapeInfo);
+    INLINEDEF void printShapeInfoLinear(int *shapeInfo);
 
 #ifdef __CUDACC__
     __host__ __device__
@@ -1357,7 +1357,7 @@ __host__ __device__
 #ifdef __CUDACC__
     __host__ __device__
 #endif
-    void printArray(float *arr,int length);
+    INLINEDEF void printArray(float *arr,int length);
 
 
 #ifdef __CUDACC__
