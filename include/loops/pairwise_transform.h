@@ -29,38 +29,8 @@
 #define omp_get_max_threads() 1
 #endif
 
-#define PAIRWISE_TRANSFORM_OPS \
-        (0, simdOps::Add),\
-        (1, simdOps::Copy),\
-        (2, simdOps::Divide),\
-        (3, simdOps::EqualTo),\
-        (4, simdOps::GreaterThan),\
-        (5, simdOps::LessThan),\
-        (6, simdOps::Multiply),\
-        (7, simdOps::Pow),\
-        (8, simdOps::ReverseSubtract),\
-        (9, simdOps::Subtract),\
-        (10,simdOps::Epsilon),\
-        (11,simdOps::GreaterThanOrEqual),\
-        (12,simdOps::LessThanOrEqual),\
-        (13,simdOps::Max),\
-        (14,simdOps::Min),\
-        (15,simdOps::NotEqualTo),\
-        (16,simdOps::Copy2),\
-        (17,simdOps::Axpy),\
-        (18,simdOps::ReverseDivide),\
-        (45,simdOps::CompareAndSet),\
-        (46,simdOps::CompareAndReplace),\
-        (56,simdOps::And),\
-        (57,simdOps::Or),\
-        (58,simdOps::Xor),\
-        (59,simdOps::Remainder),\
-        (60,simdOps::FMod),\
-        (69,simdOps::Atan2)
 
-
-
-
+#include "legacy_ops.h"
 
 
 namespace functions {

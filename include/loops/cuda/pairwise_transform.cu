@@ -11,6 +11,8 @@
 #include <helpers/TAD.h>
 #include <types/float16.h>
 
+#include "../legacy_ops.h"
+
 
 /**
  * The api for the driver interface
