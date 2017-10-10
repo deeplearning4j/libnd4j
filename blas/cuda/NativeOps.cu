@@ -30,7 +30,8 @@
 #include <stdlib.h>
 #include <loops/type_conversions.h>
 #include <op_boilerplate.h>
-#include <loops/grid.h>
+#include <loops/grid_shaped.h>
+#include <loops/grid_strided.h>
 #include <loops/aggregates.h>
 #include <helpers/threshold.h>
 #include <ShapeList.h>
@@ -5505,7 +5506,7 @@ void NativeOps::execMetaPredicateStridedFloat(Nd4jPointer *extras, const int opT
 		}
 	}
 */
-    functions::grid::GRID<float>::execMetaPredicateStrided(stream, extras, opTypeA, opNumA, opTypeB, opNumB, N, dx, xStride, dy, yStride, dz, zStride, extraA, extraB, scalarA, scalarB);
+    functions::grid::GRIDStrided<float>::execMetaPredicateStrided(stream, extras, opTypeA, opNumA, opTypeB, opNumB, N, dx, xStride, dy, yStride, dz, zStride, extraA, extraB, scalarA, scalarB);
 
 
 
@@ -5524,7 +5525,7 @@ void NativeOps::execMetaPredicateStridedDouble(Nd4jPointer *extras, const int op
         }
     }
 */
-    functions::grid::GRID<double>::execMetaPredicateStrided(stream, extras, opTypeA, opNumA, opTypeB, opNumB, N, dx, xStride, dy, yStride, dz, zStride, extraA, extraB, scalarA, scalarB);
+    functions::grid::GRIDStrided<double>::execMetaPredicateStrided(stream, extras, opTypeA, opNumA, opTypeB, opNumB, N, dx, xStride, dy, yStride, dz, zStride, extraA, extraB, scalarA, scalarB);
 
     if (nd4j::Environment::getInstance()->isDebug())
         checkCudaErrors(cudaStreamSynchronize(*stream));
@@ -5546,7 +5547,7 @@ void NativeOps::execMetaPredicateStridedHalf(Nd4jPointer *extras, const int opTy
     }
     */
 
-    functions::grid::GRID<float16>::execMetaPredicateStrided(stream, extras, opTypeA, opNumA, opTypeB, opNumB, N, dx, xStride, dy, yStride, dz, zStride, extraA, extraB, scalarA, scalarB);
+    functions::grid::GRIDStrided<float16>::execMetaPredicateStrided(stream, extras, opTypeA, opNumA, opTypeB, opNumB, N, dx, xStride, dy, yStride, dz, zStride, extraA, extraB, scalarA, scalarB);
 
     if (nd4j::Environment::getInstance()->isDebug())
         checkCudaErrors(cudaStreamSynchronize(*stream));
@@ -5584,7 +5585,7 @@ void NativeOps::execMetaPredicateShapeDouble(Nd4jPointer *extras, const int opTy
     }
      */
 
-    functions::grid::GRID<double>::execMetaPredicateShaped(stream, extras, opTypeA, opNumA, opTypeB, opNumB, N, dx, xShapeInfo, dy, yShapeInfo, dz, zShapeInfo, extraA, extraB, scalarA, scalarB);
+    functions::grid::GRIDShaped<double>::execMetaPredicateShaped(stream, extras, opTypeA, opNumA, opTypeB, opNumB, N, dx, xShapeInfo, dy, yShapeInfo, dz, zShapeInfo, extraA, extraB, scalarA, scalarB);
 
     if (nd4j::Environment::getInstance()->isDebug())
         checkCudaErrors(cudaStreamSynchronize(*stream));
@@ -5607,7 +5608,7 @@ void NativeOps::execMetaPredicateShapeHalf(Nd4jPointer *extras, const int opType
 	}
      */
 
-    functions::grid::GRID<float16>::execMetaPredicateShaped(stream, extras, opTypeA, opNumA, opTypeB, opNumB, N, dx, xShapeInfo, dy, yShapeInfo, dz, zShapeInfo, extraA, extraB, scalarA, scalarB);
+    functions::grid::GRIDShaped<float16>::execMetaPredicateShaped(stream, extras, opTypeA, opNumA, opTypeB, opNumB, N, dx, xShapeInfo, dy, yShapeInfo, dz, zShapeInfo, extraA, extraB, scalarA, scalarB);
 
 
     if (nd4j::Environment::getInstance()->isDebug())
@@ -5627,7 +5628,7 @@ void NativeOps::execMetaPredicateShapeFloat(Nd4jPointer *extras, const int opTyp
     }
     */
 
-    functions::grid::GRID<float>::execMetaPredicateShaped(stream, extras, opTypeA, opNumA, opTypeB, opNumB, N, dx, xShapeInfo, dy, yShapeInfo, dz, zShapeInfo, extraA, extraB, scalarA, scalarB);
+    functions::grid::GRIDShaped<float>::execMetaPredicateShaped(stream, extras, opTypeA, opNumA, opTypeB, opNumB, N, dx, xShapeInfo, dy, yShapeInfo, dz, zShapeInfo, extraA, extraB, scalarA, scalarB);
 
     if (nd4j::Environment::getInstance()->isDebug())
         checkCudaErrors(cudaStreamSynchronize(*stream));

@@ -3,7 +3,7 @@
 
 #include <op_boilerplate.h>
 #include <helpers/TAD.h>
-#include "../grid.h"
+#include "../grid_strided.h"
 #include <types/float16.h>
 
 
@@ -92,7 +92,7 @@ __device__ static inline void invertedMetaPairwiseStridedGeneric(const int opTyp
     }
     __syncthreads();
 
-    functions::grid::GRID<T>::template transformCuda<OpClass>(N, dx, dy, xStride, yStride, paramsPtr, dz, zStride, nullptr, nullptr, nullptr);
+    functions::grid::GRIDStrided<T>::template transformCuda<OpClass>(N, dx, dy, xStride, yStride, paramsPtr, dz, zStride, nullptr, nullptr, nullptr);
 };
 
 
@@ -108,7 +108,7 @@ namespace functions {
 
         template<typename T>
         template<typename OpType>
-        __device__ void GRID<T>::transformCuda(Nd4jIndex n, T *dx, T *dy, int incx, int incy, T *params, T *result, int incz,int *allocationPointer, UnifiedSharedMemory *manager,int *tadOnlyShapeInfo) {
+        __device__ void GRIDStrided<T>::transformCuda(Nd4jIndex n, T *dx, T *dy, int incx, int incy, T *params, T *result, int incz,int *allocationPointer, UnifiedSharedMemory *manager,int *tadOnlyShapeInfo) {
             int tid = blockIdx.x * blockDim.x + threadIdx.x;
 
             if (incx == incy && incy == incz && incx == 1) {
@@ -118,6 +118,34 @@ namespace functions {
             } else {
                 for (Nd4jIndex i = tid; i < n; i += gridDim.x * blockDim.x) {
                     result[i * incz] = OpType::op(dx[i * incx], dy[i * incy], params);
+                }
+            }
+        }
+
+
+        template <>
+        void GRIDStrided<float>::execMetaPredicateStrided(cudaStream_t * stream, Nd4jPointer *extras, const int opTypeA, const int opNumA, const int opTypeB, const int opNumB, long N, float *dx, int xStride, float *dy, int yStride, float *dz, int zStride, float *extraA, float *extraB, float scalarA, float scalarB) {
+            if (opTypeA == 2) {
+                if (opTypeB == 0) {
+                    DISPATCH_METAOP(invertedMetaPairwiseStrided_Pairwise_Scalar, PARAMS(opTypeA, opTypeB, N, dx, xStride, dy, yStride, dz, zStride, extraA, extraB, scalarA, scalarB), float, OPS_A(PAIRWISE_TRANSFORM_OPS), OPS_B(SCALAR_OPS));
+                }
+            }
+        }
+
+        template <>
+        void GRIDStrided<float16>::execMetaPredicateStrided(cudaStream_t * stream, Nd4jPointer *extras, const int opTypeA, const int opNumA, const int opTypeB, const int opNumB, long N, float16 *dx, int xStride, float16 *dy, int yStride, float16 *dz, int zStride, float16 *extraA, float16 *extraB, float16 scalarA, float16 scalarB) {
+            if (opTypeA == 2) {
+                if (opTypeB == 0) {
+                    DISPATCH_METAOP(invertedMetaPairwiseStrided_Pairwise_Scalar, PARAMS(opTypeA, opTypeB, N, dx, xStride, dy, yStride, dz, zStride, extraA, extraB, scalarA, scalarB), float16, OPS_A(PAIRWISE_TRANSFORM_OPS), OPS_B(SCALAR_OPS));
+                }
+            }
+        }
+
+        template <>
+        void GRIDStrided<double>::execMetaPredicateStrided(cudaStream_t * stream, Nd4jPointer *extras, const int opTypeA, const int opNumA, const int opTypeB, const int opNumB, long N, double *dx, int xStride, double *dy, int yStride, double *dz, int zStride, double *extraA, double *extraB, double scalarA, double scalarB) {
+            if (opTypeA == 2) {
+                if (opTypeB == 0) {
+                    DISPATCH_METAOP(invertedMetaPairwiseStrided_Pairwise_Scalar, PARAMS(opTypeA, opTypeB, N, dx, xStride, dy, yStride, dz, zStride, extraA, extraB, scalarA, scalarB), double, OPS_A(PAIRWISE_TRANSFORM_OPS), OPS_B(SCALAR_OPS));
                 }
             }
         }
