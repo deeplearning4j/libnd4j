@@ -126,6 +126,71 @@ namespace nd4j {
             return new ShapeList(newShape);
         }
 
+
+
+        CUSTOM_OP_IMPL(conv2d_bp, 3, 2, false, 0, 9) {
+            NDArray<T>* input = INPUT_VARIABLE(0);
+            NDArray<T>* weights = INPUT_VARIABLE(1);
+            NDArray<T>* bias = nullptr;
+            NDArray<T>* epsilonNext;
+
+            NDArray<T>* epsilon = OUTPUT_VARIABLE(0);
+            NDArray<T>* gradW = OUTPUT_VARIABLE(1);
+            NDArray<T>* gradB = nullptr;
+            if (block.getVariables().size() == 3)
+                epsilonNext = INPUT_VARIABLE(2);
+            else {
+                bias = INPUT_VARIABLE(2);
+                epsilonNext = INPUT_VARIABLE(3);
+                gradB = OUTPUT_VARIABLE(2);
+            }
+
+
+            // epsilon
+
+            // gradW
+
+
+            if (bias == nullptr) {
+                STORE_2_RESULTS(*epsilon, *gradW);
+            } else {
+                // bias is optional
+
+                STORE_3_RESULTS(*epsilon, *gradW, *gradB);
+            }
+
+            return ND4J_STATUS_OK;
+        }
+        DECLARE_SHAPE_FN(conv2d_bp) {
+            auto inShape = inputShape->at(0);
+            auto wShape = inputShape->at(1);
+
+            int *bShape = nullptr;
+            // if conv2d op has bias provided, we'll have > 3 inputs (input, weights, _bias_, epsilonNext)
+            if (inputShape->size() > 3)
+                bShape = inputShape->at(2);
+
+            int *newIShape;
+            ALLOCATE(newIShape, block.getWorkspace(), shape::shapeInfoLength(inShape), int);
+            memcpy(newIShape, inShape, shape::shapeInfoByteLength(inShape));
+
+            int *newWShape;
+            ALLOCATE(newWShape, block.getWorkspace(), shape::shapeInfoLength(wShape), int);
+            memcpy(newWShape, wShape, shape::shapeInfoByteLength(wShape));
+
+            auto shapeList = new ShapeList({newIShape, newWShape});
+
+            if (bShape != nullptr) {
+                int *newBShape;
+                ALLOCATE(newBShape, block.getWorkspace(), shape::shapeInfoLength(bShape), int);
+                memcpy(newBShape, bShape, shape::shapeInfoByteLength(bShape));
+
+                shapeList->push_back(newBShape);
+            }
+
+            return shapeList;
+        }
+
         /**
          * Depthwise convolution2d
          */
