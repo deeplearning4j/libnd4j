@@ -1393,7 +1393,6 @@ __host__ __device__
     //BEGIN IMPLEMENTATIONS
 
 
-
 #ifdef __CUDACC__
     template <typename T>
 __device__ INLINEDEF int *cuMalloc(int *buffer, long size, UnifiedSharedMemory *manager) {
@@ -3384,7 +3383,7 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
  * and the offset to be read.
  */
 #ifdef __CUDACC__
-    INLINEDEF __device__ int tadOffset(ShapeInformation *xInfo, int offset) {
+    INLINEDEF  __device__ int tadOffset(ShapeInformation *xInfo, int offset) {
     return offset + threadIdx.x * xInfo->elementWiseStride;
 
 }
@@ -3926,7 +3925,7 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
 #ifdef __CUDACC__
     __host__ __device__
 #endif
-    void printIntArray(int *arr,int length) {
+    INLINEDEF void printIntArray(int *arr,int length) {
         for(int i = 0; i < length; i++) {
             printf(" %d ",arr[i]);
         }

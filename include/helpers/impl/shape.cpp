@@ -6,7 +6,5 @@
 
 namespace shape {
 
-
-
 }
 
