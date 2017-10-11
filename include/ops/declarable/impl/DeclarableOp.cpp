@@ -392,14 +392,12 @@ namespace nd4j {
             Block<T> block(1, &variableSpace, false);
             block.fillInputs(in);
 
-            std::vector<T> tt(tArgs);
-            for (int e = 0; e < tt.size(); e++)
-                block.getTArguments()->push_back(tt.at(e));
+            for (int e = 0; e < tArgs.size(); e++)
+                block.getTArguments()->emplace_back(tArgs.at(e));
 
 
-            std::vector<int> ii(iArgs);
-            for (int e = 0; e < ii.size(); e++)
-                block.getIArguments()->push_back(ii.at(e));
+            for (int e = 0; e < iArgs.size(); e++)
+                block.getIArguments()->emplace_back(iArgs.at(e));
 
             Nd4jStatus result = this->execute(&block);
 
@@ -424,14 +422,12 @@ namespace nd4j {
             Block<T> block(1, &variableSpace, false);
             block.fillInputs(in);
 
-            std::vector<T> tt(tArgs);
-            for (int e = 0; e < tt.size(); e++)
-                block.getTArguments()->push_back(tt.at(e));
+            for (int e = 0; e < tArgs.size(); e++)
+                block.getTArguments()->emplace_back(tArgs.at(e));
 
 
-            std::vector<int> ii(iArgs);
-            for (int e = 0; e < ii.size(); e++)
-                block.getIArguments()->push_back(ii.at(e));
+            for (int e = 0; e < iArgs.size(); e++)
+                block.getIArguments()->emplace_back(iArgs.at(e));
 
             Nd4jStatus status = this->execute(&block);
             if (status != ND4J_STATUS_OK)
