@@ -19,8 +19,14 @@ namespace nd4j {
             std::vector<float> _tArgs;
             std::vector<int> _iArgs;
 
+            OpTuple(const char *opName);
             OpTuple(const char *opName, std::initializer_list<nd4j::NDArray<float> *>&& inputs, std::initializer_list<float>&& tArgs, std::initializer_list<int>&& iArgs);
             ~OpTuple() = default;
+
+            OpTuple* addInput(nd4j::NDArray<float>* array);
+            OpTuple* addOutput(nd4j::NDArray<float>* array);
+            OpTuple* setTArgs(std::initializer_list<float> tArgs);
+            OpTuple* setIArgs(std::initializer_list<int> iArgs);
         };
     }
 }
