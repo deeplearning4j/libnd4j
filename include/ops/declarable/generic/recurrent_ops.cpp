@@ -25,10 +25,8 @@ CUSTOM_OP_IMPL(sru, 6, 2, true, 0, 0) {
     NDArray<T>* prevState = INPUT_VARIABLE(4);              // 2d tensor of previous state ????? [1, bS*N] or [K x bS x N] ??????
     NDArray<T>* mask    = INPUT_VARIABLE(5);                // dropout mask
 
-    // NDArray<T>* curState  = OUTPUT_VARIABLE(0);             // c_t, [K x bS x N]
-    // NDArray<T>* output = OUTPUT_VARIABLE(1);                // h_t,   [K x bS x N]
-    NDArray<T>* curState  = INPUT_VARIABLE(6);
-    NDArray<T>* output = INPUT_VARIABLE(7);
+    NDArray<T>* curState = OUTPUT_VARIABLE(0);             // c_t, [K x bS x N]
+    NDArray<T>* output   = OUTPUT_VARIABLE(1);             // h_t,   [K x bS x N]
         
     std::vector<int> argI = *(block.getIArguments());
     std::vector<T> argT = *(block.getTArguments());
