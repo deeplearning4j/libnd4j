@@ -76,8 +76,13 @@ namespace nd4j {
             auto res = NDArrayFactory<T>::mmulHelper(im2col2d.get(), reshapedW.get(), output, 1.0, 0.0);
 
             // bias addition is optional
-            if (bias != nullptr)
+            if (bias != nullptr) {
+                if (!bias->isRowVector())
+                    bias->transposei();
+
+                // FIXME: do we really want transposei() above?
                 output->addiRowVector(bias);
+            }
 
             output->reshapei('f', {oX, oY, input->sizeAt(0),outDepth});
             output->permutei({2, 3, 1, 0});
