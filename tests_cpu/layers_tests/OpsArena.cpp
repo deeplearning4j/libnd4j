@@ -17,7 +17,7 @@ using namespace nd4j::ops;
 
 class OpsArena : public testing::Test {
 public:
-    const int numIterations = 100000;
+    const int numIterations = 100;
     std::vector<OpTuple> tuples;
 
 
@@ -46,7 +46,7 @@ TEST_F(OpsArena, TestFeedForward) {
             ASSERT_TRUE(false);
         }
 
-        nd4j_printf("Testing op [%s]", tuple._opName);
+        nd4j_printf("Testing op [%s]\n", tuple._opName);
         nd4j::memory::MemoryReport before, after;
 
         auto tmp = op->execute(tuple._inputs, tuple._tArgs, tuple._iArgs);

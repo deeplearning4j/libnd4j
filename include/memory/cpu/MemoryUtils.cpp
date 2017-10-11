@@ -7,13 +7,11 @@
 
 #if defined(__APPLE__)
 #include<mach/mach.h>
-#include <sys/time.h>
 #include <sys/resource.h>
 #elif defined(_WIN32) || defined(__WIN32__) || defined(WIN32)
 
 #else
 // linux
-#include <sys/time.h>
 #include <sys/resource.h>
 #endif
 
@@ -21,7 +19,7 @@
 bool nd4j::memory::MemoryUtils::retrieveMemoryStatistics(nd4j::memory::MemoryReport &report) {
 #if defined(__APPLE__)
     nd4j_debug("APPLE route\n", "");
-
+/*
     struct task_basic_info t_info;
     mach_msg_type_number_t t_info_count = TASK_BASIC_INFO_COUNT;
 
@@ -33,6 +31,14 @@ bool nd4j::memory::MemoryUtils::retrieveMemoryStatistics(nd4j::memory::MemoryRep
 
 
     nd4j_debug("RSS: %lld; VM: %lld;\n", report.getRSS(), report.getVM());
+*/
+    struct rusage _usage;
+
+    auto res = getrusage(RUSAGE_SELF, &_usage);
+
+    report.setRSS(_usage.ru_maxrss);
+
+    nd4j_debug("Usage: %lld; %lld; %lld; %lld;\n", _usage.ru_ixrss, _usage.ru_idrss, _usage.ru_isrss, _usage.ru_maxrss);
 
     return true;
 #elif defined(_WIN32) || defined(__WIN32__) || defined(WIN32)
@@ -48,7 +54,7 @@ bool nd4j::memory::MemoryUtils::retrieveMemoryStatistics(nd4j::memory::MemoryRep
 
     report.setRSS(_usage.ru_maxrss);
 
-    nd4j_printf("Usage: %lld; %lld; %lld; %lld;\n", _usage.ru_ixrss, _usage.ru_idrss, _usage.ru_isrss, _usage.ru_maxrss);
+    nd4j_debug("Usage: %lld; %lld; %lld; %lld;\n", _usage.ru_ixrss, _usage.ru_idrss, _usage.ru_isrss, _usage.ru_maxrss);
 
     return true;
 #endif
