@@ -13,11 +13,19 @@ bool nd4j::memory::MemoryReport::operator>(const nd4j::memory::MemoryReport &oth
 }
 
 bool nd4j::memory::MemoryReport::operator==(const nd4j::memory::MemoryReport &other) const {
-    return this->_rss == other._rss && this->_vm == other._vm;
+    return this->_rss == other._rss;
 }
 
 bool nd4j::memory::MemoryReport::operator!=(const nd4j::memory::MemoryReport &other) const {
-    return this->_rss != other._rss || this->_vm != other._vm;
+    return this->_rss != other._rss;
+}
+
+bool nd4j::memory::MemoryReport::operator<=(const nd4j::memory::MemoryReport &other) const {
+    return this->_rss <= other._rss;
+}
+
+bool nd4j::memory::MemoryReport::operator>=(const nd4j::memory::MemoryReport &other) const {
+    return this->_rss >= other._rss;
 }
 
 Nd4jIndex nd4j::memory::MemoryReport::getVM() const {

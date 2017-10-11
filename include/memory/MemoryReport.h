@@ -19,7 +19,9 @@ namespace nd4j {
             ~MemoryReport() = default;
 
             bool operator < (const MemoryReport& other) const;
+            bool operator <= (const MemoryReport& other) const;
             bool operator > (const MemoryReport& other) const;
+            bool operator >= (const MemoryReport& other) const;
             bool operator == (const MemoryReport& other) const;
             bool operator != (const MemoryReport& other) const;
 

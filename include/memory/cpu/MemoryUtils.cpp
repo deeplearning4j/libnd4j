@@ -5,9 +5,29 @@
 #include "MemoryUtils.h"
 #include <helpers/logger.h>
 
+#ifdef __APPLE__
+#include<mach/mach.h>
+#elif _WIN32
+
+#endif
+
+
 bool nd4j::memory::MemoryUtils::retrieveMemoryStatistics(nd4j::memory::MemoryReport &report) {
 #ifdef __APPLE__
     nd4j_debug("APPLE route\n", "");
+
+    struct task_basic_info t_info;
+    mach_msg_type_number_t t_info_count = TASK_BASIC_INFO_COUNT;
+
+    if (KERN_SUCCESS != task_info(mach_task_self(), TASK_BASIC_INFO, (task_info_t)&t_info, &t_info_count))
+        return false;
+
+    report.setVM(t_info.virtual_size);
+    report.setRSS(t_info.resident_size);
+
+    nd4j_debug("RSS: %lld; VM: %lld;\n", report.getRSS(), report.getVM());
+
+    return true;
 #elif _WIN32
     nd4j_debug("WIN32 route\n", "");
 #else
