@@ -26,6 +26,12 @@ public:
 
 
 
+        // mergemax
+        auto mergeMax_X0 = new NDArray<float>('c', {100, 100});
+        auto mergeMax_X1 = new NDArray<float>('c', {100, 100});
+        auto mergeMax_X2 = new NDArray<float>('c', {100, 100});
+        auto mergeMax_Tuple = new OpTuple("mergemax", {mergeMax_X0, mergeMax_X1, mergeMax_X2}, {}, {});
+        tuples.push_back(*mergeMax_Tuple);
 
     }
 };
@@ -50,6 +56,7 @@ TEST_F(OpsArena, TestFeedForward) {
         for (int e = 0; e < numIterations; e++) {
             auto result = op->execute(tuple._inputs, tuple._tArgs, tuple._iArgs);
 
+            // we just want to be sure op was executed successfully
             ASSERT_TRUE(result->size() > 0);
 
             delete result;
@@ -61,7 +68,11 @@ TEST_F(OpsArena, TestFeedForward) {
             ASSERT_TRUE(false);
 
 
-        ASSERT_TRUE(after <= before);
+        // this is our main assertion. memory footprint after op run should NOT be higher then before
+        if (after > before) {
+            nd4j_printf("OpName: [%s]; RSS before: [%lld]; RSS after: [%lld]\n", tuple._opName, before.getRSS(), after.getRSS())
+            ASSERT_TRUE(after <= before);
+        }
     }
 }
 
