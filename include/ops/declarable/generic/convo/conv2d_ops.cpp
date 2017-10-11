@@ -134,10 +134,6 @@ namespace nd4j {
             NDArray<T>* bias = nullptr;
             NDArray<T>* epsilonNext;
 
-            REQUIRE_TRUE(input->rankOf() == 4, 0, "Conv2D expects 4D input, but got %i instead", input->rankOf());
-            REQUIRE_TRUE(weights->rankOf() == 4, 0, "Conv2D expects 4D weights, but got %i instead", weights->rankOf());
-            REQUIRE_TRUE(epsilonNext->rankOf() == 4, 0, "Conv2D expects 4D epsilons, but got %i instead", epsilonNext->rankOf());
-
             NDArray<T>* epsilon = OUTPUT_VARIABLE(0);
             NDArray<T>* gradW = OUTPUT_VARIABLE(1);
             NDArray<T>* gradB = nullptr;
@@ -148,6 +144,11 @@ namespace nd4j {
                 epsilonNext = INPUT_VARIABLE(3);
                 gradB = OUTPUT_VARIABLE(2);
             }
+
+            REQUIRE_TRUE(input->rankOf() == 4, 0, "Conv2D expects 4D input, but got %i instead", input->rankOf());
+            REQUIRE_TRUE(weights->rankOf() == 4, 0, "Conv2D expects 4D weights, but got %i instead", weights->rankOf());
+            REQUIRE_TRUE(epsilonNext->rankOf() == 4, 0, "Conv2D expects 4D epsilons, but got %i instead", epsilonNext->rankOf());
+
 
             const int kY = block.getIArguments()->at(0);
             const int kX = block.getIArguments()->at(1);
@@ -185,18 +186,26 @@ namespace nd4j {
             auto im2col2d = col->reshape('c', {batchSize * oY * oX, inDepth * kY * kX});
             delete col2;
 
-            auto _gW = nd4j::NDArrayFactory<T>::mmulHelper(im2col2d, epsilonNext2d);
-            gradW->assign(_gW);
 
-            delete _gW;
+            auto gradW2d = gradW->reshape('c', {outDepth, inDepth * kY * kX});
+            gradW2d->transposei();
+
+            im2col2d->transposei();
+            auto eN2dT = epsilonNext2d->transpose();
+
+            nd4j::NDArrayFactory<T>::mmulHelper(im2col2d, eN2dT, gradW2d);
+
+            delete gradW2d;
             delete col;
             delete im2col2d;
+            delete eN2dT;
 
             // epsilon
             auto pWeights = weights->permute({3, 2, 1, 0});
-            pWeights->reshapei('c', {inDepth * kY * kX, outDepth});
+            pWeights->reshapei('f', {inDepth * kY * kX, outDepth});
 
             auto eps2d = nd4j::NDArrayFactory<T>::mmulHelper(pWeights, epsilonNext2d);
+
             auto eps6d = eps2d->reshape('f', {kX, kY, inDepth, oX, oY, batchSize});
             eps6d->permutei({5, 2, 1, 0, 4, 3});
 
