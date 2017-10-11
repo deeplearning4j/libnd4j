@@ -408,6 +408,8 @@ namespace nd4j {
         CUSTOM_OP_IMPL(testcustom, 1, 1, false, 0, -1) {
             auto z = this->getZ(block);
 
+            //new NDArray<T>('c', {100, 100});
+
             STORE_RESULT(*z);
             return ND4J_STATUS_OK;
         }
@@ -459,8 +461,8 @@ namespace nd4j {
             REQUIRE_OK(this->validateInputDimensionsMatch(block));
 
             Nd4jIndex numArgs = block.getVariables().size();
-            NDArray<T> *x = block.getVariables().at(0)->getNDArray();
-            auto z = this->getZ(block);
+            NDArray<T> *x = INPUT_VARIABLE(0);
+            auto z = OUTPUT_VARIABLE(0);
 
 
 #pragma omp parallel for proc_bind(close)

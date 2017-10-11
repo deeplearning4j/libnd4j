@@ -1190,33 +1190,20 @@ template <typename T>
 
     // we can do this only if there was no permute applied, or it's not a weird strides
     if (shape::canReshape(this->rankOf(), this->_shapeInfo, shape.size(), shape.data(), order == 'f')) {
-        //int elemWiseStride = _shapeInfo[rankOf()*2 + 2];
-        // if rank is different then delete and resize _shapeInfo appropriately
-        // also check if current object is _shapeInfo owner
-
         int *shapeInfoNew;
         ALLOCATE(shapeInfoNew, _workspace, shape::shapeInfoLength(rank), int);
 
         shape::reshapeCF(this->rankOf(), this->_shapeInfo, shape.size(), shape.data(), order == 'f', shapeInfoNew);
-
-        //shape::printShapeInfoLinear(shapeInfoNew);
 
         if (_isShapeAlloc)
             RELEASE(_shapeInfo, _workspace);
 
         _shapeInfo = shapeInfoNew;
         _isShapeAlloc = true;
-
-
-        // copy new dimensions to _shapeInfo
-//        int i = 1;
-//        for (const auto &item : shape)
-//            _shapeInfo[i++] = item;                 // exclude first element -> rank
-        // set strides in correspondence to dimensions and order
-        //updateStrides(order);
     } else {
         int *shapeInfoNew;
         ALLOCATE(shapeInfoNew, _workspace, shape::shapeInfoLength(rank), int);
+
         if (order == 'c')
             shape::shapeBuffer(shape.size(), shape.data(), shapeInfoNew);
         else
@@ -1227,17 +1214,18 @@ template <typename T>
 
         functions::pairwise_transforms::PairWiseTransform<T>::template exec<simdOps::Copy<T>>(newBuffer, shapeInfoNew, this->_buffer, this->_shapeInfo, newBuffer, shapeInfoNew, nullptr);
 
-        if (_isBuffAlloc) {
+        if (_isBuffAlloc)
             RELEASE(_buffer, _workspace);
-        }
 
-        if (_isShapeAlloc) {
+
+        if (_isShapeAlloc)
             RELEASE(_shapeInfo, _workspace);
-        }
+
 
         _buffer = newBuffer;
         _shapeInfo = shapeInfoNew;
-
+        _isShapeAlloc = true;
+        _isBuffAlloc = true;
     }
 
     return true;
@@ -2249,15 +2237,13 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
     template<typename T>
 
     NDArray<T>::~NDArray() {
-        if (_isBuffAlloc && _workspace == nullptr && !_isView && _buffer != nullptr)
+        if (_isBuffAlloc && _workspace == nullptr && _buffer != nullptr)
             delete[] _buffer;
 
         if (_isShapeAlloc  && _workspace == nullptr && _shapeInfo != nullptr)
             delete[] _shapeInfo;
     }
     
-
-
 
 
     template class NDArray<float>;
