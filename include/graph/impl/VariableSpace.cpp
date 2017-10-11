@@ -263,6 +263,10 @@ namespace nd4j {
             }
 
             delete _handles;
+
+            _internal.clear();
+            _external.clear();
+            _temporary.clear();
         }
 
 

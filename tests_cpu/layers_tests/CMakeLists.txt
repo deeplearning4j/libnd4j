@@ -19,7 +19,7 @@ if(WIN32)
     endforeach()
 endif()
 
-
+# -fsanitize=address
 set(CMAKE_CXX_FLAGS  " -fPIC -std=c++11 -fassociative-math -funsafe-math-optimizations")
 if (WIN32)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wa,-mbig-obj ")
@@ -94,5 +94,6 @@ elseif(MSYS)
 endif()
 
 
-add_executable(runtests StashTests.cpp SessionLocalTests.cpp ConvolutionTests.cpp DeclarableOpsTests.cpp DenseLayerTests.cpp FlatBuffersTests.cpp GraphTests.cpp HashUtilsTests.cpp NDArrayTests.cpp TadTests.cpp VariableSpaceTests.cpp VariableTests.cpp WorkspaceTests.cpp JavaInteropTests.cpp MemoryUtilsTests.cpp OpsArena.cpp OpTupleTests.cpp)
+#
+add_executable(runtests StashTests.cpp SessionLocalTests.cpp FlatBuffersTests.cpp ConvolutionTests.cpp DeclarableOpsTests.cpp DenseLayerTests.cpp  GraphTests.cpp HashUtilsTests.cpp NDArrayTests.cpp TadTests.cpp VariableSpaceTests.cpp VariableTests.cpp WorkspaceTests.cpp JavaInteropTests.cpp MemoryUtilsTests.cpp OpsArena.cpp OpTupleTests.cpp)
 target_link_libraries(runtests nd4jcpu gtest gtest_main)

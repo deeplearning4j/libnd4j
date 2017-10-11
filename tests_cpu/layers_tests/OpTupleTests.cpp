@@ -14,9 +14,9 @@ class OpTupleTests : public testing::Test {
 };
 
 TEST_F(OpTupleTests, DirectConstructorTest1) {
-    NDArray<float> alpha('c', {1, 2});
-    NDArray<float> beta('c', {1, 2});
-    OpTuple tuple("dummy", {&alpha, &beta}, {12.0f}, {1,2, 3});
+    NDArray<float> *alpha = new NDArray<float>('c', {1, 2});
+    NDArray<float> *beta = new NDArray<float>('c', {1, 2});
+    OpTuple tuple("dummy", {alpha, beta}, {12.0f}, {1,2, 3});
 
     ASSERT_EQ("dummy", tuple._opName);
     ASSERT_EQ(2, tuple._inputs.size());
@@ -26,11 +26,11 @@ TEST_F(OpTupleTests, DirectConstructorTest1) {
 }
 
 TEST_F(OpTupleTests, BuilderTest1) {
-    NDArray<float> alpha('c', {1, 2});
-    NDArray<float> beta('c', {1, 2});
+    NDArray<float> *alpha = new NDArray<float>('c', {1, 2});
+    NDArray<float> *beta = new NDArray<float>('c', {1, 2});
     OpTuple tuple("dummy");
-    tuple.addInput(&alpha)
-            ->addInput(&beta)
+    tuple.addInput(alpha)
+            ->addInput(beta)
             ->setTArgs({12.0f})
             ->setIArgs({1, 2, 3});
 

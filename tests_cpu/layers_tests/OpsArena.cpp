@@ -17,7 +17,7 @@ using namespace nd4j::ops;
 
 class OpsArena : public testing::Test {
 public:
-    const int numIterations = 10;
+    const int numIterations = 100;
     std::vector<OpTuple *> tuples;
 
 
@@ -26,11 +26,12 @@ public:
 
 
         // conv2d_bp
-        auto conv2d_bp_Input = new NDArray<float>('c', {2, 1, 4, 4});
-        auto conv2d_bp_Weights = new NDArray<float>('c', {2, 1, 3, 3});
-        auto conv2d_bp_Bias = new NDArray<float>('c', {2, 1});
-        auto conv2d_bp_Epsilon = new NDArray<float > ('c', {2, 2, 4, 4});
-        tuples.push_back(new OpTuple("conv2d_bp", {conv2d_bp_Input, conv2d_bp_Weights, conv2d_bp_Bias, conv2d_bp_Epsilon}, {}, {3, 3, 1, 1, 0, 0, 1, 1, 1}));
+        tuples.push_back((new OpTuple("conv2d_bp"))
+                                 ->addInput(new NDArray<float>('c', {2, 1, 4, 4}))
+                                 ->addInput(new NDArray<float>('c', {2, 1, 3, 3}))
+                                 //->addInput(new NDArray<float>('c', {2, 1}))
+                                 ->addInput(new NDArray<float > ('c', {2, 2, 4, 4}))
+                                 ->setIArgs({3, 3, 1, 1, 0, 0, 1, 1, 1}));
 
 
         // mergeavg
@@ -52,7 +53,6 @@ public:
         auto conv2d_Bias = new NDArray<float>('c', {3, 1});
         tuples.push_back(new OpTuple("conv2d", {conv2d_Input, conv2d_Weights, conv2d_Bias}, {}, {2, 2, 1, 1, 0, 0, 1, 1, 1}));
 
-
         // test custom op
         tuples.emplace_back((new OpTuple("testcustom"))
                                     ->setIArgs({1, 2})
@@ -70,6 +70,13 @@ public:
                                     ->addInput(new NDArray<float>('c', {2, 1, 28, 28}))
                                     ->setIArgs({5, 5, 1, 1, 0, 0, 2, 2, 0}));
     }
+
+
+    ~OpsArena() {
+        for (auto v: tuples)
+            delete v;
+    }
+
 };
 
 

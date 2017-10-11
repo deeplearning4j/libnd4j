@@ -59,9 +59,9 @@ namespace nd4j {
             std::unique_ptr<NDArray<T>> col(new NDArray<T>('c', {batchSize, oY, oX, inDepth, kY, kX}));
             std::unique_ptr<NDArray<T>> col2(col.get()->permute({0, 3, 4, 5, 1, 2}));
 
-            std::unique_ptr<T> extrasIm2Col(new T[9]{(T) kY, (T) kX, (T) sY, (T) sX, (T) pY, (T) pX, (T) dY, (T) dX, isSameMode ? (T) 1.0f : (T) 0.0f});
+            std::vector<T> extrasIm2Col({(T) kY, (T) kX, (T) sY, (T) sX, (T) pY, (T) pX, (T) dY, (T) dX, isSameMode ? (T) 1.0f : (T) 0.0f});
 
-            input->template applyTransform<simdOps::Im2col<T>>(col2.get(), extrasIm2Col.get());
+            input->template applyTransform<simdOps::Im2col<T>>(col2.get(), extrasIm2Col.data());
 
             std::unique_ptr<NDArray<T>> im2col2d(col->reshape('c', {batchSize * oY * oX, inDepth * kY * kX}));
             std::unique_ptr<NDArray<T>> permutedW(weights->permute({3, 2, 1, 0}));
@@ -311,9 +311,9 @@ namespace nd4j {
             std::unique_ptr<NDArray<T>> col2(new NDArray<T>('c', {batchSize, inDepth, kY, kX, oY, oX}));
 
             // col2d now has shape of [bS, inDepth, kY, kX, oY, oX]
-            std::unique_ptr<T> extrasIm2Col(new T[9]{(T) kY, (T) kX, (T) sY, (T) sX, (T) pY, (T) pX, (T) dY, (T) dX, isSameMode ? (T) 1.0f : (T) 0.0f});
+            std::vector<T> extrasIm2Col({(T) kY, (T) kX, (T) sY, (T) sX, (T) pY, (T) pX, (T) dY, (T) dX, isSameMode ? (T) 1.0f : (T) 0.0f});
 
-            input->template applyTransform<simdOps::Im2col<T>>(col2.get(), extrasIm2Col.get());
+            input->template applyTransform<simdOps::Im2col<T>>(col2.get(), extrasIm2Col.data());
 
             NDArray<T>* c_ = col2.get()->permute({1, 0, 4, 5, 2, 3});
             NDArray<T>* w_ = weights->permute({1, 2, 3, 0});
@@ -430,9 +430,9 @@ namespace nd4j {
                 std::unique_ptr<NDArray<T>> col2(new NDArray<T>('c', {batchSize, inDepth, kY, kX, oY, oX}));
 
                 // col2d now has shape of [bS, inDepth, kY, kX, oY, oX]
-                std::unique_ptr<T> extrasIm2Col(new T[9]{(T) kY, (T) kX, (T) sY, (T) sX, (T) pY, (T) pX, (T) dY, (T) dX, isSameMode ? (T) 1.0f : (T) 0.0f});
+                std::vector<T> extrasIm2Col({(T) kY, (T) kX, (T) sY, (T) sX, (T) pY, (T) pX, (T) dY, (T) dX, isSameMode ? (T) 1.0f : (T) 0.0f});
 
-                input->template applyTransform<simdOps::Im2col<T>>(col2.get(), extrasIm2Col.get());
+                input->template applyTransform<simdOps::Im2col<T>>(col2.get(), extrasIm2Col.data());
             }
 
 //            epsilonNext->printShapeInfo("eps next");
@@ -473,11 +473,11 @@ namespace nd4j {
             gcol->reshapei('c', {inDepth, kY, kX, batchSize, oY, oX});
             gcol->permutei({3, 0, 1, 2, 4, 5});
 
-            std::unique_ptr<T> extrasCol2Im(new T[9]{(T) sY, (T) sX, (T) pY, (T) pX, (T) inY, (T) inX, (T) dY, (T) dX, isSameMode ? (T) 1.0f : (T) 0.0f});
+            std::vector<T> extrasCol2Im({(T) sY, (T) sX, (T) pY, (T) pX, (T) inY, (T) inX, (T) dY, (T) dX, isSameMode ? (T) 1.0f : (T) 0.0f});
 
             // we're sure that col2im result will have the same size as original image
             //auto rCol = new NDArray<T>('c', {batchSize, inDepth, inY, inX});
-            gcol->template applyTransform<simdOps::Col2Im<T>>(epsilon, extrasCol2Im.get());
+            gcol->template applyTransform<simdOps::Col2Im<T>>(epsilon, extrasCol2Im.data());
 
 
             delete eN_;
@@ -570,9 +570,9 @@ namespace nd4j {
             auto gcol = nd4j::NDArrayFactory<T>::tensorDot(weights, input, nullptr, {0}, {1});
             gcol->permutei({3, 0, 1, 2, 4, 5});
 
-            std::unique_ptr<T> extrasCol2Im(new T[9]{(T) sY, (T) sX, (T) pY, (T) pX, (T) oY, (T) oX, (T) dY, (T) dX, isSameMode ? (T) 1.0f : (T) 0.0f});
+            std::vector<T> extrasCol2Im({(T) sY, (T) sX, (T) pY, (T) pX, (T) oY, (T) oX, (T) dY, (T) dX, isSameMode ? (T) 1.0f : (T) 0.0f});
 
-            gcol->template applyTransform<simdOps::Col2Im<T>>(z, extrasCol2Im.get());
+            gcol->template applyTransform<simdOps::Col2Im<T>>(z, extrasCol2Im.data());
 
             delete gcol;
 
@@ -671,9 +671,9 @@ namespace nd4j {
                 ConvolutionUtils<T>::_calcPadding2D(pY, pX, oY, oX, inY, inX, kY, kX, sY, sX, dY, dX);
             }
 
-            std::unique_ptr<T> extrasIm2Col(new T[9]{(T) kY, (T) kX, (T) sY, (T) sX, (T) pY, (T) pX, (T) dY, (T) dX, isSameMode ? (T) 1.0f : (T) 0.0f});
+            std::vector<T> extrasIm2Col({(T) kY, (T) kX, (T) sY, (T) sX, (T) pY, (T) pX, (T) dY, (T) dX, isSameMode ? (T) 1.0f : (T) 0.0f});
             auto gcol = new NDArray<T>('c', {input->sizeAt(0), input->sizeAt(1), kY, kX, oY, oX });
-            epsilonNext->template applyTransform<simdOps::Im2col<T>>(gcol, extrasIm2Col.get());
+            epsilonNext->template applyTransform<simdOps::Im2col<T>>(gcol, extrasIm2Col.data());
 
             /*
             gW = numpy.tensordot(
@@ -1241,7 +1241,7 @@ namespace nd4j {
                     z->putScalar(index,res);
                 }
             }
-			delete im2colShapeInfo;
+			delete[] im2colShapeInfo;
 			return ND4J_STATUS_OK;
 		}
 		DECLARE_SYN(Pooling2D, pooling2d);

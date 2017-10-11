@@ -15,6 +15,11 @@ nd4j::ops::OpTuple::OpTuple(const char *opName, std::initializer_list<nd4j::NDAr
     _tArgs = tArgs;
 }
 
+nd4j::ops::OpTuple::~OpTuple() {
+    for (auto v: _inputs)
+        delete v;
+}
+
 nd4j::ops::OpTuple *nd4j::ops::OpTuple::addInput(nd4j::NDArray<float> *array) {
     _inputs.emplace_back(array);
     return this;

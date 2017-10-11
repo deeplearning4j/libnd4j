@@ -80,13 +80,13 @@ NDArray<T>::NDArray(const Nd4jIndex length, const char order, nd4j::memory::Work
     // todo make this optional
     memset(_buffer, 0, length * sizeOfT());              // set all elements in new array to be zeros
 
-    std::unique_ptr<int> shape(new int[2] {1, (int) length});
+    int shape[] = {1, (int) length};
 
     if (order == 'f') {
-        _shapeInfo = shape::shapeBufferFortran(2, shape.get());
+        _shapeInfo = shape::shapeBufferFortran(2, shape);
         _shapeInfo[7] = 102;
     } else {
-        _shapeInfo = shape::shapeBuffer(2, shape.get());
+        _shapeInfo = shape::shapeBuffer(2, shape);
         _shapeInfo[7] = 99;
     }
 
@@ -103,23 +103,25 @@ template <typename T>
     Nd4jIndex length = rows * columns;
     int rank = 2;
 
-    std::unique_ptr<int> shapeOf(new int[2] {rows, columns});
+    int shapeOf[] = {rows, columns};
 
     _workspace = workspace;
     if (workspace == nullptr) {
         if (order == 'f')
-            _shapeInfo = shape::shapeBufferFortran(rank, shapeOf.get());
+            _shapeInfo = shape::shapeBufferFortran(rank, shapeOf);
         else
-            _shapeInfo = shape::shapeBuffer(rank, shapeOf.get());
+            _shapeInfo = shape::shapeBuffer(rank, shapeOf);
 
         _buffer =  new T[shape::length(_shapeInfo)];
     } else {
-        std::unique_ptr<int> shapeInfo( order == 'f' ? shape::shapeBufferFortran(rank, shapeOf.get()) : shape::shapeBuffer(rank, shapeOf.get()));
+        int *shapeInfo =  order == 'f' ? shape::shapeBufferFortran(rank, shapeOf) : shape::shapeBuffer(rank, shapeOf);
 
         _shapeInfo = (int*) _workspace->allocateBytes(shape::shapeInfoByteLength(rank));
-        memcpy(_shapeInfo, shapeInfo.get(), shape::shapeInfoByteLength(rank));
+        memcpy(_shapeInfo, shapeInfo, shape::shapeInfoByteLength(rank));
 
         _buffer = (T*) _workspace->allocateBytes(shape::length(_shapeInfo) * sizeOfT());
+
+        delete[] shapeInfo;
     }
 
     memset(_buffer, 0, length * sizeOfT());              // set all elements in new array to be zeros
@@ -338,34 +340,37 @@ void NDArray<T>::replacePointers(T *buffer, int *shapeInfo, const bool releaseEx
         if (rank > MAX_RANK)
             throw std::invalid_argument("Rank of NDArray can't exceed 32");
 
-        std::unique_ptr<int> shapeOf(new int[rank]);
+        int *shapeOf = new int[rank];
         int cnt = 0;
 
         for (auto &item: shape)
-            shapeOf.get()[cnt++] = item;
+            shapeOf[cnt++] = item;
 
         _workspace = workspace;
         if (workspace == nullptr) {
             if (order == 'f')
-                _shapeInfo = shape::shapeBufferFortran(rank, shapeOf.get());
+                _shapeInfo = shape::shapeBufferFortran(rank, shapeOf);
             else
-                _shapeInfo = shape::shapeBuffer(rank, shapeOf.get());
+                _shapeInfo = shape::shapeBuffer(rank, shapeOf);
 
             _buffer =  new T[shape::length(_shapeInfo)];
         } else {
-            std::unique_ptr<int> shapeInfo( order == 'f' ? shape::shapeBufferFortran(rank, shapeOf.get()) : shape::shapeBuffer(rank, shapeOf.get()));
+            int *shapeInfo = order == 'f' ? shape::shapeBufferFortran(rank, shapeOf) : shape::shapeBuffer(rank, shapeOf);
 
             _shapeInfo = (int*) _workspace->allocateBytes(shape::shapeInfoByteLength(rank));
-            memcpy(_shapeInfo, shapeInfo.get(), shape::shapeInfoByteLength(rank));
+            memcpy(_shapeInfo, shapeInfo, shape::shapeInfoByteLength(rank));
 
             _buffer = (T*) _workspace->allocateBytes(shape::length(_shapeInfo) * sizeOfT());
+
+            delete[] shapeInfo;
         }
 
         memset(_buffer, 0, sizeOfT() * shape::length(_shapeInfo));
         
 		_isBuffAlloc = true; 
 		_isShapeAlloc = true;
-	
+
+        delete[] shapeOf;
     }
 
 
@@ -1400,17 +1405,17 @@ template<typename T>
             reps.push_back(r);
     }*/
 
-    std::unique_ptr<int> newShape(new int[this->rankOf()]);
+    int *newShape = new int[this->rankOf()];
     std::vector<int> rShape;
 
     for (int i = 0; i < this->rankOf(); i++) {
-        newShape.get()[i] = this->sizeAt(i) * reps.at(i);
-        rShape.push_back(newShape.get()[i]);
+        newShape[i] = this->sizeAt(i) * reps.at(i);
+        rShape.push_back(newShape[i]);
     }
 
     auto ret = new NDArray<T>('c', rShape, _workspace);
 
-    auto repeatDelta = shape::prodLong(newShape.get(), this->rankOf()) / this->lengthOf();
+    auto repeatDelta = shape::prodLong(newShape, this->rankOf()) / this->lengthOf();
     auto numTads = this->tensorsAlongDimension({dimension});
     for (int i = 0; i < numTads; i++) {
         auto thisTensor = this->tensorAlongDimension(i, {dimension});
@@ -1426,6 +1431,8 @@ template<typename T>
         delete thisTensor;
         delete retTensor;
     }
+
+    delete[] newShape;
 
     return ret;
 }
