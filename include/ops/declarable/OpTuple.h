@@ -14,10 +14,10 @@ namespace nd4j {
         class OpTuple {
         public:
             const char * _opName;
-            std::initializer_list<nd4j::NDArray<float> *> _inputs;
-            std::initializer_list<nd4j::NDArray<float> *> _outputs;
-            std::initializer_list<float> _tArgs;
-            std::initializer_list<int> _iArgs;
+            std::vector<nd4j::NDArray<float> *> _inputs;
+            std::vector<nd4j::NDArray<float> *> _outputs;
+            std::vector<float> _tArgs;
+            std::vector<int> _iArgs;
 
             OpTuple(const char *opName, std::initializer_list<nd4j::NDArray<float> *>&& inputs, std::initializer_list<float>&& tArgs, std::initializer_list<int>&& iArgs);
             ~OpTuple() = default;
