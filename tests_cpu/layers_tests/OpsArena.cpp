@@ -31,7 +31,7 @@ public:
         auto mergeMax_X1 = new NDArray<float>('c', {100, 100});
         auto mergeMax_X2 = new NDArray<float>('c', {100, 100});
         tuples.push_back(new OpTuple("mergemax", {mergeMax_X0, mergeMax_X1, mergeMax_X2}, {}, {}));
-/*
+
         // conv2d
         auto conv2d_Input = new NDArray<float>('c', {1, 2, 5, 4});
         auto conv2d_Weights = new NDArray<float>('c', {3, 2, 2, 2});
@@ -45,7 +45,7 @@ public:
         auto conv2d_bp_Bias = new NDArray<float>('c', {2, 1});
         auto conv2d_bp_Epsilon = new NDArray<float > ('c', {2, 2, 4, 4});
         tuples.push_back(new OpTuple("conv2d_bp", {conv2d_bp_Input, conv2d_bp_Weights, conv2d_bp_Bias, conv2d_bp_Epsilon}, {}, {3, 3, 1, 1, 0, 0, 1, 1, 1}));
-*/
+
     }
 };
 
