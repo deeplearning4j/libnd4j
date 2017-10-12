@@ -73,6 +73,8 @@ namespace nd4j {
 
             return ND4J_STATUS_OK;
         }
+        DECLARE_SYN(concat_v2, concat);
+        DECLARE_SYN(concatv2, concat);
         DECLARE_SHAPE_FN(concat) {
             int* inp = inputShape->at(0);
             int _dimension = block.getIArguments()->at(0);
