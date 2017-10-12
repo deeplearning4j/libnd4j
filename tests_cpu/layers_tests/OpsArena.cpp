@@ -17,7 +17,7 @@ using namespace nd4j::ops;
 
 class OpsArena : public testing::Test {
 public:
-    const int numIterations = 100;
+    const int numIterations = 0;
     std::vector<OpTuple *> tuples;
 
 

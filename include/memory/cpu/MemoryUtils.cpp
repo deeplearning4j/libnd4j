@@ -20,7 +20,6 @@
 
 
 bool nd4j::memory::MemoryUtils::retrieveMemoryStatistics(nd4j::memory::MemoryReport &report) {
-    sleep(1);
 #if defined(__APPLE__)
     nd4j_debug("APPLE route\n", "");
 /*

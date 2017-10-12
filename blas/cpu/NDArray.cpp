@@ -80,7 +80,7 @@ NDArray<T>::NDArray(const Nd4jIndex length, const char order, nd4j::memory::Work
     // todo make this optional
     memset(_buffer, 0, length * sizeOfT());              // set all elements in new array to be zeros
 
-    int shape[] = {1, (int) length};
+    int *shape = new int[2]{1, (int) length};
 
     if (order == 'f') {
         _shapeInfo = shape::shapeBufferFortran(2, shape);
@@ -93,6 +93,7 @@ NDArray<T>::NDArray(const Nd4jIndex length, const char order, nd4j::memory::Work
     _shapeInfo[6] = 1;
     _isBuffAlloc = true;
     _isShapeAlloc = true;
+    delete[] shape;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -103,7 +104,7 @@ template <typename T>
     Nd4jIndex length = rows * columns;
     int rank = 2;
 
-    int shapeOf[] = {rows, columns};
+    int *shapeOf = new int[2]{rows, columns};
 
     _workspace = workspace;
     if (workspace == nullptr) {
@@ -131,6 +132,8 @@ template <typename T>
     } else {
         _shapeInfo[7] = 99;
     }
+
+    delete[] shapeOf;
 
     _shapeInfo[6] = 1;
     _isBuffAlloc = true; 

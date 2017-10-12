@@ -592,20 +592,33 @@ namespace nd4j {
         }
 
         OP_IMPL(softmax_bp, 2, 1, true) {
-            NDArray<T>* input = block.getVariables().at(0)->getNDArray();
-            NDArray<T>* epsInput = block.getVariables().at(1)->getNDArray();
+            NDArray<T>* input = INPUT_VARIABLE(0);
+            NDArray<T>* epsInput = INPUT_VARIABLE(1);
 
-            NDArray<T>* z = this->getZ(block);
+            NDArray<T>* z = OUTPUT_VARIABLE(0);
+            /*
+                INDArray out = Nd4j.getExecutioner().execAndReturn(new SoftMax(in));
 
+                INDArray x = out.mul(epsilon).sum(1);
+                INDArray dLdz = out.mul(epsilon.subColumnVector(x));
+            */
+
+            auto tmp_ = new NDArray<T>(input);
             input->template applyTransform<simdOps::SoftMax<T>>(z, nullptr);
-            z->template applyPairwiseTransform<simdOps::Multiply<T>>(epsInput, z, nullptr);
+            z->template applyPairwiseTransform<simdOps::Multiply<T>>(epsInput, tmp_, nullptr);
 
-            auto sum = z->template reduceAlongDimension<simdOps::Sum<T>>({-1});
-            z->template applyBroadcast<simdOps::Multiply<T>>({1}, sum);
+            auto sum = tmp_->template reduceAlongDimension<simdOps::Sum<T>>({1});
+
+            tmp_->assign(epsInput);
+            tmp_->template applyBroadcast<simdOps::Subtract<T>>({0}, sum);
+
+            z->template applyPairwiseTransform<simdOps::Multiply<T>>(tmp_, z, nullptr);
 
             STORE_RESULT(*z);
 
             delete sum;
+            delete tmp_;
+
             return ND4J_STATUS_OK;
         }
 
