@@ -44,7 +44,7 @@ namespace nd4j {
         DECLARE_OP(reversedivide, 2, 1, true);
         DECLARE_OP(reshapeas, 2, 1, true);      // should become custom
         DECLARE_OP(transpose, 1, 1, true);      // should become custom
-
+        DECLARE_OP(zeros_as, 1, 1, false);
 
 
         DECLARE_DIVERGENT_OP(Switch, 2, 2, true);
@@ -73,6 +73,9 @@ namespace nd4j {
         DECLARE_CUSTOM_OP(pooling2d, 1, 1, false, 0, 11);
         DECLARE_CUSTOM_OP(avgpool2d_bp, 2, 1, false, 0, 9);
         DECLARE_CUSTOM_OP(pnormpool2d_bp, 2, 1, false, 1, 10);
+
+
+        DECLARE_CUSTOM_OP(strided_slice, 1, 1, true, 0, -1); // TODO: new op type needed. that returns VIEW
 
 
         DECLARE_CONFIGURABLE_OP(tensormmul, 2, 1, false, 0, -1);   // should become custom

@@ -22,7 +22,7 @@ namespace nd4j {
             NDArray<T>* weights = INPUT_VARIABLE(1);
             NDArray<T>* bias = nullptr;
 
-            if (block.getVariables().size() == 3)
+            if (block.getVariables()->size() == 3)
                 bias = INPUT_VARIABLE(2);
 
             const int kY = block.getIArguments()->at(0);
@@ -138,7 +138,7 @@ namespace nd4j {
             NDArray<T>* epsilon = OUTPUT_VARIABLE(0);
             NDArray<T>* gradW = OUTPUT_VARIABLE(1);
             NDArray<T>* gradB = nullptr;
-            if (block.getVariables().size() == 3)
+            if (block.getVariables()->size() == 3)
                 epsilonNext = INPUT_VARIABLE(2);
             else {
                 bias = INPUT_VARIABLE(2);
@@ -267,11 +267,11 @@ namespace nd4j {
          */
 //////////////////////////////////////////////////////////////////////////
         CUSTOM_OP_IMPL(sconv2d, 2, 1, false, 0, 9) {
-            NDArray<T> *input = block.getVariables().at(0)->getNDArray();
-            NDArray<T> *weights = block.getVariables().at(1)->getNDArray();
+            NDArray<T> *input = INPUT_VARIABLE(0);
+            NDArray<T> *weights = INPUT_VARIABLE(1);
             NDArray<T> *bias = nullptr;
-            if (block.getVariables().size() == 3)
-                bias = block.getVariables().at(2)->getNDArray();
+            if (block.getVariables()->size() == 3)
+                bias = INPUT_VARIABLE(2);
 
             NDArray<T> *z = this->getZ(block);
 
@@ -389,7 +389,7 @@ namespace nd4j {
             NDArray<T> *bias = nullptr;
 
             // bias is still optional
-            if (block.getVariables().size() > 3)
+            if (block.getVariables()->size() > 3)
                 bias = INPUT_VARIABLE(3);
 
             //epsilonNext->rankOf() == 4 && weights->rankOf() == 4
@@ -536,7 +536,7 @@ namespace nd4j {
             NDArray<T>* input = INPUT_VARIABLE(0);
             NDArray<T>* weights = INPUT_VARIABLE(1);
             NDArray<T>* bias = nullptr;
-            if (block.getVariables().size() > 2)
+            if (block.getVariables()->size() > 2)
                 bias = INPUT_VARIABLE(2);
 
             REQUIRE_TRUE(input->rankOf() == 4, 0, "Input should be 4D, but got %iD instead", input->rankOf());
@@ -620,7 +620,7 @@ namespace nd4j {
             NDArray<T> *bias = nullptr;
 
             // bias is still optional
-            if (block.getVariables().size() > 3)
+            if (block.getVariables()->size() > 3)
                 bias = INPUT_VARIABLE(3);
 
             //epsilonNext->rankOf() == 4 && weights->rankOf() == 4
@@ -739,7 +739,7 @@ namespace nd4j {
          * IArgs[0] - scale factor
          */
         CONFIGURABLE_OP_IMPL(upsampling2d, 1, 1, false, 0, 1) {
-            NDArray<T>* input = block.getVariables().at(0)->getNDArray();
+            NDArray<T>* input = INPUT_VARIABLE(0);
             NDArray<T>* output = this->getZ(block);
             int scale_factor = block.getIArguments()->at(0);
 
@@ -813,7 +813,7 @@ namespace nd4j {
          */
         CONFIGURABLE_OP_IMPL(upsampling2d_bp, 2, 1, false, 0, 1) {
             //NDArray<T>* input = block.getVariables().at(0)->getNDArray();
-            NDArray<T>* gradientNext = block.getVariables().at(1)->getNDArray();
+            NDArray<T>* gradientNext = INPUT_VARIABLE(1);
             NDArray<T>* output = this->getZ(block);
             int scale_factor = block.getIArguments()->at(0);
 
@@ -891,8 +891,8 @@ namespace nd4j {
 			REQUIRE_OK(this->validateInputLengthMatch(block));
             REQUIRE_OK(this->validateInputDimensionsMatch(block));
 
-			NDArray<T>* x = block.getVariables().at(0)->getNDArray();			
-			NDArray<T>* z = this->getZ(block);
+			NDArray<T>* x = INPUT_VARIABLE(0);
+			NDArray<T>* z = OUTPUT_VARIABLE(0);
 			std::vector<int> dimensions = *(block.getIArguments());			// argI
 
 			if (x->isVector()) {
@@ -1114,7 +1114,7 @@ namespace nd4j {
 		//////////////////////////////////////////////////////////////////////////        
         CUSTOM_OP_IMPL(pooling2d, 1, 1, false, 0, 11) {
 
-			NDArray<T> *x = block.getVariables().at(0)->getNDArray();			
+			NDArray<T> *x = INPUT_VARIABLE(0);
 			REQUIRE_TRUE(x->rankOf() == 4, 0, "Input should have rank of 4, but got %i instead", x->rankOf());            
             std::vector<int> argI = *(block.getIArguments());				// 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8 - same mode; 9 - pooling mode; 10 - divisor extraParam0 for pnorm case			
             auto z = this->getZ(block);
@@ -1287,10 +1287,10 @@ namespace nd4j {
 		//////////////////////////////////////////////////////////////////////////
 		CUSTOM_OP_IMPL(avgpool2d_bp, 2, 1, false, 0, 9) {
 			
-            NDArray<T>* input = block.getVariables().at(0)->getNDArray();
+            NDArray<T>* input = INPUT_VARIABLE(0);
 			REQUIRE_TRUE(input->rankOf() == 4, 0, "Input should have rank of 4, but got %i instead", input->rankOf());
-			NDArray<T>* epsilon = block.getVariables().at(1)->getNDArray();
-			NDArray<T>* outEpsilon = this->getZ(block);
+			NDArray<T>* epsilon = INPUT_VARIABLE(1);
+			NDArray<T>* outEpsilon = OUTPUT_VARIABLE(0);
 			std::vector<int> argI = *(block.getIArguments());
 			
 			int kH = argI[0];
@@ -1393,9 +1393,9 @@ namespace nd4j {
 		//////////////////////////////////////////////////////////////////////////
 		CUSTOM_OP_IMPL(pnormpool2d_bp, 2, 1, false, 1, 10) {
 			
-            NDArray<T>* input = block.getVariables().at(0)->getNDArray();
-			NDArray<T>* epsilon = block.getVariables().at(1)->getNDArray();
-			NDArray<T>* outEpsilon = this->getZ(block);
+            auto input = INPUT_VARIABLE(0);
+			auto epsilon = INPUT_VARIABLE(1);
+			auto outEpsilon = OUTPUT_VARIABLE(0);
 			std::vector<int> argI = *(block.getIArguments());
 			std::vector<T>   argT = *(block.getTArguments());
 			

@@ -160,8 +160,8 @@ namespace nd4j {
         * @return
         */
         template <typename T>
-        std::vector<nd4j::graph::Variable<T> *>& nd4j::graph::Block<T>::getVariables() {
-            return _variables;
+        std::vector<nd4j::graph::Variable<T> *>* nd4j::graph::Block<T>::getVariables() {
+            return &_variables;
         }
 
 

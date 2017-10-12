@@ -93,7 +93,7 @@ namespace nd4j {
             */
             VariableSpace<T>* getVariableSpace();
 
-            std::vector<nd4j::graph::Variable<T> *>& getVariables();
+            std::vector<nd4j::graph::Variable<T> *>* getVariables();
         };
     }
 }

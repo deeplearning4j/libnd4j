@@ -298,7 +298,7 @@ namespace nd4j {
                     for (uint32_t e = 0; e < node->input()->size(); e++) {
                         auto var = _variableSpace->getVariable(node->input()->at(e));
 
-                        block->getVariables().push_back(var);
+                        block->getVariables()->push_back(var);
                     }
                 }
 
@@ -435,7 +435,7 @@ namespace nd4j {
                                     for (uint32_t e = 0; e < node->input()->size(); e++) {
                                         auto var = _variableSpace->getVariable(node->input()->at(e));
 
-                                        block->getVariables().push_back(var);
+                                        block->getVariables()->emplace_back(var);
                                     }
                                 }
                             }
@@ -484,7 +484,7 @@ namespace nd4j {
                                 for (uint32_t e = 0; e < node->input()->size(); e++) {
                                     auto var = _variableSpace->getVariable(node->input()->at(e));
 
-                                    block->getVariables().push_back(var);
+                                    block->getVariables()->push_back(var);
                                 }
                             }
                         }

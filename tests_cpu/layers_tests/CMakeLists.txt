@@ -66,13 +66,13 @@ add_library(nd4jcpu STATIC ../../blas/cpu/NativeOps.cpp ../../blas/cpu/GraphExec
         ../../include/ops/declarable/generic/convo/conv2d_ops.cpp ../../blas/Environment.cpp ../../include/graph/impl/Stash.cpp ../../include/indexing/impl/NDIndex.cpp
         ../../include/indexing/impl/IndicesList.cpp ../../include/graph/impl/Variable.cpp ../../include/graph/impl/VariableSpace.cpp
         ../../include/graph/impl/ShapeList.cpp ../../include/graph/impl/SessionLocalStorage.cpp ../../include/graph/impl/Node.cpp ../../include/graph/impl/Graph.cpp
-        ../../include/graph/impl/Block.cpp ../../include/graph/impl/ArrayList.cpp ../../include/helpers/impl/ArrayUtils.cpp ../../include/helpers/impl/helper_hash.cpp
+        ../../include/graph/Block.h ../../include/graph/impl/Block.cpp ../../include/graph/impl/ArrayList.cpp ../../include/helpers/impl/ArrayUtils.cpp ../../include/helpers/impl/helper_hash.cpp
         ../../include/helpers/impl/TAD.cpp ../../include/ops/impl/specials_sparse.cpp ../../include/helpers/impl/shape.cpp ../../include/ops/declarable/impl/DeclarableOp.cpp ../../include/ops/declarable/DeclarableOp.h
         ../../include/ops/declarable/impl/OpRegistrator.cpp ../../include/ops/declarable/impl/DeclarableReductionOp.cpp ../../include/ops/declarable/impl/DeclarableCustomOp.cpp
         ../../include/ops/impl/specials.cpp ../../include/memory/cpu/MemoryRegistrator.cpp ../../include/ops/impl/gemm.cpp ../../include/ops/declarable/generic/convo/conv3d_ops.cpp
         ../../include/ops/declarable/generic/convo/fullconv3d.cpp ../../include/ops/declarable/generic/convo/pooling2d_ops.cpp ../../include/ops/declarable/generic/convo/pooling3d_ops.cpp
         ../../include/loops/cpu/scalar.cpp ../../include/memory/cpu/MemoryReport.cpp ../../include/memory/MemoryReport.h ../../include/memory/cpu/MemoryUtils.cpp ../../include/memory/MemoryUtils.h
-        ../../include/ops/declarable/impl/OpTuple.cpp ../../include/ops/declarable/OpTuple.h)
+        ../../include/ops/declarable/impl/OpTuple.cpp ../../include/ops/declarable/OpTuple.h ../../include/ops/declarable/generic/parity_ops/strided_slice.cpp ../../include/ops/declarable/generic/parity_ops/zeros_as.cpp)
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND "${CMAKE_CXX_COMPILER_VERSION}" VERSION_LESS 4.9)
     message(FATAL_ERROR "You need at least GCC 4.9")
@@ -96,5 +96,5 @@ endif()
 
 
 #
-add_executable(runtests StashTests.cpp SessionLocalTests.cpp FlatBuffersTests.cpp ConvolutionTests.cpp DeclarableOpsTests.cpp DenseLayerTests.cpp  GraphTests.cpp HashUtilsTests.cpp NDArrayTests.cpp TadTests.cpp VariableSpaceTests.cpp VariableTests.cpp WorkspaceTests.cpp JavaInteropTests.cpp MemoryUtilsTests.cpp OpsArena.cpp OpTupleTests.cpp)
+add_executable(runtests StashTests.cpp SessionLocalTests.cpp FlatBuffersTests.cpp ConvolutionTests.cpp DeclarableOpsTests.cpp DenseLayerTests.cpp  GraphTests.cpp HashUtilsTests.cpp NDArrayTests.cpp TadTests.cpp VariableSpaceTests.cpp VariableTests.cpp WorkspaceTests.cpp JavaInteropTests.cpp MemoryUtilsTests.cpp OpsArena.cpp OpTupleTests.cpp ParityOpsTests.cpp)
 target_link_libraries(runtests nd4jcpu gtest gtest_main)
