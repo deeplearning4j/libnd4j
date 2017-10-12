@@ -15,6 +15,7 @@ namespace nd4j {
 
             return ND4J_STATUS_OK;
         }
+        DECLARE_SYN(zeroslike, zeros_as);
     }
 }
 

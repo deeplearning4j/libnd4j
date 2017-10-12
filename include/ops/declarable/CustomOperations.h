@@ -45,6 +45,8 @@ namespace nd4j {
         DECLARE_OP(reshapeas, 2, 1, true);      // should become custom
         DECLARE_OP(transpose, 1, 1, true);      // should become custom
         DECLARE_OP(zeros_as, 1, 1, false);
+        DECLARE_OP(maximum, 2, 1, true);
+        DECLARE_OP(minimum, 2, 1, true);
 
 
         DECLARE_DIVERGENT_OP(Switch, 2, 2, true);

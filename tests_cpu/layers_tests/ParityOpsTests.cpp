@@ -34,3 +34,41 @@ TEST_F(ParityOpsTests, TestZeroAs1) {
 
     delete result;
 }
+
+TEST_F(ParityOpsTests, TestMaximum1) {
+    NDArray<float> x('c', {10, 10});
+    x.assign(1.0);
+
+    NDArray<float> y('c', {10, 10});
+    y.assign(2.0);
+
+    nd4j::ops::maximum<float> op;
+
+    auto result = op.execute({&x, &y}, {}, {});
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(y.equalsTo(z));
+
+    delete result;
+}
+
+
+TEST_F(ParityOpsTests, TestMinimum1) {
+    NDArray<float> x('c', {10, 10});
+    x.assign(1.0f);
+
+    NDArray<float> y('c', {10, 10});
+    y.assign(-2.0f);
+
+
+    nd4j::ops::minimum<float> op;
+
+    auto result = op.execute({&x, &y}, {}, {});
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(y.equalsTo(z));
+
+    delete result;
+}
