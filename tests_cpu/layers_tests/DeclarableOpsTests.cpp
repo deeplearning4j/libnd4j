@@ -2362,20 +2362,18 @@ TEST_F(DeclarableOpsTests, sru1) {
     
     NDArray<double> input('c', {K,bS,N});
     NDArray<double> weights('c', {K,bS,3*N});
-    NDArray<double> biasF('c', {1,N});
-    NDArray<double> biasR('c', {1,N});
+    NDArray<double> bias('c', {1,2*N});
     NDArray<double> prevState('c', {K,bS,N});
     NDArray<double> mask('c', {K,bS,N});
 
     nd4j::NDArrayFactory<double>::linspace(1., input);
-    nd4j::NDArrayFactory<double>::linspace(2., weights);
-    nd4j::NDArrayFactory<double>::linspace(3., biasF);
-    nd4j::NDArrayFactory<double>::linspace(4., biasR);
-    nd4j::NDArrayFactory<double>::linspace(5., prevState);
-    nd4j::NDArrayFactory<double>::linspace(6., mask);
+    nd4j::NDArrayFactory<double>::linspace(1., weights);
+    nd4j::NDArrayFactory<double>::linspace(1., bias);
+    nd4j::NDArrayFactory<double>::linspace(1., prevState);
+    mask.assign(1.);
 
     nd4j::ops::sru<double> op;
-    nd4j::ArrayList<double>*  results = op.execute({&input, &weights, &biasF, &biasR, &prevState, &mask}, {}, {});
+    nd4j::ArrayList<double>*  results = op.execute({&input, &weights, &bias, &prevState, &mask}, {}, {});
     ASSERT_TRUE(results->size() == 2);    
 
     NDArray<double>* curState = results->at(0);
@@ -2383,6 +2381,48 @@ TEST_F(DeclarableOpsTests, sru1) {
         
     ASSERT_TRUE(curState->isSameShape(&input));
     ASSERT_TRUE(output->isSameShape(&input));
+    
+    delete results;
+}
+
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests, sru2) {
+
+    const int K = 3;
+    const int bS = 2;
+    const int N = 3;
+    double bufOutput[] = {0.761811, 0.964173, 0.995056, 0.99933, 0.999909, 0.999988, 0.761594, 0.964156, 0.995055, 0.999329, 0.999909, 0.999988, 0.761594, 0.964156, 0.995055, 0.999329, 0.999909, 0.999988};
+    double bufCurState[] = {1., 2.00182, 3.00007, 4.00004, 5, 6, 1, 2.00182, 3.00007, 4.00004, 5, 6, 1, 2.00182, 3.00007, 4.00004, 5, 6};
+
+    NDArray<double> input('c', {K,bS,N});
+    NDArray<double> weights('c', {K,bS,3*N});
+    NDArray<double> bias('c', {1,2*N});
+    NDArray<double> prevState('c', {K,bS,N});
+    NDArray<double> mask('c', {K,bS,N});
+    // expected outputs arrays
+    NDArray<double> expCurState('c', {K,bS,N});
+    NDArray<double> expOutput('c', {K,bS,N});
+    expCurState.setBuffer(bufCurState);
+    expOutput.setBuffer(bufOutput);
+
+    nd4j::NDArrayFactory<double>::linspace(1., input);
+    nd4j::NDArrayFactory<double>::linspace(1., weights);
+    nd4j::NDArrayFactory<double>::linspace(1., bias);
+    nd4j::NDArrayFactory<double>::linspace(1., prevState);
+    mask.assign(1.);
+
+    nd4j::ops::sru<double> op;
+    nd4j::ArrayList<double>*  results = op.execute({&input, &weights, &bias, &prevState, &mask}, {}, {});
+    ASSERT_TRUE(results->size() == 2);    
+
+    NDArray<double>* output   = results->at(0);
+    NDArray<double>* curState = results->at(1);    
+    expOutput.printBuffer();
+    output->printBuffer();
+
+    ASSERT_TRUE(curState->equalsTo(&expCurState));
+    ASSERT_TRUE(output->equalsTo(&expOutput,1e-2));
     
     delete results;
 }
