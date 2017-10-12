@@ -1141,16 +1141,16 @@ TEST_F(DeclarableOpsTests, DivideScalarScalar1) {
 //////////////////////////////////////////////////////////////////////
 TEST_F(DeclarableOpsTests, ReverseDivideMatrices1) {
 	
-	NDArray<float> x(5, 3, 'c');
-	NDArray<float> y(5, 3, 'c');
+	auto x = new NDArray<float>(5, 3, 'c');
+	auto y = new NDArray<float>(5, 3, 'c');
 	NDArray<float> exp(5, 3, 'c'); 
-	x.assign(2);
-	y.assign(6);
+	x->assign(2);
+	y->assign(6);
 	exp.assign(3);
 
 	auto variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &x);
-    variableSpace->putVariable(-2, &y);
+    variableSpace->putVariable(-1, x);
+    variableSpace->putVariable(-2, y);
 	auto block = new Block<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
@@ -1158,99 +1158,114 @@ TEST_F(DeclarableOpsTests, ReverseDivideMatrices1) {
  
 	div.execute(block);
 
-    ASSERT_TRUE(x.equalsTo(&exp));	
+    ASSERT_TRUE(x->equalsTo(&exp));
+
+    delete variableSpace;
+    delete block;
 }
 
 //////////////////////////////////////////////////////////////////////
 TEST_F(DeclarableOpsTests, ReverseDivideMatrixVector1) {
 	
-	NDArray<float> x(5, 3, 'c');
-	NDArray<float> y(1, 15, 'c');
+	auto x = new NDArray<float>(5, 3, 'c');
+	auto y = new NDArray<float>(1, 15, 'c');
 	NDArray<float> exp(5, 3, 'c'); 
-	x.assign(2);
-	y.assign(6);
+	x->assign(2);
+	y->assign(6);
 	exp.assign(3);
 
-	VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &x);
-    variableSpace->putVariable(-2, &y);
-	Block<float>* block = new Block<float>(1, variableSpace, true);
+	auto variableSpace = new VariableSpace<float>();
+    variableSpace->putVariable(-1, x);
+    variableSpace->putVariable(-2, y);
+	auto block = new Block<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
 	nd4j::ops::reversedivide<float> div;
  
 	div.execute(block);
 
-    ASSERT_TRUE(x.equalsTo(&exp));	
+    ASSERT_TRUE(x->equalsTo(&exp));
+
+    delete variableSpace;
+    delete block;
 }
 
 //////////////////////////////////////////////////////////////////////
 TEST_F(DeclarableOpsTests, ReverseDivideVectorVector1) {
 	
-	NDArray<float> x(1, 15, 'c');
-	NDArray<float> y(1, 15, 'c');
+	auto x = new NDArray<float>(1, 15, 'c');
+	auto y = new NDArray<float>(1, 15, 'c');
 	NDArray<float> exp(1, 15, 'c'); 
-	x.assign(2);
-	y.assign(6);
+	x->assign(2);
+	y->assign(6);
 	exp.assign(3);
 
-	VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &x);
-    variableSpace->putVariable(-2, &y);
-	Block<float>* block = new Block<float>(1, variableSpace, true);
+	auto variableSpace = new VariableSpace<float>();
+    variableSpace->putVariable(-1, x);
+    variableSpace->putVariable(-2, y);
+	auto block = new Block<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
 	nd4j::ops::reversedivide<float> div;
  
 	div.execute(block);
 
-    ASSERT_TRUE(x.equalsTo(&exp));	
+    ASSERT_TRUE(x->equalsTo(&exp));
+
+    delete variableSpace;
+    delete block;
 }
 
 //////////////////////////////////////////////////////////////////////
 TEST_F(DeclarableOpsTests, ReverseDivideMatrixScalar1) {
 	
-	NDArray<float> x(5, 3, 'c');
-	NDArray<float> y(1, 1, 'c');
+	auto x = new NDArray<float>(5, 3, 'c');
+	auto y = new NDArray<float>(1, 1, 'c');
 	NDArray<float> exp(5, 3, 'c'); 
-	x.assign(2);
-	y.assign(6);
+	x->assign(2);
+	y->assign(6);
 	exp.assign(3);
 
-	VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &x);
-    variableSpace->putVariable(-2, &y);
-	Block<float>* block = new Block<float>(1, variableSpace, true);
+	auto variableSpace = new VariableSpace<float>();
+    variableSpace->putVariable(-1, x);
+    variableSpace->putVariable(-2, y);
+	auto block = new Block<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
 	nd4j::ops::reversedivide<float> div;
  
 	div.execute(block);
 
-    ASSERT_TRUE(x.equalsTo(&exp));	
+    ASSERT_TRUE(x->equalsTo(&exp));
+
+    delete variableSpace;
+    delete block;
 }
 
 //////////////////////////////////////////////////////////////////////
 TEST_F(DeclarableOpsTests, ReverseDivideScalarScalar1) {
 	
-	NDArray<float> x(1, 1, 'c');
-	NDArray<float> y(1, 1, 'c');
+	auto x = new NDArray<float>(1, 1, 'c');
+	auto y = new NDArray<float>(1, 1, 'c');
 	NDArray<float> exp(1, 1, 'c'); 
-	x.assign(2);
-	y.assign(6);
+	x->assign(2);
+	y->assign(6);
 	exp.assign(3);
 
-	VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &x);
-    variableSpace->putVariable(-2, &y);
-	Block<float>* block = new Block<float>(1, variableSpace, true);
+    auto variableSpace = new VariableSpace<float>();
+    variableSpace->putVariable(-1, x);
+    variableSpace->putVariable(-2, y);
+	auto block = new Block<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
 	nd4j::ops::reversedivide<float> div;
  
 	div.execute(block);
 
-    ASSERT_TRUE(x.equalsTo(&exp));	
+    ASSERT_TRUE(x->equalsTo(&exp));
+
+    delete variableSpace;
+    delete block;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -1258,22 +1273,24 @@ TEST_F(DeclarableOpsTests, Reshapeas1) {
 	const std::vector<int> xShape = {5,4,3};
 	const std::vector<int> yShape = {3,5,4};
 	
-	NDArray<float> x('c', xShape);
-	NDArray<float> y('f', yShape);
-	NDArray<float> z;
+	auto x = new NDArray<float>('c', xShape);
+	auto y = new NDArray<float>('f', yShape);
 
-	VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &x);
-    variableSpace->putVariable(-2, &y);
-	variableSpace->putVariable(1, &z);
-	Block<float>* block = new Block<float>(1, variableSpace, true);
+
+    auto variableSpace = new VariableSpace<float>();
+    variableSpace->putVariable(-1, x);
+    variableSpace->putVariable(-2, y);
+    auto block = new Block<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
 	nd4j::ops::reshapeas<float> reshape;
  
 	reshape.execute(block);
 
-    ASSERT_TRUE(x.isSameShape(&y));	
+    ASSERT_TRUE(x->isSameShape(y));
+
+    delete variableSpace;
+    delete block;
 }
 
 //////////////////////////////////////////////////////////////////////
