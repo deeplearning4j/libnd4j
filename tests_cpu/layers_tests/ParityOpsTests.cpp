@@ -72,3 +72,45 @@ TEST_F(ParityOpsTests, TestMinimum1) {
 
     delete result;
 }
+
+TEST_F(ParityOpsTests, TestTear1) {
+    NDArray<float> input('c', {10, 5});
+    auto tads = NDArrayFactory<float>::allTensorsAlongDimension(&input, {1});
+    for (int e = 0; e < tads->size(); e++) {
+        ASSERT_EQ(5, tads->at(e)->lengthOf());
+        tads->at(e)->assign((float) e + 1);
+    }
+
+    nd4j::ops::tear<float> op;
+
+    auto result = op.execute({&input}, {}, {1});
+
+    ASSERT_EQ(10, result->size());
+
+    for (int e = 0; e < result->size(); e++)
+        ASSERT_TRUE(tads->at(e)->equalsTo(result->at(e)));
+
+    delete result;
+    delete tads;
+}
+
+TEST_F(ParityOpsTests, TestUnstack1) {
+    NDArray<float> input('c', {10, 5});
+    auto tads = NDArrayFactory<float>::allTensorsAlongDimension(&input, {1});
+    for (int e = 0; e < tads->size(); e++) {
+        ASSERT_EQ(5, tads->at(e)->lengthOf());
+        tads->at(e)->assign((float) e + 1);
+    }
+
+    nd4j::ops::unstack<float> op;
+
+    auto result = op.execute({&input}, {}, {0});
+
+    ASSERT_EQ(10, result->size());
+
+    for (int e = 0; e < result->size(); e++)
+        ASSERT_TRUE(tads->at(e)->equalsTo(result->at(e)));
+
+    delete result;
+    delete tads;
+}

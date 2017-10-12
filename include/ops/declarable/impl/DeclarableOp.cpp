@@ -167,8 +167,12 @@ namespace nd4j {
             } else {
                 // otherwise - reference it as pair key
                 std::pair<int, int> pair((int) block.getNodeId(), outputNumber);
-                auto variable = block.getVariableSpace()->getVariable(pair);
-                variable->setNDArray(&array);
+                if (block.getVariableSpace()->hasVariable(pair)) {
+                    auto variable = block.getVariableSpace()->getVariable(pair);
+                    variable->setNDArray(&array);
+                } else {
+                    block.getVariableSpace()->putVariable(pair, &array);
+                }
             }
         }
 
