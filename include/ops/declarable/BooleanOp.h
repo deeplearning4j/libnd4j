@@ -23,9 +23,12 @@ namespace nd4j {
             bool evaluate(std::vector<nd4j::NDArray<T> *>& args);
             bool evaluate(nd4j::graph::Block<T>& block);
 
+            Nd4jStatus execute(Block<T>* block) override;
+
             ShapeList *calculateOutputShape(ShapeList *inputShape, nd4j::graph::Block<T> &block) override;
 
         protected:
+            bool prepareOutputs(Block<T>& block);
             virtual Nd4jStatus validateAndExecute(Block<T> &block) = 0;
         };
     }

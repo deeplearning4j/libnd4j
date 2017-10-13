@@ -269,10 +269,14 @@ namespace nd4j {
         void nd4j::graph::Graph<T>::addNode(nd4j::graph::Node<T> *node) {
             _built.store(false);
 
-            auto nodeState = new Variable<T>();
+            auto cname = node->getName() == nullptr ? nullptr : node->getName()->c_str();
+            auto nodeState = new Variable<T>(nullptr, cname, node->id());
             if (node->getName() != nullptr)
                 nodeState->setName(node->getName());
 
+
+            if (node->isInplace());
+                    nodeState->markRemovable(false);
 
             _handles.push_back(node);
 
@@ -305,8 +309,11 @@ namespace nd4j {
                 // and might have > 1 output
                 if (node->getCustomOp()->getOpDescriptor()->getNumberOfOutputs() > 1) {
                     for (int e = 1; e < node->getCustomOp()->getOpDescriptor()->getNumberOfOutputs(); e++) {
-                        auto deepVar = new Variable<T>();
-                        //deepVar->setId(node->id(), e);
+                        auto deepVar = new Variable<T>(nullptr, nullptr, node->id());
+                        //deepVar->setId(node->id());
+                        deepVar->setId(node->id(), e);
+                        if (node->isInplace())
+                            deepVar->markRemovable(false);
 
                         std::pair<int,int> id(node->id(), e);
                         _variableSpace->putVariable(id, deepVar);

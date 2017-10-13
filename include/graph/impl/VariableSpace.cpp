@@ -65,6 +65,9 @@ namespace nd4j {
 
         template <typename T>
         nd4j::graph::Variable<T> * nd4j::graph::VariableSpace<T>::getVariable(std::pair<int, int>& pair) {
+            if (pair.first == 0)
+                throw "0 requested";
+
             if (_paired.count(pair) > 0)
                 return _paired.at(pair);
             else {
@@ -151,7 +154,6 @@ namespace nd4j {
 
         template <typename T>
         void nd4j::graph::VariableSpace<T>::putVariable(std::pair<int,int>& pair, Variable<T> *variable) {
-
             silentPutVariable(pair, variable);
 
 

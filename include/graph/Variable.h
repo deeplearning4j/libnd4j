@@ -16,6 +16,7 @@ namespace nd4j {
         class Variable {
         protected:
             int32_t _id;
+            int _index = 0;
             nd4j::NDArray<T> * _ndarray = nullptr;
             std::string _name;
 
@@ -26,6 +27,7 @@ namespace nd4j {
 
         public:
             Variable(bool placeHolder);
+            Variable(nd4j::NDArray<T> *arrayw, const char *name, int id);
             Variable(nd4j::NDArray<T> *array = nullptr, const char *name = nullptr);
             Variable(const nd4j::graph::FlatVariable *flatVariable);
             ~Variable();
@@ -47,6 +49,7 @@ namespace nd4j {
 
             int32_t id();
             void setId(int32_t id);
+            void setId(int id, int idx);
 
             std::string *getName();
             void setName(std::string *name);

@@ -101,6 +101,10 @@ namespace nd4j {
         template <typename T>
         void nd4j::graph::Node<T>::setCustomOp(nd4j::ops::DeclarableOp<T> *customOp) {
             _customOp = customOp;
+
+            // divergent ops (Switch etc) are always inplace, they don't allocate anything
+            if (customOp->getOpDescriptor()->isDivergent())
+                _isInplace = true;
         }
 
         template <typename T>

@@ -40,7 +40,9 @@ static Nd4jStatus executeFlatNode(Graph<T> *graph, Node<T> *node, VariableSpace<
     OpType opType = node->opType();
     int opNum = node->opNum();
 
-    if (opType == OpType_GRAPH) {
+    if (opType == OpType_BOOLEAN) {
+
+    } else if (opType == OpType_GRAPH) {
         nd4j_debug("Executing embedded graph node_%i", node->id());
     } else if (opType != OpType_CUSTOM) {
         nd4j_debug("Executing node_%i{%i}\n", node->id(), opNum);
@@ -129,9 +131,12 @@ static Nd4jStatus executeFlatNode(Graph<T> *graph, Node<T> *node, VariableSpace<
         nd4j_debug("Embedded graph execution finished. %i variable(s) migrated\n", cnt);
 
     } else if (node->hasCustomOp()) {
+ //       if (opType == OpType_CUSTOM) {
+            auto status = node->getCustomOp()->execute(node->getBlock());
+            return status;
+//        } else if (opType == OpType_BOOLEAN) {
 
-        auto status = node->getCustomOp()->execute(node->getBlock());
-        return status;
+  //      }
     } else if (opType == OpType_TRANSFORM) {
         auto in = node->input()->at(0);
 
@@ -436,7 +441,7 @@ static Nd4jStatus executeFlatNode(Graph<T> *graph, Node<T> *node, VariableSpace<
         auto z = x;
         // if there's no dimensions set - it's reduceToScalar
         if (node->getDimensions()->size() == 0 || (node->getDimensions()->size() == 1 && node->getDimensions()->at(0) == MAX_INT)) {
-            z = new Variable<T>(new NDArray<T>(1,1, 'c'));
+            z = new Variable<T>(new NDArray<T>(1,1, 'c'), node->getName()->c_str(), node->id());
             z->setName(node->getName());
             z->getNDArray()->getBuffer()[0] = (T) functions::indexreduce::IndexReduce<T>::template execScalar(opNum, x->getNDArray()->getBuffer(), x->getNDArray()->getShapeInfo(), node->extraParams());
 
@@ -448,7 +453,7 @@ static Nd4jStatus executeFlatNode(Graph<T> *graph, Node<T> *node, VariableSpace<
 
             int resultLength = x->getNDArray()->lengthOf() / shape::length(tad->shapeInfoOnlyShapeAndStride());
 
-            z = new Variable<T>(new NDArray<T>(1, resultLength, 'c'));
+            z = new Variable<T>(new NDArray<T>(1, resultLength, 'c'), node->getName()->c_str(), node->id());
             z->setName(node->getName());
             functions::indexreduce::IndexReduce<T>::template exec(opNum, x->getNDArray()->getBuffer(), x->getNDArray()->getShapeInfo(), node->extraParams(), z->getNDArray()->getBuffer(), z->getNDArray()->getShapeInfo(),
                                                                     node->getDimensionsPtr() , node->getDimensions()->size(),
@@ -560,7 +565,16 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph) {
             if (status != ND4J_STATUS_OK)
                 return status;
 
-            if (nd4j::Environment::getInstance()->isDebug() && nd4j::Environment::getInstance()->isVerbose()) {
+
+            // here we should handle divergent ops, and disable nodes accordingly
+            if (node->isDivergencePoint()) {
+                auto activeBranch = node->getBlock()->getBranch();
+                nd4j_debug("Active branch at node [%i]: %i\n", node->id(), activeBranch);
+
+                // now we skip all branches except of this active one
+            }
+
+            if (nd4j::Environment::getInstance()->isDebugAndVerbose()) {
                 NDArray<T> * array = __variableSpace->getVariable(node->id())->getNDArray();
                 nd4j_debug("node_%i finished. result meanNumber: %f\n", node->id(), array->meanNumber());
             }

@@ -64,6 +64,64 @@ namespace nd4j {
         }
 
         template <typename T>
+        bool BooleanOp<T>::prepareOutputs(Block<T>& block) {
+
+            auto variableSpace = block.getVariableSpace();
+            for (int e = 0; e < this->getOpDescriptor()->getNumberOfOutputs(); e++) {
+                std::pair<int, int> pair(block.getNodeId(), e);
+
+                Variable<T>* var = nullptr;
+                if (variableSpace->hasVariable(pair))
+                    var = variableSpace->getVariable(pair);
+                else {
+                    if (block.getNodeId() == 0)
+                        nd4j_debug("Zero node!\n", "");
+                    var = new Variable<T>(nullptr, nullptr, block.getNodeId());
+                    variableSpace->putVariable(pair, var);
+                }
+
+                if (var->getNDArray() == nullptr) {
+                    var->setNDArray(new NDArray<T>('c', {1, 1}, block.getWorkspace()));
+                }
+            }
+
+            return true;
+        }
+
+        template <typename T>
+        Nd4jStatus nd4j::ops::BooleanOp<T>::execute(Block<T>* block)  {
+            if (block != nullptr)
+                this->_block = block;
+            else
+                throw std::invalid_argument("Block is NULL");
+
+            // basic validation: ensure inputs are set
+            REQUIRE_OK(this->validateNonEmptyInput(*block));
+
+            // ensure number of IArgs, TArgs match our expectations
+            REQUIRE_OK(this->validateArguments(*block));
+
+            // this method will allocate output NDArrays for this op
+            this->prepareOutputs(*block);
+
+            auto timeStart = std::chrono::system_clock::now();
+
+            Nd4jStatus status = this->validateAndExecute(*block);
+
+            auto timeEnd = std::chrono::system_clock::now();
+            auto outerTime = std::chrono::duration_cast<std::chrono::microseconds> (timeEnd - timeStart).count();
+            block->setInnerTime(outerTime);
+
+            if (status == ND4J_STATUS_TRUE){
+                block->getVariableSpace()->getVariable(block->getNodeId())->getNDArray()->putScalar(0, (T) 1.0f);
+            }
+
+            if (status == ND4J_STATUS_FALSE || ND4J_STATUS_TRUE)
+                return ND4J_STATUS_OK;
+            return ND4J_STATUS_KERNEL_FAILURE;
+        }
+
+        template <typename T>
         bool BooleanOp<T>::evaluate(std::vector<nd4j::NDArray<T> *> &args) {
             VariableSpace<T> variableSpace;
 
