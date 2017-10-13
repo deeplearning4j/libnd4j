@@ -30,6 +30,7 @@ enum OpType:byte {
     CUSTOM = 10, // custom ops
     GRAPH = 11, // another graph used as op
     VARIABLE = 119,
+    BOOLEAN = 219, // booleanOps, for conditionals
 }
 
 enum OpClass:byte {
@@ -37,6 +38,8 @@ enum OpClass:byte {
     REDUCTION = 1, // ops of this class return accumulation shape
     MULTIPLICATOR = 2, // ops of this class may return whatever they want
     GRAPH = 3, // embedded graph
+    CONDITIONAL = 4, // IF
+    LOOP = 5, // Various LOOPS
 }
 
 enum DataType:byte {

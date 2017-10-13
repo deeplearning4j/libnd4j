@@ -463,6 +463,14 @@ namespace nd4j {
         return result;
     }
 
+    template <typename T>
+    NDArray<T>* NDArrayFactory<T>::scalar(T value) {
+        auto res = new NDArray<T>('c', {1, 1});
+        res->putScalar(0, value);
+
+        return res;
+    }
+
 
     template class NDArrayFactory<float>;
     template class NDArrayFactory<float16>;

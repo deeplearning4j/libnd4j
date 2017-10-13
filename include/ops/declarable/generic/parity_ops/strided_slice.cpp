@@ -10,5 +10,9 @@ namespace nd4j {
 
             return ND4J_STATUS_OK;
         }
+        DECLARE_SHAPE_FN(strided_slice) {
+
+            return new ShapeList();
+        }
     }
 }

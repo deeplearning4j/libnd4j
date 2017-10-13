@@ -1241,16 +1241,16 @@ namespace nd4j {
             mean = input->template reduceAlongDimension<simdOps::Mean<T>>(dimensions);
             var = input->template varianceAlongDimension<simdOps::SummaryStatsVariance<T>>(false, dimensions);
             var->template applyScalar<simdOps::Add<T>>(eps, nullptr);
-            NDArray<T>* std = new NDArray<T>(var->getShapeInfo(), block.getWorkspace());
+            auto std = new NDArray<T>(var->getShapeInfo(), block.getWorkspace());
             var->template applyTransform<simdOps::Sqrt<T>>(std, nullptr);            
             
-            NDArray<T>* xMu = new NDArray<T>(input->getShapeInfo(), block.getWorkspace());
-            NDArray<T>* xHat = new NDArray<T>(input->getShapeInfo(), block.getWorkspace());
-            NDArray<T>* temp1 = new NDArray<T>(epsilon->getShapeInfo(), block.getWorkspace());
-            NDArray<T>* temp2 = new NDArray<T>(std->getShapeInfo(), block.getWorkspace());            
-            NDArray<T>* dGammaView = new NDArray<T>('c', {1, epsilonShape[1]}, block.getWorkspace());
-            NDArray<T>* dBetaView = new NDArray<T>('c', {1, epsilonShape[1]}, block.getWorkspace());
-            NDArray<T>* dxhat = new NDArray<T>(epsilon->getShapeInfo(), block.getWorkspace());
+            auto xMu = new NDArray<T>(input->getShapeInfo(), block.getWorkspace());
+            auto xHat = new NDArray<T>(input->getShapeInfo(), block.getWorkspace());
+            auto temp1 = new NDArray<T>(epsilon->getShapeInfo(), block.getWorkspace());
+            auto temp2 = new NDArray<T>(std->getShapeInfo(), block.getWorkspace());
+            auto dGammaView = new NDArray<T>('c', {1, epsilonShape[1]}, block.getWorkspace());
+            auto dBetaView = new NDArray<T>('c', {1, epsilonShape[1]}, block.getWorkspace());
+            auto dxhat = new NDArray<T>(epsilon->getShapeInfo(), block.getWorkspace());
 
             if (rank == 2) {
                 input->subRowVector(mean, xMu);

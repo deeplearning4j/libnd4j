@@ -66,6 +66,10 @@ namespace nd4j {
 
             //std::vector<int>* calculateOutputShape(std::vector<int>* inputShape, nd4j::graph::Block<T>& block);
         public:
+            // for special cases, like BooleanOps
+            DeclarableOp();
+
+            DeclarableOp(const char *name, int numInputs, bool scalar);
             DeclarableOp(int numInputs, int numOutputs, const char *opName, bool allowsInplace);
             DeclarableOp(int numInputs, int numOutputs, const char *opName, bool allowsInplace, bool divergent);
             DeclarableOp(int numInputs, int numOutputs, const char *opName, bool allowsInplace, int tArgs, int iArgs);
@@ -96,7 +100,7 @@ namespace nd4j {
              */
             void getResults();
 
-            /**
+            virtual /**
              * This method executes everything
              * @param block
              * @return

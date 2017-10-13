@@ -22,6 +22,15 @@ namespace nd4j {
             return ND4J_STATUS_OK;
         }
 
+        template<typename T>
+        DeclarableOp<T>::DeclarableOp() {
+            // no-op
+        }
+
+        template <typename T>
+        DeclarableOp<T>::DeclarableOp(const char *name, int numInputs, bool scalar) {
+            _descriptor = new OpDescriptor(numInputs, name, scalar);
+        }
 
         template<typename T>
         DeclarableOp<T>::DeclarableOp(int numInputs, int numOutputs, const char *opName, bool allowsInplace) {

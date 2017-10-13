@@ -36,6 +36,9 @@ namespace nd4j {
         static NDArray<T>* linspace(T from, T to, Nd4jIndex numElements);
         
         static void linspace(T from, NDArray<T>& arr);
+
+
+        static NDArray<T>* scalar(T value);
     };
 }
 

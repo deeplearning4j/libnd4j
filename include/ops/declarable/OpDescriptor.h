@@ -29,88 +29,52 @@ namespace nd4j {
             int _tArgs = 0;
             int _iArgs = 0;
 
+            // field for BooleanOps
+            bool _scalar = false;
+
         public:
             // default constructor
-            OpDescriptor(int numInputs, int numOutputs, std::string opName, bool allowsInplace) : OpDescriptor(numInputs, numOutputs, opName.c_str(), allowsInplace) {
-                //
-            }
+            OpDescriptor(int numInputs, int numOutputs, std::string opName, bool allowsInplace);
+
+            // constructor for boolean ops
+            OpDescriptor(int numInputs, std::string opName, bool isScalar);
+            OpDescriptor(int numInputs, const char* opName, bool isScalar);
 
             // default constructor
-            OpDescriptor(int numInputs, int numOutputs, const char *opName, bool allowsInplace) {
-                _numInputs = numInputs;
-                _numOutputs = numOutputs;
-
-                std::string tmp(opName);
-                _opName = tmp;
-                _allowsInplace = allowsInplace;
-                _hash = nd4j::ops::HashHelper::getInstance()->getLongHash(tmp);
-                _divergent = false;
-
-                // just default value
-                _opClass = nd4j::graph::OpClass_TRANSFORM;
-            }
+            OpDescriptor(int numInputs, int numOutputs, const char *opName, bool allowsInplace);
 
             // constructor for configurable op
-            OpDescriptor(int numInputs, int numOutputs, const char *opName, bool allowsInplace, int tArgs, int iArgs) : OpDescriptor(numInputs, numOutputs, opName, allowsInplace) {
-                _tArgs = tArgs;
-                _iArgs = iArgs;
-            }
+            OpDescriptor(int numInputs, int numOutputs, const char *opName, bool allowsInplace, int tArgs, int iArgs);
 
             // constructor for non-configurable divergent op
-            OpDescriptor(int numInputs, int numOutputs, std::string opName, bool allowsInplace, bool divergent) : OpDescriptor(numInputs, numOutputs, opName.c_str(), allowsInplace, divergent) {
-
-            }
+            OpDescriptor(int numInputs, int numOutputs, std::string opName, bool allowsInplace, bool divergent);
 
             // constructor for non-configurable divergent op
-            OpDescriptor(int numInputs, int numOutputs, const char *opName, bool allowsInplace, bool divergent) : OpDescriptor(numInputs, numOutputs, opName, allowsInplace) {
-                _divergent = divergent;
-            }
+            OpDescriptor(int numInputs, int numOutputs, const char *opName, bool allowsInplace, bool divergent);
 
             // constructor for configurable divergent op
-            OpDescriptor(int numInputs, int numOutputs, const char *opName, bool allowsInplace, bool divergent, int tArgs, int iArgs) : OpDescriptor(numInputs, numOutputs, opName, allowsInplace, tArgs, iArgs) {
-                _divergent = divergent;
-            }
+            OpDescriptor(int numInputs, int numOutputs, const char *opName, bool allowsInplace, bool divergent, int tArgs, int iArgs);
 
             // default destructor
-            ~OpDescriptor() {
-                //
-            }
+            ~OpDescriptor();
 
-            int getNumberOfTArgs() {
-                return _tArgs;
-            }
+            int getNumberOfTArgs();
 
-            int getNumberOfIArgs() {
-                return _iArgs;
-            }
+            int getNumberOfIArgs();
 
-            int getNumberOfInputs() {
-                return _numInputs;
-            }
+            int getNumberOfInputs();
 
-            Nd4jIndex getHash() {
-                return _hash;
-            }
+            Nd4jIndex getHash();
 
-            int getNumberOfOutputs() {
-                return _numOutputs;
-            }
+            int getNumberOfOutputs();
 
-            std::string *getOpName() {
-                return &_opName;
-            }
+            std::string *getOpName();
 
-            bool isDivergent() {
-                return _divergent;
-            }
+            bool isDivergent();
 
-            bool allowsInplace() {
-                return _allowsInplace;
-            }
+            bool allowsInplace();
 
-            int getOpNum() {
-                return _opNum;
-            }
+            int getOpNum();
         };
     }
 }

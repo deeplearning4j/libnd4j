@@ -11,6 +11,7 @@
 #include <NDArrayFactory.h>
 #include <Block.h>
 #include <ops/declarable/DeclarableOp.h>
+#include <ops/declarable/BooleanOp.h>
 #include <ops/declarable/DeclarableReductionOp.h>
 #include <ops/declarable/DeclarableCustomOp.h>
 #include <ops/declarable/OpRegistrator.h>
@@ -101,6 +102,11 @@ namespace nd4j {
 
 
         DECLARE_CONFIGURABLE_OP(firas_sparse, 1, 1, false, 0, -1);
+
+
+
+        DECLARE_BOOLEAN_OP(lt_scalar, 2, true);
+        DECLARE_BOOLEAN_OP(gt_scalar, 2, true);
     }
 }
 
