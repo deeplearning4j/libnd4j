@@ -83,7 +83,9 @@ namespace nd4j {
 
         NDArray<T>* getView();
 
-        NDArray<T> *subarray(IndicesList& indices);
+        NDArray<T> *subarray(IndicesList& indices) const;
+
+        NDArray<T>* subarray(const std::initializer_list<NDIndex*>& idx) const;
 
         nd4j::memory::Workspace* getWorkspace() {
             return _workspace;

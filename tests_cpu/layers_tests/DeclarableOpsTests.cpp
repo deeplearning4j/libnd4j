@@ -2372,7 +2372,7 @@ TEST_F(DeclarableOpsTests, sru1) {
     nd4j::NDArrayFactory<double>::linspace(1., prevState);
     mask.assign(1.);
 
-    nd4j::ops::sru<double> op;
+    nd4j::ops::sru1<double> op;
     nd4j::ArrayList<double>*  results = op.execute({&input, &weights, &bias, &prevState, &mask}, {}, {});
     ASSERT_TRUE(results->size() == 2);    
 
@@ -2385,47 +2385,6 @@ TEST_F(DeclarableOpsTests, sru1) {
     delete results;
 }
 
-
-//////////////////////////////////////////////////////////////////////
-TEST_F(DeclarableOpsTests, sru2) {
-
-    const int K = 3;
-    const int bS = 2;
-    const int N = 3;
-    double bufOutput[] = {0.761811, 0.964173, 0.995056, 0.99933, 0.999909, 0.999988, 0.761594, 0.964156, 0.995055, 0.999329, 0.999909, 0.999988, 0.761594, 0.964156, 0.995055, 0.999329, 0.999909, 0.999988};
-    double bufCurState[] = {1., 2.00182, 3.00007, 4.00004, 5, 6, 1, 2.00182, 3.00007, 4.00004, 5, 6, 1, 2.00182, 3.00007, 4.00004, 5, 6};
-
-    NDArray<double> input('c', {K,bS,N});
-    NDArray<double> weights('c', {K,bS,3*N});
-    NDArray<double> bias('c', {1,2*N});
-    NDArray<double> prevState('c', {K,bS,N});
-    NDArray<double> mask('c', {K,bS,N});
-    // expected outputs arrays
-    NDArray<double> expCurState('c', {K,bS,N});
-    NDArray<double> expOutput('c', {K,bS,N});
-    expCurState.setBuffer(bufCurState);
-    expOutput.setBuffer(bufOutput);
-
-    nd4j::NDArrayFactory<double>::linspace(1., input);
-    nd4j::NDArrayFactory<double>::linspace(1., weights);
-    nd4j::NDArrayFactory<double>::linspace(1., bias);
-    nd4j::NDArrayFactory<double>::linspace(1., prevState);
-    mask.assign(1.);
-
-    nd4j::ops::sru<double> op;
-    nd4j::ArrayList<double>*  results = op.execute({&input, &weights, &bias, &prevState, &mask}, {}, {});
-    ASSERT_TRUE(results->size() == 2);    
-
-    NDArray<double>* output   = results->at(0);
-    NDArray<double>* curState = results->at(1);    
-    expOutput.printBuffer();
-    output->printBuffer();
-
-    ASSERT_TRUE(curState->equalsTo(&expCurState));
-    ASSERT_TRUE(output->equalsTo(&expOutput,1e-2));
-    
-    delete results;
-}
 
 //////////////////////////////////////////////////////////////////////
 TEST_F(DeclarableOpsTests, sru_bi1) {
@@ -2459,6 +2418,24 @@ TEST_F(DeclarableOpsTests, sru_bi1) {
     
     delete results;
 }
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests, testMy) {
+
+ 
+    NDArray<double> A('c', {2,3,4});
+    nd4j::NDArrayFactory<double>::linspace(0., A);
+    // A.printBuffer();
+
+    NDArray<double>* A1 = A.subarray( { NDIndex::all(), NDIndex::all(), NDIndex::interval(0,1) } );
+    A1->reshapei(A.ordering(),{2,3});
+    A1->printShapeInfo();
+    A1->printIndexedBuffer();
+    
+    ASSERT_TRUE(1==1);
+    delete A1;
+}
+
 
 //////////////////////////////////////////////////////////////////////
 // TEST_F(DeclarableOpsTests, Sum2) {

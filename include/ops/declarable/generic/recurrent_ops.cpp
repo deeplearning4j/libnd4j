@@ -72,7 +72,7 @@ CUSTOM_OP_IMPL(sru1, 5, 2, false, 0, 0) {
     return ND4J_STATUS_OK;
 }
 
-DECLARE_SHAPE_FN(sru) {
+DECLARE_SHAPE_FN(sru1) {
 
     int* inShape = inputShape->at(0);
     int rank = inShape[0];          // = 3
@@ -102,54 +102,68 @@ DECLARE_SHAPE_FN(sru) {
 // feed forward
 CUSTOM_OP_IMPL(sru2, 5, 2, false, 0, 0) {
 
-    NDArray<T>* input     = INPUT_VARIABLE(0);                // input 3d tensor [K x bS x N]
-    NDArray<T>* weights   = INPUT_VARIABLE(1);                // 3d tensor of weights [K x bS x 3*N]
-    NDArray<T>* bias      = INPUT_VARIABLE(2);                // row of biases with twice length [1 × 2*N]
-    NDArray<T>* prevState = INPUT_VARIABLE(3);                // 2d tensor of previous state ????? [1, bS*N] or [K x bS x N] ??????
-    NDArray<T>* mask      = INPUT_VARIABLE(4);                // dropout mask
+    NDArray<T>* input   = INPUT_VARIABLE(0);                // X, input 3d tensor [bS x K x N], N - number of time steps, bS - batch size, K - number of features
+    NDArray<T>* weights = INPUT_VARIABLE(1);                // W, 2d tensor of weights [3K x K]
+    NDArray<T>* bias    = INPUT_VARIABLE(2);                // B, row of biases with twice length [1 × 2*K]
+    NDArray<T>* init    = INPUT_VARIABLE(3);                // C_{t-1}, 2d tensor of initial state [bS x K]  at time t-1
+    NDArray<T>* mask    = INPUT_VARIABLE(4);                // 2d tensor of dropout mask [bS x K]
 
-    NDArray<T>* output   = OUTPUT_VARIABLE(0);                // h_t,   [K x bS x N]
-    NDArray<T>* curState = OUTPUT_VARIABLE(1);                // c_t, [K x bS x N]
+    NDArray<T>* output = OUTPUT_VARIABLE(0);                // h_t, [bS x K]
+    NDArray<T>* state  = OUTPUT_VARIABLE(1);                // c_t, [bS x K]
     
-    const int K       = input->shapeOf()[0];
-    const int bS      = input->shapeOf()[1];
-    const int N       = input->shapeOf()[2];
-    const int ncols_i = bS*N;
-    const int ncols_w = ncols_i*3;
-  
-    T* const pInput   = input->getBuffer();
-    T* const pWeights = weights->getBuffer();
-    T* const pBias    = bias->getBuffer();
-    T* const pPrev    = prevState->getBuffer();
-    T* const pMask    = mask->getBuffer();
-    T* const pCur     = curState->getBuffer();
-    T* const pOut     = output->getBuffer();
+    const int bS     = input->shapeOf()[0];                     // bS - batch size
+    const int K      = input->shapeOf()[1];                     // K - number of features
+    const int N      = input->shapeOf()[2];                     // N - number of time steps
     
-    T bF, bR, msk, cur, val, g1, g2, *pW(nullptr), *pIn(nullptr), *pC(nullptr), *pO(nullptr);       
-    for (int col = 0; col < ncols_i; ++col) {           
-        bF  = *(pBias + col%N);        // forget gate
-        bR  = *(pBias + col%N + N);    // reset gate
-        msk = *(pMask + col);        
-        cur = *(pPrev + col);
-        pW  = pWeights + 3*col;
-        pIn = pInput + col;
-        pC  = pCur + col;
-        pO  = pOut + col;
+    NDArray<T>* wi(nullptr);                              // multiplication matrix = matmul(weights,input)
+    NDArrayFactory<T>::mmulHelper(weights, bias, wi , (T)1., (T)0.);      //        [bS x 3K x N]
+    NDArray<T>* wiZ = wi->subarray( { NDIndex::all(), NDIndex::interval(0,K),     NDIndex::all() } );      // [bS x K x N]
+    NDArray<T>* wiF = wi->subarray( { NDIndex::all(), NDIndex::interval(K,2*K),   NDIndex::all() } );      // forget gate [bS x K x N]
+    NDArray<T>* wiR = wi->subarray( { NDIndex::all(), NDIndex::interval(2*K,3*K), NDIndex::all() } );      // reset gate [bS x K x N]
+    NDArray<T>* bF  = bias->subarray( { NDIndex::all(), NDIndex::interval(0,K),   NDIndex::all() } );      // biases for forget gate [1 x K]
+    NDArray<T>* bR  = bias->subarray( { NDIndex::all(), NDIndex::interval(K,2*K), NDIndex::all() } );      // biases for reset gate [1 x K]
 
-        for (int row = 0; row < K; ++row) {
-            g1 = ((T)1.)/((T)1. + nd4j::math::nd4j_exp<T>(-(*(pW+1) + bF)));
-            g2 = ((T)1.)/((T)1. + nd4j::math::nd4j_exp<T>(-(*(pW+2) + bR)));
-            cur = (cur - *pW)*g1 + *pW;
-            *pC = cur;
-            // TODO T val = (activation_type == 1) ? tanh(cur) : ((activation_type == 2) ? reluf(cur) : cur );
-            val = nd4j::math::nd4j_tanh<T>(cur);
-            *pO = (val*msk - *pIn)*g2 + *pIn;
-            pW  += ncols_w;
-            pIn += ncols_i;
-            pC  += ncols_i;
-            pO  += ncols_i;            
-        }
+    NDArray<T>* xt  = nullptr;
+    NDArray<T>* zt  = nullptr;
+    NDArray<T>* ft  = nullptr;
+    NDArray<T>* rt  = nullptr;
+    NDArray<T>* xmt = new NDArray<T>(input->ordering(), {bS, K});
+    NDArray<T>* sft  = new NDArray<T>(input->ordering(), {bS, K});
+    NDArray<T>* srt  = new NDArray<T>(input->ordering(), {bS, K});
+
+    for (int t = 0; t < N; ++t) {           
+
+        NDArray<T>* xt = input->subarray( { NDIndex::all(), NDIndex::all(), NDIndex::interval(t,t+1) } );    // [bS x K x 1]
+        xt->reshapei(xt->ordering(), {bS, K});                                                              // [bS x K]
+        NDArray<T>* zt = wi->subarray( { NDIndex::all(), NDIndex::all(), NDIndex::interval(t,t+1) } );       // [bS x K x 1]
+        zt->reshapei(zt->ordering(), {bS, K});                                                              // [bS x K]
+        NDArray<T>* ft = wi->subarray( { NDIndex::all(), NDIndex::all(), NDIndex::interval(t,t+1) } );       // forget gate [bS x K x 1]
+        ft->reshapei(ft->ordering(), {bS, K});                                                              // [bS x K]
+        NDArray<T>* rt = wi->subarray( { NDIndex::all(), NDIndex::all(), NDIndex::interval(t,t+1) } );       // reset gate [bS x K x 1]
+        rt->reshapei(rt->ordering(), {bS, K});                                                              // [bS x K]
+
+        xt->template applyPairwiseTransform<simdOps::Multiply<T>>(mask, xmt, nullptr);
+        ft->addRowVector(bF, sft);
+        rt->addRowVector(bR, srt);
+        sft->template applyTransform<simdOps::Sigmoid<T>>();                
+        srt->template applyTransform<simdOps::Sigmoid<T>>();                
+
+
+        delete xt;
+        delete zt;
+        delete ft;
+        delete rt;
     }
+    
+    delete sft;
+    delete srt;
+    delete wi;
+    delete xmt;
+    delete bF;
+    delete bR;
+    delete wiZ;
+    delete wiF;
+    delete wiR;
     
     return ND4J_STATUS_OK;
 }
@@ -202,8 +216,8 @@ CUSTOM_OP_IMPL(sru_bi, 4, 2, false, 0, 0) {
     const int len     = K;
   
     T* const pWeights = weights->getBuffer();
-    T* const pBiasF   = biasF->getBuffer();
-    T* const pBiasR   = biasR->getBuffer();
+    T* const pBiasF   = bias->getBuffer();
+    T* const pBiasR   = bias->getBuffer();
     T* const pPrev    = prevState->getBuffer();
     T* const pMask    = mask->getBuffer();
     T* const pCur     = curState->getBuffer();
