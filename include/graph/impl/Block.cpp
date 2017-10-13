@@ -121,6 +121,17 @@ namespace nd4j {
             }
         }
 
+
+        template <typename T>
+        int Block<T>::getBranch() {
+            return _branch;
+        }
+
+        template <typename T>
+        void Block<T>::setBranch(int branch) {
+            _branch = branch;
+        }
+
         template <typename T>
         void Block<T>::fillInputs(std::vector<int>& inputs) {
             for (int e = 0; e < inputs.size(); e++) {

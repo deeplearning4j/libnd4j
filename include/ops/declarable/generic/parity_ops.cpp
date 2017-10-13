@@ -342,12 +342,6 @@ namespace nd4j {
         }
 
 
-        DIVERGENT_OP_IMPL(Switch, 2, 2, true) {
-            // conditional op !!!
-            return ND4J_STATUS_OK;
-        }
-        DECLARE_SYN(switch, Switch);
-
         OP_IMPL(noop, -1, -1, true) {
             // Fastest op ever.
             return ND4J_STATUS_OK;

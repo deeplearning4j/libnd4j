@@ -44,6 +44,9 @@ namespace nd4j {
 			
 			bool _isInplace;
 
+            // branch for divergent_op
+            int _branch = 0;
+
         public:
             // TODO: maybe override new here as well?
 
@@ -80,6 +83,9 @@ namespace nd4j {
             void pickInput(int input);
             void fillInputs(std::initializer_list<int> inputs);
             void fillInputs(std::vector<int>& inputs);
+
+            int getBranch();
+            void setBranch(int branch);
 
             /**
              * This method returns number of inputs available in this block
