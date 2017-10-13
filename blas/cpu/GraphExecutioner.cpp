@@ -551,6 +551,30 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph) {
         for (int n = 0; n < layerSize; n++) {
             Node<T>* node = graph->getOnion()->at(l)->at(n);
 
+            bool shouldSkip = false;
+            // let's check for input nodes, if they are disabled or contain divergents
+            for (int e = 0; e < node->input()->size(); e++) {
+                auto inputId = node->input()->at(e);
+
+                // we're skipping external variables here
+                if (inputId.first < 0)
+                    continue;
+
+                Node<T>* prevNode = graph->getMapped()->at(inputId.first);
+                if (!prevNode->isActive()) {
+                    shouldSkip = true;
+                    node->setActive(false);
+                } else if (prevNode->isDivergencePoint()) {
+                    if (prevNode->getBlock()->getBranch() != inputId.second) {
+                        shouldSkip = true;
+                        node->setActive(false);
+                    }
+                }
+            }
+
+            if (shouldSkip)
+                continue;
+
             auto timeStart = std::chrono::system_clock::now();
 
             Nd4jStatus status = executeFlatNode(graph, node, __variableSpace);

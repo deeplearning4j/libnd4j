@@ -57,6 +57,7 @@ namespace nd4j {
             nd4j::graph::Graph<T> * _graph= nullptr;
             nd4j::ops::DeclarableOp<T> *_customOp = nullptr;
 
+            // each node can be active or inactive, if used with divergents, like IF statements
             bool _active = true;
 
         public:

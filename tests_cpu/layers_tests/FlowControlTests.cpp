@@ -45,7 +45,7 @@ TEST_F(FlowControlTests, SwitchTest1) {
 
     auto nodeZ0 = new Node<float>(OpType_TRANSFORM, 0, 4, {}, {});
     nodeZ0->pickInput(3, 0);
-    auto nodeZ1 = new Node<float>(OpType_TRANSFORM, 0, 5, {}, {});
+    auto nodeZ1 = new Node<float>(OpType_TRANSFORM, 35, 5, {}, {});
     nodeZ1->pickInput(3, 1);
 
 
@@ -72,5 +72,16 @@ TEST_F(FlowControlTests, SwitchTest1) {
     Nd4jStatus status = GraphExecutioner<float>::execute(&graph);
 
     ASSERT_EQ(ND4J_STATUS_OK, status);
+
+    ASSERT_FALSE(nodeZ0->isActive());
+    ASSERT_TRUE(nodeZ1->isActive());
+
+    std::pair<int,int> unexpected(4,0);
+    std::pair<int,int> expectedResultIndex(5,0);
+    ASSERT_TRUE(variableSpace->hasVariable(expectedResultIndex));
+
+    auto output = variableSpace->getVariable(expectedResultIndex)->getNDArray();
+
+    ASSERT_NEAR(-118.0f, output->getScalar(0), 1e-5f);
 }
 
