@@ -107,6 +107,10 @@ namespace nd4j {
 
         DECLARE_BOOLEAN_OP(lt_scalar, 2, true);
         DECLARE_BOOLEAN_OP(gt_scalar, 2, true);
+        DECLARE_BOOLEAN_OP(lte_scalar, 2, true);
+        DECLARE_BOOLEAN_OP(gte_scalar, 2, true);
+        DECLARE_BOOLEAN_OP(eq_scalar, 2, true);
+        DECLARE_BOOLEAN_OP(neq_scalar, 2, true);
     }
 }
 
