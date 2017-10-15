@@ -11,6 +11,7 @@
 //#include <NDArray.h>
 #include <graph/Node.h>
 #include <graph/Stash.h>
+#include <Scope.h>
 #include <graph/Variable.h>
 #include <graph/VariableSpace.h>
 #include <graph/generated/node_generated.h>
@@ -39,9 +40,13 @@ namespace nd4j {
             std::mutex _mutexPreprocessing;
             std::atomic<bool> _built;
 
-
             std::vector<int32_t> _output;
             std::vector<int32_t> _autos;
+
+
+            std::map<int, Scope<T> *> _mappedScopes;
+            std::vector<Scope<T> *> _scopes;
+
 
             Nd4jStatus validateNode(nd4j::graph::Node<T> *node);
 

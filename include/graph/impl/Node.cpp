@@ -251,6 +251,29 @@ namespace nd4j {
         }
 
         template <typename T>
+        bool Node<T>::isScoped() {
+            return _scope_id != 0;
+        }
+
+        template <typename T>
+        void Node<T>::setScopeInfo(int id, const char* name) {
+            _scope_id = id;
+
+            if (name != nullptr)
+                _scope_name = name;
+        }
+
+        template <typename T>
+        int Node<T>::scopeId() {
+            return _scope_id;
+        }
+
+        template <typename T>
+        std::string* Node<T>::scopeName() {
+            return &_scope_name;
+        }
+
+        template <typename T>
         nd4j::graph::Node<T>::Node(OpType opType, int opNum, int id, std::initializer_list<int> input, std::initializer_list<int> output, std::initializer_list<int> dimensions, float scalar) {
             this->_opType = opType;
             this->_id = id;

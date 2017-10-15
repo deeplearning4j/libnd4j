@@ -16,5 +16,6 @@ public final class OpType {
   public static final byte GRAPH = 11;
   public static final byte VARIABLE = 119;
   public static final byte BOOLEAN = 219;
+  public static final byte LOGIC = 220;
 }
 

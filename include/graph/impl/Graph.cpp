@@ -255,6 +255,9 @@ namespace nd4j {
                 delete v.second;
             }
 
+            for (auto v: _scopes)
+                delete v;
+
             delete _mapped;
             delete _nodes;
             delete _variableSpace;
@@ -267,6 +270,7 @@ namespace nd4j {
 
         template <typename T>
         void nd4j::graph::Graph<T>::addNode(nd4j::graph::Node<T> *node) {
+
             _built.store(false);
 
             auto cname = node->getName() == nullptr ? nullptr : node->getName()->c_str();

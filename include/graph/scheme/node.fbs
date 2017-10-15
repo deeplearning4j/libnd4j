@@ -31,6 +31,7 @@ enum OpType:byte {
     GRAPH = 11, // another graph used as op
     VARIABLE = 119,
     BOOLEAN = 219, // booleanOps, for conditionals
+    LOGIC = 220, //
 }
 
 enum OpClass:byte {
@@ -59,7 +60,7 @@ table FlatVariable {
 
 table FlatNode {
     id:int; // unique id for this node
-    name: string; // literal id of this node (optional)
+    name:string; // literal id of this node (optional)
     opType:OpType;
     opNum:long;
     input:[int]; // ID's of input nodes for this node !!! only used if inputPaired in unset !!!
@@ -71,6 +72,10 @@ table FlatNode {
     dimensions:[int]; // dimension for this operation
     device:int; // default is -1, which means _auto_
     scalar:float; // optional scalar. used in scalar ops & SummaryStats
+
+    // fields related to Scopes
+    scope_id:int; // unique scope id, where this op belongs to
+    scope_name:string; // literal scope id, where this op belongs to
 }
 
 root_type FlatNode;
