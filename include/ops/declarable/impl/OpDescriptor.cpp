@@ -7,6 +7,10 @@
 namespace nd4j {
     namespace ops {
 
+        OpDescriptor::OpDescriptor(bool isLogic) {
+            _logic = isLogic;
+        }
+
         OpDescriptor::OpDescriptor(int numInputs, const char * opName, bool isScalar) {
             _numInputs = numInputs;
             _numOutputs = 1;

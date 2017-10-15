@@ -68,11 +68,15 @@ namespace nd4j {
         public:
             // for special cases, like BooleanOps
             DeclarableOp();
-
             DeclarableOp(const char *name, int numInputs, bool scalar);
+
+            // regular constructors
             DeclarableOp(int numInputs, int numOutputs, const char *opName, bool allowsInplace);
             DeclarableOp(int numInputs, int numOutputs, const char *opName, bool allowsInplace, bool divergent);
             DeclarableOp(int numInputs, int numOutputs, const char *opName, bool allowsInplace, int tArgs, int iArgs);
+
+            // for LogicalOps
+            DeclarableOp(bool isLogical);
 
             ~DeclarableOp();
 

@@ -7,11 +7,13 @@
 
 #include <memory>
 #include <op_boilerplate.h>
+#include <types/float16.h>
 #include <NDArray.h>
 #include <NDArrayFactory.h>
 #include <Block.h>
 #include <ops/declarable/DeclarableOp.h>
 #include <ops/declarable/BooleanOp.h>
+#include <ops/declarable/LogicOp.h>
 #include <ops/declarable/DeclarableReductionOp.h>
 #include <ops/declarable/DeclarableCustomOp.h>
 #include <ops/declarable/OpRegistrator.h>
@@ -51,6 +53,9 @@ namespace nd4j {
 
 
         DECLARE_DIVERGENT_OP(Switch, 2, 2, true);
+
+        DECLARE_LOGIC_OP(While);
+        DECLARE_LOGIC_OP(Scope);
 
         DECLARE_CUSTOM_OP(testcustom, 1, 1, false, 0, -1);
         DECLARE_CUSTOM_OP(concat, -1, 1, false, 0, 1);

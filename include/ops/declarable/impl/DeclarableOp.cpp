@@ -27,6 +27,11 @@ namespace nd4j {
             // no-op
         }
 
+        template<typename T>
+        DeclarableOp<T>::DeclarableOp(bool isLogical) {
+            _descriptor = new OpDescriptor(isLogical);
+        }
+
         template <typename T>
         DeclarableOp<T>::DeclarableOp(const char *name, int numInputs, bool scalar) {
             _descriptor = new OpDescriptor(numInputs, name, scalar);

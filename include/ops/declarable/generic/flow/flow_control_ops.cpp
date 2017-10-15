@@ -2,7 +2,9 @@
 // Created by raver119 on 13.10.2017.
 //
 
+
 #include <ops/declarable/CustomOperations.h>
+#include <op_boilerplate.h>
 
 namespace nd4j {
     namespace ops {
@@ -10,6 +12,7 @@ namespace nd4j {
          * arg_0 is our "signal"
          * arg_1 is condition that will determine transition
          */
+        // TODO: make this op a placeholder too
         DIVERGENT_OP_IMPL(Switch, 2, 2, true) {
             auto input = INPUT_VARIABLE(0);
             auto condition = INPUT_VARIABLE(1);
@@ -30,5 +33,20 @@ namespace nd4j {
         }
         DECLARE_SYN(switch, Switch);
         DECLARE_SYN(if, Switch);
+
+
+        /**
+         *  This op is a placeholder.
+         *  Actual WHILE implementation is in GraphExecutioner
+         */
+        LOGIC_OP_IMPL(While);
+        DECLARE_SYN(while, While);
+
+        /**
+         *  This op is a placeholder.
+         *  Actual Scope implementation is in Graph and GraphExecutioner
+         */
+        LOGIC_OP_IMPL(Scope);
+        DECLARE_SYN(scope, Scope);
     }
 }

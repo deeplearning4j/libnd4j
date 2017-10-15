@@ -40,10 +40,13 @@ TEST_F(ScopeTests, BasicTests_1) {
     //
     auto scopeCondition = new Node<float>(OpType_LOGIC, 10, 3);
     scopeCondition->setName("scopeCondition");
+    nd4j::ops::Scope<float> opScope;
+    scopeCondition->setCustomOp(&opScope);
 
     // this is scope of the body, it'll be executed multiple times
     auto scopeBody = new Node<float>(OpType_LOGIC, 10, 10);
     scopeBody->setName("scopeBody");
+    scopeBody->setCustomOp(&opScope);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //// filling out condition scope
@@ -68,6 +71,8 @@ TEST_F(ScopeTests, BasicTests_1) {
 
     // WHILE operations takes 2 scopes - :0 is condition scope, and :1 is loop body scope
     auto nodeWhile = new Node<float>(OpType_LOGIC, 0, 4, {3, 10});
+    nd4j::ops::While<float> opWhile;
+    nodeWhile->setCustomOp(&opWhile);
 
     // adding root nodes first, nothing unusual expected here
     graph.addNode(nodeA);

@@ -32,6 +32,8 @@ namespace nd4j {
             // field for BooleanOps
             bool _scalar = false;
 
+            bool _logic = false;
+
         public:
             // default constructor
             OpDescriptor(int numInputs, int numOutputs, std::string opName, bool allowsInplace);
@@ -54,6 +56,9 @@ namespace nd4j {
 
             // constructor for configurable divergent op
             OpDescriptor(int numInputs, int numOutputs, const char *opName, bool allowsInplace, bool divergent, int tArgs, int iArgs);
+
+            // constructor for logical ops (while, scope, etc)
+            OpDescriptor(bool isLogic);
 
             // default destructor
             ~OpDescriptor();
