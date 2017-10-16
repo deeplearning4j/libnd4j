@@ -8,6 +8,7 @@
 #include <ops/declarable/LegacyTransformOp.h>
 #include <ops/declarable/LegacyPairwiseTransformOp.h>
 #include <ops/declarable/LegacyScalarOp.h>
+#include <ops/declarable/LegacyReduceOp.h>
 
 using namespace nd4j;
 using namespace nd4j::ops;
@@ -115,4 +116,45 @@ TEST_F(LegacyOpsTests, Scalar_Test_2) {
 
     auto z = result->at(0);
     ASSERT_TRUE(exp.equalsTo(z));
+}
+
+
+TEST_F(LegacyOpsTests, ReduceTests_1) {
+    NDArray<float> x('c', {5, 5});
+    x.assign(1.0);
+
+    nd4j::ops::LegacyReduceOp<float> op(1);
+
+    auto result = op.execute({&x}, {}, {});
+
+    ASSERT_EQ(1, result->size());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(z->isScalar());
+    ASSERT_NEAR(x.sumNumber(), z->getScalar(0), 1e-5f);
+
+    delete result;
+}
+
+
+TEST_F(LegacyOpsTests, ReduceTests_2) {
+    NDArray<float> x('c', {5, 5});
+    x.assign(1.0);
+
+    nd4j::ops::LegacyReduceOp<float> op(1);
+
+    auto result = op.execute({&x}, {}, {1});
+
+    ASSERT_EQ(1, result->size());
+
+    auto z = result->at(0);
+
+    auto exp = x.template reduceAlongDimension<simdOps::Sum<float>>({1});
+
+    ASSERT_TRUE(exp->isSameShape(z));
+    ASSERT_TRUE(exp->equalsTo(z));
+
+    delete result;
+    delete exp;
 }

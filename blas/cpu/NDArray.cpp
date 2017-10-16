@@ -2038,7 +2038,7 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
 			newShape[2] = 1;			
 		}
         else {
-			ALLOCATE(newShape, _workspace, newRank*2 + 4, int);
+			ALLOCATE(newShape, _workspace, shape::shapeInfoLength(2), int);
 			int* tempShape = shape::removeIndex(shapeOf(), const_cast<int*>(dimensions.data()), rank, dimSize);
             newShape[0] = newRank;                      // set rank
 			for(int i=0; i<newRank; ++i)
@@ -2049,7 +2049,7 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
 		if (newRank == 1) {            
 			int oldValue = newShape[1];
 			RELEASE(newShape, _workspace);
-			ALLOCATE(newShape, _workspace, 8, int);		// set newRank = 2
+			ALLOCATE(newShape, _workspace, shape::shapeInfoLength(2), int);		// set newRank = 2
 			newShape[0] = 2;
             if (dimensions[0] == 0) {
                 newShape[1] = 1; 

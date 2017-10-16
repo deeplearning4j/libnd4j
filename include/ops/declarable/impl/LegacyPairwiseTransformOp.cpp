@@ -8,12 +8,12 @@
 namespace nd4j {
     namespace ops {
         template <typename T>
-        LegacyPairwiseTransformOp<T>::LegacyPairwiseTransformOp() : LegacyOp<T>::LegacyOp(1) {
+        LegacyPairwiseTransformOp<T>::LegacyPairwiseTransformOp() : LegacyOp<T>::LegacyOp(2) {
             // just a no-op
         }
 
         template <typename T>
-        LegacyPairwiseTransformOp<T>::LegacyPairwiseTransformOp(int opNum) : LegacyOp<T>::LegacyOp(1, opNum) {
+        LegacyPairwiseTransformOp<T>::LegacyPairwiseTransformOp(int opNum) : LegacyOp<T>::LegacyOp(2, opNum) {
             // just a no-op
         }
 
