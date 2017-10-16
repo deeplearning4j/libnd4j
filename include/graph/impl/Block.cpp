@@ -175,6 +175,15 @@ namespace nd4j {
             return &_variables;
         }
 
+        template <typename T>
+        int Block<T>::opNum() {
+            return _opNum;
+        }
+
+        template <typename T>
+        void Block<T>::setOpNum(int opNum) {
+            _opNum = opNum;
+        }
 
         template class Block<float>;
         template class Block<float16>;

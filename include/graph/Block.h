@@ -47,6 +47,9 @@ namespace nd4j {
             // branch for divergent_op
             int _branch = 0;
 
+            // opNum for legacy XYZ ops
+            int _opNum = -1;
+
         public:
             // TODO: maybe override new here as well?
 
@@ -100,6 +103,10 @@ namespace nd4j {
             VariableSpace<T>* getVariableSpace();
 
             std::vector<nd4j::graph::Variable<T> *>* getVariables();
+
+
+            int opNum();
+            void setOpNum(int opNum);
         };
     }
 }
