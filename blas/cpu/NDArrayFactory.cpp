@@ -471,6 +471,13 @@ namespace nd4j {
         return res;
     }
 
+    template <typename T>
+    NDArray<T>* NDArrayFactory<T>::valueOf(std::initializer_list<int> shape, T value, char order) {
+        auto result = new NDArray<T>(order, shape);
+        result->assign(value);
+        return result;
+    }
+
 
     template class NDArrayFactory<float>;
     template class NDArrayFactory<float16>;

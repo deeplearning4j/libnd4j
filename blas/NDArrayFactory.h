@@ -39,6 +39,8 @@ namespace nd4j {
 
 
         static NDArray<T>* scalar(T value);
+
+        static NDArray<T>* valueOf(std::initializer_list<int> shape, T value, char order = 'c');
     };
 }
 

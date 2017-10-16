@@ -600,7 +600,11 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph) {
                     continue;
                 }
 
+                // that's CONDITIONAL execution. Depending on condition we either run true or false scope
+                if (node->opNum() == 20) {
 
+                    continue;
+                }
             }
 
             bool shouldSkip = false;

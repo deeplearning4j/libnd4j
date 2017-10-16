@@ -48,5 +48,12 @@ namespace nd4j {
          */
         LOGIC_OP_IMPL(Scope);
         DECLARE_SYN(scope, Scope);
+
+        /**
+         *  This op is a placeholder.
+         *  Actual Conditional implementation is in Graph and GraphExecutioner
+         */
+        LOGIC_OP_IMPL(Conditional);
+        DECLARE_SYN(cond, Conditional);
     }
 }

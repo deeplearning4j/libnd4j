@@ -264,7 +264,7 @@ TEST_F(FlatBuffersTest, ExplicitOutputTest1) {
 
 TEST_F(FlatBuffersTest, ReadFile1) {
 
-    uint8_t* data = nd4j::graph::readFlatBuffers("../../../tests_cpu/resources/adam_sum.fb");
+    uint8_t* data = nd4j::graph::readFlatBuffers("../../tests_cpu/resources/adam_sum.fb");
 
     auto fg = GetFlatGraph(data);
     auto restoredGraph = new Graph<float>(fg);
@@ -286,7 +286,7 @@ TEST_F(FlatBuffersTest, ReadFile1) {
 }
 
 TEST_F(FlatBuffersTest, ReadFile2) {
-    uint8_t* data = nd4j::graph::readFlatBuffers("../../../tests_cpu/resources/adam_sum.fb");
+    uint8_t* data = nd4j::graph::readFlatBuffers("../../tests_cpu/resources/adam_sum.fb");
     Nd4jPointer result = GraphExecutioner<float>::executeFlatBuffer((Nd4jPointer) data);
 
     ArrayList<float> arrays(GetFlatResult(result));
@@ -297,7 +297,7 @@ TEST_F(FlatBuffersTest, ReadFile2) {
 }
 
 TEST_F(FlatBuffersTest, ReadFile3) {
-    auto graph = GraphExecutioner<float>::importFromFlatBuffers("../../../tests_cpu/resources/adam_sum.fb");
+    auto graph = GraphExecutioner<float>::importFromFlatBuffers("../../tests_cpu/resources/adam_sum.fb");
     Nd4jStatus status = GraphExecutioner<float>::execute(graph);
 
     ASSERT_EQ(ND4J_STATUS_OK, status);
@@ -310,7 +310,7 @@ TEST_F(FlatBuffersTest, ReadFile3) {
 
 
 TEST_F(FlatBuffersTest, ReadInception1) {
-    auto graph = GraphExecutioner<float>::importFromFlatBuffers("../../../tests_cpu/resources/inception.fb");
+    auto graph = GraphExecutioner<float>::importFromFlatBuffers("../../tests_cpu/resources/inception.fb");
 
     Nd4jStatus status = GraphExecutioner<float>::execute(graph);
 
