@@ -2466,37 +2466,42 @@ TEST_F(DeclarableOpsTests, sru1) {
 }
 
 //////////////////////////////////////////////////////////////////////
-// TEST_F(DeclarableOpsTests, sru2) {
+TEST_F(DeclarableOpsTests, sru2) {
 
-//     const int bS = 2;
-//     const int K = 3;    
-//     const int N = 4;
+    const int bS = 2;
+    const int K = 3;    
+    const int N = 4;
+    double expStateBuff[] = {0.76159416,  0.76159416,  0.76159416,  0.76159416, 0.76159416,  0.76159416,  0.76159416,  0.76159416, 0.76159416,  0.76159416,  0.76159416,  0.76159416, 0.76159416,  0.76159416,  0.76159416,  0.76159416, 0.76159416,  0.76159416,  0.76159416,  0.76159416, 0.76159416,  0.76159416,  0.76159416,  0.76159416};
+
+    NDArray<double> input('c', {bS,K,N});
+    NDArray<double> weights('c', {3*K,K});
+    NDArray<double> bias('c', {1,2*K});
+    NDArray<double> init('c', {bS,K});
+    NDArray<double> mask('c', {bS,K});
+    NDArray<double> expState('c', {bS,K,N});
+    NDArray<double> expOut('c', {bS,K,N});
+
+    nd4j::NDArrayFactory<double>::linspace(1., input);
+    nd4j::NDArrayFactory<double>::linspace(2., weights);
+    nd4j::NDArrayFactory<double>::linspace(3., bias);
     
-//     NDArray<double> input('c', {bS,K,N});
-//     NDArray<double> weights('c', {3*K,K});
-//     NDArray<double> bias('c', {1,2*N});
-//     NDArray<double> init('c', {bS,K});
-//     NDArray<double> mask('c', {bS,K});
+    init.assign(1.);
+    mask.assign(1.);
+    expState.setBuffer(expStateBuff);
+    expOut.assign(1.);
 
-//     nd4j::NDArrayFactory<double>::linspace(1., input);
-//     nd4j::NDArrayFactory<double>::linspace(1., weights);
-//     nd4j::NDArrayFactory<double>::linspace(1., bias);
-//     init.assign(1.);
-//     mask.assign(1.);
+    nd4j::ops::sru2<double> op;
+    nd4j::ArrayList<double>*  results = op.execute({&input, &weights, &bias, &init, &mask}, {}, {});
+    ASSERT_TRUE(results->size() == 2);    
 
-//     nd4j::ops::sru2<double> op;
-//     nd4j::ArrayList<double>*  results = op.execute({&input, &weights, &bias, &init, &mask}, {}, {});
-//     ASSERT_TRUE(results->size() == 2);    
-
-//     NDArray<double>* state  = results->at(0);
-//     NDArray<double>* output = results->at(1);
-//     state->printIndexedBuffer();
-//     output->printIndexedBuffer();
+    NDArray<double>* state  = results->at(0);
+    NDArray<double>* output = results->at(1);
     
-//     ASSERT_TRUE(1==1);
+    ASSERT_TRUE(expState.equalsTo(state));
+    ASSERT_TRUE(expOut.equalsTo(output));
     
-//     delete results;
-// }
+    delete results;
+}
 
 // //////////////////////////////////////////////////////////////////////
 // TEST_F(DeclarableOpsTests, sru_bi1) {
@@ -2531,26 +2536,6 @@ TEST_F(DeclarableOpsTests, sru1) {
 //     delete results;
 // }
 
-//////////////////////////////////////////////////////////////////////
-TEST_F(DeclarableOpsTests, testMy) {
-    const int bS=2;
-    const int K=3;
-    const int N=4;
-    double expBuff[] = { 38,   44,   50,   56, 83,   98,  113,  128, 128,  152,  176,  200, 173,  206,  239,  272, 218,  260,  302,  344, 263,  314,  365,  416, 308,  368,  428,  488, 353,  422,  491,  560, 398,  476,  554,  632, 110,  116,  122,  128, 263,  278,  293,  308, 416,  440,  464,  488, 569,  602,  635,  668, 722,  764,  806,  848, 875,  926,  977, 1028, 1028, 1088, 1148, 1208, 1181, 1250, 1319, 1388, 1334, 1412, 1490, 1568};
-    
-    NDArray<double> input  ('c', {bS,  K, N});
-    NDArray<double> weights('c', {3*K, K});
-    NDArray<double>* result(nullptr);
-    NDArray<double> expected ('c', {bS,  3*K, N});
-    expected.setBuffer(expBuff);
-    weights.reshapei(weights.ordering(),{3*K, K, 1});
-    
-    NDArrayFactory<double>::mmulHelper(&weights, &input, result, 1., 0.);      //  result must have such shape   [bS x 3K x N]     
-       
-    ASSERT_TRUE(result->equalsTo(&expected));
-    delete result;
-}
-
 
 //////////////////////////////////////////////////////////////////////
 // TEST_F(DeclarableOpsTests, Sum2) {
@@ -2584,17 +2569,5 @@ TEST_F(DeclarableOpsTests, testMy) {
 // }
 
     
-//     [[[ 0.76159416  0.76159416  0.76159416  0.76159416]
-//   [ 0.76159416  0.76159416  0.76159416  0.76159416]
-//   [ 0.76159416  0.76159416  0.76159416  0.76159416]]
 
-//  [[ 0.76159416  0.76159416  0.76159416  0.76159416]
-//   [ 0.76159416  0.76159416  0.76159416  0.76159416]
-//   [ 0.76159416  0.76159416  0.76159416  0.76159416]]]
-// [[[ 1.  1.  1.  1.]
-//   [ 1.  1.  1.  1.]
-//   [ 1.  1.  1.  1.]]
 
-//  [[ 1.  1.  1.  1.]
-//   [ 1.  1.  1.  1.]
-//   [ 1.  1.  1.  1.]]]

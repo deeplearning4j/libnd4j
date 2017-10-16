@@ -114,8 +114,8 @@ CUSTOM_OP_IMPL(sru2, 5, 2, false, 0, 0) {
     const int K      = input->shapeOf()[1];                     // K - number of features
     const int N      = input->shapeOf()[2];                     // N - number of time steps
     
-    NDArray<T>* wi(nullptr);                              // multiplication matrix = matmul(weights,input)
-    NDArrayFactory<T>::mmulHelper(weights, input, wi, (T)1., (T)0.);      //        [bS x 3K x N]
+    // multiplication matrix = matmul(weights,input)
+    NDArray<T>* wi = NDArrayFactory<T>::mmulHelper(weights, input, nullptr, (T)1., (T)0.);      //        [bS x 3K x N]
     // wi.printShapeInfo();
     NDArray<T>* wiZ = wi->subarray( { NDIndex::all(), NDIndex::interval(0,K),     NDIndex::all() } );       // [bS x K x N]
     NDArray<T>* wiF = wi->subarray( { NDIndex::all(), NDIndex::interval(K,2*K),   NDIndex::all() } );       // forget gate [bS x K x N]
@@ -136,17 +136,17 @@ CUSTOM_OP_IMPL(sru2, 5, 2, false, 0, 0) {
     for (int t = 0; t < N; ++t) {           
 
         xt = input->subarray( { NDIndex::all(), NDIndex::all(), NDIndex::interval(t,t+1) } );   // [bS x K x 1]
-        xt->reshapei(xt->ordering(), {bS, K});                                                              // [bS x K]
+        xt->reshapei(xt->ordering(), {bS, K});                                                  // [bS x K]
         zt = wiZ->subarray( { NDIndex::all(), NDIndex::all(), NDIndex::interval(t,t+1) } );     // [bS x K x 1]
-        zt->reshapei(zt->ordering(), {bS, K});                                                              // [bS x K]
+        zt->reshapei(zt->ordering(), {bS, K});                                                  // [bS x K]
         ft = wiF->subarray( { NDIndex::all(), NDIndex::all(), NDIndex::interval(t,t+1) } );     // forget gate [bS x K x 1]
-        ft->reshapei(ft->ordering(), {bS, K});                                                              // [bS x K]
+        ft->reshapei(ft->ordering(), {bS, K});                                                  // [bS x K]
         rt = wiR->subarray( { NDIndex::all(), NDIndex::all(), NDIndex::interval(t,t+1) } );     // reset gate [bS x K x 1]
-        rt->reshapei(rt->ordering(), {bS, K});                                                              // [bS x K]
-        ct = state->subarray( { NDIndex::all(), NDIndex::all(), NDIndex::interval(t,t+1) } );  // [bS x K x 1]
-        ct->reshapei(ct->ordering(), {bS, K});                                                              // [bS x K]
+        rt->reshapei(rt->ordering(), {bS, K});                                                  // [bS x K]
+        ct = state->subarray( { NDIndex::all(), NDIndex::all(), NDIndex::interval(t,t+1) } );   // [bS x K x 1]
+        ct->reshapei(ct->ordering(), {bS, K});                                                  // [bS x K]
         ht = output->subarray( { NDIndex::all(), NDIndex::all(), NDIndex::interval(t,t+1) } );  // [bS x K x 1]
-        ht->reshapei(ht->ordering(), {bS, K});                                                              // [bS x K]
+        ht->reshapei(ht->ordering(), {bS, K});                                                  // [bS x K]
 
         //  xmt = xt * mask
         xt->template applyPairwiseTransform<simdOps::Multiply<T>>(mask, xmt, nullptr);
