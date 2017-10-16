@@ -74,4 +74,10 @@ TEST_F(ConditionalTests, BasicTests_1) {
 
     Nd4jStatus status = GraphExecutioner<float>::execute(&graph);
     ASSERT_EQ(ND4J_STATUS_OK, status);
+
+    ASSERT_TRUE(variableSpace->hasVariable(10, 0));
+    auto conditionalResult = variableSpace->getVariable(10, 0)->getNDArray();
+
+    ASSERT_NEAR(6.0, conditionalResult->meanNumber(), 1e-5);
+
 }

@@ -602,6 +602,53 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph) {
 
                 // that's CONDITIONAL execution. Depending on condition we either run true or false scope
                 if (node->opNum() == 20) {
+                    int scopeConditionIndex = node->input()->at(0).first;
+                    int scopeFalseIndex = node->input()->at(1).first;
+                    int scopeTrueIndex = node->input()->at(2).first;
+
+                    auto scopeCondition = graph->scopeById(scopeConditionIndex);
+                    int lastNode = 0;
+                    for (auto v: *scopeCondition->nodes()) {
+                        executeFlatNode(graph, v, __variableSpace);
+                        lastNode = v->id();
+                    }
+
+                    // now we should take result of the Scope run, and evaluate it
+                    //nd4j_debug("", "");
+                    auto result = __variableSpace->getVariable(lastNode)->getNDArray();
+                    result->printBuffer("Result of the last node:");
+
+                    // now we're executing one of the scopes, depending on condition evaluation
+                    if (result->getScalar(0) == (T) 0.0f) {
+                        auto scopeFalse = graph->scopeById(scopeFalseIndex);
+                        lastNode = 0;
+                        for (auto v: *scopeFalse->nodes()) {
+                            executeFlatNode(graph, v, __variableSpace);
+                            lastNode = v->id();
+                        }
+                    } else {
+                        auto scopeTrue = graph->scopeById(scopeTrueIndex);
+                        lastNode = 0;
+                        for (auto v: *scopeTrue->nodes()) {
+                            executeFlatNode(graph, v, __variableSpace);
+                            lastNode = v->id();
+                        }
+                    }
+
+                    // now fetch and transfer variables to Conditional node
+                    for (int e = 0; e < 65536; e++) {
+                        std::pair<int, int> pair(lastNode, e);
+                        std::pair<int, int> pairNew(node->id(), e);
+                        if (__variableSpace->hasVariable(pair)) {
+                            auto array = __variableSpace->getVariable(pair)->getNDArray();
+                            auto newVar = new Variable<T>(array);
+                            newVar->setId(lastNode, e);
+                            newVar->markRemovable(false);
+
+                            __variableSpace->putVariable(pairNew, newVar);
+                        } else
+                            break;
+                    }
 
                     continue;
                 }

@@ -64,6 +64,18 @@ namespace nd4j {
         }
 
         template <typename T>
+        bool nd4j::graph::VariableSpace<T>::hasVariable(int id, int index) {
+            std::pair<int, int> pair(id, index);
+            return hasVariable(pair);
+        }
+
+        template <typename T>
+        nd4j::graph::Variable<T> * nd4j::graph::VariableSpace<T>::getVariable(int id, int index) {
+            std::pair<int, int> pair(id, index);
+            return getVariable(pair);
+        }
+
+        template <typename T>
         nd4j::graph::Variable<T> * nd4j::graph::VariableSpace<T>::getVariable(std::pair<int, int>& pair) {
             if (pair.first == 0)
                 throw "0 requested";
