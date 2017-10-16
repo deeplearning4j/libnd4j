@@ -10,7 +10,6 @@
 #include <op_boilerplate.h>
 #include <ops/declarable/CustomOperations.h>
 #include <NDArray.h>
-#include <iostream>
 
 
 namespace nd4j {
@@ -99,83 +98,106 @@ DECLARE_SHAPE_FN(sru1) {
 }   
 
 //////////////////////////////////////////////////////////////////////////
-// feed forward
+// feed forward, https://github.com/musyoku/chainer-sru/blob/master/sru/sru.py
 CUSTOM_OP_IMPL(sru2, 5, 2, false, 0, 0) {
 
     NDArray<T>* input   = INPUT_VARIABLE(0);                // X, input 3d tensor [bS x K x N], N - number of time steps, bS - batch size, K - number of features
     NDArray<T>* weights = INPUT_VARIABLE(1);                // W, 2d tensor of weights [3K x K]
     NDArray<T>* bias    = INPUT_VARIABLE(2);                // B, row of biases with twice length [1 × 2*K]
-    NDArray<T>* init    = INPUT_VARIABLE(3);                // C_{t-1}, 2d tensor of initial state [bS x K]  at time t-1
+    NDArray<T>* init    = INPUT_VARIABLE(3);                // C_{0}, 2d tensor of initial state [bS x K] at time t=0
     NDArray<T>* mask    = INPUT_VARIABLE(4);                // 2d tensor of dropout mask [bS x K]
 
-    NDArray<T>* output = OUTPUT_VARIABLE(0);                // h_t, [bS x K]
-    NDArray<T>* state  = OUTPUT_VARIABLE(1);                // c_t, [bS x K]
+    NDArray<T>* output = OUTPUT_VARIABLE(0);                // h_t, [bS x K x N]
+    NDArray<T>* state  = OUTPUT_VARIABLE(1);                // c_t, [bS x K x N]
     
     const int bS     = input->shapeOf()[0];                     // bS - batch size
     const int K      = input->shapeOf()[1];                     // K - number of features
     const int N      = input->shapeOf()[2];                     // N - number of time steps
     
     NDArray<T>* wi(nullptr);                              // multiplication matrix = matmul(weights,input)
-    NDArrayFactory<T>::mmulHelper(weights, bias, wi , (T)1., (T)0.);      //        [bS x 3K x N]
-    NDArray<T>* wiZ = wi->subarray( { NDIndex::all(), NDIndex::interval(0,K),     NDIndex::all() } );      // [bS x K x N]
-    NDArray<T>* wiF = wi->subarray( { NDIndex::all(), NDIndex::interval(K,2*K),   NDIndex::all() } );      // forget gate [bS x K x N]
-    NDArray<T>* wiR = wi->subarray( { NDIndex::all(), NDIndex::interval(2*K,3*K), NDIndex::all() } );      // reset gate [bS x K x N]
-    NDArray<T>* bF  = bias->subarray( { NDIndex::all(), NDIndex::interval(0,K),   NDIndex::all() } );      // biases for forget gate [1 x K]
-    NDArray<T>* bR  = bias->subarray( { NDIndex::all(), NDIndex::interval(K,2*K), NDIndex::all() } );      // biases for reset gate [1 x K]
+    NDArrayFactory<T>::mmulHelper(weights, input, wi, (T)1., (T)0.);      //        [bS x 3K x N]
+    // wi.printShapeInfo();
+    NDArray<T>* wiZ = wi->subarray( { NDIndex::all(), NDIndex::interval(0,K),     NDIndex::all() } );       // [bS x K x N]
+    NDArray<T>* wiF = wi->subarray( { NDIndex::all(), NDIndex::interval(K,2*K),   NDIndex::all() } );       // forget gate [bS x K x N]
+    NDArray<T>* wiR = wi->subarray( { NDIndex::all(), NDIndex::interval(2*K,3*K), NDIndex::all() } );       // reset gate [bS x K x N]
+    NDArray<T>* bF  = bias->subarray( { NDIndex::all(), NDIndex::interval(0,K)  } );                        // biases for forget gate [1 x K]
+    NDArray<T>* bR  = bias->subarray( { NDIndex::all(), NDIndex::interval(K,2*K)} );                        // biases for reset gate [1 x K]
 
-    NDArray<T>* xt  = nullptr;
-    NDArray<T>* zt  = nullptr;
-    NDArray<T>* ft  = nullptr;
-    NDArray<T>* rt  = nullptr;
-    NDArray<T>* xmt = new NDArray<T>(input->ordering(), {bS, K});
-    NDArray<T>* sft  = new NDArray<T>(input->ordering(), {bS, K});
-    NDArray<T>* srt  = new NDArray<T>(input->ordering(), {bS, K});
+    NDArray<T>* xt   = nullptr;
+    NDArray<T>* zt   = nullptr;
+    NDArray<T>* ft   = nullptr;
+    NDArray<T>* rt   = nullptr;
+    NDArray<T>* ct   = nullptr;
+    NDArray<T>* ht   = nullptr;
+    NDArray<T>* xmt  = new NDArray<T>(input->ordering(), {bS, K});
+    NDArray<T>* gct  = new NDArray<T>(state->ordering(), {bS, K});
+    NDArray<T>* ct_1 = init->dup(init->ordering());
 
     for (int t = 0; t < N; ++t) {           
 
-        NDArray<T>* xt = input->subarray( { NDIndex::all(), NDIndex::all(), NDIndex::interval(t,t+1) } );    // [bS x K x 1]
+        xt = input->subarray( { NDIndex::all(), NDIndex::all(), NDIndex::interval(t,t+1) } );   // [bS x K x 1]
         xt->reshapei(xt->ordering(), {bS, K});                                                              // [bS x K]
-        NDArray<T>* zt = wi->subarray( { NDIndex::all(), NDIndex::all(), NDIndex::interval(t,t+1) } );       // [bS x K x 1]
+        zt = wiZ->subarray( { NDIndex::all(), NDIndex::all(), NDIndex::interval(t,t+1) } );     // [bS x K x 1]
         zt->reshapei(zt->ordering(), {bS, K});                                                              // [bS x K]
-        NDArray<T>* ft = wi->subarray( { NDIndex::all(), NDIndex::all(), NDIndex::interval(t,t+1) } );       // forget gate [bS x K x 1]
+        ft = wiF->subarray( { NDIndex::all(), NDIndex::all(), NDIndex::interval(t,t+1) } );     // forget gate [bS x K x 1]
         ft->reshapei(ft->ordering(), {bS, K});                                                              // [bS x K]
-        NDArray<T>* rt = wi->subarray( { NDIndex::all(), NDIndex::all(), NDIndex::interval(t,t+1) } );       // reset gate [bS x K x 1]
+        rt = wiR->subarray( { NDIndex::all(), NDIndex::all(), NDIndex::interval(t,t+1) } );     // reset gate [bS x K x 1]
         rt->reshapei(rt->ordering(), {bS, K});                                                              // [bS x K]
+        ct = state->subarray( { NDIndex::all(), NDIndex::all(), NDIndex::interval(t,t+1) } );  // [bS x K x 1]
+        ct->reshapei(ct->ordering(), {bS, K});                                                              // [bS x K]
+        ht = output->subarray( { NDIndex::all(), NDIndex::all(), NDIndex::interval(t,t+1) } );  // [bS x K x 1]
+        ht->reshapei(ht->ordering(), {bS, K});                                                              // [bS x K]
 
+        //  xmt = xt * mask
         xt->template applyPairwiseTransform<simdOps::Multiply<T>>(mask, xmt, nullptr);
-        ft->addRowVector(bF, sft);
-        rt->addRowVector(bR, srt);
-        sft->template applyTransform<simdOps::Sigmoid<T>>();                
-        srt->template applyTransform<simdOps::Sigmoid<T>>();                
+        // ft = sigmoid(ft + bf), rt = sigmoid(rt + bR)
+        ft->addRowVector(bF, ft);
+        rt->addRowVector(bR, rt);
+        ft->template applyTransform<simdOps::Sigmoid<T>>();
+        rt->template applyTransform<simdOps::Sigmoid<T>>();
+        // ct = ft * c_t-1 + (1 - ft) * zt,  
+        ft->template applyPairwiseTransform<simdOps::Multiply<T>>(ct_1, ct, nullptr);
+        ft->template applyTransform<simdOps::Neg<T>>();
+        ft->template applyScalar<simdOps::Add<T>>((T)1., nullptr);
+        ft->template applyPairwiseTransform<simdOps::Multiply<T>>(zt, nullptr);
+        ct->template applyPairwiseTransform<simdOps::Add<T>>(ft, nullptr);
 
+        // TODO T val = (activation_type == 1) ? tanh(cur) : ((activation_type == 2) ? reluf(cur) : cur );
+        ct->template applyTransform<simdOps::Tanh<T>>(gct);
+        
+        // ht = rt * gct + (1 - rt) * xt
+        rt->template applyPairwiseTransform<simdOps::Multiply<T>>(gct, ht, nullptr);
+        rt->template applyTransform<simdOps::Neg<T>>();
+        rt->template applyScalar<simdOps::Add<T>>((T)1., nullptr);
+        rt->template applyPairwiseTransform<simdOps::Multiply<T>>(xt, nullptr);
+        ht->template applyPairwiseTransform<simdOps::Add<T>>(rt, nullptr);
 
-        delete xt;
-        delete zt;
-        delete ft;
-        delete rt;
+        delete xt; delete zt; delete ft; delete rt; delete ht; delete ct_1;
+        ct_1 = ct;
     }
-    
-    delete sft;
-    delete srt;
-    delete wi;
-    delete xmt;
-    delete bF;
-    delete bR;
+            
     delete wiZ;
     delete wiF;
     delete wiR;
+    delete wi;
+    delete bF;
+    delete bR;    
+    delete xmt;
+    delete ct_1;
+    delete gct;
+    
     
     return ND4J_STATUS_OK;
 }
 
 DECLARE_SHAPE_FN(sru2) {
 
-    int* inShape = inputShape->at(0);
-    int rank = inShape[0];          // = 3
+    int* inShape = inputShape->at(0);   // [bS x K x N]
+    int rank = inShape[0];              // = 3
     int size = rank*2 + 4;
-    int K  = inShape[1];
-    int bS = inShape[2];
-    int N  = inShape[3];
+    int bS   = inShape[1];
+    int K    = inShape[2];
+    int N    = inShape[3];
     char order = (char)(inShape[size-1]);
 
     int* newShapeInfo1 = nullptr;
@@ -184,8 +206,8 @@ DECLARE_SHAPE_FN(sru2) {
     ALLOCATE(newShapeInfo2, block.getWorkspace(), size, int);
     
     newShapeInfo1[0] = rank;        
-    newShapeInfo1[1] = K;
-    newShapeInfo1[2] = bS;
+    newShapeInfo1[1] = bS;
+    newShapeInfo1[2] = K;
     newShapeInfo1[3] = N;
     
     shape::updateStrides(newShapeInfo1, order);
