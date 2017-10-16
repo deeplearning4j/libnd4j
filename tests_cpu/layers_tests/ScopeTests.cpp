@@ -15,8 +15,37 @@ public:
 
 };
 
-
 TEST_F(ScopeTests, BasicTests_1) {
+    Graph<float> graph;
+
+    auto x = new NDArray<float>('c', {2, 2});
+    x->assign(0.0f);
+
+    auto variableSpace = graph.getVariableSpace();
+    variableSpace->putVariable(-1, x);
+
+    nd4j::ops::Scope<float> opScope;
+
+    auto scopeBody = new Node<float>(OpType_LOGIC, 10, 1);
+    scopeBody->setName("scopeBody");
+    scopeBody->setCustomOp(&opScope);
+
+
+    graph.addNode(scopeBody);
+
+    ASSERT_EQ(1, graph.totalNodes());
+
+    auto scopedB0 = new Node<float>(OpType_SCALAR, 0, 6, {-1}, {}, {}, 1.0f);
+    scopedB0->markInplace(true);
+    scopedB0->setScopeInfo(1, "scopeBody");
+
+    graph.addNode(scopedB0);
+
+    ASSERT_EQ(1, graph.totalNodes());
+
+}
+
+TEST_F(ScopeTests, RealTests_1) {
     Graph<float> graph;
 
     auto x = new NDArray<float>('c', {2, 2});
@@ -26,7 +55,7 @@ TEST_F(ScopeTests, BasicTests_1) {
     y->assign(0.0);
 
     auto scalar = new NDArray<float>('c', {1, 1});
-    y->putScalar(0, 10);
+    scalar->putScalar(0, 10);
 
     auto variableSpace = graph.getVariableSpace();
     variableSpace->putVariable(-1, x);
@@ -101,4 +130,10 @@ TEST_F(ScopeTests, BasicTests_1) {
     // WHILE is valid node, so we expect nodes counter to go up
     graph.addNode(nodeWhile);
     ASSERT_EQ(5, graph.totalNodes());
+
+    // now, let's try to execute graph
+    Nd4jStatus status = GraphExecutioner<float>::execute(&graph);
+    ASSERT_EQ(ND4J_STATUS_OK, status);
+
+    ASSERT_NEAR(40.f, y->sumNumber(), 1e-5f);
 }

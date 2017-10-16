@@ -11,6 +11,7 @@
 #include <Variable.h>
 #include <VariableSpace.h>
 #include <Node.h>
+#include <Scope.h>
 #include <GraphExecutioner.h>
 #include <loops/scalar.h>
 #include <loops/pairwise_transform.h>
@@ -551,6 +552,57 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph) {
         for (int n = 0; n < layerSize; n++) {
             Node<T>* node = graph->getOnion()->at(l)->at(n);
 
+            // TODO: refactor this to something more C++ like
+            /**
+             * If this LOGIC op, we'll use another execution model here
+             */
+            if (node->opType() == OpType_LOGIC) {
+
+                // if that's Scope - we're just skipping it
+                if (node->opNum() == 10)
+                    continue;
+
+                // if that's While - we run CONDITION scope first, and then BODY scope, if CONDITION result isn't 0
+                if (node->opNum() == 0) {
+                    int scopeConditionIndex = node->input()->at(0).first;
+                    int scopeBodyIndex = node->input()->at(1).first;
+
+                    // we're running condition nodes now
+                    auto scope = graph->scopeById(scopeConditionIndex);
+                    int breaker = 0;
+                    while (true && breaker < 20) {
+                        int lastNode = 0;
+                        for (auto v: *scope->nodes()) {
+                            executeFlatNode(graph, v, __variableSpace);
+                            lastNode = v->id();
+                        }
+
+                        // now we should take result of the Scope run, and evaluate it
+                        //nd4j_debug("", "");
+                        auto result = __variableSpace->getVariable(lastNode)->getNDArray();
+                        result->printBuffer("Result of the last node:");
+
+                        // if result evaluates to 0.0 - condition returned FALSE
+                        if (result->getScalar(0) == (T) 0.0f)
+                            break;
+                        else {
+                            auto scopeBody = graph->scopeById(scopeBodyIndex);
+                            int lastNode = 0;
+                            for (auto v: *scopeBody->nodes()) {
+                                executeFlatNode(graph, v, __variableSpace);
+                                lastNode = v->id();
+                            }
+                        }
+
+                        breaker++;
+                    }
+
+                    continue;
+                }
+
+
+            }
+
             bool shouldSkip = false;
             // let's check for input nodes, if they are disabled or contain divergents
             for (int e = 0; e < node->input()->size(); e++) {
@@ -560,6 +612,11 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph) {
                 if (inputId.first < 0)
                     continue;
 
+                /**
+                 * We can skip current node, in two cases:
+                 * 1) If previous node was disabled
+                 * 2) If previous node was divergent node (i.e. IF op) and code went other way
+                 */
                 Node<T>* prevNode = graph->getMapped()->at(inputId.first);
                 if (!prevNode->isActive()) {
                     shouldSkip = true;
@@ -577,6 +634,7 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph) {
 
             auto timeStart = std::chrono::system_clock::now();
 
+            // actual node execution happens right here
             Nd4jStatus status = executeFlatNode(graph, node, __variableSpace);
 
             auto timeEnd = std::chrono::system_clock::now();

@@ -270,8 +270,16 @@ namespace nd4j {
 
         template <typename T>
         void nd4j::graph::Graph<T>::addNode(nd4j::graph::Node<T> *node) {
-
             _built.store(false);
+
+            if (node->opType() == OpType_LOGIC) {
+                nd4j_debug("Adding LogicOp [%i]\n", node->opNum());
+                // SCOPE
+                if (node->opNum() == 10) {
+                    auto scope = new Scope<T>(node->id(), node->getName()->c_str());
+                    _mappedScopes[node->id()] = scope;
+                }
+            }
 
             auto cname = node->getName() == nullptr ? nullptr : node->getName()->c_str();
             auto nodeState = new Variable<T>(nullptr, cname, node->id());
@@ -367,6 +375,19 @@ namespace nd4j {
 
                     nd4j_logger("Loop finished: %i outputs now\n", this->_output.size());
                 }
+            }
+
+            // ops that are tied to specific scope are never placed into the structure.
+            if (node->isScoped()) {
+                if (_mappedScopes.count(node->scopeId()) < 1) {
+                    nd4j_printf("Requested scope [%i/%s] wasn't created yet\n", node->scopeId(), node->scopeName()->c_str());
+                    throw std::invalid_argument("Unknown scope requested");
+                }
+
+                Scope<T>* scope = _mappedScopes.at(node->scopeId());
+                scope->push_back(node);
+
+                return;
             }
 
             std::pair<int32_t, nd4j::graph::Node<T> *> pair(node->id(), node);
@@ -629,6 +650,15 @@ namespace nd4j {
             return ND4J_STATUS_OK;
         }
 
+        template <typename T>
+        Scope<T> *Graph<T>::scopeById(int id) {
+            if (_mappedScopes.count(id) == 0) {
+                nd4j_printf("Requested Scope [%i] doesn't exist\n", id);
+                throw "Non-existent Scope was requested";
+            }
+
+            return _mappedScopes.at(id);
+        }
 
         template class Graph<float>;
         //template class Graph<float16>;

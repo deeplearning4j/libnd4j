@@ -63,7 +63,7 @@ namespace nd4j {
             bool _active = true;
 
             // these fields contain information about Scope these ops are related to
-            int _scope_id;
+            int _scope_id = 0;
             std::string _scope_name;
 
         public:

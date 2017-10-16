@@ -114,6 +114,8 @@ namespace nd4j {
 
             if (status == ND4J_STATUS_TRUE){
                 block->getVariableSpace()->getVariable(block->getNodeId())->getNDArray()->putScalar(0, (T) 1.0f);
+            } else {
+                block->getVariableSpace()->getVariable(block->getNodeId())->getNDArray()->putScalar(0, (T) 0.0f);
             }
 
             if (status == ND4J_STATUS_FALSE || ND4J_STATUS_TRUE)
