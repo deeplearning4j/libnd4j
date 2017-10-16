@@ -9,6 +9,7 @@
 #include <ops/declarable/LegacyPairwiseTransformOp.h>
 #include <ops/declarable/LegacyScalarOp.h>
 #include <ops/declarable/LegacyReduceOp.h>
+#include <ops/declarable/LegacyIndexReduceOp.h>
 
 using namespace nd4j;
 using namespace nd4j::ops;
@@ -157,4 +158,45 @@ TEST_F(LegacyOpsTests, ReduceTests_2) {
 
     delete result;
     delete exp;
+}
+
+
+TEST_F(LegacyOpsTests, IndexReduceTests_1) {
+    NDArray<double> x('c', {5, 5});
+    NDArrayFactory<double>::linspace(1, x);
+
+    nd4j::ops::LegacyIndexReduceOp<double> op(0);
+
+    auto result = op.execute({&x}, {}, {});
+
+    ASSERT_EQ(1, result->size());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(z->isScalar());
+    ASSERT_EQ(24, (int) z->getScalar(0));
+
+    delete result;
+}
+
+
+TEST_F(LegacyOpsTests, IndexReduceTests_2) {
+    NDArray<double> x('c', {5, 5});
+    NDArrayFactory<double>::linspace(1, x);
+
+    nd4j::ops::LegacyIndexReduceOp<double> op(0);
+
+    auto result = op.execute({&x}, {}, {1});
+
+    ASSERT_EQ(1, result->size());
+
+    auto z = result->at(0);
+
+    ASSERT_EQ(4, (int) z->getScalar(0));
+    ASSERT_EQ(4, (int) z->getScalar(1));
+    ASSERT_EQ(4, (int) z->getScalar(2));
+    ASSERT_EQ(4, (int) z->getScalar(3));
+    ASSERT_EQ(4, (int) z->getScalar(4));
+
+    delete result;
 }
