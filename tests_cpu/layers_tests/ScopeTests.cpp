@@ -64,7 +64,7 @@ TEST_F(ScopeTests, RealTests_1) {
 
     // just few ops coming before while
     auto nodeA = new Node<float>(OpType_TRANSFORM, 35, 1, {-1});
-    auto nodeB = new Node<float>(OpType_TRANSFORM, 0, 2, {1});
+    auto nodeB = new Node<float>(OpType_SCALAR, 0, 2, {1}, {}, {}, 1.0);
 
     //
     auto scopeCondition = new Node<float>(OpType_LOGIC, 10, 3);

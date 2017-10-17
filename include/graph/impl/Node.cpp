@@ -46,6 +46,9 @@ namespace nd4j {
         template <typename T>
         void nd4j::graph::Node<T>::markInplace(bool reallyInplace) {
             _isInplace = reallyInplace;
+            if (_block != nullptr) {
+                _block->markInplace(reallyInplace);
+            }
         }
 
         template <typename T>
@@ -331,7 +334,7 @@ namespace nd4j {
 
                 this->setCustomOp(Node<T>::buildOpByType(opType, (int) input.size(), opNum, scalar));
 
-                auto block = new Block<T>(this->id(), nullptr, isInplace());
+                auto block = new Block<T>(this->id(), nullptr, false);
 
                 // there's no other IArgs in legacy options, actually
                 for (auto v: dimensions)

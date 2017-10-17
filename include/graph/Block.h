@@ -81,7 +81,9 @@ namespace nd4j {
             int getNodeId();
             std::vector<T>* getTArguments();
             std::vector<int>* getIArguments();
+
             bool isInplace();
+            void markInplace(bool reallyInplace);
 
             void pickInput(int input);
             void fillInputs(std::initializer_list<int> inputs);

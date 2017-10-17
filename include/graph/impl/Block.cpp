@@ -35,6 +35,10 @@ namespace nd4j {
             return _workspace != nullptr;
         }
 
+        template <typename T>
+        void Block<T>::markInplace(bool reallyInplace) {
+            _isInplace = reallyInplace;
+        }
 
         template <typename T>
         void Block<T>::attachWorkspace(nd4j::memory::Workspace* workspace) {

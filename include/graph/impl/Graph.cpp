@@ -340,7 +340,35 @@ namespace nd4j {
                         std::pair<int,int> id(node->id(), e);
                         _variableSpace->putVariable(id, deepVar);
                     }
+                } else {
+                    // we need to check, if we should propagate output of this variable somewhere
+                    for (int e = 0; e < node->output()->size(); e++) {
+                        auto out = node->output()->at(e);
+                        if (out < 0) {
+                            nd4j_debug("Node [%i] will be propagating its output to Variable [%i]\n", node->id(), out);
+                            auto extVar = _variableSpace->getVariable(out);
+                            if (extVar->hasNDArray()) {
+                                nodeState->setNDArray(extVar->getNDArray());
+                                nodeState->markRemovable(false);
+                            }
+                        }
+                    }
                 }
+
+
+                // adjust possible externals
+                /*
+                for (int e = 0; e < node->output()->size(); e++) {
+                    auto out = node->output()->at(e);
+                    std::pair<int, int> pair(node->id(), e);
+                    if (out < 0) {
+                        auto locVar = _variableSpace->getVariable(pair);
+                        locVar->markRemovable(false);
+                        auto extVar = _variableSpace->getVariable(out);
+                        locVar->setNDArray(extVar->getNDArray());
+                    }
+                }
+                */
             }
 
             // we're saving only ops that have internal outpus here
