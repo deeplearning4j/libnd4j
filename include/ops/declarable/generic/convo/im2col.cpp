@@ -13,6 +13,10 @@ namespace nd4j {
             auto x = INPUT_VARIABLE(0);
             auto z = OUTPUT_VARIABLE(0);
 
+
+            REQUIRE_TRUE(x->rankOf() == 4, 0, "im2col input should be 4D, but got %i instead", x->rankOf());
+            REQUIRE_TRUE(z->rankOf() == 6, 0, "im2col output should be 6D, but got %i instead", z->rankOf());
+
             T* dx = x->buffer();
             T* result = z->buffer();
 
