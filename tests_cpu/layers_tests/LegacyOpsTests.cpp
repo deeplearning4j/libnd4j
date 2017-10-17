@@ -10,6 +10,7 @@
 #include <ops/declarable/LegacyScalarOp.h>
 #include <ops/declarable/LegacyReduceOp.h>
 #include <ops/declarable/LegacyIndexReduceOp.h>
+#include <ops/declarable/LegacyBroadcastOp.h>
 
 using namespace nd4j;
 using namespace nd4j::ops;
@@ -199,4 +200,25 @@ TEST_F(LegacyOpsTests, IndexReduceTests_2) {
     ASSERT_EQ(4, (int) z->getScalar(4));
 
     delete result;
+}
+
+
+TEST_F(LegacyOpsTests, BroadcastingTests_1) {
+    NDArray<double> x('c', {5, 5});
+    x.assign(0.0f);
+
+    NDArray<double> row('c', {1, 5});
+    NDArrayFactory<double>::linspace(1, row);
+
+    nd4j::ops::LegacyBroadcastOp<double> op(0);
+    Nd4jStatus status = op.execute({&x, &row}, {&x}, {}, {1});
+
+    ASSERT_EQ(ND4J_STATUS_OK, status);
+
+    auto list = NDArrayFactory<double>::allTensorsAlongDimension(&x, {1});
+
+    for (int e = 0; e < list->size(); e++)
+        ASSERT_TRUE(row.equalsTo(list->at(e)));
+
+    delete list;
 }
