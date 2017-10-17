@@ -718,7 +718,7 @@ template <typename T>
     void NDArray<T>::transposei() {
         std::vector<int> perm;
         for (int e = this->rankOf() - 1; e >= 0; e--)
-            perm.push_back(e);
+            perm.emplace_back(e);
 
         this->permutei(perm);
 

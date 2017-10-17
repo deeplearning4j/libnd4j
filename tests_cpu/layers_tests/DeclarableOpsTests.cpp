@@ -2434,7 +2434,7 @@ TEST_F(DeclarableOpsTests, BatchNorm4D_BP) {
 }
 
 //////////////////////////////////////////////////////////////////////
-TEST_F(DeclarableOpsTests, sru1) {
+TEST_F(DeclarableOpsTests, sru_taolei87_1) {
 
     const int K = 4;
     const int bS = 2;
@@ -2452,7 +2452,7 @@ TEST_F(DeclarableOpsTests, sru1) {
     nd4j::NDArrayFactory<double>::linspace(1., prevState);
     mask.assign(1.);
 
-    nd4j::ops::sru1<double> op;
+    nd4j::ops::sru_taolei87<double> op;
     nd4j::ArrayList<double>*  results = op.execute({&input, &weights, &bias, &prevState, &mask}, {}, {});
     ASSERT_TRUE(results->size() == 2);    
 
@@ -2466,7 +2466,7 @@ TEST_F(DeclarableOpsTests, sru1) {
 }
 
 //////////////////////////////////////////////////////////////////////
-TEST_F(DeclarableOpsTests, sru2) {
+TEST_F(DeclarableOpsTests, sru_musyoku_1) {
 
     const int bS = 2;
     const int K = 3;    
@@ -2490,7 +2490,7 @@ TEST_F(DeclarableOpsTests, sru2) {
     expState.setBuffer(expStateBuff);
     expOut.assign(1.);
 
-    nd4j::ops::sru2<double> op;
+    nd4j::ops::sru_musyoku<double> op;
     nd4j::ArrayList<double>*  results = op.execute({&input, &weights, &bias, &init, &mask}, {}, {});
     ASSERT_TRUE(results->size() == 2);    
 
@@ -2502,6 +2502,8 @@ TEST_F(DeclarableOpsTests, sru2) {
     
     delete results;
 }
+
+
 
 // //////////////////////////////////////////////////////////////////////
 // TEST_F(DeclarableOpsTests, sru_bi1) {

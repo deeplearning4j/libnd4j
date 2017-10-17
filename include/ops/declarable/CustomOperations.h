@@ -73,9 +73,10 @@ namespace nd4j {
         DECLARE_CUSTOM_OP(pooling2d, 1, 1, false, 0, 11);
         DECLARE_CUSTOM_OP(avgpool2d_bp, 2, 1, false, 0, 9);
         DECLARE_CUSTOM_OP(pnormpool2d_bp, 2, 1, false, 1, 10);
-        DECLARE_CUSTOM_OP(sru1, 5, 2, false, 0, 0);
-        DECLARE_CUSTOM_OP(sru2, 5, 2, false, 0, 0);
-        DECLARE_CUSTOM_OP(sru_bi, 5, 2, false, 0, 0);
+        DECLARE_CUSTOM_OP(sru_taolei87, 5, 2, false, 0, 0);
+        DECLARE_CUSTOM_OP(sru_musyoku, 5, 2, false, 0, 0);
+        DECLARE_CUSTOM_OP(sru_musyoku_bp, 4, 6, false, 0, 0);
+        DECLARE_CUSTOM_OP(sru_taolei87_bi, 5, 2, false, 0, 0);
 
 
         DECLARE_CONFIGURABLE_OP(tensormmul, 2, 1, false, 0, -1);   // should become custom
