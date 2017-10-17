@@ -84,6 +84,8 @@ namespace nd4j {
         DECLARE_CUSTOM_OP(pnormpool2d_bp, 2, 1, false, 1, 10);
         DECLARE_CUSTOM_OP(tear, 1, -1, false, 0, -1);
         DECLARE_CUSTOM_OP(unstack, 1, -1, false, 0, 1);
+        DECLARE_CUSTOM_OP(im2col, 1, 1, false, 0, 9);
+        DECLARE_CUSTOM_OP(col2im, 1, 1, false, 0, 9);
 
 
         DECLARE_CUSTOM_OP(strided_slice, 1, 1, true, 0, -1); // TODO: new op type needed. that returns VIEW
