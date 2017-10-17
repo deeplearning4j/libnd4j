@@ -18,13 +18,13 @@ namespace nd4j {
             std::string _opName;
             Nd4jIndex _hash;
 
-            int _numInputs;
-            int _numOutputs;
+            int _numInputs = 1;
+            int _numOutputs = 1;
 
             nd4j::graph::OpClass _opClass;
 
-            bool _divergent;
-            bool _allowsInplace;
+            bool _divergent = false;
+            bool _allowsInplace = true;
 
             int _tArgs = 0;
             int _iArgs = 0;

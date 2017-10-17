@@ -168,7 +168,6 @@ namespace nd4j {
         void nd4j::graph::VariableSpace<T>::putVariable(std::pair<int,int>& pair, Variable<T> *variable) {
             silentPutVariable(pair, variable);
 
-
             if (variable->isPlaceholder())
                 _placeholders.push_back(variable);
 

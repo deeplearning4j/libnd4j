@@ -15,13 +15,13 @@ namespace nd4j {
         template <typename T>
         class Variable {
         protected:
-            int32_t _id;
+            int32_t _id = 0;
             int _index = 0;
             nd4j::NDArray<T> * _ndarray = nullptr;
             std::string _name;
 
-            bool _external;
-            bool _readOnly;
+            bool _external = false;
+            bool _readOnly = false;
             bool _placeholder = false;
             bool _removable = true;
 
