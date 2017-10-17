@@ -137,8 +137,8 @@ static Nd4jStatus executeFlatNode(Graph<T> *graph, Node<T> *node, VariableSpace<
             return status;
 //        } else if (opType == OpType_BOOLEAN) {
 
-  //      }
-    } else if (opType == OpType_TRANSFORM) {
+  }
+ /*   } else if (opType == OpType_TRANSFORM) {
         auto in = node->input()->at(0);
 
         auto x = variableSpace->getVariable(in);
@@ -524,7 +524,7 @@ static Nd4jStatus executeFlatNode(Graph<T> *graph, Node<T> *node, VariableSpace<
             }
         }
     }
-
+*/
     return ND4J_STATUS_OK;
 }
 
