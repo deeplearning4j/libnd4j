@@ -135,10 +135,10 @@ namespace nd4j {
             zShape[0] = 6;
             zShape[1] = bS;
             zShape[2] = iD;
-            zShape[3] = inY;
-            zShape[4] = inX;
+            zShape[3] = kY;
+            zShape[4] = kX;
             zShape[5] = oY;
-            zShape[0] = oX;
+            zShape[6] = oX;
 
             zShape[shape::shapeInfoLength(zShape) - 3] = 0;
             zShape[shape::shapeInfoLength(zShape) - 2] = 1;

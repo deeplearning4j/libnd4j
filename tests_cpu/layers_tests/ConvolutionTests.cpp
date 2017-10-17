@@ -13,6 +13,7 @@
 #include <graph/VariableSpace.h>
 #include <NDArrayFactory.h>
 #include <ops/declarable/CustomOperations.h>
+#include <ops/declarable/generic/helpers/convolutions.h>
 
 using namespace nd4j;
 using namespace nd4j::graph;
@@ -493,6 +494,60 @@ TEST_F(ConvolutionTests, conv2D_BP_NoBias_1) {
     //  expEps.printBuffer("Expctd buffer");
     //epsilon->printBuffer("Result buffer");
     ASSERT_TRUE(expEps.equalsTo(epsilon));
+}
+
+
+TEST_F(ConvolutionTests, Test_im2col_col2im_1) {
+    int kY = 5;
+    int kX = 5;
+    int sY = 1;
+    int sX = 1;
+    int pY = 0;
+    int pX = 0;
+    int dY = 1;
+    int dX = 1;
+    int inY = 28;
+    int inX = 28;
+
+    bool isSameMode = true;
+
+    NDArray<double> x('c', {2, 1, inY, inX});
+    NDArrayFactory<double>::linspace(1, x);
+
+    int oY, oX;
+
+    nd4j::ops::ConvolutionUtils<double>::calcOutHWpool2D(oY, oX, kY, kX, sY, sX, pY, pX, dY, dX, inY, inX, isSameMode);
+
+    if (isSameMode)
+        nd4j::ops::ConvolutionUtils<double>::_calcPadding2D(pY, pX, oY, oX, inY, inX, kY, kX, sY, sX, dY, dX);
+
+    NDArray<double> im2col0('c', {2, 1, kY, kX, oY, oX});
+
+    std::vector<double> args2col({(double) kY, (double) kX, (double) sY, (double) sX, (double) pY, (double) pX, (double) dY, (double) dX, isSameMode ? (double) 1 : (double) 0});
+    x.template applyTransform<simdOps::Im2col<double>>(&im2col0, args2col.data());
+
+    nd4j::ops::im2col<double> op;
+    auto result2col = op.execute({&x}, {}, {kY, kX, sY, sX, pY, pX, dY, dX, isSameMode ? 1 : 0});
+
+    auto im2col1 = result2col->at(0);
+
+    ASSERT_TRUE(im2col1->isSameShape(&im2col0));
+    ASSERT_TRUE(im2col1->equalsTo(&im2col0));
+
+
+    std::vector<double> args2im({ (double) sY, (double) sX, (double) pY, (double) pX, (double) inY, (double) inX, (double) dY, (double) dX, isSameMode ? (double) 1 : (double) 0});
+    NDArray<double> col2im0('c', {2, 1, inY, inX});
+    im2col0.template applyTransform<simdOps::Col2Im<double>>(&col2im0, args2im.data());
+
+    nd4j::ops::col2im<double> op2im;
+    auto result2im = op2im.execute({im2col1}, {}, {sY, sX, pY, pX, inY, inX, dY, dX, isSameMode ? 1 : 0});
+    auto col2im1 = result2im->at(0);
+
+    ASSERT_TRUE(col2im1->isSameShape(&col2im0));
+    ASSERT_TRUE(col2im1->equalsTo(&col2im0));
+
+    delete result2col;
+    delete result2im;
 }
 
 #endif //LIBND4J_CONVOLUTIONTESTS_H
