@@ -31,6 +31,8 @@ namespace nd4j {
             std::vector<int *> shapes;
             std::map<std::pair<int,int>, int*> shapesMap;
 
+            int cntFD = 0;
+
             // we loop in similar way to execution
             for (int l = 0; l < (int) _onion->size(); l++) {
                 int layerSize = _onion->count(l) == 1 ? _onion->at(l)->size() : 0;
@@ -48,8 +50,12 @@ namespace nd4j {
                      * 4) Op is multiplicator (i.e. im2col)
                      */
                     if (node->hasCustomOp()) {
-                        if (node->isInplace())
-                            continue;
+                        //if (node->isInplace()) {
+                        //    continue;
+                        //}
+
+
+                        nd4j_debug("Trying estimation [%i] on [%s]\n", node->id(), node->getCustomOp()->getOpName()->c_str());
 
                         auto op = node->getCustomOp();
                         auto in = node->input()->at(0);
@@ -58,6 +64,7 @@ namespace nd4j {
                         std::vector<int*> inputShapes;
                         int *oldShape;
                         for (auto v: *node->input()) {
+                            nd4j_debug("     inputs for estimation are are: %i:%i\n", v.first, v.second);
                             if (v.first < 0) {
                                 inputShapes.push_back(_variableSpace->getVariable(v.first)->getNDArray()->getShapeInfo());
                             } else {
@@ -76,7 +83,7 @@ namespace nd4j {
 
                             shapesMap.insert(pairShape);
 
-                            if (!block->isInplace())
+                            if (!block->isInplace() && !node->isInplace())
                                 result += shape::length(newShape) * sizeof(T);
 
                             shape::printShapeInfoLinear(newShape);
@@ -170,6 +177,9 @@ namespace nd4j {
                     } else if (node->getOpClass() == OpClass_MULTIPLICATOR) {
                         // can't be in non-special op
                     }
+
+
+                    cntFD++;
                 }
             }
 

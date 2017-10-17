@@ -67,7 +67,7 @@ namespace nd4j {
             std::string _scope_name;
 
         public:
-            Node(OpType opType = OpType_TRANSFORM, int opNum = 0, int id = 0, std::initializer_list<int> input = {}, std::initializer_list<int> output = {},  std::initializer_list<int> dimensions = {}, float scalar = 0.0f);
+            Node(OpType opType = OpType_TRANSFORM, int opNum = 0, int id = 0, std::initializer_list<int> input = {}, std::initializer_list<int> output = {},  std::initializer_list<int> dimensions = {}, float scalar = 0.0f, std::initializer_list<T> tArgs = {}, std::initializer_list<int> iArgs = {});
             Node(const nd4j::graph::FlatNode *node);
             ~Node();
 
@@ -143,6 +143,7 @@ namespace nd4j {
             int scopeId();
             std::string* scopeName();
 
+            static nd4j::ops::DeclarableOp<T>* buildOpByType(OpType opType, int numInputs, int opNum, T scalar);
         };
     }
 }

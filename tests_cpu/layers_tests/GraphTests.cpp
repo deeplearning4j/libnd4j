@@ -74,6 +74,8 @@ TEST_F(GraphTests, DoubleInput1) {
     GraphExecutioner<float>::execute(graph);
 
     ASSERT_NEAR(3.0, z->reduceNumber<simdOps::Mean<float>>(), 1e-5);
+
+    delete graph;
 }
 
 TEST_F(GraphTests, SingleInput3) {
