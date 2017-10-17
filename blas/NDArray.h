@@ -90,8 +90,10 @@ namespace nd4j {
         }
 
         T* getBuffer();
+        T* buffer();
 
         int* getShapeInfo();
+        int* shapeInfo();
 
         void setShapeInfo(int *shapeInfo) {
             _shapeInfo = shapeInfo;

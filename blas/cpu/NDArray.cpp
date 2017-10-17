@@ -285,7 +285,17 @@ template <typename T>
     }
 
     template<typename T>
+    T* NDArray<T>::buffer() {
+        return _buffer;
+    }
+
+    template<typename T>
     int* NDArray<T>::getShapeInfo() {
+        return _shapeInfo;
+    }
+
+    template<typename T>
+    int* NDArray<T>::shapeInfo() {
         return _shapeInfo;
     }
 
@@ -2260,8 +2270,9 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
     template class NDArray<float16>;
     template class NDArray<double>;
 
-
+#ifndef __CLION_IDE__
 #include "NDArray.macro"
+#endif
 }
 
 #endif

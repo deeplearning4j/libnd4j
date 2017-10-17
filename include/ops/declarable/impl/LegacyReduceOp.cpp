@@ -33,6 +33,8 @@ namespace nd4j {
                 std::vector<int> dims(*block.getIArguments());
                 std::sort(dims.begin(), dims.end());
 
+                REQUIRE_TRUE(dims.size() > 0, 0, "Some dimensions requuired for reduction!");
+
                 shape::TAD tad(x->getShapeInfo(), dims.data(), dims.size());
                 tad.createTadOnlyShapeInfo();
                 tad.createOffsets();
