@@ -33,7 +33,7 @@
 #define INLINEDEF inline
 #else
 #define INLINEDEF ND4J_EXPORT
-#endif
+
 
 #include "../pairwise_util.h"
 namespace shape {
