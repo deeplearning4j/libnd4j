@@ -80,19 +80,20 @@ NDArray<T>::NDArray(const Nd4jIndex length, const char order, nd4j::memory::Work
     // todo make this optional
     memset(_buffer, 0, length * sizeOfT());              // set all elements in new array to be zeros
 
-    std::unique_ptr<int> shape(new int[2] {1, (int) length});
+    int *shape = new int[2]{1, (int) length};
 
     if (order == 'f') {
-        _shapeInfo = shape::shapeBufferFortran(2, shape.get());
+        _shapeInfo = shape::shapeBufferFortran(2, shape);
         _shapeInfo[7] = 102;
     } else {
-        _shapeInfo = shape::shapeBuffer(2, shape.get());
+        _shapeInfo = shape::shapeBuffer(2, shape);
         _shapeInfo[7] = 99;
     }
 
     _shapeInfo[6] = 1;
     _isBuffAlloc = true;
     _isShapeAlloc = true;
+    delete[] shape;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -103,23 +104,25 @@ template <typename T>
     Nd4jIndex length = rows * columns;
     int rank = 2;
 
-    std::unique_ptr<int> shapeOf(new int[2] {rows, columns});
+    int *shapeOf = new int[2]{rows, columns};
 
     _workspace = workspace;
     if (workspace == nullptr) {
         if (order == 'f')
-            _shapeInfo = shape::shapeBufferFortran(rank, shapeOf.get());
+            _shapeInfo = shape::shapeBufferFortran(rank, shapeOf);
         else
-            _shapeInfo = shape::shapeBuffer(rank, shapeOf.get());
+            _shapeInfo = shape::shapeBuffer(rank, shapeOf);
 
         _buffer =  new T[shape::length(_shapeInfo)];
     } else {
-        std::unique_ptr<int> shapeInfo( order == 'f' ? shape::shapeBufferFortran(rank, shapeOf.get()) : shape::shapeBuffer(rank, shapeOf.get()));
+        int *shapeInfo =  order == 'f' ? shape::shapeBufferFortran(rank, shapeOf) : shape::shapeBuffer(rank, shapeOf);
 
         _shapeInfo = (int*) _workspace->allocateBytes(shape::shapeInfoByteLength(rank));
-        memcpy(_shapeInfo, shapeInfo.get(), shape::shapeInfoByteLength(rank));
+        memcpy(_shapeInfo, shapeInfo, shape::shapeInfoByteLength(rank));
 
         _buffer = (T*) _workspace->allocateBytes(shape::length(_shapeInfo) * sizeOfT());
+
+        delete[] shapeInfo;
     }
 
     memset(_buffer, 0, length * sizeOfT());              // set all elements in new array to be zeros
@@ -129,6 +132,8 @@ template <typename T>
     } else {
         _shapeInfo[7] = 99;
     }
+
+    delete[] shapeOf;
 
     _shapeInfo[6] = 1;
     _isBuffAlloc = true; 
@@ -235,8 +240,9 @@ template <typename T>
 
 ////////////////////////////////////////////////////////////////////////
 // this constructor creates new array using rank information contained in initializer_list argument
+/*
 template <typename T>
-    NDArray<T>::NDArray(const char order, const std::initializer_list<int>& shape, nd4j::memory::Workspace* workspace) {
+    NDArray<T>::NDArray(const char order, const std::initializer_list<int> shape, nd4j::memory::Workspace* workspace) {
     
     int rank = (int) shape.size();
 
@@ -271,6 +277,7 @@ template <typename T>
     _isBuffAlloc = true; 
     _isShapeAlloc = true;
 }
+    */
 
     template<typename T>
     T* NDArray<T>::getBuffer() {
@@ -336,34 +343,37 @@ void NDArray<T>::replacePointers(T *buffer, int *shapeInfo, const bool releaseEx
         if (rank > MAX_RANK)
             throw std::invalid_argument("Rank of NDArray can't exceed 32");
 
-        std::unique_ptr<int> shapeOf(new int[rank]);
+        int *shapeOf = new int[rank];
         int cnt = 0;
 
         for (auto &item: shape)
-            shapeOf.get()[cnt++] = item;
+            shapeOf[cnt++] = item;
 
         _workspace = workspace;
         if (workspace == nullptr) {
             if (order == 'f')
-                _shapeInfo = shape::shapeBufferFortran(rank, shapeOf.get());
+                _shapeInfo = shape::shapeBufferFortran(rank, shapeOf);
             else
-                _shapeInfo = shape::shapeBuffer(rank, shapeOf.get());
+                _shapeInfo = shape::shapeBuffer(rank, shapeOf);
 
             _buffer =  new T[shape::length(_shapeInfo)];
         } else {
-            std::unique_ptr<int> shapeInfo( order == 'f' ? shape::shapeBufferFortran(rank, shapeOf.get()) : shape::shapeBuffer(rank, shapeOf.get()));
+            int *shapeInfo = order == 'f' ? shape::shapeBufferFortran(rank, shapeOf) : shape::shapeBuffer(rank, shapeOf);
 
             _shapeInfo = (int*) _workspace->allocateBytes(shape::shapeInfoByteLength(rank));
-            memcpy(_shapeInfo, shapeInfo.get(), shape::shapeInfoByteLength(rank));
+            memcpy(_shapeInfo, shapeInfo, shape::shapeInfoByteLength(rank));
 
             _buffer = (T*) _workspace->allocateBytes(shape::length(_shapeInfo) * sizeOfT());
+
+            delete[] shapeInfo;
         }
 
         memset(_buffer, 0, sizeOfT() * shape::length(_shapeInfo));
         
 		_isBuffAlloc = true; 
 		_isShapeAlloc = true;
-	
+
+        delete[] shapeOf;
     }
 
 
@@ -653,6 +663,20 @@ template <typename T>
 // method makes copy of this array and applies to the copy the transpose operation, this array remains unaffected 
 template <typename T>
     NDArray<T>* NDArray<T>::transpose() const {
+        int shapeInfoLength = shape::shapeInfoLength(rankOf());
+        int* newShapeInfo = nullptr;
+
+        ALLOCATE(newShapeInfo , _workspace, shapeInfoLength, int);
+        memcpy(newShapeInfo, _shapeInfo, shapeInfoLength*sizeof(int));
+
+        NDArray<T>* newArr = new NDArray<T>(_buffer, newShapeInfo, _workspace);
+        newArr->_isShapeAlloc = true;
+        newArr->_isBuffAlloc  = false;
+
+        newArr->transposei();
+
+        return newArr;
+        /*
     int *rearrange = new int[rankOf()];
     int cnt = 0;
     for (int d = rankOf() - 1; d >= 0; d--) {
@@ -685,13 +709,21 @@ template <typename T>
     delete[] rearrange;
 
     return result;
+        */
 }
 
 ////////////////////////////////////////////////////////////////////////
 // This method applies in-place transpose to this array, so this array becomes transposed 
 template <typename T>
     void NDArray<T>::transposei() {
-    
+        std::vector<int> perm;
+        for (int e = this->rankOf() - 1; e >= 0; e--)
+            perm.push_back(e);
+
+        this->permutei(perm);
+
+
+        /*
     int *rearrange = new int[rankOf()];
     int cnt = 0;
     for (int d = rankOf() - 1; d >= 0; d--) {
@@ -722,6 +754,7 @@ template <typename T>
     newShapeBuffer[sLen - 2] = 1;
     _shapeInfo = newShapeBuffer;
     delete []rearrange;
+        */
 }
 
 // This method returns true if two arrays are equal, with custom or default Eps value of 1e-5, false otherwise
@@ -1165,33 +1198,20 @@ template <typename T>
 
     // we can do this only if there was no permute applied, or it's not a weird strides
     if (shape::canReshape(this->rankOf(), this->_shapeInfo, shape.size(), shape.data(), order == 'f')) {
-        //int elemWiseStride = _shapeInfo[rankOf()*2 + 2];
-        // if rank is different then delete and resize _shapeInfo appropriately
-        // also check if current object is _shapeInfo owner
-
         int *shapeInfoNew;
         ALLOCATE(shapeInfoNew, _workspace, shape::shapeInfoLength(rank), int);
 
         shape::reshapeCF(this->rankOf(), this->_shapeInfo, shape.size(), shape.data(), order == 'f', shapeInfoNew);
-
-        //shape::printShapeInfoLinear(shapeInfoNew);
 
         if (_isShapeAlloc)
             RELEASE(_shapeInfo, _workspace);
 
         _shapeInfo = shapeInfoNew;
         _isShapeAlloc = true;
-
-
-        // copy new dimensions to _shapeInfo
-//        int i = 1;
-//        for (const auto &item : shape)
-//            _shapeInfo[i++] = item;                 // exclude first element -> rank
-        // set strides in correspondence to dimensions and order
-        //updateStrides(order);
     } else {
         int *shapeInfoNew;
         ALLOCATE(shapeInfoNew, _workspace, shape::shapeInfoLength(rank), int);
+
         if (order == 'c')
             shape::shapeBuffer(shape.size(), shape.data(), shapeInfoNew);
         else
@@ -1202,17 +1222,18 @@ template <typename T>
 
         functions::pairwise_transforms::PairWiseTransform<T>::template exec<simdOps::Copy<T>>(newBuffer, shapeInfoNew, this->_buffer, this->_shapeInfo, newBuffer, shapeInfoNew, nullptr);
 
-        if (_isBuffAlloc) {
+        if (_isBuffAlloc)
             RELEASE(_buffer, _workspace);
-        }
 
-        if (_isShapeAlloc) {
+
+        if (_isShapeAlloc)
             RELEASE(_shapeInfo, _workspace);
-        }
+
 
         _buffer = newBuffer;
         _shapeInfo = shapeInfoNew;
-
+        _isShapeAlloc = true;
+        _isBuffAlloc = true;
     }
 
     return true;
@@ -1387,17 +1408,17 @@ template<typename T>
             reps.push_back(r);
     }*/
 
-    std::unique_ptr<int> newShape(new int[this->rankOf()]);
+    int *newShape = new int[this->rankOf()];
     std::vector<int> rShape;
 
     for (int i = 0; i < this->rankOf(); i++) {
-        newShape.get()[i] = this->sizeAt(i) * reps.at(i);
-        rShape.push_back(newShape.get()[i]);
+        newShape[i] = this->sizeAt(i) * reps.at(i);
+        rShape.push_back(newShape[i]);
     }
 
     auto ret = new NDArray<T>('c', rShape, _workspace);
 
-    auto repeatDelta = shape::prodLong(newShape.get(), this->rankOf()) / this->lengthOf();
+    auto repeatDelta = shape::prodLong(newShape, this->rankOf()) / this->lengthOf();
     auto numTads = this->tensorsAlongDimension({dimension});
     for (int i = 0; i < numTads; i++) {
         auto thisTensor = this->tensorAlongDimension(i, {dimension});
@@ -1413,6 +1434,8 @@ template<typename T>
         delete thisTensor;
         delete retTensor;
     }
+
+    delete[] newShape;
 
     return ret;
 }
@@ -1464,11 +1487,7 @@ NDArray<T>* NDArray<T>::permute(const int* dimensions, const int rank) {
 	// allocate memory for new array - buffer and shapeInfo
 
     int* shapeInfoNew;
-
-    if (_workspace == nullptr)         
-        shapeInfoNew = new int[shapeInfoLength];
-    else         
-        shapeInfoNew = (int*) _workspace->allocateBytes(shape::shapeInfoByteLength(rankOf()));    
+    ALLOCATE(shapeInfoNew, _workspace, shape::shapeInfoLength(rank), int);
 
 	// copy this arrays  _shapeInfo into new array		
 	memcpy(shapeInfoNew, _shapeInfo, shapeInfoLength*sizeof(int));	
@@ -2228,7 +2247,7 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
     template<typename T>
 
     NDArray<T>::~NDArray() {
-        if (_isBuffAlloc && _workspace == nullptr && !_isView && _buffer != nullptr)
+        if (_isBuffAlloc && _workspace == nullptr && _buffer != nullptr)
             delete[] _buffer;
 
         if (_isShapeAlloc  && _workspace == nullptr && _shapeInfo != nullptr)
@@ -2242,6 +2261,7 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
     template class ND4J_EXPORT NDArray<float>;
     template class ND4J_EXPORT NDArray<float16>;
     template class ND4J_EXPORT NDArray<double>;
+
 
 
 #include "NDArray.macro"
