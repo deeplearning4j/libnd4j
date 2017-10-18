@@ -48,6 +48,10 @@ namespace nd4j {
             return new ShapeList(newShape);
         }
 
+        /**
+        *   For all reductions rules are simple: either you return scalar, or you return reduced NDArray.
+        *   It solely depends on input shape, and requested dimensions
+        */
         template <typename T>
         Nd4jStatus LegacyIndexReduceOp<T>::validateAndExecute(Block<T> &block) {
             auto x = INPUT_VARIABLE(0);
@@ -62,7 +66,9 @@ namespace nd4j {
             } else {
                 // TAD
                 std::vector<int> dims(*block.getIArguments());
-                std::sort(dims.begin(), dims.end());
+
+                if (dims.size() > 1)
+                    std::sort(dims.begin(), dims.end());
 
                 shape::TAD tad(x->getShapeInfo(), dims.data(), dims.size());
                 tad.createTadOnlyShapeInfo();

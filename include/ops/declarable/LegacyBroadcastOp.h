@@ -9,6 +9,9 @@
 
 namespace nd4j {
     namespace ops {
+        /**
+        *   This class provides wrapper for broadcast operations. 
+        */
         template <typename T>
         class LegacyBroadcastOp : public LegacyOp<T> {
         protected:

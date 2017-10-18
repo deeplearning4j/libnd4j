@@ -11,7 +11,7 @@ namespace nd4j {
     namespace ops {
 
         /**
-         * Logic ops are basically a placeholders. They do not have real viable implementation as ops.
+         * Logic ops are unique snowflakes in any Graph. They dramatically change Graph Execution process, by introducing loops, conditions, etc.
          *
          * Their code is the part of GraphExecutioner logic. But we still want them to be expressed via Graph
          * @tparam T

@@ -18,6 +18,9 @@ namespace nd4j {
             //
         }
 
+        /**
+        * Output shape of any BooleanOp is ALWAYS scalar
+        */
         template <typename T>
         ShapeList *BooleanOp<T>::calculateOutputShape(ShapeList *inputShape, nd4j::graph::Block<T> &block) {
             int *shapeNew;
@@ -112,14 +115,16 @@ namespace nd4j {
             auto outerTime = std::chrono::duration_cast<std::chrono::microseconds> (timeEnd - timeStart).count();
             block->setInnerTime(outerTime);
 
+            // basically we're should be putting 0.0 as FALSE, and any non-0.0 value will be treated as TRUE
             if (status == ND4J_STATUS_TRUE){
                 block->getVariableSpace()->getVariable(block->getNodeId())->getNDArray()->putScalar(0, (T) 1.0f);
             } else {
                 block->getVariableSpace()->getVariable(block->getNodeId())->getNDArray()->putScalar(0, (T) 0.0f);
             }
 
-            if (status == ND4J_STATUS_FALSE || ND4J_STATUS_TRUE)
+            if (status == ND4J_STATUS_FALSE || status == ND4J_STATUS_TRUE)
                 return ND4J_STATUS_OK;
+            
             return ND4J_STATUS_KERNEL_FAILURE;
         }
 

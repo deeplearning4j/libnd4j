@@ -9,6 +9,9 @@
 
 namespace nd4j {
     namespace ops {
+        /**
+        *   This class provides wrapper for Reduce3 operations (i.e. dot, cosineDistance etc)
+        */
         template <typename T>
         class LegacyReduce3Op : public LegacyOp<T> {
         protected:

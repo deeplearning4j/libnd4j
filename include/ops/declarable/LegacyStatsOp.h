@@ -9,6 +9,9 @@
 
 namespace nd4j {
     namespace ops {
+        /**
+        *   This class provides wrapper for SummaryStats operations: Variance and Standard Deviation
+        */
         template <typename T>
         class LegacyStatsOp : public LegacyOp<T> {
         protected:

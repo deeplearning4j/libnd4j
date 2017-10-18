@@ -11,8 +11,10 @@ namespace nd4j {
             auto x = INPUT_VARIABLE(0);
             auto z = OUTPUT_VARIABLE(0);
 
+            // we assume that opNuk is either stored in block, or was provided via op constructor
             int opNum = block.opNum() < 0 ? this->_opNum : block.opNum();
 
+            // bias goes as first argument, unlike all other reductions
             bool biasCorrected = false;
             if (block.getIArguments()->size() > 0)
                 biasCorrected = block.getIArguments()->at(0) > 0;
@@ -28,7 +30,8 @@ namespace nd4j {
                 for (int e = 1; e < block.getIArguments()->size(); e++)
                     dims.emplace_back(block.getIArguments()->at(e));
 
-                std::sort(dims.begin(), dims.end());
+                if (dims.size() > 1)
+                    std::sort(dims.begin(), dims.end());
 
                 REQUIRE_TRUE(dims.size() > 0, 0, "Some dimensions requuired for reduction!");
 
@@ -50,6 +53,10 @@ namespace nd4j {
             //
         }
 
+        /**
+        *   For all reductions rules are simple: either you return scalar, or you return reduced NDArray.
+        *   It solely depends on input shape, and requested dimensions
+        */
         template <typename T>
         ShapeList *LegacyStatsOp<T>::calculateOutputShape(ShapeList *inputShape, nd4j::graph::Block<T> &block) {
             auto inShape = inputShape->at(0);

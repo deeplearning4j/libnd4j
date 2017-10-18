@@ -33,6 +33,11 @@ namespace nd4j {
             return ND4J_STATUS_OK;
         }
 
+        /**
+        * For transform operations, output shape always equals to input shape. With just a few exclusions, like im2col and col2im. 
+        * But these ops already have CustomOp implementations.
+        *
+        */
         template <typename T>
         ShapeList *LegacyTransformOp<T>::calculateOutputShape(ShapeList *inputShape, nd4j::graph::Block<T> &block) {
             auto inShape = inputShape->at(0);

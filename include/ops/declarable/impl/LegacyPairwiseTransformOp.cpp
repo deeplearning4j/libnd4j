@@ -24,6 +24,8 @@ namespace nd4j {
             auto y = INPUT_VARIABLE(1);
             auto z = OUTPUT_VARIABLE(0);
 
+            REQUIRE_TRUE(x->isSameShape(y), 0, "For Pairwise transforms shapes of both operands should be equal");
+
             int opNum = block.opNum() < 0 ? this->_opNum : block.opNum();
 
             NativeOpExcutioner<T>::execPairwiseTransform(opNum, x->getBuffer(), x->getShapeInfo(), y->getBuffer(), y->getShapeInfo(), z->getBuffer(), z->getShapeInfo(), block.getTArguments()->data());
@@ -33,6 +35,9 @@ namespace nd4j {
             return ND4J_STATUS_OK;
         }
 
+        /**
+        *   Output shape of PWT operations always the same as input[0] shape, no exclusions.
+        */
         template <typename T>
         ShapeList *LegacyPairwiseTransformOp<T>::calculateOutputShape(ShapeList *inputShape, nd4j::graph::Block<T> &block) {
             auto inShape = inputShape->at(0);

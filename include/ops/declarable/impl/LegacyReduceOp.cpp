@@ -47,6 +47,10 @@ namespace nd4j {
             return ND4J_STATUS_OK;
         }
 
+        /**
+        *   For all reductions rules are simple: either you return scalar, or you return reduced NDArray.
+        *   It solely depends on input shape, and requested dimensions
+        */
         template <typename T>
         ShapeList *LegacyReduceOp<T>::calculateOutputShape(ShapeList *inputShape, nd4j::graph::Block<T> &block) {
             auto inShape = inputShape->at(0);

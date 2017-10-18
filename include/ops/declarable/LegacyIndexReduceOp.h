@@ -9,6 +9,11 @@
 
 namespace nd4j {
     namespace ops {
+        /**
+        *   This class provides wrapper for IndexAccumulation operations. i.e. IndexMax or IndexAbsoluteMin etc
+        *
+        *   TODO: eventually we want this op class to return long long instead of T
+        */
         template <typename T>
         class LegacyIndexReduceOp : public LegacyOp<T> {
         protected:

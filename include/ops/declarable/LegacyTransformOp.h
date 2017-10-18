@@ -10,6 +10,9 @@
 
 namespace nd4j {
     namespace ops {
+        /**
+        *   This class provides wrapper for Transform operations (i.e. Pow or OneMinus)
+        */
         template <typename T>
         class LegacyTransformOp : public LegacyOp<T> {
         protected:

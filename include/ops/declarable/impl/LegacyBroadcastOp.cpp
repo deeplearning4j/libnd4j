@@ -25,9 +25,12 @@ namespace nd4j {
             tad.createTadOnlyShapeInfo();
             tad.createOffsets();
 
+            REQUIRE_TRUE(shape::length(tad.tadOnlyShapeInfo) == y->lengthOf(), 0, "Length of broadcast TAD should be equal to length of Y operand, but got [%i] vs [%i]", (int) shape::length(tad.tadOnlyShapeInfo), (int) y->lengthOf());
+
             if (x == z)
                 NativeOpExcutioner<T>::execBroadcast(opNum, x->buffer(), x->shapeInfo(), y->buffer(), y->shapeInfo(), z->buffer(), z->shapeInfo(), dims.data(), dims.size(), tad.tadOnlyShapeInfo, tad.tadOffsets, tad.tadOnlyShapeInfo, tad.tadOffsets);
             else {
+                // this is rare, but possible use case - X and Z might have different shapes/strides/orders. In this case we prepare and pass separate TAD info
                 shape::TAD tadZ(z->shapeInfo(), dims.data(), dims.size());
                 tadZ.createTadOnlyShapeInfo();
                 tadZ.createOffsets();
@@ -50,6 +53,9 @@ namespace nd4j {
             //
         }
 
+        /**
+        *   If external NDArray wasn't specified - the same shape is returned by all broadcast ops.
+        */
         template <typename T>
         ShapeList* LegacyBroadcastOp<T>::calculateOutputShape(ShapeList *inputShape, nd4j::graph::Block<T> &block) {
             auto inShape = inputShape->at(0);
