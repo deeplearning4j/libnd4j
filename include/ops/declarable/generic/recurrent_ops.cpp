@@ -115,8 +115,7 @@ CUSTOM_OP_IMPL(sru_musyoku, 5, 2, false, 0, 0) {
     const int N      = input->shapeOf()[2];                     // N - number of time steps
     
     // multiplication matrix = matmul(weights,input)
-    NDArray<T>* wi = NDArrayFactory<T>::mmulHelper(weights, input, nullptr, (T)1., (T)0.);      //        [bS x 3K x N]
-    STASH("U", wi->dup(wi->ordering()));
+    NDArray<T>* wi = NDArrayFactory<T>::mmulHelper(weights, input, nullptr, (T)1., (T)0.);      //       U [bS x 3K x N]    
     // wi.printShapeInfo();
     NDArray<T>* wiZ = wi->subarray( { NDIndex::all(), NDIndex::interval(0,K),     NDIndex::all() } );       // [bS x K x N]
     NDArray<T>* wiF = wi->subarray( { NDIndex::all(), NDIndex::interval(K,2*K),   NDIndex::all() } );       // forget gate [bS x K x N]
@@ -154,7 +153,7 @@ CUSTOM_OP_IMPL(sru_musyoku, 5, 2, false, 0, 0) {
         rt->template applyTransform<simdOps::Sigmoid<T>>();
         // ct = ft * c_t-1 + (1 - ft) * zt,  
         ft->template applyPairwiseTransform<simdOps::Multiply<T>>(ct_1, ct, nullptr);
-        ft->template applyPairwiseTransform<simdOps::OneMinus<T>>(ft, nullptr);
+        ft->template applyTransform<simdOps::OneMinus<T>>(ft);
         ft->template applyPairwiseTransform<simdOps::Multiply<T>>(zt, nullptr);
         ct->template applyPairwiseTransform<simdOps::Add<T>>(ft, nullptr);
 
@@ -163,7 +162,7 @@ CUSTOM_OP_IMPL(sru_musyoku, 5, 2, false, 0, 0) {
         
         // ht = rt * gct + (1 - rt) * xt
         rt->template applyPairwiseTransform<simdOps::Multiply<T>>(gct, ht, nullptr);
-        rt->template applyPairwiseTransform<simdOps::OneMinus<T>>(rt, nullptr);        
+        rt->template applyTransform<simdOps::OneMinus<T>>(rt);
         rt->template applyPairwiseTransform<simdOps::Multiply<T>>(xt, nullptr);
         ht->template applyPairwiseTransform<simdOps::Add<T>>(rt, nullptr);
 
@@ -171,8 +170,6 @@ CUSTOM_OP_IMPL(sru_musyoku, 5, 2, false, 0, 0) {
         ct_1 = ct;
     }
     
-    STASH("maskedX", xmt);
-    STASH("C", state->dup(state->ordering()));
     delete wiZ; delete wiF; delete wiR; delete wi; delete bF; delete bR; delete ct_1; delete gct;
     
     return ND4J_STATUS_OK;
@@ -300,32 +297,28 @@ DECLARE_SHAPE_FN(sru_taolei87_bi) {
 
 //////////////////////////////////////////////////////////////////////////
 // back propagation, https://github.com/musyoku/chainer-sru/blob/master/sru/sru.py
-CUSTOM_OP_IMPL(sru_musyoku_bp, 6, 4, false, 0, 0) {
-
-    NDArray<T>* input   = UNSTASH("maskedX");               // X, input 3d tensor [bS x K x N], N - number of time steps, bS - batch size, K - number of features
-    NDArray<T>* wi      = UNSTASH("U");                     // multiplication matrix U = matmul(weights,input),  [bS x 3K x N]
-    NDArray<T>* state   = UNSTASH("C");                     // C, [bS x K x N]
+CUSTOM_OP_IMPL(sru_musyoku_bp, 8, 4, false, 0, 0) {
     
-    NDArray<T>* weights  = INPUT_VARIABLE(0);                // W, 2d tensor of weights [3K x K]
-    NDArray<T>* bias     = INPUT_VARIABLE(1);                // B, row of biases with twice length [1 × 2*K]
-    NDArray<T>* init     = INPUT_VARIABLE(2);                // C_{0}, 2d tensor of initial state [bS x K] at time t=0
-    NDArray<T>* mask     = INPUT_VARIABLE(3);                // 2d tensor of dropout mask [bS x K]
-    NDArray<T>* inGradCt = INPUT_VARIABLE(4);                // [bS x K]
-    NDArray<T>* inGradH  = INPUT_VARIABLE(5);                // [bS x K x N]
+    NDArray<T>* input    = INPUT_VARIABLE(0);                // X, input 3d tensor [bS x K x N], N - number of time steps, bS - batch size, K - number of features
+    NDArray<T>* weights  = INPUT_VARIABLE(1);                // W, 2d tensor of weights [3K x K]
+    NDArray<T>* bias     = INPUT_VARIABLE(2);                // B, row of biases with twice length [1 × 2*K]
+    NDArray<T>* init     = INPUT_VARIABLE(3);                // C_{0}, 2d tensor of initial state [bS x K] at time t=0
+    NDArray<T>* mask     = INPUT_VARIABLE(4);                // 2d tensor of dropout mask [bS x K]
+    NDArray<T>* state    = INPUT_VARIABLE(5);                // C, [bS x K x N]
+    NDArray<T>* inGradCt = INPUT_VARIABLE(6);                // [bS x K]
+    NDArray<T>* inGradH  = INPUT_VARIABLE(7);                // [bS x K x N]
 
     NDArray<T>* gradX    = OUTPUT_VARIABLE(0);              // [bS x K x N]
     NDArray<T>* gradW    = OUTPUT_VARIABLE(1);              // [bS x 3K x K]
     NDArray<T>* gradB    = OUTPUT_VARIABLE(2);              // [1 x 2K]
     NDArray<T>* gradInit = OUTPUT_VARIABLE(3);              // [bS x K]
 
-    
     const int bS      = input->shapeOf()[0];                     
     const int K       = input->shapeOf()[1];                     
     const int N       = input->shapeOf()[2];                     // N - number of time steps
-    const int columns = bS*K;
     
-    NDArray<T>* gradBias = new NDArray<T>(wi->ordering(), {bS, 2*K, N});
-    NDArray<T>* gradU    = new NDArray<T>(wi->ordering(), {bS, 3*K, N});
+    NDArray<T>* gradBias = new NDArray<T>(input->ordering(), {bS, 2*K, N});
+    NDArray<T>* gradU    = new NDArray<T>(input->ordering(), {bS, 3*K, N});
     NDArray<T>* gradHX   = new NDArray<T>(input->ordering(), {bS, K, N});
     NDArray<T>* gct      = new NDArray<T>(state->ordering(), {bS, K});    
     NDArray<T>* gradTanh = new NDArray<T>(state->ordering(), {bS, K});
@@ -334,6 +327,11 @@ CUSTOM_OP_IMPL(sru_musyoku_bp, 6, 4, false, 0, 0) {
     NDArray<T>* rtMinus  = new NDArray<T>(state->ordering(), {bS, K});
     NDArray<T>* temp1    = new NDArray<T>(state->ordering(), {bS, K});    
     NDArray<T>* temp2    = new NDArray<T>(state->ordering(), {bS, K});       
+
+    //  input = input * mask
+    input->template applyBroadcast<simdOps::Multiply<T>>({2}, mask, input, nullptr);            // apply mask    
+    // multiplication matrix wi = matmul(weights,input), U = WX
+    NDArray<T>* wi = NDArrayFactory<T>::mmulHelper(weights, input, nullptr, (T)1., (T)0.);      // U [bS x 3K x N]    
 
     NDArray<T>* wiZ = wi->subarray( { NDIndex::all(), NDIndex::interval(0,K),     NDIndex::all() } );       // [bS x K x N]
     NDArray<T>* wiF = wi->subarray( { NDIndex::all(), NDIndex::interval(K,2*K),   NDIndex::all() } );       // forget gate [bS x K x N]
@@ -345,6 +343,7 @@ CUSTOM_OP_IMPL(sru_musyoku_bp, 6, 4, false, 0, 0) {
     NDArray<T>* gradUZ = gradU->subarray( { NDIndex::all(), NDIndex::interval(0,K),     NDIndex::all() } ); // [bS x K x N]
     NDArray<T>* gradUF = gradU->subarray( { NDIndex::all(), NDIndex::interval(K,2*K),   NDIndex::all() } ); // [bS x K x N]
     NDArray<T>* gradUR = gradU->subarray( { NDIndex::all(), NDIndex::interval(2*K,3*K), NDIndex::all() } ); // [bS x K x N]
+
 
     NDArray<T>* xt(nullptr), *zt(nullptr), *ft(nullptr), *rt(nullptr), *ct(nullptr), *inGradHt(nullptr), *gradBFt(nullptr), 
                 *gradBRt(nullptr), *ct_1(nullptr), *gradHXt(nullptr), *gradURt(nullptr), *gradUFt(nullptr), *gradUZt(nullptr);
@@ -382,7 +381,7 @@ CUSTOM_OP_IMPL(sru_musyoku_bp, 6, 4, false, 0, 0) {
         }
         else
             ct_1 = init->dup(init->ordering());
-
+        
         ///////////////// forward
         // ft = sigmoid(ft + bf), rt = sigmoid(rt + bR)
         ft->addRowVector(bF, ft);
@@ -393,8 +392,8 @@ CUSTOM_OP_IMPL(sru_musyoku_bp, 6, 4, false, 0, 0) {
         // TODO T val = (activation_type == 1) ? tanh(cur) : ((activation_type == 2) ? reluf(cur) : cur );
         ct->template applyTransform<simdOps::Tanh<T>>(gct);
         // ftMinus = 1-ft,  rtMinus = 1-rt
-        ft->template applyPairwiseTransform<simdOps::OneMinus<T>>(ftMinus, nullptr);             
-        rt->template applyPairwiseTransform<simdOps::OneMinus<T>>(rtMinus, nullptr);             
+        ft->template applyTransform<simdOps::OneMinus<T>>(ftMinus);
+        rt->template applyTransform<simdOps::OneMinus<T>>(rtMinus);
 
         ///////////////// backward
         // bR, *grad_brt_ptr = inGradHt * (g_ct - xt) * (1.0f - rt) * rt;
@@ -406,7 +405,7 @@ CUSTOM_OP_IMPL(sru_musyoku_bp, 6, 4, false, 0, 0) {
         // bF, TODO - tanh
         // gradTanh = (1.0f - g_ct * g_ct);
         gct->template applyPairwiseTransform<simdOps::Multiply<T>>(gct, gradTanh, nullptr);             // gradTanh = g_ct * g_ct
-        gradTanh->template applyPairwiseTransform<simdOps::OneMinus<T>>(gradTanh, nullptr);             // gradTanh = (1.0f - g_ct * g_ct)
+        gradTanh->template applyTransform<simdOps::OneMinus<T>>(gradTanh);                              // gradTanh = (1.0f - g_ct * g_ct)
         // gradCt  = inGradHt * rt * gradTanh                
         rt->template applyPairwiseTransform<simdOps::Multiply<T>>(gradTanh, gradCt, nullptr);           // gradCt = rt * gradTanh
         inGradHt->template applyPairwiseTransform<simdOps::Multiply<T>>(gradCt, gradCt, nullptr);       // gradCt = inGradHt * rt * gradTanh        
@@ -440,22 +439,23 @@ CUSTOM_OP_IMPL(sru_musyoku_bp, 6, 4, false, 0, 0) {
     gradInit->assign(inGradCt);
 
     // gradX 
-    NDArray<T>* weightsT = weights->transpose();                                // [K x 3K]
-    NDArrayFactory<T>::mmulHelper(weightsT, gradU, gradX, (T)1., (T)0.);        // [bS x K x N]
-    gradX->template applyBroadcast<simdOps::Multiply<T>>({2}, mask, gradX, nullptr);
+    NDArray<T>* weightsT = weights->transpose();                                            // [K x 3K]
+    NDArrayFactory<T>::mmulHelper(weightsT, gradU, gradX, (T)1., (T)0.);                    // [bS x K x N]    
+    gradX->template applyPairwiseTransform<simdOps::Add<T>>(gradHX, gradX, nullptr);        // + grad_highway_x
+    gradX->template applyBroadcast<simdOps::Multiply<T>>({2}, mask, gradX, nullptr);        // apply mask
 
     // gradB    
     NDArray<T>* temp3 = gradBias->template reduceAlongDimension<simdOps::Sum<T>>({0,2});    // [1 x 2K]
     gradB->assign(temp3);
 
     // gradW [bS x 3K x K]
-    NDArray<T>* inputT = input->permute({2, 1});                                 // [bS x N x K]
-    NDArrayFactory<T>::mmulHelper(gradU, inputT, gradW, (T)1., (T)0.);          // [bS x 3K x K]
+    input->permutei({0, 2, 1});                                               // [bS x N x K]
+    NDArrayFactory<T>::mmulHelper(gradU, input, gradW, (T)1., (T)0.);          // [bS x 3K x K]
         
 
     delete gct;   delete gradU; delete gradHX; delete wiZ; delete wiF; delete wiR; delete bF; delete bR;
-    delete temp1; delete temp2; delete temp3; delete gradCt; delete input; delete wi;  delete state;
-    delete gradTanh; delete ftMinus; delete rtMinus; delete weightsT; delete gradBias; delete inputT;
+    delete temp1; delete temp2; delete temp3; delete gradCt; delete wi;  delete state;
+    delete gradTanh; delete ftMinus; delete rtMinus; delete weightsT; delete gradBias;
     
     return ND4J_STATUS_OK;
 }
