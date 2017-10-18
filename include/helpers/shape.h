@@ -33,7 +33,6 @@
 #define INLINEDEF inline
 #else
 #define INLINEDEF ND4J_EXPORT
-#define INLINEDEF inline
 #endif
 
 #include "../pairwise_util.h"
