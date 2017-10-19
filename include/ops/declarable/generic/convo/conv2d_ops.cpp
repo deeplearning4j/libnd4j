@@ -455,7 +455,11 @@ namespace nd4j {
 
             // bias is still optional
             if (block.getVariables().size() == 4) {
-                bias = INPUT_VARIABLE(3);
+                auto tmp = INPUT_VARIABLE(3);
+                if (tmp->rankOf() == 4)
+                    weightsPoint = tmp;
+                else
+                    bias = tmp;
             } else if (block.getVariables().size() == 5) {
                 weightsPoint = INPUT_VARIABLE(3);
                 bias = INPUT_VARIABLE(4);
@@ -511,17 +515,24 @@ namespace nd4j {
             const int inX = input->shapeOf()[3];
 
             // if weightsPont are defiend - then we're going to do point-wise backprop first
+            NDArray<T> *epsilon_;
             if (weightsPoint != nullptr) {
-                nd4j::ops::conv2d_bp<T> op;
+                nd4j::ops::sconv2d<T> opFF;
+                auto result = opFF.execute({input, weightsDepth}, {}, {kY, kX, sY, sX, pY, pX, dY, dX, isSameMode ? 1 : 0});
+                auto depthInput = result->at(0);
 
-                auto epsilon_ = new NDArray<T>('c', {batchSize, weightsDepth->sizeAt(0) * weightsDepth->sizeAt(1), oY, oX});
+                nd4j::ops::conv2d_bp<T> opBP;
+
+                epsilon_ = new NDArray<T>('c', {batchSize, weightsDepth->sizeAt(0) * weightsDepth->sizeAt(1), oY, oX});
 
                 if (bias == nullptr)
-                    op.execute({input, weightsPoint, epsilonNext}, {epsilon_, gradWP}, {}, {1, 1, sY, sX, pY, pX, dY, dX, isSameMode ? 1 : 0});
+                    opBP.execute({depthInput, weightsPoint, epsilonNext}, {epsilon_, gradWP}, {}, {1, 1, sY, sX, pY, pX, dY, dX, isSameMode ? 1 : 0});
                 else
-                    op.execute({input, weightsPoint, bias, epsilonNext}, {epsilon_, gradWP, gradB}, {}, {1, 1, sY, sX, pY, pX, dY, dX, isSameMode ? 1 : 0});
+                    opBP.execute({depthInput, weightsPoint, bias, epsilonNext}, {epsilon_, gradWP, gradB}, {}, {1, 1, sY, sX, pY, pX, dY, dX, isSameMode ? 1 : 0});
 
                 epsilonNext = epsilon_;
+
+                delete result;
             }
 
 
@@ -530,13 +541,13 @@ namespace nd4j {
             if (hasCol)
                 col = UNSTASH("im2col")
             else {
-                std::unique_ptr<NDArray<T>> col2(new NDArray<T>('c', {batchSize, inDepth, kY, kX, oY, oX}));
+                col = new NDArray<T>('c', {batchSize, inDepth, kY, kX, oY, oX});
 
                 // col2d now has shape of [bS, inDepth, kY, kX, oY, oX]
                 std::vector<T> extrasIm2Col({(T) kY, (T) kX, (T) sY, (T) sX, (T) pY, (T) pX, (T) dY, (T) dX,
                                              isSameMode ? (T) 1.0f : (T) 0.0f});
 
-                input->template applyTransform<simdOps::Im2col<T>>(col2.get(), extrasIm2Col.data());
+                input->template applyTransform<simdOps::Im2col<T>>(col, extrasIm2Col.data());
             }
 
 //            epsilonNext->printShapeInfo("eps next");
@@ -659,8 +670,6 @@ namespace nd4j {
 
                 shapes->push_back(newBShape);
             }
-
-
 
             return shapes;
         }
