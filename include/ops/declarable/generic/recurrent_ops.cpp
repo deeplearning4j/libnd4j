@@ -329,7 +329,7 @@ CUSTOM_OP_IMPL(sru_musyoku_bp, 8, 4, false, 0, 0) {
     NDArray<T>* temp2    = new NDArray<T>(state->ordering(), {bS, K});       
 
     //  input = input * mask
-    input->template applyBroadcast<simdOps::Multiply<T>>({2}, mask, input, nullptr);            // apply mask    
+    input->template applyBroadcast<simdOps::Multiply<T>>({0,1}, mask, input, nullptr);            // apply mask    
     // multiplication matrix wi = matmul(weights,input), U = WX
     NDArray<T>* wi = NDArrayFactory<T>::mmulHelper(weights, input, nullptr, (T)1., (T)0.);      // U [bS x 3K x N]    
 
@@ -416,7 +416,7 @@ CUSTOM_OP_IMPL(sru_musyoku_bp, 8, 4, false, 0, 0) {
         temp1->template applyPairwiseTransform<simdOps::Multiply<T>>(ft, temp1, nullptr);               // temp1 = (gradCt + inGradCt)*(1-ft)*ft
         temp1->template applyPairwiseTransform<simdOps::Multiply<T>>(temp2, gradBFt, nullptr);          // gradBFt = (gradCt + inGradCt) * (ct_1 - zt) * (1 - ft) * ft;
 
-        // x_t (highway connection), gradHXt = inGradHt * (1.0f - rt);        
+        // x_t (highway connection), gradHXt = inGradHt * (1.0f - rt);
         inGradHt->template applyPairwiseTransform<simdOps::Multiply<T>>(rtMinus, gradHXt, nullptr);
 
         // U_t, gradUZt = (inGradHt * rt * grad_tanh + inGradCt) * (1.0f - ft);
@@ -442,7 +442,7 @@ CUSTOM_OP_IMPL(sru_musyoku_bp, 8, 4, false, 0, 0) {
     NDArray<T>* weightsT = weights->transpose();                                            // [K x 3K]
     NDArrayFactory<T>::mmulHelper(weightsT, gradU, gradX, (T)1., (T)0.);                    // [bS x K x N]    
     gradX->template applyPairwiseTransform<simdOps::Add<T>>(gradHX, gradX, nullptr);        // + grad_highway_x
-    gradX->template applyBroadcast<simdOps::Multiply<T>>({2}, mask, gradX, nullptr);        // apply mask
+    gradX->template applyBroadcast<simdOps::Multiply<T>>({0,1}, mask, gradX, nullptr);        // apply mask
 
     // gradB    
     NDArray<T>* temp3 = gradBias->template reduceAlongDimension<simdOps::Sum<T>>({0,2});    // [1 x 2K]
@@ -454,7 +454,7 @@ CUSTOM_OP_IMPL(sru_musyoku_bp, 8, 4, false, 0, 0) {
         
 
     delete gct;   delete gradU; delete gradHX; delete wiZ; delete wiF; delete wiR; delete bF; delete bR;
-    delete temp1; delete temp2; delete temp3; delete gradCt; delete wi;  delete state;
+    delete temp1; delete temp2; delete temp3; delete gradCt; delete wi;
     delete gradTanh; delete ftMinus; delete rtMinus; delete weightsT; delete gradBias;
     
     return ND4J_STATUS_OK;

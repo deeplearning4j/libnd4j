@@ -2466,42 +2466,42 @@ TEST_F(DeclarableOpsTests, sru_taolei87_1) {
 }
 
 //////////////////////////////////////////////////////////////////////
-// TEST_F(DeclarableOpsTests, sru_musyoku_1) {
+TEST_F(DeclarableOpsTests, sru_musyoku_1) {
 
-//     const int bS = 2;
-//     const int K = 3;    
-//     const int N = 4;
-//     double expStateBuff[] = {0.847983, 0.874549, 0.896109, 0.913715, 0.847983, 0.874549, 0.896109, 0.913715, 0.847983, 0.874549, 0.896109, 0.913715, 0.847983, 0.874549, 0.896109, 0.913715, 0.847983, 0.874549, 0.896109, 0.913715, 0.847983, 0.874549, 0.896109, 0.913715};
-//     double expOutputBuff[] = {1.090533, 1.174509, 1.252403, 1.324656, 1.090533, 1.174509, 1.252403, 1.324656, 1.090533, 1.174509, 1.252403, 1.324656, 1.090533, 1.174509, 1.252403, 1.324656, 1.090533, 1.174509, 1.252403, 1.324656, 1.090533, 1.174509, 1.252403, 1.324656};
+    const int bS = 2;
+    const int K = 3;    
+    const int N = 4;
+    double expStateBuff[] = {0.847983, 0.874549, 0.896109, 0.913715, 0.847983, 0.874549, 0.896109, 0.913715, 0.847983, 0.874549, 0.896109, 0.913715, 0.847983, 0.874549, 0.896109, 0.913715, 0.847983, 0.874549, 0.896109, 0.913715, 0.847983, 0.874549, 0.896109, 0.913715};
+    double expOutputBuff[] = {1.090533, 1.174509, 1.252403, 1.324656, 1.090533, 1.174509, 1.252403, 1.324656, 1.090533, 1.174509, 1.252403, 1.324656, 1.090533, 1.174509, 1.252403, 1.324656, 1.090533, 1.174509, 1.252403, 1.324656, 1.090533, 1.174509, 1.252403, 1.324656};
 
-//     NDArray<double> input('c', {bS,K,N});
-//     NDArray<double> weights('c', {3*K,K});
-//     NDArray<double> bias('c', {1,2*K});
-//     NDArray<double> init('c', {bS,K});
-//     NDArray<double> mask('c', {bS,K});
-//     NDArray<double> expState('c', {bS,K,N});
-//     NDArray<double> expOut('c', {bS,K,N});
+    NDArray<double> input('c', {bS,K,N});
+    NDArray<double> weights('c', {3*K,K});
+    NDArray<double> bias('c', {1,2*K});
+    NDArray<double> init('c', {bS,K});
+    NDArray<double> mask('c', {bS,K});
+    NDArray<double> expState('c', {bS,K,N});
+    NDArray<double> expOut('c', {bS,K,N});
    
-//     input.assign(1.5);
-//     weights.assign(0.5); 
-//     bias.assign(0.3) ;
-//     init.assign(1.);
-//     mask.assign(1.);
-//     expState.setBuffer(expStateBuff);
-//     expOut.setBuffer(expOutputBuff);    
+    input.assign(1.5);
+    weights.assign(0.5); 
+    bias.assign(0.3) ;
+    init.assign(1.);
+    mask.assign(1.);
+    expState.setBuffer(expStateBuff);
+    expOut.setBuffer(expOutputBuff);    
 
-//     nd4j::ops::sru_musyoku<double> op;
-//     nd4j::ArrayList<double>*  results = op.execute({&input, &weights, &bias, &init, &mask}, {}, {});
-//     ASSERT_TRUE(results->size() == 2);    
+    nd4j::ops::sru_musyoku<double> op;
+    nd4j::ArrayList<double>*  results = op.execute({&input, &weights, &bias, &init, &mask}, {}, {});
+    ASSERT_TRUE(results->size() == 2);    
 
-//     NDArray<double>* state  = results->at(0);
-//     NDArray<double>* output = results->at(1);
+    NDArray<double>* state  = results->at(0);
+    NDArray<double>* output = results->at(1);
 
-//     ASSERT_TRUE(expState.equalsTo(state));
-//     ASSERT_TRUE(expOut.equalsTo(output));
+    ASSERT_TRUE(expState.equalsTo(state));
+    ASSERT_TRUE(expOut.equalsTo(output));
     
-//     delete results;
-// }
+    delete results;
+}
 
 
 //////////////////////////////////////////////////////////////////////
@@ -2510,40 +2510,53 @@ TEST_F(DeclarableOpsTests, sru_musyoku_bp_1) {
     const int bS = 2;
     const int K = 3;    
     const int N = 4;
-    double expGradXBuff[] = {-0.0259303, -0.03869125, -0.0302272, -0.02299165 -0.0259303, -0.03869125, -0.0302272, -0.02299165 -0.0259303, -0.03869125, -0.0302272, -0.02299165 -0.0259303, -0.03869125, -0.0302272, -0.02299165 -0.0259303, -0.03869125, -0.0302272, -0.02299165 -0.0259303, -0.03869125, -0.0302272, -0.02299165};
+    double expGradXBuff[] = {-0.0259303, -0.03869125, -0.0302272, -0.02299165, -0.0259303, -0.03869125, -0.0302272, -0.02299165, -0.0259303, -0.03869125, -0.0302272, -0.02299165, -0.0259303, -0.03869125, -0.0302272, -0.02299165, -0.0259303, -0.03869125, -0.0302272, -0.02299165, -0.0259303, -0.03869125, -0.0302272, -0.02299165};    
+    double expGradWBuff[] = {0.42526005,  0.42526005,  0.42526005, 0.42526005,  0.42526005,  0.42526005, 0.42526005,  0.42526005,  0.42526005, -0.5282811 , -0.5282811 , -0.5282811 , -0.5282811 , -0.5282811 , -0.5282811 , -0.5282811 , -0.5282811 , -0.5282811 , -0.15967215, -0.15967215, -0.15967215, -0.15967215, -0.15967215, -0.15967215, -0.15967215, -0.15967215, -0.15967215, 0.42526005,  0.42526005,  0.42526005, 0.42526005,  0.42526005,  0.42526005, 0.42526005,  0.42526005,  0.42526005, -0.5282811 , -0.5282811 , -0.5282811 , -0.5282811 , -0.5282811 , -0.5282811 , -0.5282811 , -0.5282811 , -0.5282811 , -0.15967215, -0.15967215, -0.15967215, -0.15967215, -0.15967215, -0.15967215, -0.15967215, -0.15967215, -0.15967215};
+    double expGradBBuff[] = {-0.7043748, -0.7043748, -0.7043748, -0.2128962, -0.2128962, -0.2128962};
+    double expGradInitBuff[] = {1.1421, 1.1421, 1.1421, 1.1421, 1.1421, 1.1421};
+    double stateBuff[] = {0.847983, 0.874549, 0.896109, 0.913715, 0.847983, 0.874549, 0.896109, 0.913715, 0.847983, 0.874549, 0.896109, 0.913715, 0.847983, 0.874549, 0.896109, 0.913715, 0.847983, 0.874549, 0.896109, 0.913715, 0.847983, 0.874549, 0.896109, 0.913715};                       
 
     NDArray<double> input('c', {bS,K,N});
     NDArray<double> weights('c', {3*K,K});
     NDArray<double> bias('c', {1,2*K});
     NDArray<double> init('c', {bS,K});
     NDArray<double> mask('c', {bS,K});
+    NDArray<double> state('c', {bS,K,N});
     NDArray<double> inGradCt('c', {bS,K});
     NDArray<double> inGradH('c', {bS,K,N});
 
     NDArray<double> expGradX('c', {bS,K,N});
     expGradX.setBuffer(expGradXBuff);
+    NDArray<double> expGradW('c', {bS,3*K,K});
+    expGradW.setBuffer(expGradWBuff);
+    NDArray<double> expGradB('c', {1,2*K});
+    expGradB.setBuffer(expGradBBuff);
+    NDArray<double> expGradInit('c', {bS,K});
+    expGradInit.setBuffer(expGradInitBuff);
 
-    weights.assign(0.5); 
-    bias.assign(0.3) ;
     input.assign(1.5);
+    weights.assign(0.5); 
+    bias.assign(0.3) ;    
     mask.assign(1.);
     init.assign(1.);
+    state.setBuffer(stateBuff);
     inGradCt.assign(0.5);
     inGradH.assign(0.5);
     
-    // run feed forward
-    nd4j::ops::sru_musyoku<double> ff;
-    nd4j::ArrayList<double>*  resultsFF = ff.execute({&input, &weights, &bias, &init, &mask}, {}, {});
-    
-    // run back propagation 
     nd4j::ops::sru_musyoku_bp<double> bp;
-    nd4j::ArrayList<double>*  resultsBP = bp.execute({&weights, &bias, &init, &mask, &inGradCt, &inGradH}, {}, {});
+    nd4j::ArrayList<double>*  resultsBP = bp.execute({&input, &weights, &bias, &init, &mask, &state, &inGradCt, &inGradH}, {}, {});
     ASSERT_TRUE(resultsBP->size() == 4);    
 
-    NDArray<double>* gradX  = resultsBP->at(0);
-    ASSERT_TRUE(expGradX.equalsTo(gradX));
+    NDArray<double>* gradX    = resultsBP->at(0);
+    NDArray<double>* gradW    = resultsBP->at(1);
+    NDArray<double>* gradB    = resultsBP->at(2); 
+    NDArray<double>* gradInit = resultsBP->at(3);
 
-    delete resultsFF;
+    ASSERT_TRUE(expGradX.equalsTo(gradX,1e-4)); 
+    ASSERT_TRUE(expGradW.equalsTo(gradW,1e-4));
+    ASSERT_TRUE(expGradB.equalsTo(gradB,1e-4));
+    ASSERT_TRUE(expGradInit.equalsTo(gradInit,1e-4));
+    
     delete resultsBP;
 }
 
@@ -2555,16 +2568,22 @@ TEST_F(DeclarableOpsTests, sru_musyoku_bp_1) {
 //     const int K = 3;    
 //     const int N = 4;
 
-//     NDArray<double> input('c', {bS,K,N});
-//     NDArray<double> weights('c', {3*K,K});
-//     NDArray<double> expected('c', {bS,3*K,N});
-   
-//     input.assign(1.5);
-//     weights.assign(0.5); 
-//     expected.assign(2.25);
+//     NDArray<double> input('c', {bS,K,N});    
+//     NDArray<double> mask('c', {bS,K});
+//     NDArray<double> state('c', {bS,K,N});
+//     NDArray<double> inGradCt('c', {bS,K});
+    
 
-//     NDArray<double>* wi = NDArrayFactory<double>::mmulHelper(&weights, &input, nullptr, 1., 0.);      //       U
-//     wi->printIndexedBuffer();
+//     input.assign(1.5);    
+//     mask.assign(1.);    
+    
+//     input.printBuffer();
+//     std::cout<<std::endl<<std::endl;
+
+//     input.template applyBroadcast<simdOps::Multiply<double>>({0,1}, &mask, &input, nullptr);            // apply mask       
+
+//     input.printBuffer();
+    
 
 //     ASSERT_TRUE(1==1);
     

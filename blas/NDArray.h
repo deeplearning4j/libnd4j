@@ -96,11 +96,15 @@ namespace nd4j {
         int* getShapeInfo();
 
         void setShapeInfo(int *shapeInfo) {
+            if(_isShapeAlloc && _workspace == nullptr)
+                delete []_shapeInfo;
             _shapeInfo = shapeInfo;
             _isShapeAlloc = false;
         }
 
         void setBuffer(T* buffer) {
+            if(_isBuffAlloc && _workspace == nullptr)
+                delete []_buffer;
             _buffer = buffer;
             _isBuffAlloc = false;
         }
