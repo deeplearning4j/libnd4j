@@ -293,8 +293,8 @@ TEST_F(ConvolutionTests, SeparableConv2D_BP_NoBias_1) {
 
     auto variableSpace = new VariableSpace<double>();
     variableSpace->putVariable(-1, input);
-    variableSpace->putVariable(-2, weights);
-    variableSpace->putVariable(-3, epsilonNext);
+    variableSpace->putVariable(-3, weights);
+    variableSpace->putVariable(-2, epsilonNext);
 
     auto block = new Block<double>(1, variableSpace, false);
     block->fillInputs({-1, -2, -3});
