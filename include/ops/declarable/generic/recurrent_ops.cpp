@@ -15,6 +15,14 @@
 namespace nd4j {
     namespace ops {
 
+// return 2d array evaluated though last dimension interval t1-t2
+template <typename T>
+NDArray<T>* timestep(const NDArray<T>* const arr, const int t1, const int t2) {
+        NDArray<T>* result = arr->subarray( { NDIndex::all(), NDIndex::all(), NDIndex::interval(t1,t2) } );     
+        result->reshapei(result->ordering(), {arr->shapeOf()[0], arr->shapeOf()[1]} );                                          
+
+        return result;
+}
 
 //////////////////////////////////////////////////////////////////////////
 CUSTOM_OP_IMPL(sru, 5, 2, false, 0, 0) {
@@ -46,22 +54,14 @@ CUSTOM_OP_IMPL(sru, 5, 2, false, 0, 0) {
     NDArray<T>* ct_1 = init->dup(init->ordering());
     NDArray<T>* gct  = new NDArray<T>(state->ordering(), {bS, K});
     
-
-    for (int t = 0; t < N; ++t) {           
-
-        xt = xmt->subarray( { NDIndex::all(), NDIndex::all(), NDIndex::interval(t,t+1) } );     // [bS x K x 1]
-        xt->reshapei(xt->ordering(), {bS, K});                                                  // [bS x K]
-        zt = wiZ->subarray( { NDIndex::all(), NDIndex::all(), NDIndex::interval(t,t+1) } );     // [bS x K x 1]
-        zt->reshapei(zt->ordering(), {bS, K});                                                  // [bS x K]
-        ft = wiF->subarray( { NDIndex::all(), NDIndex::all(), NDIndex::interval(t,t+1) } );     // forget gate [bS x K x 1]
-        ft->reshapei(ft->ordering(), {bS, K});                                                  // [bS x K]
-        rt = wiR->subarray( { NDIndex::all(), NDIndex::all(), NDIndex::interval(t,t+1) } );     // reset gate [bS x K x 1]
-        rt->reshapei(rt->ordering(), {bS, K});                                                  // [bS x K]
-        ct = state->subarray( { NDIndex::all(), NDIndex::all(), NDIndex::interval(t,t+1) } );   // [bS x K x 1]
-        ct->reshapei(ct->ordering(), {bS, K});                                                  // [bS x K]
-        ht = output->subarray( { NDIndex::all(), NDIndex::all(), NDIndex::interval(t,t+1) } );  // [bS x K x 1]
-        ht->reshapei(ht->ordering(), {bS, K});                                                  // [bS x K]
-
+    for (int t = 0; t < N; ++t) {
+        xt = timestep(xmt, t, t+1);         // [bS x K x N] -> [bS x K x 1] -> [bS x K]
+        zt = timestep(wiZ, t, t+1);         // [bS x K x N] -> [bS x K x 1] -> [bS x K]
+        ft = timestep(wiF, t, t+1);         // [bS x K x N] -> [bS x K x 1] -> [bS x K]
+        rt = timestep(wiR, t, t+1);         // [bS x K x N] -> [bS x K x 1] -> [bS x K]
+        ct = timestep(state, t, t+1);       // [bS x K x N] -> [bS x K x 1] -> [bS x K]
+        ht = timestep(output, t, t+1);      // [bS x K x N] -> [bS x K x 1] -> [bS x K]
+        
         //  xt = xt * mask
         xt->template applyPairwiseTransform<simdOps::Multiply<T>>(mask, nullptr);
         // ft = sigmoid(ft + bf), rt = sigmoid(rt + bR)
@@ -152,7 +152,7 @@ CUSTOM_OP_IMPL(sru_bp, 8, 4, false, 0, 0) {
     NDArray<T>* temp2    = new NDArray<T>(state->ordering(), {bS, K});       
 
     //  input = input * mask
-    input->template applyBroadcast<simdOps::Multiply<T>>({0,1}, mask, input, nullptr);            // apply mask    
+    input->template applyBroadcast<simdOps::Multiply<T>>({0, 1}, mask, input, nullptr);            // apply mask    
     // multiplication matrix wi = matmul(weights,input), U = WX
     NDArray<T>* wi = NDArrayFactory<T>::mmulHelper(weights, input, nullptr, (T)1., (T)0.);      // U [bS x 3K x N]    
 
@@ -173,35 +173,21 @@ CUSTOM_OP_IMPL(sru_bp, 8, 4, false, 0, 0) {
 
     for (int t = N-1; t >=0 ; --t) {           
         // initialization
-        xt = input->subarray( { NDIndex::all(), NDIndex::all(), NDIndex::interval(t,t+1) } );           // [bS x K x 1]
-        xt->reshapei(xt->ordering(), {bS, K});                                                          // [bS x K]
-        zt = wiZ->subarray( { NDIndex::all(), NDIndex::all(), NDIndex::interval(t,t+1) } );             // [bS x K x 1]
-        zt->reshapei(zt->ordering(), {bS, K});                                                          // [bS x K]
-        ft = wiF->subarray( { NDIndex::all(), NDIndex::all(), NDIndex::interval(t,t+1) } );             // forget gate [bS x K x 1]
-        ft->reshapei(ft->ordering(), {bS, K});                                                          // [bS x K]
-        rt = wiR->subarray( { NDIndex::all(), NDIndex::all(), NDIndex::interval(t,t+1) } );             // reset gate [bS x K x 1]
-        rt->reshapei(rt->ordering(), {bS, K});                                                          // [bS x K]
-        ct = state->subarray( { NDIndex::all(), NDIndex::all(), NDIndex::interval(t,t+1) } );           // [bS x K x 1]
-        ct->reshapei(ct->ordering(), {bS, K});                                                          // [bS x K]
-        inGradHt = inGradH->subarray( { NDIndex::all(), NDIndex::all(), NDIndex::interval(t,t+1) } );   // [bS x K x 1]
-        inGradHt->reshapei(inGradHt->ordering(), {bS, K});                                              // [bS x K]
-        gradBRt = gradBR->subarray( { NDIndex::all(), NDIndex::all(), NDIndex::interval(t,t+1) } );     // [bS x K x 1]
-        gradBRt->reshapei(gradBRt->ordering(), {bS, K});                                                // [bS x K]
-        gradBFt = gradBF->subarray( { NDIndex::all(), NDIndex::all(), NDIndex::interval(t,t+1) } );     // [bS x K x 1]
-        gradBFt->reshapei(gradBFt->ordering(), {bS, K});                                                // [bS x K]
-        gradHXt = gradHX->subarray( { NDIndex::all(), NDIndex::all(), NDIndex::interval(t,t+1) } );     // [bS x K x 1]
-        gradHXt->reshapei(gradHXt->ordering(), {bS, K});                                                // [bS x K]
-        gradUZt = gradUZ->subarray( { NDIndex::all(), NDIndex::all(), NDIndex::interval(t,t+1) } );     // [bS x K x 1]
-        gradUZt->reshapei(gradUZt->ordering(), {bS, K});                                                // [bS x K]
-        gradUFt = gradUF->subarray( { NDIndex::all(), NDIndex::all(), NDIndex::interval(t,t+1) } );     // [bS x K x 1]
-        gradUFt->reshapei(gradUFt->ordering(), {bS, K});                                                // [bS x K]
-        gradURt = gradUR->subarray( { NDIndex::all(), NDIndex::all(), NDIndex::interval(t,t+1) } );     // [bS x K x 1]
-        gradURt->reshapei(gradURt->ordering(), {bS, K});                                                // [bS x K]
+        xt = timestep(input, t, t+1);               // [bS x K x N] -> [bS x K x 1] -> [bS x K]
+        zt = timestep(wiZ, t, t+1);                 // [bS x K x N] -> [bS x K x 1] -> [bS x K]
+        ft = timestep(wiF, t, t+1);                 // [bS x K x N] -> [bS x K x 1] -> [bS x K]
+        rt = timestep(wiR, t, t+1);                 // [bS x K x N] -> [bS x K x 1] -> [bS x K]
+        ct = timestep(state, t, t+1);               // [bS x K x N] -> [bS x K x 1] -> [bS x K]
+        inGradHt = timestep(inGradH, t, t+1);       // [bS x K x N] -> [bS x K x 1] -> [bS x K]
+        gradBRt  = timestep(gradBR, t, t+1);        // [bS x K x N] -> [bS x K x 1] -> [bS x K]
+        gradBFt  = timestep(gradBF, t, t+1);        // [bS x K x N] -> [bS x K x 1] -> [bS x K]
+        gradHXt  = timestep(gradHX, t, t+1);        // [bS x K x N] -> [bS x K x 1] -> [bS x K]
+        gradUZt  = timestep(gradUZ, t, t+1);        // [bS x K x N] -> [bS x K x 1] -> [bS x K]
+        gradUFt  = timestep(gradUF, t, t+1);        // [bS x K x N] -> [bS x K x 1] -> [bS x K]
+        gradURt  = timestep(gradUR, t, t+1);        // [bS x K x N] -> [bS x K x 1] -> [bS x K]                        
 
-        if(t != 0) {
-            ct_1 = state->subarray( { NDIndex::all(), NDIndex::all(), NDIndex::interval(t-1,t) } );     // previous c_{t-1} [bS x K x 1]
-            ct_1->reshapei(ct_1->ordering(), {bS, K});                                                  // [bS x K]
-        }
+        if(t != 0)
+            ct_1  = timestep(state, t-1, t);        // previous c_{t-1} 
         else
             ct_1 = init->dup(init->ordering());
         
