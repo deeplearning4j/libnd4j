@@ -2433,40 +2433,9 @@ TEST_F(DeclarableOpsTests, BatchNorm4D_BP) {
     delete block;
 }
 
-//////////////////////////////////////////////////////////////////////
-TEST_F(DeclarableOpsTests, sru_taolei87_1) {
-
-    const int K = 4;
-    const int bS = 2;
-    const int N = 8;
-    
-    NDArray<double> input('c', {K,bS,N});
-    NDArray<double> weights('c', {K,bS,3*N});
-    NDArray<double> bias('c', {1,2*N});
-    NDArray<double> prevState('c', {K,bS,N});
-    NDArray<double> mask('c', {K,bS,N});
-
-    nd4j::NDArrayFactory<double>::linspace(1., input);
-    nd4j::NDArrayFactory<double>::linspace(1., weights);
-    nd4j::NDArrayFactory<double>::linspace(1., bias);
-    nd4j::NDArrayFactory<double>::linspace(1., prevState);
-    mask.assign(1.);
-
-    nd4j::ops::sru_taolei87<double> op;
-    nd4j::ArrayList<double>*  results = op.execute({&input, &weights, &bias, &prevState, &mask}, {}, {});
-    ASSERT_TRUE(results->size() == 2);    
-
-    NDArray<double>* curState = results->at(0);
-    NDArray<double>* output   = results->at(1);
-        
-    ASSERT_TRUE(curState->isSameShape(&input));
-    ASSERT_TRUE(output->isSameShape(&input));
-    
-    delete results;
-}
 
 //////////////////////////////////////////////////////////////////////
-TEST_F(DeclarableOpsTests, sru_musyoku_1) {
+TEST_F(DeclarableOpsTests, sru_1) {
 
     const int bS = 2;
     const int K = 3;    
@@ -2490,7 +2459,7 @@ TEST_F(DeclarableOpsTests, sru_musyoku_1) {
     expState.setBuffer(expStateBuff);
     expOut.setBuffer(expOutputBuff);    
 
-    nd4j::ops::sru_musyoku<double> op;
+    nd4j::ops::sru<double> op;
     nd4j::ArrayList<double>*  results = op.execute({&input, &weights, &bias, &init, &mask}, {}, {});
     ASSERT_TRUE(results->size() == 2);    
 
@@ -2505,7 +2474,7 @@ TEST_F(DeclarableOpsTests, sru_musyoku_1) {
 
 
 //////////////////////////////////////////////////////////////////////
-TEST_F(DeclarableOpsTests, sru_musyoku_bp_1) {
+TEST_F(DeclarableOpsTests, sru_bp_1) {
 
     const int bS = 2;
     const int K = 3;    
@@ -2543,7 +2512,7 @@ TEST_F(DeclarableOpsTests, sru_musyoku_bp_1) {
     inGradCt.assign(0.5);
     inGradH.assign(0.5);
     
-    nd4j::ops::sru_musyoku_bp<double> bp;
+    nd4j::ops::sru_bp<double> bp;
     nd4j::ArrayList<double>*  resultsBP = bp.execute({&input, &weights, &bias, &init, &mask, &state, &inGradCt, &inGradH}, {}, {});
     ASSERT_TRUE(resultsBP->size() == 4);    
 
@@ -2559,70 +2528,6 @@ TEST_F(DeclarableOpsTests, sru_musyoku_bp_1) {
     
     delete resultsBP;
 }
-
-
-//////////////////////////////////////////////////////////////////////
-// TEST_F(DeclarableOpsTests, my) {
-
-//     const int bS = 2;
-//     const int K = 3;    
-//     const int N = 4;
-
-//     NDArray<double> input('c', {bS,K,N});    
-//     NDArray<double> mask('c', {bS,K});
-//     NDArray<double> state('c', {bS,K,N});
-//     NDArray<double> inGradCt('c', {bS,K});
-    
-
-//     input.assign(1.5);    
-//     mask.assign(1.);    
-    
-//     input.printBuffer();
-//     std::cout<<std::endl<<std::endl;
-
-//     input.template applyBroadcast<simdOps::Multiply<double>>({0,1}, &mask, &input, nullptr);            // apply mask       
-
-//     input.printBuffer();
-    
-
-//     ASSERT_TRUE(1==1);
-    
-// }
-
-
-
-// //////////////////////////////////////////////////////////////////////
-// TEST_F(DeclarableOpsTests, sru_bi1) {
-
-//     const int K = 4;
-//     const int bS = 2;
-//     const int N = 8;
-    
-//     NDArray<double> weights('c', {K,bS,3*N});
-//     NDArray<double> biasF('c', {1,N});
-//     NDArray<double> biasR('c', {1,N});
-//     NDArray<double> prevState('c', {K,bS,N});
-//     NDArray<double> mask('c', {K,bS,N});
-//     NDArray<double> expected('c', {K,bS,2*N});
-
-//     nd4j::NDArrayFactory<double>::linspace(2., weights);
-//     nd4j::NDArrayFactory<double>::linspace(3., biasF);
-//     nd4j::NDArrayFactory<double>::linspace(4., biasR);
-//     nd4j::NDArrayFactory<double>::linspace(5., prevState);
-//     nd4j::NDArrayFactory<double>::linspace(6., mask);
-
-//     nd4j::ops::sru_bi<double> op;
-//     nd4j::ArrayList<double>*  results = op.execute({&weights, &biasF, &biasR, &prevState, &mask}, {}, {});
-//     ASSERT_TRUE(results->size() == 2);    
-
-//     NDArray<double>* curState = results->at(0);
-//     NDArray<double>* output   = results->at(1);
-        
-//     ASSERT_TRUE(curState->isSameShape(&expected));
-//     ASSERT_TRUE(output->isSameShape(&expected));
-    
-//     delete results;
-// }
 
 
 //////////////////////////////////////////////////////////////////////
