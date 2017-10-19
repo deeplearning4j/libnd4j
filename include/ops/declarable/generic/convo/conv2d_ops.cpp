@@ -523,7 +523,12 @@ namespace nd4j {
 
                 nd4j::ops::conv2d_bp<T> opBP;
 
+                depthInput->printShapeInfo("depth shape");
+                depthInput->printBuffer("depth again");
+
                 epsilon_ = new NDArray<T>('c', {batchSize, weightsDepth->sizeAt(0) * weightsDepth->sizeAt(1), oY, oX});
+
+                epsilon_->printShapeInfo("epsilon shape");
 
                 if (bias == nullptr)
                     opBP.execute({depthInput, weightsPoint, epsilonNext}, {epsilon_, gradWP}, {}, {1, 1, sY, sX, pY, pX, dY, dX, isSameMode ? 1 : 0});
@@ -531,6 +536,8 @@ namespace nd4j {
                     opBP.execute({depthInput, weightsPoint, bias, epsilonNext}, {epsilon_, gradWP, gradB}, {}, {1, 1, sY, sX, pY, pX, dY, dX, isSameMode ? 1 : 0});
 
                 epsilonNext = epsilon_;
+
+                epsilon_->printBuffer("epsilon");
 
                 delete result;
             }

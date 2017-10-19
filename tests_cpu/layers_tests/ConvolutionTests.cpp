@@ -583,9 +583,14 @@ TEST_F(ConvolutionTests, sconv2D_FF_pointwise_1) {
 
 
 TEST_F(ConvolutionTests, sconv2D_BP_pointwise_1) {
+    double _expGradWpB[] = {1603.7102981f,  10645.6278024f,   5975.4227995f,  17697.0903052f,    12133.6353024f,  26535.0528052f,   1779.221097f,   11795.5686029f,    6721.9835994f,  19904.0811062f,  13775.2461029f,  30123.0936062f,    1954.7318976f,  12945.5094033f,   7468.5443993f,  22111.071907f,    15416.8569033f,  33711.134407f,    2130.2426974f,  14095.4502038f,    8215.1051992f,  24318.0627081f,  17058.4677038f,  37299.1752081f,    2305.7534972f,  15245.3910042f,   8961.6659991f,  26525.0535091f,    18700.0785042f,  40887.2160091f,   2481.2642970f,  16395.3318047f,    9708.2267991f,  28732.0443100f,  20341.6893047f,  44475.2568100f,    2656.7750968f,  17545.2726051f,  10454.7875990f,  30939.0351110f,    21983.3001051f,  48063.2976110f,   2832.2858966f,  18695.2134056f,    11201.3483989f,  33146.0259119f,  23624.9109056f,  51651.3384119f,    3007.7966964f,  19845.1542060f,  11947.9091988f,  35353.0167129f,    25266.5217060f,  55239.3792129f,   3183.3074962f,  20995.095006f,    12694.4699987f,  37560.007513f,   26908.132506f,   58827.4200139};
+    int _expGradWpS[] {4, 10, 6, 1, 1, 6, 1, 1, 1, 0, 1, 99};
+    NDArray<double> expGWP(_expGradWpB, _expGradWpS);
+    expGWP.triggerAllocationFlag(false, false);
+
     NDArray<double> input('c', {2, 3, 10, 10});
-    NDArray<double> weightsD('c', {5, 3, 5, 5});
-    NDArray<double> weightsP('c', {10, 15, 1, 1});
+    NDArray<double> weightsD('c', {2, 3, 5, 5});
+    NDArray<double> weightsP('c', {10, 6, 1, 1});
 
     NDArray<double> epsilon('c', {2, 3, 10, 10});
     NDArray<double> epsilonNext('c', {2, 10, 6, 6});
@@ -605,6 +610,16 @@ TEST_F(ConvolutionTests, sconv2D_BP_pointwise_1) {
 
     ASSERT_EQ(3, resultBP->size());
 
+    auto _epsilon = resultBP->at(0);
+    auto _gradWD = resultBP->at(1);
+    auto _gradWP = resultBP->at(2);
+
+    _gradWP->printBuffer("gradWP");
+
+    ASSERT_TRUE(_gradWP->isSameShape(&expGWP));
+    ASSERT_TRUE(_gradWP->isSameShape(&weightsP));
+
+    ASSERT_TRUE(_gradWP->equalsTo(&expGWP));
 
     delete resultBP;
 }
