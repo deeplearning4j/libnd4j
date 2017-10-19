@@ -407,14 +407,11 @@ namespace nd4j {
                 // these ops allow in-place execution by design
                 if (this->_opType == OpType_TRANSFORM || this->_opType == OpType_SCALAR || this->_opType == OpType_BROADCAST || this->_opType == OpType_ACCUMULATION || this->_opType == OpType_SUMMARYSTATS || this->_opType == OpType_INDEX_ACCUMULATION) {
                     if (_output.size() <= 1) {
-                        _isInplace = true;
+                    //    _isInplace = true;
                     }
 
                     if (node->input() != nullptr && node->input()->size() > 0) {
-
-
-                        this->setCustomOp(
-                                Node<T>::buildOpByType(_opType, (int) node->input()->size(), _opNum, _scalar));
+                        this->setCustomOp(Node<T>::buildOpByType(_opType, (int) node->input()->size(), _opNum, _scalar));
 
                         auto block = new Block<T>(this->id(), nullptr, false);
 
@@ -422,8 +419,20 @@ namespace nd4j {
                         for (auto v: _dimensions)
                             block->getIArguments()->emplace_back(v);
 
-//                    for (auto v: iArgs)
-//                        block->getIArguments()->emplace_back(v);
+                        if (node->extraParams() != nullptr && node->extraParams()->size() > 0)
+                            for (int e = 0; e < (int) node->extraParams()->size(); e++) {
+                                block->getTArguments()->emplace_back((T) node->extraParams()->Get(e));
+                            }
+
+                        this->setBlock(block);
+                    } else if (node->inputPaired() != nullptr && node->inputPaired()->size() > 0) {
+                        this->setCustomOp(Node<T>::buildOpByType(_opType, (int) node->inputPaired()->size(), _opNum, _scalar));
+
+                        auto block = new Block<T>(this->id(), nullptr, false);
+
+                        // there's no other IArgs in legacy options, actually
+                        for (auto v: _dimensions)
+                            block->getIArguments()->emplace_back(v);
 
                         if (node->extraParams() != nullptr && node->extraParams()->size() > 0)
                             for (int e = 0; e < (int) node->extraParams()->size(); e++) {

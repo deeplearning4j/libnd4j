@@ -69,6 +69,9 @@ static Nd4jStatus executeFlatNode(Graph<T> *graph, Node<T> *node, VariableSpace<
         fflush(stdout);
     }
 
+    if (node->id() == 3)
+        nd4j_debug("","");
+
     // if true - this is special case: Graph-in-Graph. 
     if (node->hasGraphEmbedded()) {
         auto embedded = node->getGraph();
