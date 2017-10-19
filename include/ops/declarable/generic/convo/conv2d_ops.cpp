@@ -448,24 +448,48 @@ namespace nd4j {
          */
         CUSTOM_OP_IMPL(sconv2d_bp, 4, 2, false, 0, 9) {
             NDArray<T> *input = INPUT_VARIABLE(0);
-            NDArray<T> *weights = INPUT_VARIABLE(1);
-            NDArray<T> *epsilonNext = INPUT_VARIABLE(2);
+            NDArray<T> *epsilonNext = INPUT_VARIABLE(1);
+            NDArray<T> *weightsDepth = INPUT_VARIABLE(2);
+            NDArray<T> *weightsPoint = nullptr;
             NDArray<T> *bias = nullptr;
 
             // bias is still optional
-            if (block.getVariables().size() > 3)
+            if (block.getVariables().size() == 4) {
                 bias = INPUT_VARIABLE(3);
+            } else if (block.getVariables().size() == 5) {
+                weightsPoint = INPUT_VARIABLE(3);
+                bias = INPUT_VARIABLE(4);
+            }
 
             //epsilonNext->rankOf() == 4 && weights->rankOf() == 4
             REQUIRE_TRUE(input->rankOf() == 4, 0, "Input should be 4D, but got %iD instead", input->rankOf());
-            REQUIRE_TRUE(weights->rankOf() == 4, 0, "Weights should be 4D, but got %iD instead", weights->rankOf());
-            REQUIRE_TRUE(epsilonNext->rankOf() == 4, 0, "Epsilon should be 4D, but got %iD instead", epsilonNext->rankOf());
+            REQUIRE_TRUE(weightsDepth->rankOf() == 4, 0, "Weights should be 4D, but got %iD instead",
+                         weightsDepth->rankOf());
+            REQUIRE_TRUE(epsilonNext->rankOf() == 4, 0, "Epsilon should be 4D, but got %iD instead",
+                         epsilonNext->rankOf());
 
-            NDArray<T> * epsilon = this->getZ(block);
-            NDArray<T> * gradW = this->getZ(block, 1);
-            NDArray<T> * gradB = nullptr;
+            if (weightsPoint != nullptr) {
+                REQUIRE_TRUE(weightsPoint->rankOf() == 4, 0,
+                             "Weights for point-wise convolution should be 4d, but got %D instead",
+                             weightsPoint->rankOf());
+                REQUIRE_TRUE(weightsPoint->sizeAt(2) == 1 && weightsPoint->sizeAt(3) == 1, 1,
+                             "Point-wise weights should be [1, 1], but got [%i, %i] instead", weightsPoint->sizeAt(2),
+                             weightsPoint->sizeAt(3));
+            }
+
+            NDArray<T> *epsilon = OUTPUT_VARIABLE(0);
+            NDArray<T> *gradWD = OUTPUT_VARIABLE(1);
+            NDArray<T> *gradWP = nullptr;
+            NDArray<T> *gradB = nullptr;
+
+            if (weightsPoint != nullptr)
+                gradWP = OUTPUT_VARIABLE(2);
+
             if (bias != nullptr)
-                gradB = this->getZ(block, 2);
+                gradB = OUTPUT_VARIABLE(3);
+
+
+            // now we're just launching depth-wise bp step
 
             const int kY = block.getIArguments()->at(0);
             const int kX = block.getIArguments()->at(1);
@@ -481,10 +505,25 @@ namespace nd4j {
             int oX = epsilonNext->sizeAt(3);
 
             const int batchSize = input->shapeOf()[0];
-            const int outDepth = weights->shapeOf()[0];
-            const int inDepth = weights->shapeOf()[1];
+            const int outDepth = weightsDepth->shapeOf()[0];
+            const int inDepth = weightsDepth->shapeOf()[1];
             const int inY = input->shapeOf()[2];
             const int inX = input->shapeOf()[3];
+
+            // if weightsPont are defiend - then we're going to do point-wise backprop first
+            if (weightsPoint != nullptr) {
+                nd4j::ops::conv2d_bp<T> op;
+
+                auto epsilon_ = new NDArray<T>('c', {batchSize, weightsDepth->sizeAt(0) * weightsDepth->sizeAt(1), oY, oX});
+
+                if (bias == nullptr)
+                    op.execute({input, weightsPoint, epsilonNext}, {epsilon_, gradWP}, {}, {1, 1, sY, sX, pY, pX, dY, dX, isSameMode ? 1 : 0});
+                else
+                    op.execute({input, weightsPoint, bias, epsilonNext}, {epsilon_, gradWP, gradB}, {}, {1, 1, sY, sX, pY, pX, dY, dX, isSameMode ? 1 : 0});
+
+                epsilonNext = epsilon_;
+            }
+
 
             bool hasCol = CHECK_STASH("im2col");
             NDArray<T> *col = nullptr;
@@ -494,7 +533,8 @@ namespace nd4j {
                 std::unique_ptr<NDArray<T>> col2(new NDArray<T>('c', {batchSize, inDepth, kY, kX, oY, oX}));
 
                 // col2d now has shape of [bS, inDepth, kY, kX, oY, oX]
-                std::vector<T> extrasIm2Col({(T) kY, (T) kX, (T) sY, (T) sX, (T) pY, (T) pX, (T) dY, (T) dX, isSameMode ? (T) 1.0f : (T) 0.0f});
+                std::vector<T> extrasIm2Col({(T) kY, (T) kX, (T) sY, (T) sX, (T) pY, (T) pX, (T) dY, (T) dX,
+                                             isSameMode ? (T) 1.0f : (T) 0.0f});
 
                 input->template applyTransform<simdOps::Im2col<T>>(col2.get(), extrasIm2Col.data());
             }
@@ -520,9 +560,9 @@ namespace nd4j {
             //auto gW_ = gradW->reshape('c', {inDepth, outDepth, kY * kX});
             auto gW_ = NDArrayFactory<T>::mmulHelper(eN_, col_);
 
-            gW_->reshapei('c',{inDepth, outDepth, kY, kX});
+            gW_->reshapei('c', {inDepth, outDepth, kY, kX});
             gW_->permutei({1, 0, 2, 3});
-            gradW->assign(gW_);
+            gradWD->assign(gW_);
 
             delete gW_;
             delete col_;
@@ -530,14 +570,15 @@ namespace nd4j {
                 delete col;
 
             // calculating epsilon here
-            auto w_ = weights->permute({1, 2, 3, 0});
+            auto w_ = weightsDepth->permute({1, 2, 3, 0});
             w_->reshapei('c', {inDepth, kY * kX, outDepth});
 
             auto gcol = NDArrayFactory<T>::mmulHelper(w_, eN_);
             gcol->reshapei('c', {inDepth, kY, kX, batchSize, oY, oX});
             gcol->permutei({3, 0, 1, 2, 4, 5});
 
-            std::vector<T> extrasCol2Im({(T) sY, (T) sX, (T) pY, (T) pX, (T) inY, (T) inX, (T) dY, (T) dX, isSameMode ? (T) 1.0f : (T) 0.0f});
+            std::vector<T> extrasCol2Im({(T) sY, (T) sX, (T) pY, (T) pX, (T) inY, (T) inX, (T) dY, (T) dX,
+                                         isSameMode ? (T) 1.0f : (T) 0.0f});
 
             // we're sure that col2im result will have the same size as original image
             //auto rCol = new NDArray<T>('c', {batchSize, inDepth, inY, inX});
@@ -549,40 +590,67 @@ namespace nd4j {
             delete w_;
 
 
+            if (weightsPoint == nullptr) {
+                if (bias != nullptr) {
+                    // calculating gradB, if defined
+                    auto eN_ = epsilonNext->permute({0, 2, 3, 1});
+                    auto sum = eN_->template reduceAlongDimension<simdOps::Sum<T>>({0, 1, 2});
+                    gradB->assign(sum);
+                    delete sum;
 
-            if (bias != nullptr) {
-                // calculating gradB, if defined
-                auto eN_ = epsilonNext->permute({0, 2, 3, 1});
-                auto sum = eN_->template reduceAlongDimension<simdOps::Sum<T>>({0, 1, 2});
-                gradB->assign(sum);
-                delete sum;
-
-                STORE_3_RESULTS(*epsilon, *gradW, *gradB);
+                    STORE_3_RESULTS(*epsilon, *gradWD, *gradB);
+                } else {
+                    STORE_2_RESULTS(*epsilon, *gradWD);
+                }
             } else {
-                STORE_2_RESULTS(*epsilon, *gradW);
+                if (bias != nullptr) {
+                    STORE_4_RESULTS(*epsilon, *gradWD, *gradWP, *gradB);
+                } else {
+                    STORE_3_RESULTS(*epsilon, *gradWD, *gradWP);
+                }
             }
+
+            if (weightsPoint != nullptr)
+                delete epsilonNext;
 
             return ND4J_STATUS_OK;
         }
         DECLARE_SHAPE_FN(sconv2d_bp) {
             auto inShape = inputShape->at(0);
-            auto wShape = inputShape->at(1);
-            auto eShape = inputShape->at(2);
+            auto eShape = inputShape->at(1);
+            auto wdShape = inputShape->at(2);
+            int *wpShape = nullptr;
             int *bShape = nullptr;
 
             // bias is optional thing, and might be absent
-            if (inputShape->size() == 4)
-                bShape = inputShape->at(3);
+            if (inputShape->size() == 5) {
+                wpShape = inputShape->at(3);
+                bShape = inputShape->at(4);
+            } else if (inputShape->size() == 4) {
+                auto tmp = inputShape->at(3);
+                if (shape::rank(tmp) == 4)
+                    wpShape = tmp;
+                else
+                    bShape = tmp;
+            }
 
             int *newInShape;
-            int *newWShape;
+            int *newWdShape;
             ALLOCATE(newInShape, block.getWorkspace(), shape::shapeInfoLength(inShape), int);
-            ALLOCATE(newWShape, block.getWorkspace(), shape::shapeInfoLength(wShape), int);
+            ALLOCATE(newWdShape, block.getWorkspace(), shape::shapeInfoLength(wdShape), int);
 
             memcpy(newInShape, inShape, shape::shapeInfoByteLength(inShape));
-            memcpy(newWShape, wShape, shape::shapeInfoByteLength(wShape));
+            memcpy(newWdShape, wdShape, shape::shapeInfoByteLength(wdShape));
 
-            auto shapes = new ShapeList({newInShape, newWShape});
+            auto shapes = new ShapeList({newInShape, newWdShape});
+
+            if (wpShape != nullptr) {
+                int *newWpShape;
+                ALLOCATE(newWpShape, block.getWorkspace(), shape::shapeInfoLength(wpShape), int);
+                memcpy(newWpShape, wpShape, shape::shapeInfoByteLength(wpShape));
+
+                shapes->push_back(newWpShape);
+            }
 
             if (bShape != nullptr) {
                 int *newBShape;
@@ -591,6 +659,8 @@ namespace nd4j {
 
                 shapes->push_back(newBShape);
             }
+
+
 
             return shapes;
         }
