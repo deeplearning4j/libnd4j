@@ -30,9 +30,9 @@ enum OpType {
   OpType_AGGREGATION = 9,
   OpType_CUSTOM = 10,
   OpType_GRAPH = 11,
-  OpType_VARIABLE = 119,
-  OpType_BOOLEAN = 219,
-  OpType_LOGIC = 220,
+  OpType_VARIABLE = 30,
+  OpType_BOOLEAN = 40,
+  OpType_LOGIC = 119,
   OpType_MIN = OpType_TRANSFORM,
   OpType_MAX = OpType_LOGIC
 };
