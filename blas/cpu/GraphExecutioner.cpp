@@ -557,112 +557,16 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph) {
         for (int n = 0; n < layerSize; n++) {
             Node<T>* node = graph->getOnion()->at(l)->at(n);
 
-            // TODO: refactor this to something more C++ like
             /**
              * If this LOGIC op, we'll use another execution model here
              */
             if (node->opType() == OpType_LOGIC) {
-
                 auto status = LogicExecutor<T>::processNode(graph, node);
+
                 if (status == ND4J_STATUS_OK)
                     continue;
                 else
                     return status;
-
-                // if that's Scope - we're just skipping it
-                if (node->opNum() == 10)
-                    continue;
-
-                // if that's While - we run CONDITION scope first, and then BODY scope, if CONDITION result isn't 0
-                if (node->opNum() == 0) {
-                    int scopeConditionIndex = node->input()->at(0).first;
-                    int scopeBodyIndex = node->input()->at(1).first;
-
-                    // we're running condition nodes now
-                    auto scope = graph->scopeById(scopeConditionIndex);
-                    int breaker = 0;
-                    while (true && breaker < 20) {
-                        int lastNode = 0;
-                        for (auto v: *scope->nodes()) {
-                            executeFlatNode(graph, v, __variableSpace);
-                            lastNode = v->id();
-                        }
-
-                        // now we should take result of the Scope run, and evaluate it
-                        //nd4j_debug("", "");
-                        auto result = __variableSpace->getVariable(lastNode)->getNDArray();
-                        result->printBuffer("Result of the last node:");
-
-                        // if result evaluates to 0.0 - condition returned FALSE
-                        if (result->getScalar(0) == (T) 0.0f)
-                            break;
-                        else {
-                            auto scopeBody = graph->scopeById(scopeBodyIndex);
-                            int lastNode = 0;
-                            for (auto v: *scopeBody->nodes()) {
-                                executeFlatNode(graph, v, __variableSpace);
-                                lastNode = v->id();
-                            }
-                        }
-
-                        breaker++;
-                    }
-
-                    continue;
-                }
-
-                // that's CONDITIONAL execution. Depending on condition we either run true or false scope
-                if (node->opNum() == 20) {
-                    int scopeConditionIndex = node->input()->at(0).first;
-                    int scopeFalseIndex = node->input()->at(1).first;
-                    int scopeTrueIndex = node->input()->at(2).first;
-
-                    auto scopeCondition = graph->scopeById(scopeConditionIndex);
-                    int lastNode = 0;
-                    for (auto v: *scopeCondition->nodes()) {
-                        executeFlatNode(graph, v, __variableSpace);
-                        lastNode = v->id();
-                    }
-
-                    // now we should take result of the Scope run, and evaluate it
-                    //nd4j_debug("", "");
-                    auto result = __variableSpace->getVariable(lastNode)->getNDArray();
-                    result->printBuffer("Result of the last node:");
-
-                    // now we're executing one of the scopes, depending on condition evaluation
-                    if (result->getScalar(0) == (T) 0.0f) {
-                        auto scopeFalse = graph->scopeById(scopeFalseIndex);
-                        lastNode = 0;
-                        for (auto v: *scopeFalse->nodes()) {
-                            executeFlatNode(graph, v, __variableSpace);
-                            lastNode = v->id();
-                        }
-                    } else {
-                        auto scopeTrue = graph->scopeById(scopeTrueIndex);
-                        lastNode = 0;
-                        for (auto v: *scopeTrue->nodes()) {
-                            executeFlatNode(graph, v, __variableSpace);
-                            lastNode = v->id();
-                        }
-                    }
-
-                    // now fetch and transfer variables to Conditional node
-                    for (int e = 0; e < 65536; e++) {
-                        std::pair<int, int> pair(lastNode, e);
-                        std::pair<int, int> pairNew(node->id(), e);
-                        if (__variableSpace->hasVariable(pair)) {
-                            auto array = __variableSpace->getVariable(pair)->getNDArray();
-                            auto newVar = new Variable<T>(array);
-                            newVar->setId(lastNode, e);
-                            newVar->markRemovable(false);
-
-                            __variableSpace->putVariable(pairNew, newVar);
-                        } else
-                            break;
-                    }
-
-                    continue;
-                }
             }
 
             bool shouldSkip = false;

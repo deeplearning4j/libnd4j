@@ -5,6 +5,7 @@
 #include <graph/execution/LogicExecutor.h>
 #include <graph/execution/LogicScope.h>
 #include <graph/execution/LogicWhile.h>
+#include <graph/execution/LogicConditional.h>
 
 
 namespace nd4j {
@@ -16,6 +17,8 @@ namespace nd4j {
                     return LogicWhile<T>::processNode(graph, node);
                 case 10:
                     return LogicScope<T>::processNode(graph, node);
+                case 20:
+                    return LogicConditional<T>::processNode(graph, node);
             }
             return ND4J_STATUS_BAD_INPUT;
         }
