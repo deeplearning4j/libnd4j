@@ -6,7 +6,7 @@
 #define LIBND4J_CONVO_OPS_H
 
 #include <op_boilerplate.h>
-
+#include <memory>
 #include <ops/declarable/CustomOperations.h>
 #include <ops/declarable/OpRegistrator.h>
 #include <declarable/generic/helpers/convolutions.h>
