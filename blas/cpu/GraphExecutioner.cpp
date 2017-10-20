@@ -1057,7 +1057,7 @@ Graph<T>* GraphExecutioner<T>::importFromFlatBuffers(const char *filename) {
 }
 
 
-template class GraphExecutioner<float>;
+template class ND4J_EXPORT GraphExecutioner<float>;
 
 
 

@@ -15,12 +15,12 @@ namespace nd4j {
     namespace ops {
         /**
         *   This class provides runtime ops lookup, based on opName or opHash.
-        *   To build lookup directory we use *_OP_IMPL macro, which puts static structs at compile time in .cpp files, 
-        *   so once binary is executed, static objects are initialized automatically, and we get list of all ops 
+        *   To build lookup directory we use *_OP_IMPL macro, which puts static structs at compile time in .cpp files,
+        *   so once binary is executed, static objects are initialized automatically, and we get list of all ops
         *   available at runtime via this singleton.
         *
         */
-        class OpRegistrator {
+        class ND4J_EXPORT OpRegistrator {
         private:
             static OpRegistrator* _INSTANCE;
             OpRegistrator() {};

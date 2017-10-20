@@ -11,11 +11,12 @@
 
 namespace nd4j {
     namespace ops {
+
         /**
         *   This class is very basic info holder for ops. bean/pojo pretty much.
-        *   
+        *
         */
-        class OpDescriptor {
+        class ND4J_EXPORT OpDescriptor {
         protected:
             // opNum for legacy XYZ ops
             int _opNum = 0;
@@ -39,7 +40,7 @@ namespace nd4j {
             // flag, if this given op allows in-place execution
             bool _allowsInplace = true;
 
-            // minimal required number of T-type arguments. 
+            // minimal required number of T-type arguments.
             // -1 as value means: not limited, variable number of arguments
             int _tArgs = 0;
 
