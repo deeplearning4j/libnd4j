@@ -320,9 +320,17 @@ namespace nd4j {
                     throw "Bad result shape";
                 }
 
+                A->printShapeInfo("A shape");
+                B->printShapeInfo("B shape");
+                result->printShapeInfo("C shape");
+
                 auto aL = allTensorsAlongDimension(A, {A->rankOf() - 2, A->rankOf() - 1});
                 auto bL = allTensorsAlongDimension(B, {B->rankOf() - 2, B->rankOf() - 1});
                 auto cL = allTensorsAlongDimension(result, {result->rankOf() - 2, result->rankOf() - 1});
+
+                int aL_size = aL->size();
+                int bL_size = bL->size();
+                int cL_size = cL->size();
 
                 nd4j_debug("NumTads: %i\n", aL->size());
                 for (int e = 0; e < aL->size(); e++) {
