@@ -11,6 +11,13 @@
 
 namespace nd4j {
     namespace graph {
+        /**
+         * This class is responsible for execution logic of Scope logical abstraction
+         *
+         * It's ultra-simple. It does nothing, and can't be executed directly.
+         *
+         * @tparam T
+         */
         template <typename T>
         class LogicScope {
         public:

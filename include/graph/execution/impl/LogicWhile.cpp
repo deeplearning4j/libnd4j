@@ -18,17 +18,19 @@ namespace nd4j {
             // we're running condition nodes now
             auto scope = graph->scopeById(scopeConditionIndex);
             int breaker = 0;
-            while (true && breaker < 20) {
+            while (true && breaker < 10000000) {
                 int lastNode = 0;
+                // we're running condition scope first
                 for (auto v: *scope->nodes()) {
                     GraphExecutioner<T>::executeFlatNode(graph, v, __variableSpace);
                     lastNode = v->id();
                 }
 
                 // now we should take result of the Scope run, and evaluate it
-                //nd4j_debug("", "");
                 auto result = __variableSpace->getVariable(lastNode)->getNDArray();
-                result->printBuffer("Result of the last node:");
+
+                if (Environment::getInstance()->isDebugAndVerbose())
+                    result->printBuffer("Result of the last node:");
 
                 // if result evaluates to 0.0 - condition returned FALSE
                 if (result->getScalar(0) == (T) 0.0f)
@@ -43,6 +45,12 @@ namespace nd4j {
                 }
 
                 breaker++;
+            }
+
+            // if we've hit breaker limit - we should notify about that
+            if (breaker >= 10000000) {
+                nd4j_printf("While condition seems to be never ending, aborting...\n",  breaker);
+                return ND4J_STATUS_KERNEL_FAILURE;
             }
 
             return ND4J_STATUS_OK;

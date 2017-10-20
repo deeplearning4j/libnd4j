@@ -11,6 +11,12 @@
 
 namespace nd4j {
     namespace graph {
+        /**
+         * This class is responsible for execution logic of While logical abstraction
+         *
+         * Basic idea is simple: we take 2 scopes, one for condition and other one for body. and we re-execute body as long, as condition scope evaluates to TRUE
+         * @tparam T
+         */
         template <typename T>
         class LogicWhile {
         public:
