@@ -56,15 +56,28 @@ namespace nd4j {
 // default constructor, do not allocate memory, memory for array is passed from outside 
     template <typename T>
     NDArray<T>::NDArray(T *buffer, int *shapeInfo, nd4j::memory::Workspace* workspace) {
-    
-    _buffer    = buffer;
-    _shapeInfo = shapeInfo;
-    _isBuffAlloc = false;                                  // indicate that memory for array is passed from outside
-    _isShapeAlloc = false;
-
-    _workspace = workspace;
+        
+        _buffer    = buffer;
+        _shapeInfo = shapeInfo;
+        _isBuffAlloc = false;                                  // indicate that memory for array is passed from outside
+        _isShapeAlloc = false;
+        _workspace = workspace;
     }
 
+////////////////////////////////////////////////////////////////////////
+//constructor, create empty array at given workspace 
+    template <typename T>
+    NDArray<T>::NDArray(nd4j::memory::Workspace* workspace) {
+    
+        _buffer    = nullptr;
+        _shapeInfo = nullptr;
+        _isBuffAlloc = false;                                  // indicate that memory for array is passed from outside
+        _isShapeAlloc = false;
+        _workspace = workspace;
+    
+    }
+
+////////////////////////////////////////////////////////////////////////
 template <typename T>
 NDArray<T>::NDArray(const Nd4jIndex length, const char order, nd4j::memory::Workspace* workspace) {
     if (length < 1)
@@ -216,13 +229,13 @@ NDArray<T>::NDArray(const NDArray<T> *other, nd4j::memory::Workspace* workspace)
 ////////////////////////////////////////////////////////////////////////
 // copy constructor
 template <typename T>
-    NDArray<T>::NDArray(const NDArray<T>& other, nd4j::memory::Workspace* workspace)
+    NDArray<T>::NDArray(const NDArray<T>& other)
 {
     int arrLength = shape::length(other._shapeInfo);
     int shapeLength = shape::rank(other._shapeInfo)*2 + 4;
 
-    _workspace = workspace;
-    if (workspace == nullptr) {
+    _workspace = other._workspace;
+    if (_workspace == nullptr) {
         _buffer =  new T[arrLength];
         _shapeInfo = new int[shapeLength];
     } else {
@@ -285,7 +298,7 @@ template <typename T>
     }
 
     template<typename T>
-    int* NDArray<T>::getShapeInfo() {
+    int* NDArray<T>::getShapeInfo() const{
         return _shapeInfo;
     }
 
@@ -379,7 +392,7 @@ void NDArray<T>::replacePointers(T *buffer, int *shapeInfo, const bool releaseEx
 
 // This method assigns values of given NDArray to this one, wrt order
     template<typename T>
-    void NDArray<T>::assign(NDArray<T> *other) {
+    void NDArray<T>::assign(const NDArray<T> *other) {
 
         if (other->lengthOf() != lengthOf())
             throw std::invalid_argument("Lengths of arrays are mismatched");
@@ -927,7 +940,7 @@ T& NDArray<T>::operator()(const int i, const int j) {
 
 //////////////////////////////////////////////////////////////////////////
 template<typename T>
-    void NDArray<T>::addRowVector(const NDArray<T> *row, NDArray<T>* target) {
+    void NDArray<T>::addRowVector(const NDArray<T> *row, NDArray<T>* target) const {
         if (rankOf() != 2 || target->rankOf() != 2 || rows() != target->rows() || columns() != target->columns() || !row->isRowVector() || columns() != row->columns())
             throw std::invalid_argument("NDArray::addRowVector: wrong arguments !");
 
@@ -944,7 +957,7 @@ template<typename T>
 
 //////////////////////////////////////////////////////////////////////////
 template<typename T>
-    void NDArray<T>::subRowVector(const NDArray<T> *row, NDArray<T>* target) {
+    void NDArray<T>::subRowVector(const NDArray<T> *row, NDArray<T>* target) const {
         if (rankOf() != 2 || target->rankOf() != 2 || rows() != target->rows() || columns() != target->columns() || !row->isRowVector() || columns() != row->columns())
             throw std::invalid_argument("NDArray::subRowVector: wrong arguments !");
 
@@ -961,7 +974,7 @@ template<typename T>
 
 //////////////////////////////////////////////////////////////////////////
     template<typename T>
-    void NDArray<T>::mulRowVector(const NDArray<T> *row, NDArray<T>* target) {
+    void NDArray<T>::mulRowVector(const NDArray<T> *row, NDArray<T>* target) const {
         if (rankOf() != 2 || target->rankOf() != 2 || rows() != target->rows() || columns() != target->columns() || !row->isRowVector() || columns() != row->columns())
             throw std::invalid_argument("NDArray::divRowVector: wrong arguments !");
 
@@ -979,7 +992,7 @@ template<typename T>
 
 //////////////////////////////////////////////////////////////////////////
     template<typename T>
-    void NDArray<T>::divRowVector(const NDArray<T> *row, NDArray<T>* target) {
+    void NDArray<T>::divRowVector(const NDArray<T> *row, NDArray<T>* target) const {
         if (rankOf() != 2 || target->rankOf() != 2 || rows() != target->rows() || columns() != target->columns() || !row->isRowVector() || columns() != row->columns())
             throw std::invalid_argument("NDArray::divRowVector: wrong arguments !");
 
@@ -1012,6 +1025,24 @@ template<typename T>
                                              dimension, 1, tad->tadOnlyShapeInfo, tad->tadOffsets,
                                              tad->tadOnlyShapeInfo, tad->tadOffsets);
     }
+
+
+//////////////////////////////////////////////////////////////////////////
+    template<typename T>
+    void NDArray<T>::addColumnVector(const NDArray<T> *column, NDArray<T>* target) const {
+        if (rankOf() != 2 || target->rankOf() != 2 || rows() != target->rows() || columns() != target->columns() || !column->isColumnVector() || rows() != column->rows())
+            throw std::invalid_argument("NDArray::addColumnVector: wrong arguments !");
+
+        int dimension[1] = {0};
+
+        std::unique_ptr<shape::TAD> tad(new shape::TAD(_shapeInfo, dimension, 1));
+        tad->createTadOnlyShapeInfo();
+        tad->createOffsets();
+
+        NativeOpExcutioner<T>::execBroadcast(0, _buffer, _shapeInfo, column->_buffer, column->_shapeInfo, target->getBuffer(), target->getShapeInfo(),
+                                             dimension, 1, tad->tadOnlyShapeInfo, tad->tadOffsets,
+                                             tad->tadOnlyShapeInfo, tad->tadOffsets);
+}
 
 //////////////////////////////////////////////////////////////////////////
 // This method adds given column to all columns in this NDArray, this array becomes affected
@@ -2055,6 +2086,35 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
     }
 
     ////////////////////////////////////////////////////////////////////////
+    template<typename T>
+    NDArray<T>* NDArray<T>::subarray(const std::vector<std::vector<int>>& idx) const {    
+        
+        if (idx.size() != this->rankOf())
+            throw "NDArray::operator(): number of indices should match with rank of array!";
+
+        int *newShape;
+        ALLOCATE(newShape, _workspace, shape::shapeInfoLength(this->rankOf()), int);
+        memcpy(newShape, this->_shapeInfo, shape::shapeInfoByteLength(this->rankOf()));
+        newShape[shape::shapeInfoLength(this->rankOf()) - 2] = -1;
+
+        int *shapeOf = shape::shapeOf(newShape);
+        int *stridesOf = shape::stride(newShape);
+
+        Nd4jIndex offset = 0;                
+        for (int d = 0; d < idx.size(); ++d) {
+            // building new shape first            
+            if (!idx[d].empty()) {                        
+                if (idx[d].size() != 2)
+                    throw "NDArray::subarray: the interval must contain only two numbers {first, last} !";
+                shapeOf[d] = idx[d][1] - idx[d][0];
+                // for offset we're taking only the first index                
+                offset += idx[d][0] * stridesOf[d];
+            }
+        }
+        return new NDArray<T>(this->_buffer + offset, newShape, this->_workspace);        
+    }
+
+    ////////////////////////////////////////////////////////////////////////
     // evaluate resulting shape after reduce operation
     template<typename T>
     int* NDArray<T>::evalReduceShapeInfo(const char order, std::vector<int>& dimensions) const {
@@ -2276,6 +2336,144 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
         return varianceAlongDimension<OpName>(biasCorrected, std::vector<int>(dimensions));
     }
 
+    ////////////////////////////////////////////////////////////////////////
+    // operator returns sub-array with buffer pointing at this->_buffer + certain offset
+    template<typename T>
+    NDArray<T> NDArray<T>::operator()(const std::vector<std::vector<int>>& idx)  const {
+    
+        if (idx.size() != this->rankOf())
+            throw "NDArray::operator(): number of indices should match with rank of array!";
+
+        int *newShape;
+        ALLOCATE(newShape, _workspace, shape::shapeInfoLength(this->rankOf()), int);
+        memcpy(newShape, this->_shapeInfo, shape::shapeInfoByteLength(this->rankOf()));
+        newShape[shape::shapeInfoLength(this->rankOf()) - 2] = -1;
+
+        int *shapeOf = shape::shapeOf(newShape);
+        int *stridesOf = shape::stride(newShape);
+
+        Nd4jIndex offset = 0;                
+        for (int d = 0; d < idx.size(); ++d) {
+            // building new shape first            
+            if (!idx[d].empty()) {                        
+                if (idx[d].size() != 2)
+                    throw "NDArray::operator(): the interval must contain just two numbers {first, last} !";
+                shapeOf[d] = idx[d][1] - idx[d][0];
+                // for offset we're taking only the first index                
+                offset += idx[d][0] * stridesOf[d];
+            }
+        }
+
+        NDArray<T> result(this->_buffer + offset, newShape, this->_workspace);
+        return result;
+    }
+
+    ////////////////////////////////////////////////////////////////////////
+    // addition operator array + array
+    template<typename T>
+    NDArray<T> NDArray<T>::operator+(const NDArray<T>& other) const {        
+
+        NDArray<T> result(this->_shapeInfo, this->_workspace);
+        if(other.isRowVector())
+            this->addRowVector (&other, &result);
+        else if(other.isColumnVector())
+            this->addColumnVector(&other, &result);
+        else {
+            if (other.lengthOf() != lengthOf())
+                throw std::invalid_argument("NDArray::operator+ method: lengths of arrays are mismatched !");            
+            NDArray<T> result(this->_shapeInfo, this->_workspace);
+            functions::pairwise_transforms::PairWiseTransform<T>::template exec<simdOps::Add<T>>(this->_buffer, this->_shapeInfo, other._buffer, other._shapeInfo, result._buffer, result._shapeInfo, nullptr);
+        }
+        
+        return result;
+    }
+
+    ////////////////////////////////////////////////////////////////////////
+    // addition operator array + scalar
+    template<typename T>
+    NDArray<T> NDArray<T>::operator+(const T scalar) const {        
+    
+        NDArray<T> result(this->_shapeInfo, this->_workspace);
+        functions::scalar::ScalarTransform<T>::template transform<simdOps::Add<T>>(this->_buffer, this->_shapeInfo, result._buffer, result._shapeInfo, scalar, nullptr);
+
+        return result;
+    }
+
+    ////////////////////////////////////////////////////////////////////////
+    // addition operator scalar + array
+    template<typename T>
+    NDArray<T> operator+(const T scalar, const NDArray<T>& arr) {
+        return arr + scalar;
+    }
+
+    ////////////////////////////////////////////////////////////////////////
+    // subtraction operator array - array
+    template<typename T>
+    NDArray<T> NDArray<T>::operator-(const NDArray<T>& other) const {        
+        if (other.lengthOf() != lengthOf())
+            throw std::invalid_argument("NDArray::operator- method: lengths of arrays are mismatched !");
+    
+        NDArray<T> result(this->_shapeInfo, this->_workspace);
+        functions::pairwise_transforms::PairWiseTransform<T>::template exec<simdOps::Subtract<T>>(this->_buffer, this->_shapeInfo, other._buffer, other._shapeInfo, result._buffer, result._shapeInfo, nullptr);
+
+        return result;
+    }    
+
+    ////////////////////////////////////////////////////////////////////////
+    // subtraction operator array - scalar
+    template<typename T>
+    NDArray<T> NDArray<T>::operator-(const T scalar) const {        
+    
+        NDArray<T> result(this->_shapeInfo, this->_workspace);
+        functions::scalar::ScalarTransform<T>::template transform<simdOps::Subtract<T>>(this->_buffer, this->_shapeInfo, result._buffer, result._shapeInfo, scalar, nullptr);
+
+        return result;
+    }
+
+    ////////////////////////////////////////////////////////////////////////
+    // addition operator scalar - array
+    template<typename T>
+    NDArray<T> operator-(const T scalar, const NDArray<T>& arr) {
+        
+        NDArray<T> result(arr._shapeInfo, arr._workspace);
+        functions::scalar::ScalarTransform<T>::template transform<simdOps::ReverseSubtract<T>>(arr._buffer, arr._shapeInfo, result._buffer, result._shapeInfo, scalar, nullptr);
+
+        return result;
+    }
+
+    ////////////////////////////////////////////////////////////////////////    
+    // multiplication operator array*array    
+    template<typename T>
+    NDArray<T> NDArray<T>::operator*(const NDArray<T>& other) const {        
+        if (other.lengthOf() != lengthOf())
+            throw std::invalid_argument("NDArray::operator- method: lengths of arrays are mismatched !");
+    
+        NDArray<T> result(this->_shapeInfo, this->_workspace);
+        functions::pairwise_transforms::PairWiseTransform<T>::template exec<simdOps::Multiply<T>>(this->_buffer, this->_shapeInfo, other._buffer, other._shapeInfo, result._buffer, result._shapeInfo, nullptr);
+
+        return result;
+    }    
+
+    ////////////////////////////////////////////////////////////////////////    
+    // mathematical multiplication of two arrays
+    template<typename T>
+    NDArray<T> mmul(const NDArray<T>& left, const NDArray<T>& right) {
+
+        NDArray<T>* ptr =  NDArrayFactory<T>::mmulHelper(&left, &right, nullptr, (T)1., (T)0.);
+        NDArray<T> result(*ptr);
+        delete ptr;
+        return result;
+    }
+
+    ////////////////////////////////////////////////////////////////////////    
+    template<typename T>
+    void NDArray<T>::assign(const NDArray<T>& other, const std::vector<std::vector<int>>& idx) {
+
+        NDArray<T>* subarr = this->subarray(idx);
+        subarr->assign(&other);
+        delete subarr;
+    }
+    
     ////////////////////////////////////////////////////////////////////////
     // default destructor
     template<typename T>

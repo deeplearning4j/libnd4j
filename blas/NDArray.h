@@ -57,6 +57,9 @@ namespace nd4j {
         // default constructor, do not allocate memory, memory for array is passed from outside 
         NDArray(T *buffer = nullptr, int *shapeInfo = nullptr, nd4j::memory::Workspace* workspace = nullptr);
 
+        //constructor, create empty array with at workspace 
+        NDArray(nd4j::memory::Workspace* workspace);
+
         // this constructor creates 2D NDArray, memory for array is allocated in constructor 
         NDArray(const int rows, const int columns, const char order, nd4j::memory::Workspace* workspace = nullptr);
 
@@ -67,7 +70,7 @@ namespace nd4j {
         NDArray(const NDArray<T> *other, nd4j::memory::Workspace* workspace = nullptr);
 		
 		// copy constructor
-        NDArray(const NDArray<T>& other, nd4j::memory::Workspace* workspace = nullptr);
+        NDArray(const NDArray<T>& other);
 
 		// constructor new NDArray using shape information from "shape" array, set all elements in new array to be zeros
 		NDArray(const int* shapeInfo, nd4j::memory::Workspace* workspace = nullptr);
@@ -87,13 +90,15 @@ namespace nd4j {
 
         NDArray<T>* subarray(const std::initializer_list<NDIndex*>& idx) const;
 
-        nd4j::memory::Workspace* getWorkspace() {
+        NDArray<T>* subarray(const std::vector<std::vector<int>>& idx) const;
+
+        nd4j::memory::Workspace* getWorkspace() const {
             return _workspace;
         }
 
         T* getBuffer();
 
-        int* getShapeInfo();
+        int* getShapeInfo() const;
 
         void setShapeInfo(int *shapeInfo) {
             if(_isShapeAlloc && _workspace == nullptr)
@@ -193,7 +198,7 @@ namespace nd4j {
         void printIndexedBuffer(const char* msg = nullptr, int limit = -1);
 
         // This method assigns values of given NDArray to this one, wrt order
-        void assign(NDArray<T> *other);
+        void assign(const NDArray<T> *other);
 
         // This method assigns given value to all elements in this NDArray
         void assign(const T value);
@@ -314,13 +319,15 @@ namespace nd4j {
         // This method adds given row to all rows in this NDArray, that is this array becomes affected
         void addiRowVector(const NDArray<T> *row);
 
-        void addRowVector(const NDArray<T> *row, NDArray<T>* target);
+        void addRowVector(const NDArray<T> *row, NDArray<T>* target) const;
         
-        void subRowVector(const NDArray<T> *row, NDArray<T>* target);
+        void subRowVector(const NDArray<T> *row, NDArray<T>* target) const;
         
-        void mulRowVector(const NDArray<T> *row, NDArray<T>* target);
+        void mulRowVector(const NDArray<T> *row, NDArray<T>* target) const;
 
-        void divRowVector(const NDArray<T> *row, NDArray<T>* target);
+        void divRowVector(const NDArray<T> *row, NDArray<T>* target) const;
+
+        void addColumnVector(const NDArray<T> *column, NDArray<T>* target) const;
 
 		// This method adds given column to all columns in this NDArray, that is this array becomes affected
 		void addiColumnVector(const NDArray<T> *column);
@@ -415,7 +422,36 @@ namespace nd4j {
 
         template<typename OpName>
         NDArray<T>* varianceAlongDimension(const bool biasCorrected, const std::initializer_list<int>& dimensions) const;
+
+        // operator returns sub-array with buffer pointing at this->_buffer with certain offset
+        NDArray<T> operator()(const std::vector<std::vector<int>>& idx)  const;        
+
+        // addition operator array + array
+        NDArray<T> operator+(const NDArray<T>& other) const;
+
+        // addition operator array + scalar
+        NDArray<T> operator+(const T scalar) const;
+
+        // addition operator scalar + array
+        friend NDArray<T> operator+(const T scalar, const NDArray<T>& arr);
+
+        // subtraction operator array - array
+        NDArray<T> operator-(const NDArray<T>& other) const;
+
+        // subtraction operator array - scalar
+        NDArray<T> operator-(const T scalar) const;
+
+        // subtraction operator scalar - array
+        friend NDArray<T> operator-(const T scalar, const NDArray<T>& arr);
+
+        // multiplication operator array*array
+        NDArray<T> operator*(const NDArray<T>& other) const;
 		
+        // mathematical multiplication of two arrays
+        friend NDArray<T> mmul(const NDArray<T>& left, const NDArray<T>& right);
+
+        void assign(const NDArray<T>& other, const std::vector<std::vector<int>>& idx);
+
         // default destructor
         ~NDArray(); 
 
