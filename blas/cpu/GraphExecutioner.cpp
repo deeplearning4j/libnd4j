@@ -25,6 +25,7 @@
 
 #include <chrono>
 #include <ctime>
+#include <graph/execution/LogicExecutor.h>
 
 namespace nd4j{
 namespace graph {
@@ -40,7 +41,7 @@ namespace graph {
  * @return
  */
 template <typename T>
-static Nd4jStatus executeFlatNode(Graph<T> *graph, Node<T> *node, VariableSpace<T> *variableSpace) {
+ Nd4jStatus GraphExecutioner<T>::executeFlatNode(Graph<T> *graph, Node<T> *node, VariableSpace<T> *variableSpace) {
     OpType opType = node->opType();
     int opNum = node->opNum();
 
@@ -561,6 +562,12 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph) {
              * If this LOGIC op, we'll use another execution model here
              */
             if (node->opType() == OpType_LOGIC) {
+
+                auto status = LogicExecutor<T>::processNode(graph, node);
+                if (status == ND4J_STATUS_OK)
+                    continue;
+                else
+                    return status;
 
                 // if that's Scope - we're just skipping it
                 if (node->opNum() == 10)
