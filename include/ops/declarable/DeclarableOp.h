@@ -87,7 +87,7 @@ namespace nd4j {
             DeclarableOp(int numInputs, int numOutputs, const char *opName, bool allowsInplace, int tArgs, int iArgs);
 
             // for LogicalOps
-            DeclarableOp(bool isLogical);
+            DeclarableOp(const char *name, bool isLogical);
 
             // default testructor
             ~DeclarableOp();

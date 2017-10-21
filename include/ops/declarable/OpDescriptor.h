@@ -78,7 +78,7 @@ namespace nd4j {
             OpDescriptor(int numInputs, int numOutputs, const char *opName, bool allowsInplace, bool divergent, int tArgs, int iArgs);
 
             // constructor for logical ops (while, scope, etc)
-            OpDescriptor(bool isLogic);
+            OpDescriptor(const char * opName, bool isLogic);
 
             // default destructor
             ~OpDescriptor();

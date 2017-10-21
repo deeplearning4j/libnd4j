@@ -1003,7 +1003,7 @@ struct __registratorDouble_##NAME {\
                                                 };
 
 #define LOGIC_OP_IMPL(NAME)     template <typename T>\
-                                NAME<T>::NAME() : nd4j::ops::LogicOp<T>() { }; \
+                                NAME<T>::NAME() : nd4j::ops::LogicOp<T>(#NAME) { }; \
                                 template <typename OpName>  \
                                 struct __registratorFloat_##NAME {\
                                     __registratorFloat_##NAME() {\

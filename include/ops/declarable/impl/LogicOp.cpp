@@ -8,7 +8,7 @@ namespace nd4j {
     namespace ops {
 
         template <typename T>
-        LogicOp<T>::LogicOp() : DeclarableOp<T>::DeclarableOp(true) {
+        LogicOp<T>::LogicOp(const char *name) : DeclarableOp<T>::DeclarableOp(name, true) {
             // just using DeclarableOp constructor
         }
 

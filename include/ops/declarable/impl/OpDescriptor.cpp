@@ -7,8 +7,9 @@
 namespace nd4j {
     namespace ops {
 
-        OpDescriptor::OpDescriptor(bool isLogic) {
+        OpDescriptor::OpDescriptor(const char * opName, bool isLogic) {
             _logic = isLogic;
+            _opName = opName;
         }
 
         OpDescriptor::OpDescriptor(int numInputs, const char * opName, bool isScalar) {

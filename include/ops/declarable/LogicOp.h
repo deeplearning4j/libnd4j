@@ -21,7 +21,7 @@ namespace nd4j {
         protected:
             Nd4jStatus validateAndExecute(nd4j::graph::Block<T>& block) override;
         public:
-            LogicOp();
+            LogicOp(const char *name);
             ~LogicOp() = default;
 
             ShapeList* calculateOutputShape(ShapeList* inputShape, nd4j::graph::Block<T>& block) override;

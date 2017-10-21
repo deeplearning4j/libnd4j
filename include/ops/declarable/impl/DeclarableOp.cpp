@@ -28,8 +28,8 @@ namespace nd4j {
         }
 
         template<typename T>
-        DeclarableOp<T>::DeclarableOp(bool isLogical) {
-            _descriptor = new OpDescriptor(isLogical);
+        DeclarableOp<T>::DeclarableOp(const char *name, bool isLogical) {
+            _descriptor = new OpDescriptor(name, isLogical);
         }
 
         template <typename T>
