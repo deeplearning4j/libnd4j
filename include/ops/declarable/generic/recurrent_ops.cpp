@@ -116,7 +116,7 @@ CUSTOM_OP_IMPL(sru, 5, 2, false, 0, 0) {
     const int K      = input->shapeOf()[1];                     // K - number of features
     const int N      = input->shapeOf()[2];                     // N - number of time steps
         
-    const NDArray<T> wi = mmul(*weights, *input);                    //  U [bS x 3K x N]    
+    const NDArray<T> wi = mmul(*weights, *input);                    //  U [bS x 3K x N]        
     const NDArray<T> bF = (*bias)({ {}, {0,  K} });                       // biases for forget gate [1 x K]
     const NDArray<T> bR = (*bias)({ {}, {K,2*K} });                       // biases for reset  gate [1 x K]    
 
@@ -137,10 +137,10 @@ CUSTOM_OP_IMPL(sru, 5, 2, false, 0, 0) {
         xt = xt * (*mask);
         ft = sigmoid(ft + bF);
         rt = sigmoid(rt + bR);
-        ct = ft * ct + ((T)1. - ft) * zt;        
+        ct = ft * (ct - zt) + zt;        
         // TODO T val = (activation_type == 1) ? tanh(cur) : ((activation_type == 2) ? reluf(cur) : cur );
         ct.template applyTransform<simdOps::Tanh<T>>(&gct);        
-        ht = rt * gct + ((T)1. - rt) * xt;
+        ht = rt * (gct - xt) + xt;
         // save results
         output->assign(ht, {{}, {}, {t,t+1}} );
         state->assign (ct, {{}, {}, {t,t+1}} );

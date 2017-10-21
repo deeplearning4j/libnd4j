@@ -12,6 +12,12 @@
 
 namespace nd4j {
 
+    template<typename T> class NDArray;
+    template<typename T> NDArray<T> operator+(const T, const NDArray<T>&);
+    template<typename T> NDArray<T> operator-(const T, const NDArray<T>&);
+    template<typename T> NDArray<T> mmul(const NDArray<T>&, const NDArray<T>&);
+
+
     template<typename T>
     class NDArray {
     protected:
@@ -433,7 +439,7 @@ namespace nd4j {
         NDArray<T> operator+(const T scalar) const;
 
         // addition operator scalar + array
-        friend NDArray<T> operator+(const T scalar, const NDArray<T>& arr);
+        friend NDArray<T> nd4j::operator+<>(const T scalar, const NDArray<T>& arr);
 
         // subtraction operator array - array
         NDArray<T> operator-(const NDArray<T>& other) const;
@@ -442,13 +448,13 @@ namespace nd4j {
         NDArray<T> operator-(const T scalar) const;
 
         // subtraction operator scalar - array
-        friend NDArray<T> operator-(const T scalar, const NDArray<T>& arr);
-
+        friend NDArray<T> nd4j::operator-<>(const T scalar, const NDArray<T>& arr);
+               
         // multiplication operator array*array
         NDArray<T> operator*(const NDArray<T>& other) const;
 		
         // mathematical multiplication of two arrays
-        friend NDArray<T> mmul(const NDArray<T>& left, const NDArray<T>& right);
+        friend NDArray<T> mmul<>(const NDArray<T>& left, const NDArray<T>& right);
 
         void assign(const NDArray<T>& other, const std::vector<std::vector<int>>& idx);
 
@@ -522,11 +528,14 @@ namespace nd4j {
     }
 
     // returns true if these two NDArrays have same _shapeInfo
-// still the definition of inline function must be in header file
+    // still the definition of inline function must be in header file
     template<typename T>
     inline bool NDArray<T>::isSameShapeStrict(const NDArray<T> *other) const {        
     
 		return shape::equalsStrict(_shapeInfo, other->_shapeInfo);
     }
+
+    
+
 }
 #endif

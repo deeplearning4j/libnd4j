@@ -2459,7 +2459,7 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
     template<typename T>
     NDArray<T> mmul(const NDArray<T>& left, const NDArray<T>& right) {
 
-        NDArray<T>* ptr =  NDArrayFactory<T>::mmulHelper(&left, &right, nullptr, (T)1., (T)0.);
+        NDArray<T>* ptr =  NDArrayFactory<T>::mmulHelper(const_cast<NDArray<T>*>(&left), const_cast<NDArray<T>*>(&right), nullptr, (T)1., (T)0.);
         NDArray<T> result(*ptr);
         delete ptr;
         return result;
@@ -2494,6 +2494,7 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
 
 
 #include "NDArray.macro"
+
 }
 
 #endif
