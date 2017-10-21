@@ -101,3 +101,16 @@ TEST_F(FlowControlTests, SwitchTest1) {
     ASSERT_NEAR(-118.0f, output->getScalar(0), 1e-5f);
 }
 
+TEST_F(FlowControlTests, SwitchTest2) {
+    Graph<float> graph;
+
+    auto variableSpace = graph.getVariableSpace();
+
+    auto input = new NDArray<float>('c',{32, 100});
+    input->assign(-119.0f);
+
+    auto condtionX = new NDArray<float>('c', {1, 1});
+    condtionX->putScalar(0, 0.0f);
+    auto condtionY = new NDArray<float>('c', {1, 1});
+    condtionY->putScalar(0, 0.0f);
+}
