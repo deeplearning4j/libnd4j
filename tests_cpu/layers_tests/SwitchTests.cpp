@@ -9,12 +9,12 @@ using namespace nd4j;
 using namespace nd4j::ops;
 using namespace nd4j::graph;
 
-class FlowControlTests : public testing::Test {
+class SwitchTests : public testing::Test {
 public:
 
 };
 
-TEST_F(FlowControlTests, SwitchTest1) {
+TEST_F(SwitchTests, SwitchTest1) {
     Graph<float> graph;
 
     auto variableSpace = graph.getVariableSpace();
@@ -101,7 +101,7 @@ TEST_F(FlowControlTests, SwitchTest1) {
     ASSERT_NEAR(-118.0f, output->getScalar(0), 1e-5f);
 }
 
-TEST_F(FlowControlTests, SwitchTest2) {
+TEST_F(SwitchTests, SwitchTest2) {
     Graph<float> graph;
 
     auto variableSpace = graph.getVariableSpace();

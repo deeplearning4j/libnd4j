@@ -608,7 +608,7 @@ template <typename T>
             limit = (int) this->lengthOf();
 
         if (msg != nullptr)
-            printf("%s [", msg);
+            printf("%s: [", msg);
         else
             printf("[");
         for (Nd4jIndex e = 0; e < limit; e++) {
