@@ -67,6 +67,7 @@ namespace nd4j {
             void putVariable(int id, Variable<T> *variable);
             void putVariable(int id, NDArray<T> *array);
 
+
             void putOutputVariable(Variable<T> *variable);
 
             // memory-related statistics

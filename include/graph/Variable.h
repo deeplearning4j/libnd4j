@@ -27,7 +27,7 @@ namespace nd4j {
 
         public:
             Variable(bool placeHolder);
-            Variable(nd4j::NDArray<T> *arrayw, const char *name, int id);
+            Variable(nd4j::NDArray<T> *arrayw, const char *name, int id, int idx = 0);
             Variable(nd4j::NDArray<T> *array = nullptr, const char *name = nullptr);
             Variable(const nd4j::graph::FlatVariable *flatVariable);
             ~Variable();

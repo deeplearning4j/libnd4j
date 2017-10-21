@@ -12,9 +12,9 @@ namespace nd4j {
         Nd4jStatus LogicSwitch<T>::processNode(Graph<T>* graph, Node<T>* node) {
             auto __variableSpace = graph->getVariableSpace();
 
+
             int scopeConditionIndex = node->input()->at(0).first;
-            int scopeFalseIndex = node->input()->at(1).first;
-            int scopeTrueIndex = node->input()->at(2).first;
+            auto input = node->getBlock()->getVariables()->at(1);
 
             auto scopeCondition = graph->scopeById(scopeConditionIndex);
             int lastNode = 0;
@@ -28,6 +28,24 @@ namespace nd4j {
             result->printBuffer("Result of the last node");
 
 
+            std::pair<int, int> pair0(node->id(), 0);
+            std::pair<int, int> pair1(node->id(), 1);
+
+            if (!__variableSpace->hasVariable(pair0))
+                __variableSpace->putVariable(pair0, new Variable<T>(nullptr, nullptr, node->id(), 0));
+
+            if (!__variableSpace->hasVariable(pair1))
+                __variableSpace->putVariable(pair1, new Variable<T>(nullptr, nullptr, node->id(), 1));
+
+            if (result->getScalar(0) == (T) 0.0f) {
+                node->getBlock()->setBranch(0);
+                __variableSpace->getVariable(pair0)->setNDArray(input->getNDArray());
+                __variableSpace->getVariable(pair0)->markRemovable(false);
+            } else {
+                node->getBlock()->setBranch(1);
+                __variableSpace->getVariable(pair1)->setNDArray(input->getNDArray());
+                __variableSpace->getVariable(pair1)->markRemovable(false);
+            }
 
             return ND4J_STATUS_OK;
         };

@@ -136,8 +136,9 @@ namespace nd4j {
         }
 
         template <typename T>
-        nd4j::graph::Variable<T>::Variable(NDArray<T> *array, const char *name, int id ) : Variable(array, name) {
+        nd4j::graph::Variable<T>::Variable(NDArray<T> *array, const char *name, int id, int idx) : Variable(array, name) {
             _id = id;
+            _index = idx;
         }
 
         template <typename T>
