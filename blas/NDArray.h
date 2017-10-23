@@ -14,7 +14,7 @@ namespace nd4j {
 
     template<typename T> class NDArray;
     template<typename T> NDArray<T> operator+(const T, const NDArray<T>&);
-    template<typename T> NDArray<T> operator-(const T, const NDArray<T>&);
+    // template<typename T> NDArray<T> operator-(const T, const NDArray<T>&);
     template<typename T> NDArray<T> mmul(const NDArray<T>&, const NDArray<T>&);
 
 
@@ -231,14 +231,17 @@ namespace nd4j {
         // method calculates sum along dimension(s) in this array and save it to row: as new NDArray with dimensions 1xN
         NDArray<T> *sum(const std::initializer_list<int> &dimensions) const;
 
-		// eventually this method reduces this array to 1xN row 
+		// this method deduces subarray using information from input dimensions
         template<typename OpName>
-        NDArray<T> *reduceAlongDimension(const std::vector<int>& dimensions) const;
+        NDArray<T>* reduceAlongDimension(const std::vector<int>& dimensions) const;
 		
-        // eventually this method reduces this array to 1xN row 
+        // this method deduces subarray using information from input dimensions
         template<typename OpName>
-        NDArray<T> *reduceAlongDimension(const std::initializer_list<int>& dimensions) const;
+        NDArray<T>* reduceAlongDimension(const std::initializer_list<int>& dimensions) const;
 
+        // this method saves deduced subarray to target row 
+        template<typename OpName>
+        void reduceAlongDimension(NDArray<T>* target, const std::vector<int>& dimensions) const;
 
         template<typename OpName>
         T varianceNumber(bool biasCorrected = true);
@@ -445,10 +448,16 @@ namespace nd4j {
         NDArray<T> operator-(const NDArray<T>& other) const;
 
         // subtraction operator array - scalar
-        NDArray<T> operator-(const T scalar) const;
+        NDArray<T> operator-(const T& scalar) const;
 
         // subtraction operator scalar - array
-        friend NDArray<T> nd4j::operator-<>(const T scalar, const NDArray<T>& arr);
+        // friend NDArray<T> nd4j::operator-<>(const T scalar, const NDArray<T>& arr);
+        friend NDArray<float> nd4j::operator-(const float scalar, const NDArray<float>& arr);
+        friend NDArray<float16> nd4j::operator-(const float16 scalar, const NDArray<float16>& arr);
+        friend NDArray<double> nd4j::operator-(const double scalar, const NDArray<double>& arr);
+
+        // negative operator, it makes all array elements = -elements        
+        NDArray<T> operator-() const;
                
         // multiplication operator array*array
         NDArray<T> operator*(const NDArray<T>& other) const;

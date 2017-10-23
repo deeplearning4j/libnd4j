@@ -1531,3 +1531,18 @@ TEST_F(NDArrayTest, TestMMulMultiDim) {
     ASSERT_TRUE(result->equalsTo(&expected));
     delete result;
 }
+
+TEST_F(NDArrayTest, AdditionOperator1) {
+
+    NDArray<double> input1('c', {2,2});
+    NDArray<double> input2('c', {2,2});
+    NDArray<double> expected('c', {2,2});
+        
+    input1.assign(1.5);
+    input2.assign(2.);
+    expected.assign(3.5);
+
+    input2 = input1 + input2;
+
+    ASSERT_TRUE(input2.equalsTo(&expected));    
+}

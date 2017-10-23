@@ -243,12 +243,13 @@ template <typename T>
         _shapeInfo = (int*) _workspace->allocateBytes(shapeLength * sizeof(int));
     }
 
-    memcpy(_buffer, other._buffer, arrLength*sizeOfT());      // copy other._buffer information into new array
+    // memcpy(_buffer, other._buffer, arrLength*sizeOfT());      // copy other._buffer information into new array
     memcpy(_shapeInfo, other._shapeInfo, shapeLength*sizeof(int));     // copy shape information into new array      
-    
+    shape::updateStrides(_shapeInfo, other.ordering());
+
     _isBuffAlloc = true; 
     _isShapeAlloc = true;
-    // this->assign(&other);
+    this->assign(&other);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -322,12 +323,10 @@ template<typename T>
 
         ALLOCATE(_buffer, _workspace, arrLength, T);
         // memcpy(_buffer, other._buffer, arrLength*sizeOfT());               // copy elements of other current array
-
         ALLOCATE(_shapeInfo, _workspace, shapeLength, int);
         memcpy(_shapeInfo, other._shapeInfo, shapeLength*sizeof(int));     // copy shape information into new array
-
-        // FIXME: we know that EWS is always 1 after dup() result
-        _shapeInfo[rankOf() * 2 + 2] = 1;
+        
+        shape::updateStrides(_shapeInfo, other.ordering());
 
         _isBuffAlloc = true;
         _isShapeAlloc = true;
@@ -528,6 +527,32 @@ template <typename T>
         }
         
         return result;
+    }
+
+
+// eventually this method reduces this array to 1xN row
+    template<typename T>
+    template<typename OpName>
+    void NDArray<T>::reduceAlongDimension(NDArray<T>* target, const std::vector<int>& dimensions) const {
+        
+        std::vector<int> copy(dimensions);
+        
+        int* newShape = evalReduceShapeInfo('c', copy);  
+        if(!shape::shapeEquals(newShape, target->getShapeInfo()))
+            throw "NDArray::reduceAlongDimension method: wrong target shape !";        
+        RELEASE(newShape, _workspace);        
+        
+        if(rankOf() == copy.size())
+            target->_buffer[0] = functions::reduce::ReduceFunction<T>::template execScalar<OpName>(_buffer, _shapeInfo, nullptr);        
+        else {
+            shape::TAD tad(_shapeInfo, copy.data(), copy.size());
+            tad.createTadOnlyShapeInfo();
+            tad.createOffsets();        
+            
+            functions::reduce::ReduceFunction<T>::template exec<OpName>(_buffer, _shapeInfo, nullptr, target->_buffer,
+                                                                        target->_shapeInfo, copy.data(), copy.size(),
+                                                                        tad.tadOnlyShapeInfo, tad.tadOffsets);       
+        }                
     }
 
 // eventually this method reduces this array to 1xN row
@@ -2385,8 +2410,7 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
             this->addColumnVector(&other, &result);
         else {
             if (other.lengthOf() != lengthOf())
-                throw std::invalid_argument("NDArray::operator+ method: lengths of arrays are mismatched !");            
-            NDArray<T> result(this->_shapeInfo, this->_workspace);
+                throw std::invalid_argument("NDArray::operator+ : lengths of arrays are mismatched !");                        
             functions::pairwise_transforms::PairWiseTransform<T>::template exec<simdOps::Add<T>>(this->_buffer, this->_shapeInfo, other._buffer, other._shapeInfo, result._buffer, result._shapeInfo, nullptr);
         }
         
@@ -2416,7 +2440,7 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
     template<typename T>
     NDArray<T> NDArray<T>::operator-(const NDArray<T>& other) const {        
         if (other.lengthOf() != lengthOf())
-            throw std::invalid_argument("NDArray::operator- method: lengths of arrays are mismatched !");
+            throw std::invalid_argument("NDArray::operator- : lengths of arrays are mismatched !");
     
         NDArray<T> result(this->_shapeInfo, this->_workspace);
         functions::pairwise_transforms::PairWiseTransform<T>::template exec<simdOps::Subtract<T>>(this->_buffer, this->_shapeInfo, other._buffer, other._shapeInfo, result._buffer, result._shapeInfo, nullptr);
@@ -2427,7 +2451,7 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
     ////////////////////////////////////////////////////////////////////////
     // subtraction operator array - scalar
     template<typename T>
-    NDArray<T> NDArray<T>::operator-(const T scalar) const {        
+    NDArray<T> NDArray<T>::operator-(const T& scalar) const {        
     
         NDArray<T> result(this->_shapeInfo, this->_workspace);
         functions::scalar::ScalarTransform<T>::template transform<simdOps::Subtract<T>>(this->_buffer, this->_shapeInfo, result._buffer, result._shapeInfo, scalar, nullptr);
@@ -2435,13 +2459,51 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
         return result;
     }
 
-    ////////////////////////////////////////////////////////////////////////
-    // addition operator scalar - array
+    // negative operator, it makes all array elements = -elements
     template<typename T>
-    NDArray<T> operator-(const T scalar, const NDArray<T>& arr) {
+    NDArray<T> NDArray<T>::operator-() const {        
+    
+        NDArray<T> result(this->_shapeInfo, this->_workspace);
+        functions::transform::Transform<T>::template exec<simdOps::Neg<T>>(this->_buffer, this->_shapeInfo, result._buffer, result._shapeInfo, nullptr, nullptr, nullptr);
+
+        return result;
+    }
+    
+    ////////////////////////////////////////////////////////////////////////
+    // subtraction operator scalar - array
+    // template<typename T>
+    // NDArray<T> operator-(const T scalar, const NDArray<T>& arr) {
         
-        NDArray<T> result(arr._shapeInfo, arr._workspace);
-        functions::scalar::ScalarTransform<T>::template transform<simdOps::ReverseSubtract<T>>(arr._buffer, arr._shapeInfo, result._buffer, result._shapeInfo, scalar, nullptr);
+    //     NDArray<T> result(arr._shapeInfo, arr._workspace);
+    //     functions::scalar::ScalarTransform<T>::template transform<simdOps::ReverseSubtract<T>>(arr._buffer, arr._shapeInfo, result._buffer, result._shapeInfo, scalar, nullptr);
+
+    //     return result;
+    // }
+
+    ////////////////////////////////////////////////////////////////////////
+    // subtraction operator scalar - array
+    NDArray<float> operator-(const float scalar, const NDArray<float>& arr) {
+        
+        NDArray<float> result(arr._shapeInfo, arr._workspace);
+        functions::scalar::ScalarTransform<float>::template transform<simdOps::ReverseSubtract<float>>(arr._buffer, arr._shapeInfo, result._buffer, result._shapeInfo, scalar, nullptr);
+
+        return result;
+    }
+
+    // subtraction operator scalar - array
+    NDArray<float16> operator-(const float16 scalar, const NDArray<float16>& arr) {
+        
+        NDArray<float16> result(arr._shapeInfo, arr._workspace);
+        functions::scalar::ScalarTransform<float16>::template transform<simdOps::ReverseSubtract<float16>>(arr._buffer, arr._shapeInfo, result._buffer, result._shapeInfo, scalar, nullptr);
+
+        return result;
+    }
+
+    // subtraction operator scalar - array
+    NDArray<double> operator-(const double scalar, const NDArray<double>& arr) {
+        
+        NDArray<double> result(arr._shapeInfo, arr._workspace);
+        functions::scalar::ScalarTransform<double>::template transform<simdOps::ReverseSubtract<double>>(arr._buffer, arr._shapeInfo, result._buffer, result._shapeInfo, scalar, nullptr);
 
         return result;
     }
