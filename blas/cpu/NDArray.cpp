@@ -240,15 +240,15 @@ template <typename T>
         _shapeInfo = new int[shapeLength];
     } else {
         _buffer = (T*) _workspace->allocateBytes(arrLength * sizeOfT());
-        _shapeInfo = (int*) _workspace->allocateBytes(shapeLength * 4);
+        _shapeInfo = (int*) _workspace->allocateBytes(shapeLength * sizeof(int));
     }
 
     memcpy(_buffer, other._buffer, arrLength*sizeOfT());      // copy other._buffer information into new array
-
-    memcpy(_shapeInfo, other._shapeInfo, shapeLength*sizeof(int));     // copy shape information into new array
+    memcpy(_shapeInfo, other._shapeInfo, shapeLength*sizeof(int));     // copy shape information into new array      
     
     _isBuffAlloc = true; 
     _isShapeAlloc = true;
+    // this->assign(&other);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -309,26 +309,31 @@ template<typename T>
 	if (this == &other) return *this;
 
     if (_shapeInfo != nullptr && _buffer != nullptr && shape::equalsStrict(_shapeInfo, other._shapeInfo))
-        memcpy(_buffer, other._buffer, lengthOf()*sizeOfT());
+        this->assign(&other);    
+        // memcpy(_buffer, other._buffer, arrLength*sizeOfT());               // copy elements of other current array
     else {
         if(_isBuffAlloc && _workspace == nullptr)
             delete []_buffer;
         if(_isShapeAlloc && _workspace == nullptr)
             delete []_shapeInfo;
 
-		int arrLength = other.lengthOf();
+        int arrLength = other.lengthOf();
 		int shapeLength = shape::shapeInfoLength(other.rankOf());
 
         ALLOCATE(_buffer, _workspace, arrLength, T);
-        memcpy(_buffer, other._buffer, arrLength*sizeOfT());               // copy elements of other current array
+        // memcpy(_buffer, other._buffer, arrLength*sizeOfT());               // copy elements of other current array
 
         ALLOCATE(_shapeInfo, _workspace, shapeLength, int);
         memcpy(_shapeInfo, other._shapeInfo, shapeLength*sizeof(int));     // copy shape information into new array
 
+        // FIXME: we know that EWS is always 1 after dup() result
+        _shapeInfo[rankOf() * 2 + 2] = 1;
+
         _isBuffAlloc = true;
         _isShapeAlloc = true;
+        this->assign(&other);
     }
-
+    
     return *this;
 }
 
@@ -2080,7 +2085,7 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
             ++d;
         }
 
-        auto result = new NDArray<T>(this->_buffer + offset, newShape, this->_workspace);
+        auto result = new NDArray<T>(this->_buffer + offset, newShape, this->_workspace);        
 
         return result;
     }
@@ -2090,7 +2095,7 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
     NDArray<T>* NDArray<T>::subarray(const std::vector<std::vector<int>>& idx) const {    
         
         if (idx.size() != this->rankOf())
-            throw "NDArray::operator(): number of indices should match with rank of array!";
+            throw "NDArray::subarray: number of indices should match with rank of array!";
 
         int *newShape;
         ALLOCATE(newShape, _workspace, shape::shapeInfoLength(this->rankOf()), int);
@@ -2357,14 +2362,14 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
             // building new shape first            
             if (!idx[d].empty()) {                        
                 if (idx[d].size() != 2)
-                    throw "NDArray::operator(): the interval must contain just two numbers {first, last} !";
+                    throw "NDArray::operator(): the interval must contain only two numbers {first, last} !";
                 shapeOf[d] = idx[d][1] - idx[d][0];
                 // for offset we're taking only the first index                
                 offset += idx[d][0] * stridesOf[d];
             }
         }
+        NDArray<T> result(this->_buffer + offset, newShape, this->_workspace);        
 
-        NDArray<T> result(this->_buffer + offset, newShape, this->_workspace);
         return result;
     }
 
