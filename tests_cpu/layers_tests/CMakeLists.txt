@@ -22,9 +22,6 @@ endif()
 # -fsanitize=address
 #  -fsanitize=leak
 set(CMAKE_CXX_FLAGS  " -fPIC -std=c++11 -fassociative-math -funsafe-math-optimizations")
-if (WIN32)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wa,-mbig-obj ")
-endif()
 
 
 if (APPLE)
@@ -61,10 +58,10 @@ message("CPU BLAS")
 add_definitions(-D__CPUBLAS__=true)
 add_library(nd4jcpu STATIC ../../blas/cpu/NativeOps.cpp ../../blas/cpu/GraphExecutioner.cpp
         ../../blas/cpu/NativeOpExcutioner.cpp ../../blas/cpu/NDArray.cpp ../../blas/cpu/NDArrayFactory.cpp  ../../include/memory/cpu/Workspace.cpp
-        ../../include/cnpy/cnpy.cpp  ../../include/nd4jmemset.h ../../include/nd4jmalloc.h ../../include/ops/declarable/generic/parity_ops.cpp
+        ../../include/cnpy/cnpy.cpp  ../../include/nd4jmemset.h ../../include/nd4jmalloc.h ../../include/ops/declarable/generic/parity_ops.cpp ../../include/ops/declarable/generic/recurrent_ops.cpp
         ../../include/ops/declarable/generic/third_party.cpp ../../include/memory/cpu/Workspace.cpp ../../include/ops/declarable/generic/helpers/impl/convolutions.cpp
         ../../include/ops/declarable/generic/convo/conv2d_ops.cpp ../../blas/Environment.cpp ../../include/graph/impl/Stash.cpp ../../include/indexing/impl/NDIndex.cpp
-        ../../include/indexing/impl/IndicesList.cpp ../../include/graph/impl/Variable.cpp ../../include/graph/impl/VariableSpace.cpp
+        ../../include/indexing/impl/IndicesList.cpp ../../include/graph/impl/Variable.cpp ../../include/graph/impl/VariableSpace.cpp 
         ../../include/graph/impl/ShapeList.cpp ../../include/graph/impl/SessionLocalStorage.cpp ../../include/graph/impl/Node.cpp ../../include/graph/impl/Graph.cpp
         ../../include/graph/impl/Block.cpp ../../include/graph/impl/ArrayList.cpp ../../include/helpers/impl/ArrayUtils.cpp ../../include/helpers/impl/helper_hash.cpp
         ../../include/helpers/impl/TAD.cpp ../../include/ops/impl/specials_sparse.cpp ../../include/helpers/impl/shape.cpp ../../include/ops/declarable/impl/DeclarableOp.cpp ../../include/ops/declarable/DeclarableOp.h

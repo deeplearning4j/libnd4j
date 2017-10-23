@@ -1547,6 +1547,7 @@ TEST_F(NDArrayTest, AdditionOperator1) {
 
     ASSERT_TRUE(input2.equalsTo(&expected));
 
+}
 
 TEST_F(NDArrayTest, TestMatmMul_Again_1) {
     NDArray<double> a('c', {3, 4, 1});
@@ -1586,6 +1587,4 @@ TEST_F(NDArrayTest, TestMatmMul_Again_2) {
     c_->printBuffer("c_");
 
     ASSERT_TRUE(c.equalsTo(c_));
-
-
 }
