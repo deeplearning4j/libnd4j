@@ -76,7 +76,8 @@ namespace nd4j {
         DECLARE_CUSTOM_OP(sru_taolei87, 5, 2, false, 0, 0);
         DECLARE_CUSTOM_OP(sru1, 5, 2, false, 0, 0);
         DECLARE_CUSTOM_OP(sru2, 5, 2, false, 0, 0);
-        DECLARE_CUSTOM_OP(sru_bp, 8, 4, false, 0, 0);        
+        DECLARE_CUSTOM_OP(sru_bp_1, 8, 4, true, 0, 0);        
+        DECLARE_CUSTOM_OP(sru_bp_2, 8, 4, true, 0, 0);        
 
 
         DECLARE_CONFIGURABLE_OP(tensormmul, 2, 1, false, 0, -1);   // should become custom
