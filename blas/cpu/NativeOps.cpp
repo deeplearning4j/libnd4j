@@ -3190,6 +3190,9 @@ Nd4jStatus realExec(nd4j::ops::DeclarableOp<T>* op, Nd4jPointer* extraPointers, 
         auto shape = (int *) outputShapes[e];
 
 
+        if (buffer == nullptr || shape == nullptr)
+            continue;
+
         NDArray<T> externalRef(buffer, shape);
 
         std::pair<int, int> pair(nodeId, e);
