@@ -2119,7 +2119,7 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
 
     ////////////////////////////////////////////////////////////////////////
     template<typename T>
-    NDArray<T>* NDArray<T>::subarray(const std::vector<std::vector<int>>& idx) const {    
+    NDArray<T>* NDArray<T>::subarray(const Intervals& idx) const {    
         
         if (idx.size() != this->rankOf())
             throw "NDArray::subarray: number of indices should match with rank of array!";
@@ -2535,7 +2535,7 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
 
     ////////////////////////////////////////////////////////////////////////    
     template<typename T>
-    void NDArray<T>::assign(const NDArray<T>& other, const std::vector<std::vector<int>>& idx) {
+    void NDArray<T>::assign(const NDArray<T>& other, const Intervals& idx) {
 
         NDArray<T>* subarr = this->subarray(idx);
         subarr->assign(&other);

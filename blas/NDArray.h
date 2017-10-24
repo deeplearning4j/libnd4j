@@ -96,7 +96,7 @@ namespace nd4j {
 
         NDArray<T>* subarray(const std::initializer_list<NDIndex*>& idx) const;
 
-        NDArray<T>* subarray(const std::vector<std::vector<int>>& idx) const;
+        NDArray<T>* subarray(const Intervals& idx) const;
 
         nd4j::memory::Workspace* getWorkspace() const {
             return _workspace;
@@ -465,7 +465,7 @@ namespace nd4j {
         // mathematical multiplication of two arrays
         friend NDArray<T> mmul<>(const NDArray<T>& left, const NDArray<T>& right);
 
-        void assign(const NDArray<T>& other, const std::vector<std::vector<int>>& idx);
+        void assign(const NDArray<T>& other, const Intervals& idx);
 
         // default destructor
         ~NDArray(); 
