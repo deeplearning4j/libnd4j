@@ -17,7 +17,9 @@ namespace  nd4j {
         std::initializer_list<std::vector<int>> _content;
 
     public:
-        
+
+        Intervals() { }
+
         // default constructor
         Intervals(const std::initializer_list<std::vector<int>>& content): _content(content) { }    
         
