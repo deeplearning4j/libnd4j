@@ -18,8 +18,6 @@ namespace  nd4j {
 
     public:
 
-        Intervals() { }
-
         // default constructor
         Intervals();
         
