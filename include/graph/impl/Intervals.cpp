@@ -6,9 +6,10 @@
 namespace nd4j {
 
     // default constructor
-    // Intervals::Intervals(const std::initializer_list<std::vector<int>>& content): _content(content) {
-
-    // } 
+    Intervals::Intervals(): _content({{}}) {}
+        
+    // constructor
+    Intervals::Intervals(const std::initializer_list<std::vector<int>>& content ): _content(content) {}
     
     //////////////////////////////////////////////////////////////////////////
     // accessing operator
