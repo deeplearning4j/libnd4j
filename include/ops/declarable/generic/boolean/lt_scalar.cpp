@@ -17,5 +17,6 @@ namespace nd4j {
             else
                 return ND4J_STATUS_FALSE;
         }
+        DECLARE_SYN(Less, lt_scalar);
     }
 }
