@@ -433,9 +433,6 @@ namespace nd4j {
         NDArray<T>* varianceAlongDimension(const bool biasCorrected, const std::initializer_list<int>& dimensions) const;
 
         // operator returns sub-array with buffer pointing at this->_buffer with certain offset
-        // NDArray<T> operator()(const std::vector<std::vector<int>>& idx)  const;        
-
-        // operator returns sub-array with buffer pointing at this->_buffer with certain offset
         NDArray<T> operator()(const Intervals& idx)  const;
 
         // addition operator array + array

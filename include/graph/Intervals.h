@@ -19,7 +19,7 @@ namespace  nd4j {
     public:
         
         // default constructor
-        Intervals(const std::initializer_list<std::vector<int>>& content = {{}});        
+        Intervals(const std::initializer_list<std::vector<int>>& content): _content(content) { }    
         
         // accessing operator
         std::vector<int> operator[](const int i) const;
