@@ -17,5 +17,6 @@ namespace nd4j {
                 return ND4J_STATUS_FALSE;
         }
         DECLARE_SYN(NotEquals, neq_scalar);
+        DECLARE_SYN(notequals, neq_scalar);
     }
 }
