@@ -86,10 +86,10 @@ namespace nd4j {
         DECLARE_CUSTOM_OP(unstack, 1, -1, false, 0, 1);
         DECLARE_CUSTOM_OP(im2col, 1, 1, false, 0, 9);
         DECLARE_CUSTOM_OP(col2im, 1, 1, false, 0, 9);
-
-
         DECLARE_CUSTOM_OP(strided_slice, 1, 1, true, 0, -1); // TODO: new op type needed. that returns VIEW
-        DECLARE_CUSTOM_OP(sru_taolei87, 5, 2, false, 0, 0);
+
+
+        // recurrent ops
         DECLARE_CUSTOM_OP(sru1, 5, 2, false, 0, 0);
         DECLARE_CUSTOM_OP(sru2, 5, 2, false, 0, 0);
         DECLARE_CUSTOM_OP(sru_bp_1, 8, 4, true, 0, 0);
