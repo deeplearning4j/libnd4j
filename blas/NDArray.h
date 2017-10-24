@@ -1,7 +1,6 @@
 #ifndef NDARRAY_H
 #define NDARRAY_H
 
-
 #include <initializer_list>
 #include "NativeOps.h"
 #include <shape.h>
@@ -9,6 +8,7 @@
 #include <memory/Workspace.h>
 #include <indexing/NDIndex.h>
 #include <indexing/IndicesList.h>
+#include <graph/Intervals.h>
 
 namespace nd4j {
 
@@ -433,7 +433,10 @@ namespace nd4j {
         NDArray<T>* varianceAlongDimension(const bool biasCorrected, const std::initializer_list<int>& dimensions) const;
 
         // operator returns sub-array with buffer pointing at this->_buffer with certain offset
-        NDArray<T> operator()(const std::vector<std::vector<int>>& idx)  const;        
+        // NDArray<T> operator()(const std::vector<std::vector<int>>& idx)  const;        
+
+        // operator returns sub-array with buffer pointing at this->_buffer with certain offset
+        NDArray<T> operator()(const Intervals& idx)  const;
 
         // addition operator array + array
         NDArray<T> operator+(const NDArray<T>& other) const;

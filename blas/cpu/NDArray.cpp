@@ -2370,8 +2370,40 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
 
     ////////////////////////////////////////////////////////////////////////
     // operator returns sub-array with buffer pointing at this->_buffer + certain offset
+    // template<typename T>
+    // NDArray<T> NDArray<T>::operator()(const std::vector<std::vector<int>>& idx)  const {
+    
+    //     if (idx.size() != this->rankOf())
+    //         throw "NDArray::operator(): number of indices should match with rank of array!";
+
+    //     int *newShape;
+    //     ALLOCATE(newShape, _workspace, shape::shapeInfoLength(this->rankOf()), int);
+    //     memcpy(newShape, this->_shapeInfo, shape::shapeInfoByteLength(this->rankOf()));
+    //     newShape[shape::shapeInfoLength(this->rankOf()) - 2] = -1;
+
+    //     int *shapeOf = shape::shapeOf(newShape);
+    //     int *stridesOf = shape::stride(newShape);
+
+    //     Nd4jIndex offset = 0;                
+    //     for (int d = 0; d < idx.size(); ++d) {
+    //         // building new shape first            
+    //         if (!idx[d].empty()) {                        
+    //             if (idx[d].size() != 2)
+    //                 throw "NDArray::operator(): the interval must contain only two numbers {first, last} !";
+    //             shapeOf[d] = idx[d][1] - idx[d][0];
+    //             // for offset we're taking only the first index                
+    //             offset += idx[d][0] * stridesOf[d];
+    //         }
+    //     }
+    //     NDArray<T> result(this->_buffer + offset, newShape, this->_workspace);        
+
+    //     return result;
+    // }
+
+    ////////////////////////////////////////////////////////////////////////
+    // operator returns sub-array with buffer pointing at this->_buffer + certain offset
     template<typename T>
-    NDArray<T> NDArray<T>::operator()(const std::vector<std::vector<int>>& idx)  const {
+    NDArray<T> NDArray<T>::operator()(const Intervals& idx)  const {
     
         if (idx.size() != this->rankOf())
             throw "NDArray::operator(): number of indices should match with rank of array!";
@@ -2399,7 +2431,6 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
 
         return result;
     }
-
     ////////////////////////////////////////////////////////////////////////
     // addition operator array + array
     template<typename T>
