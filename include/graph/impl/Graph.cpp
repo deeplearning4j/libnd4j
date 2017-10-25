@@ -466,6 +466,8 @@ namespace nd4j {
 
         template <typename T>
         Nd4jStatus nd4j::graph::Graph<T>::buildGraph() {
+            int buildCnt = 0;
+            int buildLimit = _unmapped.size() * 2;
             while (_unmapped.size() > 0) {
 
                 // first pass for unmapped nodes, we try to build tale here
@@ -568,6 +570,11 @@ namespace nd4j {
                 }
 
                 // second pass is mover, we'll be moving onion layers around here
+                buildCnt++;
+                if (buildCnt > buildLimit) {
+                    nd4j_printf("Unable to build graph, probably unmapped nodes, or something: %i nodes left", _unmapped.size());
+                    throw "Unable to build graph";
+                }
             }
 
             if (_unmapped.size() == 0)
