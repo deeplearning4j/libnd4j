@@ -329,3 +329,12 @@ TEST_F(FlatBuffersTest, ReadInception1) {
 
     delete graph;
 }
+
+
+TEST_F(FlatBuffersTest, ReadLoops_3argsWhile_1) {
+    auto graph = GraphExecutioner<float>::importFromFlatBuffers("../../../tests_cpu/resources/three_args_while.fb");
+
+    Nd4jStatus status = GraphExecutioner<float>::execute(graph);
+
+    ASSERT_EQ(ND4J_STATUS_OK, status);
+}

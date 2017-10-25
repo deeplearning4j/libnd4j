@@ -476,7 +476,11 @@ namespace nd4j {
                     // single-input node
                     if (node->input()->size() == 1) {
 
-                        nd4j_logger("Trying SI Node_%i\n", node->id());
+                        if (node->getName() == nullptr) {
+                            nd4j_debug("Trying SI Node_%i\n", node->id());
+                        } else {
+                            nd4j_debug("Trying SI Node_%i:[%s]\n", node->id(), node->getName());
+                        }
 
 
                         int iNode = node->input()->at(0).first;
