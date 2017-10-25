@@ -2438,14 +2438,14 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
 
         return result;
     }
-
+#ifndef _MSC_VER
     ////////////////////////////////////////////////////////////////////////
     // addition operator scalar + array
     template<typename T>
     NDArray<T> operator+(const T scalar, const NDArray<T>& arr) {
         return arr + scalar;
     }
-
+#endif
     ////////////////////////////////////////////////////////////////////////
     // subtraction operator array - array
     template<typename T>
@@ -2493,8 +2493,8 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
 
     ////////////////////////////////////////////////////////////////////////
     // subtraction operator scalar - array
-    NDArray<float> operator-(const float scalar, const NDArray<float>& arr) {
-
+    ND4J_EXPORT NDArray<float> operator-(const float scalar, const NDArray<float>& arr) {
+        
         NDArray<float> result(arr._shapeInfo, arr._workspace);
         functions::scalar::ScalarTransform<float>::template transform<simdOps::ReverseSubtract<float>>(arr._buffer, arr._shapeInfo, result._buffer, result._shapeInfo, scalar, nullptr);
 
@@ -2502,8 +2502,8 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
     }
 
     // subtraction operator scalar - array
-    NDArray<float16> operator-(const float16 scalar, const NDArray<float16>& arr) {
-
+    ND4J_EXPORT NDArray<float16> operator-(const float16 scalar, const NDArray<float16>& arr) {
+        
         NDArray<float16> result(arr._shapeInfo, arr._workspace);
         functions::scalar::ScalarTransform<float16>::template transform<simdOps::ReverseSubtract<float16>>(arr._buffer, arr._shapeInfo, result._buffer, result._shapeInfo, scalar, nullptr);
 
@@ -2511,8 +2511,8 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
     }
 
     // subtraction operator scalar - array
-    NDArray<double> operator-(const double scalar, const NDArray<double>& arr) {
-
+    ND4J_EXPORT NDArray<double> operator-(const double scalar, const NDArray<double>& arr) {
+        
         NDArray<double> result(arr._shapeInfo, arr._workspace);
         functions::scalar::ScalarTransform<double>::template transform<simdOps::ReverseSubtract<double>>(arr._buffer, arr._shapeInfo, result._buffer, result._shapeInfo, scalar, nullptr);
 
