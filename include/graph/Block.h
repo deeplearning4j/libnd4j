@@ -32,7 +32,7 @@ namespace nd4j {
             nd4j::memory::Workspace* _workspace;
 
             // int ids of the input nodes
-            std::vector<int> _inputs;
+            std::vector<std::pair<int, int>> _inputs;
             std::vector<nd4j::graph::Variable<T> *> _variables;
             nd4j::graph::VariableSpace<T>* _variableSpace;
             std::pair<Nd4jIndex, Nd4jIndex> _executionTime;
@@ -88,10 +88,12 @@ namespace nd4j {
             void pickInput(int input);
             void fillInputs(std::initializer_list<int> inputs);
             void fillInputs(std::vector<int>& inputs);
-            std::vector<int>* inputs();
+            std::vector<std::pair<int, int>>* inputs();
 
             int getBranch();
             void setBranch(int branch);
+
+            void updateVariables();
 
             /**
              * This method returns number of inputs available in this block

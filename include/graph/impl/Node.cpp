@@ -378,7 +378,8 @@ namespace nd4j {
                     this->_name = node->name()->str();
                 }
 
-                nd4j_verbose("Pulled node_%i (%s)\n", node->id(), this->_name.c_str())
+                if (node->id() == 12)
+                    nd4j_verbose("Pulled node_%i (%s)\n", node->id(), this->_name.c_str())
 
                 if (node->inputPaired() != nullptr && node->inputPaired()->size() > 0) {
                     for (int e = 0; e < (int) node->inputPaired()->size(); e++) {
@@ -445,6 +446,10 @@ namespace nd4j {
 
                         auto block = new Block<T>(this->id(), nullptr, false);
 
+                        for (int e = 0; e < this->input()->size(); e++) {
+                            block->inputs()->emplace_back(this->input()->at(e));
+                        }
+
                         // there's no other IArgs in legacy options, actually
                         for (auto v: _dimensions)
                             block->getIArguments()->emplace_back(v);
@@ -464,6 +469,10 @@ namespace nd4j {
                     }
 
                     auto block = new Block<T>(this->id(), nullptr);
+
+                    for (int e = 0; e < this->input()->size(); e++) {
+                        block->inputs()->emplace_back(this->input()->at(e));
+                    }
 
                     if (node->extraInteger() != nullptr)
                         for (uint32_t e = 0; e < node->extraInteger()->size(); e++)

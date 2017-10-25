@@ -305,7 +305,18 @@ namespace nd4j {
             // storing node state now
             _variableSpace->putVariable(node->id(), nodeState);
 
-            if (node->hasCustomOp()) {
+            // here we're filling our blocks with future variables
+            if (node->opType() == OpType_LOGIC && node->opNum() == 0) {
+                // filling while
+                int inputs = node->input()->size();
+                for (int e = 0; e < inputs - 2; e++){
+                    auto deepVar = new Variable<T>(nullptr, nullptr, node->id(), e);
+
+                    std::pair<int,int> id(node->id(), e);
+                    _variableSpace->putVariable(id, deepVar);
+                }
+
+            } else if (node->hasCustomOp()) {
                 // custom ops require Block inside. but we'll set it inside buildGraph
 
                 // TODO: we want to change this, to make blocks thread-local/session-local

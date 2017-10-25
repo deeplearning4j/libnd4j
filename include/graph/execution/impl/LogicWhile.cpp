@@ -20,6 +20,22 @@ namespace nd4j {
                 return ND4J_STATUS_BAD_INPUT;
             }
 
+            for (int e = 0; e < inputs - 2; e++) {
+                std::pair<int, int> pair(node->id(), e);
+                if (!__variableSpace->hasVariable(pair)) {
+                    __variableSpace->putVariable(pair, new Variable<T>(nullptr, nullptr, node->id(), e));
+                }
+
+                auto inputVar = __variableSpace->getVariable(node->input()->at(e));
+
+                auto innerVar = __variableSpace->getVariable(pair);
+                if (innerVar->hasNDArray()) {
+                    // TODO: ???
+                } else {
+                    innerVar->setNDArray(inputVar->getNDArray()->dup(inputVar->getNDArray()->ordering()));
+                }
+            }
+
             int scopeConditionIndex = node->input()->at(inputs - 2).first;
             int scopeBodyIndex = node->input()->at(inputs - 1).first;
 
@@ -33,8 +49,12 @@ namespace nd4j {
                 // we're running condition scope first
                 nd4j_debug("While [%i]: got [%i] ops in condition scope [%i]\n", node->id(), scope->nodes()->size(), scopeConditionIndex);
 
-                for (auto v: *scope->nodes()) {
-                    GraphExecutioner<T>::executeFlatNode(graph, v, __variableSpace);
+                for (Node<T>* v: *scope->nodes()) {
+                    v->getBlock()->updateVariables();
+                    Nd4jStatus status = GraphExecutioner<T>::executeFlatNode(graph, v, __variableSpace);
+                    if (status != ND4J_STATUS_OK)
+                        return  status;
+
                     lastNode = v->id();
                 }
 
@@ -57,7 +77,10 @@ namespace nd4j {
                     int lastNode = 0;
                     nd4j_debug("While [%i] got [%i] ops in condition scope [%i]\n", node->id(), scopeBody->nodes()->size(), scopeBodyIndex);
                     for (auto v: *scopeBody->nodes()) {
-                        GraphExecutioner<T>::executeFlatNode(graph, v, __variableSpace);
+                        Nd4jStatus status = GraphExecutioner<T>::executeFlatNode(graph, v, __variableSpace);
+                        if (status != ND4J_STATUS_OK)
+                            return  status;
+
                         lastNode = v->id();
                     }
                 }

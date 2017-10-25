@@ -110,7 +110,8 @@ namespace nd4j {
 
         template <typename T>
         void Block<T>::pickInput(int input) {
-            _inputs.emplace_back(input);
+            std::pair<int, int> pair(input, 0);
+            _inputs.emplace_back(pair);
 
             if (!_variableSpace->hasVariable(input))
                 throw "Unknown variable was referenced";
@@ -125,6 +126,15 @@ namespace nd4j {
             }
         }
 
+        template <typename T>
+        void Block<T>::updateVariables() {
+            _variables.clear();
+            auto x = _inputs.size();
+            for (auto &v:_inputs) {
+                auto var = _variableSpace->getVariable(v);
+                _variables.emplace_back(var);
+            }
+        }
 
         template <typename T>
         int Block<T>::getBranch() {
@@ -155,7 +165,7 @@ namespace nd4j {
         }
 
         template <typename T>
-        std::vector<int>* nd4j::graph::Block<T>::inputs() {
+        std::vector<std::pair<int, int>>* nd4j::graph::Block<T>::inputs() {
             return &_inputs;
         }
 

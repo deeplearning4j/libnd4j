@@ -349,6 +349,7 @@ namespace nd4j {
                     } else {
                         nd4j_printf("Node [%i:<%s>]: Variable [%i] (%i:%i) is NULL\n", block.getNodeId(), cnt, 0, 0);
                     }
+                    throw "Bad input";
                 }
 
                 NDArray<T> *aV = v->getNDArray();
