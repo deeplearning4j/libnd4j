@@ -23,6 +23,11 @@ namespace nd4j {
                 case 30:
                     return LogicSwitch<T>::processNode(graph, node);
             }
+            if (node->getName() == nullptr) {
+                nd4j_printf("Unknown LogicOp used at node [%i]: [%i]\n", node->id(), node->opNum());
+            } else {
+                nd4j_printf("Unknown LogicOp used at node [%i:<%s>]: [%i]\n", node->id(), node->getName()->c_str(), node->opNum());
+            }
             return ND4J_STATUS_BAD_INPUT;
         }
 
