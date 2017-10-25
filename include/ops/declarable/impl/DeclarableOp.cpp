@@ -345,9 +345,9 @@ namespace nd4j {
             for (auto v: *block.getVariables()) {
                 if (v == nullptr) {
                     if (this->getOpName() != nullptr) {
-                        nd4j_printf("Node [%i:<%s>]: Variable [%i] is NULL\n", block.getNodeId(), this->getOpName()->c_str(), cnt);
+                        nd4j_printf("Node [%i:<%s>]: Variable [%i] (%i:%i) is NULL\n", block.getNodeId(), this->getOpName()->c_str(), cnt, 0, 0);
                     } else {
-                        nd4j_printf("Node [%i:<%s>]: Variable [%i] is NULL\n", block.getNodeId(), cnt);
+                        nd4j_printf("Node [%i:<%s>]: Variable [%i] (%i:%i) is NULL\n", block.getNodeId(), cnt, 0, 0);
                     }
                 }
 

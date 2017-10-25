@@ -88,6 +88,7 @@ namespace nd4j {
             void pickInput(int input);
             void fillInputs(std::initializer_list<int> inputs);
             void fillInputs(std::vector<int>& inputs);
+            std::vector<int>* inputs();
 
             int getBranch();
             void setBranch(int branch);

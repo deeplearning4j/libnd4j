@@ -15,12 +15,16 @@ namespace nd4j {
             int scopeConditionIndex = node->input()->at(0).first;
             int scopeBodyIndex = node->input()->at(1).first;
 
+            nd4j_debug("While [%i] got [%i] inputs\n", node->id(), node->input()->size());
+
             // we're running condition nodes now
             auto scope = graph->scopeById(scopeConditionIndex);
             int breaker = 0;
             while (true && breaker < 10000000) {
                 int lastNode = 0;
                 // we're running condition scope first
+                nd4j_debug("While [%i] got [%i] ops in condition scope [%i]\n", node->id(), scope->nodes()->size(), scopeConditionIndex);
+
                 for (auto v: *scope->nodes()) {
                     GraphExecutioner<T>::executeFlatNode(graph, v, __variableSpace);
                     lastNode = v->id();
@@ -38,6 +42,7 @@ namespace nd4j {
                 else {
                     auto scopeBody = graph->scopeById(scopeBodyIndex);
                     int lastNode = 0;
+                    nd4j_debug("While [%i] got [%i] ops in condition scope [%i]\n", node->id(), scopeBody->nodes()->size(), scopeBodyIndex);
                     for (auto v: *scopeBody->nodes()) {
                         GraphExecutioner<T>::executeFlatNode(graph, v, __variableSpace);
                         lastNode = v->id();

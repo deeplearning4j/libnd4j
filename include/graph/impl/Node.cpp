@@ -359,6 +359,13 @@ namespace nd4j {
             _extraParams = nullptr;
             _dim = nullptr;
 
+            if (node->scope_id() != 0)
+                this->_scope_id = node->scope_id();
+
+            if (node->scope_name() != nullptr && node->scope_name()->size() > 0)
+                this->_scope_name = node->scope_name()->str();
+
+
             _scalar = node->scalar();
 
             if (node != nullptr) {

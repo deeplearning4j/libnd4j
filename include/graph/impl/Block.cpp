@@ -155,6 +155,11 @@ namespace nd4j {
         }
 
         template <typename T>
+        std::vector<int>* nd4j::graph::Block<T>::inputs() {
+            return &_inputs;
+        }
+
+        template <typename T>
         void nd4j::graph::Block<T>::setOuterTime(Nd4jIndex time){
             _executionTime.first = time;
         }
