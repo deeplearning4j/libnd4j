@@ -343,6 +343,14 @@ namespace nd4j {
 
             int cnt = 0;
             for (auto v: *block.getVariables()) {
+                if (v == nullptr) {
+                    if (this->getOpName() != nullptr) {
+                        nd4j_printf("Node [%i:<%s>]: Variable [%i] is NULL\n", block.getNodeId(), this->getOpName()->c_str(), cnt);
+                    } else {
+                        nd4j_printf("Node [%i:<%s>]: Variable [%i] is NULL\n", block.getNodeId(), cnt);
+                    }
+                }
+
                 NDArray<T> *aV = v->getNDArray();
 
                 if (aV == nullptr || !aV->nonNull())

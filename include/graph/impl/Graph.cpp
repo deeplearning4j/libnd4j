@@ -484,9 +484,41 @@ namespace nd4j {
                             nd4j_debug("Trying SI Node_%i:[%s]\n", node->id(), node->getName()->c_str());
                         }
 
+                        if (node->id() == 2)
+                            nd4j_debug("pew-pew\n", "pew");
+
 
                         int iNode = node->input()->at(0).first;
-                        if (_mapped->count(iNode) > 0) {
+                        if (iNode < 0) {
+                            // this is external variable, should we check, who's the last user of this variable?
+                            int lastLayer = _onion->size();
+                            expandOnion(lastLayer);
+
+                            node->setLayer(lastLayer);
+
+                            this->injectNode(node);
+
+                            if (node->hasCustomOp()) {
+                                Block<T>* block = nullptr;
+
+                                if (!node->hasBlockAttached()) {
+                                    block = new Block<T>(node->id(), _variableSpace);
+                                    node->setBlock(block);
+                                } else
+                                    block = node->getBlock();
+
+
+                                if (!block->hasVariablesFilled()) {
+                                    block->setVariableSpace(_variableSpace);
+
+                                    for (uint32_t e = 0; e < node->input()->size(); e++) {
+                                        auto var = _variableSpace->getVariable(node->input()->at(e));
+
+                                        block->getVariables()->emplace_back(var);
+                                    }
+                                }
+                            }
+                        } else if (_mapped->count(iNode) > 0) {
                             int maxLayer = _mapped->at(iNode)->getLayer() + 1;
 
                             node->setLayer(maxLayer);

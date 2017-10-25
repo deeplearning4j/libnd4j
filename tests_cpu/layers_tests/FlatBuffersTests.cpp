@@ -334,6 +334,17 @@ TEST_F(FlatBuffersTest, ReadInception1) {
 TEST_F(FlatBuffersTest, ReadLoops_3argsWhile_1) {
     auto graph = GraphExecutioner<float>::importFromFlatBuffers("../../../tests_cpu/resources/three_args_while.fb");
 
+    ASSERT_TRUE(graph != nullptr);
+
+    NDArray<float> expPhi('c', {2, 2});
+
+    ASSERT_TRUE(graph->getVariableSpace()->hasVariable(-1));
+    ASSERT_TRUE(graph->getVariableSpace()->hasVariable(-2));
+
+    auto phi = graph->getVariableSpace()->getVariable(-2)->getNDArray();
+
+    ASSERT_TRUE(expPhi.isSameShape(phi));
+
     Nd4jStatus status = GraphExecutioner<float>::execute(graph);
 
     ASSERT_EQ(ND4J_STATUS_OK, status);
