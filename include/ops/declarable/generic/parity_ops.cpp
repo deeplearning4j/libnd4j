@@ -440,13 +440,19 @@ namespace nd4j {
 
 /////////////////////////////////////////
         OP_IMPL(assign, 2, 1, false) {
-            REQUIRE_OK(this->validateInputLengthMatch(block));
-            REQUIRE_OK(this->validateInputDimensionsMatch(block));
-
             NDArray<T> *x = INPUT_VARIABLE(0);
             NDArray<T> *y = INPUT_VARIABLE(1);
 
-            x->assign(y);
+            if (y->isScalar()) {
+
+                x->assign(y->getScalar(0));
+            } else {
+                REQUIRE_OK(this->validateInputLengthMatch(block));
+                REQUIRE_OK(this->validateInputDimensionsMatch(block));
+
+                x->assign(y);
+            }
+
 
             STORE_RESULT(*x);
 
