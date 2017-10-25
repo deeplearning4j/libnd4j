@@ -2524,13 +2524,24 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
     template<typename T>
     NDArray<T> NDArray<T>::operator*(const NDArray<T>& other) const {
         if (other.lengthOf() != lengthOf())
-            throw std::invalid_argument("NDArray::operator- method: lengths of arrays are mismatched !");
+            throw std::invalid_argument("NDArray::operator * method: lengths of arrays are mismatched !");
 
         NDArray<T> result(this->_shapeInfo, this->_workspace);
         functions::pairwise_transforms::PairWiseTransform<T>::template exec<simdOps::Multiply<T>>(this->_buffer, this->_shapeInfo, other._buffer, other._shapeInfo, result._buffer, result._shapeInfo, nullptr);
 
         return result;
     }
+
+    ////////////////////////////////////////////////////////////////////////
+    // multiplication operator array1 *= array2
+    template<typename T>
+    void NDArray<T>::operator*=(const NDArray<T>& other) {    
+        if (other.lengthOf() != lengthOf())
+            throw std::invalid_argument("NDArray::operator *= method: lengths of arrays are mismatched !");
+        
+        functions::pairwise_transforms::PairWiseTransform<T>::template exec<simdOps::Multiply<T>>(this->_buffer, this->_shapeInfo, other._buffer, other._shapeInfo, this->_buffer, this->_shapeInfo, nullptr);
+    }
+
 
     ////////////////////////////////////////////////////////////////////////
     // mathematical multiplication of two arrays
