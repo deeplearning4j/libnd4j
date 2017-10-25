@@ -481,7 +481,7 @@ namespace nd4j {
                         if (node->getName() == nullptr) {
                             nd4j_debug("Trying SI Node_%i\n", node->id());
                         } else {
-                            nd4j_debug("Trying SI Node_%i:[%s]\n", node->id(), node->getName());
+                            nd4j_debug("Trying SI Node_%i:[%s]\n", node->id(), node->getName()->c_str());
                         }
 
 
