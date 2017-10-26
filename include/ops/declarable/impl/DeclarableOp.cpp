@@ -281,7 +281,7 @@ namespace nd4j {
              * If number of args is variable (-1), but variables MUST be present - we check for non-zero number of arguments
              */
             if (_descriptor->getNumberOfTArgs() > 0) {
-                if ((int) block.getTArguments()->size() != _descriptor->getNumberOfTArgs()) {
+                if ((int) block.getTArguments()->size() < _descriptor->getNumberOfTArgs()) {
                     nd4j_debug("% T args expected, but %i received", _descriptor->getNumberOfTArgs(), block.getTArguments()->size());
                     return ND4J_STATUS_BAD_PARAMS;
                 }
@@ -291,7 +291,7 @@ namespace nd4j {
                     return ND4J_STATUS_BAD_PARAMS;
 
             if (_descriptor->getNumberOfIArgs() > 0) {
-                if ((int) block.getIArguments()->size() != _descriptor->getNumberOfIArgs()) {
+                if ((int) block.getIArguments()->size() < _descriptor->getNumberOfIArgs()) {
                     nd4j_debug("% int args expected, but %i received", _descriptor->getNumberOfIArgs(), block.getIArguments()->size());
                     return ND4J_STATUS_BAD_PARAMS;
                 }
@@ -459,8 +459,10 @@ namespace nd4j {
                 block.getIArguments()->emplace_back(iArgs.at(e));
 
             Nd4jStatus status = this->execute(&block);
+            arrayList->setStatus(status);
             if (status != ND4J_STATUS_OK)
                 return arrayList;
+
 
             for (int e = 0; e < 65536; e++) {
                 std::pair<int,int> pair(1, e);
