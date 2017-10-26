@@ -3162,17 +3162,6 @@ Nd4jStatus realExec(nd4j::ops::DeclarableOp<T>* op, Nd4jPointer* extraPointers, 
         inputs.push_back(new nd4j::NDArray<T>(buffer, shape));
     }
 
-    /*
-    for (int e = 0; e < numOutputs; e++) {
-        auto buffer = (T *) outputBuffers[e];
-        auto shape = (int *) outputShapes[e];
-
-        auto var = new Variable<T>(new NDArray<T>(buffer, shape));
-        std::pair<int, int> pair(nodeId, e);
-        variableSpace.putVariable(pair, var);
-    }
-     */
-
     for (int e = 0; e < numIArgs; e++) {
         iiArgs.push_back(iArgs[e]);
     }
@@ -3196,9 +3185,6 @@ Nd4jStatus realExec(nd4j::ops::DeclarableOp<T>* op, Nd4jPointer* extraPointers, 
         auto shape = (int *) outputShapes[e];
         NDArray<T> tmp(buffer, shape);
 
-        tmp.printShapeInfo("t");
-        result->at(e)->printShapeInfo("z");
-
         tmp.assign(result->at(e));
     }
 
@@ -3212,34 +3198,6 @@ Nd4jStatus realExec(nd4j::ops::DeclarableOp<T>* op, Nd4jPointer* extraPointers, 
 
 
     return ND4J_STATUS_OK;
-
-/*
-    if (!isInplace)
-        for (int e = 0; e < numOutputs; e++) {
-            auto buffer = (T *) outputBuffers[e];
-            auto shape = (int *) outputShapes[e];
-
-
-            if (buffer == nullptr || shape == nullptr)
-                continue;
-
-            NDArray<T> externalRef(buffer, shape);
-
-            std::pair<int, int> pair(nodeId, e);
-            if (!variableSpace.hasVariable(pair))
-                continue;
-
-            auto array = variableSpace.getVariable(pair)->getNDArray();
-
-            if (array->getBuffer() != buffer || array->getShapeInfo() != shape)
-                externalRef.assign(array);
-        }
-
-*/
-    // TODO: we need to destroy vars properly
-    // but hopefully c++ will do that for us
-
- //   return status;
 }
 
 int NativeOps::execCustomOpFloat(Nd4jPointer* extraPointers, Nd4jIndex hash, Nd4jPointer* inputBuffers, Nd4jPointer* inputShapes, int numInputs, Nd4jPointer* outputBuffers, Nd4jPointer* outputShapes, int numOutputs, float* tArgs, int numTArgs, int *iArgs, int numIArgs, bool isInplace) {
