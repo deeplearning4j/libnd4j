@@ -598,7 +598,7 @@ CUSTOM_OP_IMPL(sru_bi, 5, 2, true, 0, 0) {
 
         if (flip) {
             pInputVal  += (N-1)*ncols;
-            pInputVal  += (N-1)*ncolsWi;
+            pWiVal     += (N-1)*ncolsWi;
             pOutputVal += (N-1)*ncols;
             pStateVal  += (N-1)*ncols;
         }
@@ -630,9 +630,9 @@ DECLARE_SHAPE_FN(sru_bi) {
     int* inShape = inputShape->at(0);   // [N x bS x 2K ]
     int rank = inShape[0];              // = 3
     int size = rank*2 + 4;        
-    int N    = inShape[0];
-    int bS   = inShape[1];
-    int K    = inShape[2] / 2;
+    int N    = inShape[1];
+    int bS   = inShape[2];
+    int K    = inShape[3] / 2;
     
     char order = (char)(inShape[size-1]);
 
@@ -666,7 +666,7 @@ CUSTOM_OP_IMPL(sru_bi_bp, 8, 4, true, 0, 0) {
     NDArray<T>* inGradH  = INPUT_VARIABLE(7);                // [N x bS x 2K]
 
     NDArray<T>* gradInput   = OUTPUT_VARIABLE(0);              // [N x bS x 2K]
-    NDArray<T>* gradWeights = OUTPUT_VARIABLE(1);              // [bS x 2K x 6K]
+    NDArray<T>* gradWeights = OUTPUT_VARIABLE(1);              // [N x 2K x 6K]
     NDArray<T>* gradB       = OUTPUT_VARIABLE(2);              // [1 x 4K]
     NDArray<T>* gradInit    = OUTPUT_VARIABLE(3);              // [bS x 2K]
 
@@ -677,7 +677,7 @@ CUSTOM_OP_IMPL(sru_bi_bp, 8, 4, true, 0, 0) {
     //  input = input * mask    
     input->template applyBroadcast<simdOps::Multiply<T>>({1, 2}, mask, input, nullptr);             // apply mask    
     // U = input * weights 
-    NDArray<T> wi = mmul(*input, *weights);                    //  U [N x bS x 6K]                
+    NDArray<T> wi = mmul(*input, *weights);                    //  [N x bS x 2K] * [2K x 6K] = [N x bS x 6K]                
 
     NDArray<T> gradBias(input->ordering(), {bS, 4*K},    block.getWorkspace());
     NDArray<T> gradWi  (input->ordering(), {N, bS, 6*K}, block.getWorkspace());
@@ -700,11 +700,13 @@ CUSTOM_OP_IMPL(sru_bi_bp, 8, 4, true, 0, 0) {
     T* const pGradInit  = gradInit->getBuffer();
 
     int ncolsRev, ncolsWiRev;                   // for reverse direction
-    T gbF((T)0.), gbR((T)0.), cur, maskVal, bF, bR, ft, rt, val, prevVal, gft, grt, gradSateVal;
+    T gbF, gbR, cur, maskVal, bF, bR, ft, rt, val, prevVal, gft, grt, gradSateVal;
     bool flip = false;
     T *pInputVal(nullptr), *pWiVal(nullptr),  *pStateVal(nullptr), *pInGradHVal(nullptr), *pGradWiVal(nullptr), *pGradInputVal(nullptr); 
 
     for (int col = 0; col < ncols; ++col) {           
+
+        gbF = gbR = (T)0.;
 
         flip          = (col%d2) >= K;
         maskVal       = *(pMask     + col);    
@@ -718,7 +720,7 @@ CUSTOM_OP_IMPL(sru_bi_bp, 8, 4, true, 0, 0) {
         pGradWiVal    = pGradWi     + 3*col;
         pGradInputVal = pGradInput  + col;                    
 
-        if (flip) {
+        if (!flip) {
             pInputVal     += (N-1)*ncols;
             pWiVal        += (N-1)*ncolsWi;
             pStateVal     += (N-1)*ncols;
@@ -738,17 +740,17 @@ CUSTOM_OP_IMPL(sru_bi_bp, 8, 4, true, 0, 0) {
             val     = nd4j::math::nd4j_tanh<T>(*pStateVal);            
             prevVal = (t < N-1) ? (*(pStateVal - ncolsRev)) : (*(pInit + col));
             // grad wrt input
-            *pGradInputVal = (*pInGradHVal) * ((T)1. - rt);
+            *pGradInputVal = *pInGradHVal - (*pInGradHVal)*rt ;
             // grad wrt rt, wiR and bR
-            grt = (*pInGradHVal) * (val*maskVal - *pInputVal) * (rt * ((T)1. - rt));
+            grt = (*pInGradHVal) * (val*maskVal - *pInputVal) * (rt - rt*rt);
             *(pGradWiVal + 2) = grt;
             gbR += grt;
             // grad wrt state          
-            gradSateVal = (*pInGradHVal) * maskVal * rt * ((T)1. - val*val) + cur;
+            gradSateVal = (*pInGradHVal) * maskVal * (rt - rt*val*val) + cur;
             // grad wrt wi0
-            *pGradWiVal = gradSateVal * ((T)1. - ft);
+            *pGradWiVal = gradSateVal - gradSateVal*ft;
             // grad wrt ft, wi1, and bF
-            gft = gradSateVal * (prevVal - *pWiVal) * (ft * ((T)1. - ft));
+            gft = gradSateVal * (prevVal - *pWiVal) * (ft - ft*ft);
             *(pGradWiVal + 1) = gft;
             gbF += gft;
             // grad wrt c_previous
@@ -769,26 +771,26 @@ CUSTOM_OP_IMPL(sru_bi_bp, 8, 4, true, 0, 0) {
     // gradB    
     gradBias.template reduceAlongDimension<simdOps::Sum<T>>(gradB, {0});    // [1 x 4K]    
 
-    // gradWeights [bS x 2K x 6K]
-    input->permutei({0, 2, 1});                                              // [ N x 2K x bS]
-    *gradWeights = mmul(*input, gradWi);    
-    
+    // gradWeights     
+    input->permutei({0, 2, 1});                                             // [N x bS x 2K] -> [N x 2K x bS]    
+    *gradWeights = mmul(*input, gradWi);                                    // [N x 2K x bS ] * [N x bS x 6K] = [N x 2K x 6K]    
+
     return ND4J_STATUS_OK;
 }
 
 DECLARE_SHAPE_FN(sru_bi_bp) {
 
     int* inShape = inputShape->at(0);   // [N x bS x 2K]
-    int N    = inShape[0];
-    int bS   = inShape[1];
-    int K    = inShape[2] / 2;    
+    int N    = inShape[1];
+    int bS   = inShape[2];
+    int K    = inShape[3] / 2;    
     char order = (char)(inShape[9]);
 
     int *newShapeInfo1(nullptr), *newShapeInfo2(nullptr), *newShapeInfo3(nullptr), *newShapeInfo4(nullptr);
     ALLOCATE(newShapeInfo1, block.getWorkspace(), 10, int);
     ALLOCATE(newShapeInfo2, block.getWorkspace(), 10, int);
     ALLOCATE(newShapeInfo3, block.getWorkspace(), 8, int);
-    ALLOCATE(newShapeInfo4, block.getWorkspace(), 8,  int);    
+    ALLOCATE(newShapeInfo4, block.getWorkspace(), 8, int);    
     
     // gradInput
     newShapeInfo1[0] = 3;
@@ -798,7 +800,7 @@ DECLARE_SHAPE_FN(sru_bi_bp) {
     shape::updateStrides(newShapeInfo1, order);
     // gradWeights
     newShapeInfo2[0] = 3;        
-    newShapeInfo2[1] = bS;
+    newShapeInfo2[1] = N;
     newShapeInfo2[2] = 2*K;
     newShapeInfo2[3] = 6*K;
     shape::updateStrides(newShapeInfo2, order);
