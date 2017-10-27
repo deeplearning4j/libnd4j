@@ -419,7 +419,7 @@ namespace nd4j {
                 if ((!node->hasInternalOutputs() && (_configuration->_outputMode == OutputMode_IMPLICIT || _configuration->_outputMode == OutputMode_EXPLICIT_AND_IMPLICIT)) ) {
                     for (int e = 0;  e < (int) node->output()->size(); e++) {
                         if (node->output()->at(e) < 0)
-                            pushToOutputOnce(node->output()->at(e));
+                            pushToOutputOnce(node->output()->at(e).first);
                     }
 
                     nd4j_logger("Loop finished: %i outputs now\n", this->_output.size());
@@ -453,7 +453,7 @@ namespace nd4j {
                 if (node->hasInternalInputs() && !node->hasExternalInputs() && node->input()->size() == 1) {
 
                     // we only can put single input nodes, whose outputs were not mapped yet
-                    if (_mapped->count(node->input()->at(0).first) == 1 && (node->output()->size() == 0 || _mapped->count(node->output()->at(0)) == 0)) {
+                    if (_mapped->count(node->input()->at(0).first) == 1 && (node->output()->size() == 0 || _mapped->count(node->output()->at(0).first) == 0)) {
                         auto parent = _mapped->at(node->input()->at(0).first);
                         int nLayer = parent->getLayer() + 1;
                         if (_onion->count(nLayer) != 1) {

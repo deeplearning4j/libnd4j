@@ -166,14 +166,16 @@ namespace nd4j {
 
         template <typename T>
         void nd4j::graph::Node<T>::pickExternalOutput(int outputId) {
-            _output.push_back(outputId);
+            std::pair<int, int> pair(outputId, 0);
+            _output.push_back(pair);
 
             _hasExternalOutputs = true;
         }
 
         template <typename T>
         void nd4j::graph::Node<T>::pickOutput(int outputId) {
-            _output.push_back(outputId);
+            std::pair<int, int> pair(outputId, 0);
+            _output.push_back(pair);
 
             if (outputId < 0)
                 _hasExternalOutputs = true;
@@ -257,7 +259,7 @@ namespace nd4j {
         }
 
         template <typename T>
-        std::vector<int> *nd4j::graph::Node<T>::output() {
+        std::vector<std::pair<int, int>> *nd4j::graph::Node<T>::output() {
             return &_output;
         }
 
