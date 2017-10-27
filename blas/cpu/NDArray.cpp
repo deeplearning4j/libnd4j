@@ -2542,6 +2542,13 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
         functions::pairwise_transforms::PairWiseTransform<T>::template exec<simdOps::Multiply<T>>(this->_buffer, this->_shapeInfo, other._buffer, other._shapeInfo, this->_buffer, this->_shapeInfo, nullptr);
     }
 
+    ////////////////////////////////////////////////////////////////////////
+    // multiplication operator array*scalar
+    template<typename T>
+    void NDArray<T>::operator*=(const T scalar) {
+        
+        functions::scalar::ScalarTransform<T>::template transform<simdOps::Multiply<T>>(this->_buffer, this->_shapeInfo, this->_buffer, this->_shapeInfo, scalar, nullptr);
+    }
 
     ////////////////////////////////////////////////////////////////////////
     // mathematical multiplication of two arrays

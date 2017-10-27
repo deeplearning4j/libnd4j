@@ -39,7 +39,13 @@ CUSTOM_OP_IMPL(sru1, 5, 2, false, 0, 0) {
     NDArray<T>* weights = INPUT_VARIABLE(1);                // W, 2d tensor of weights [3K x K]
     NDArray<T>* bias    = INPUT_VARIABLE(2);                // B, row of biases with twice length [1 × 2*K]
     NDArray<T>* init    = INPUT_VARIABLE(3);                // C_{0}, 2d tensor of initial state [bS x K] at time t=0
-    NDArray<T>* mask    = INPUT_VARIABLE(4);                // 2d tensor of dropout mask [bS x K]
+    NDArray<T>* mask    = nullptr;                          // optional,  2d tensor of dropout mask [bS x K]
+
+    bool applyMask = false;        
+    if (block.getVariables()->size() > 4) {
+        mask = INPUT_VARIABLE(4);   
+        applyMask = true;
+    }
 
     NDArray<T>* output = OUTPUT_VARIABLE(0);                // h_t, [bS x K x N]
     NDArray<T>* state  = OUTPUT_VARIABLE(1);                // c_t, [bS x K x N]
@@ -58,10 +64,13 @@ CUSTOM_OP_IMPL(sru1, 5, 2, false, 0, 0) {
     NDArray<T>* bR  = bias->subarray( { NDIndex::all(), NDIndex::interval(K,2*K)} );                        // biases for reset gate [1 x K]
 
     NDArray<T>* xt(nullptr), *zt(nullptr), *ft(nullptr), *rt(nullptr), *ct(nullptr), *ht(nullptr);
-    NDArray<T>* xmt  = input->dup(input->ordering());                       // xmt will be equal = input*mask -> masked X ()
     NDArray<T>* ct_1 = init->dup(init->ordering());
     NDArray<T>* gct  = new NDArray<T>(state->ordering(), {bS, K});
-    
+    NDArray<T>* xmt  = input->dup(input->ordering());          
+    //  input = input * mask
+    if(applyMask)
+        xmt->template applyBroadcast<simdOps::Multiply<T>>({0, 1}, mask, xmt, nullptr);            // apply mask    
+        
     for (int t = 0; t < N; ++t) {
         xt = timestep(xmt, t, t+1);         // [bS x K x N] -> [bS x K x 1] -> [bS x K]
         zt = timestep(wiZ, t, t+1);         // [bS x K x N] -> [bS x K x 1] -> [bS x K]
@@ -70,8 +79,6 @@ CUSTOM_OP_IMPL(sru1, 5, 2, false, 0, 0) {
         ct = timestep(state, t, t+1);       // [bS x K x N] -> [bS x K x 1] -> [bS x K]
         ht = timestep(output, t, t+1);      // [bS x K x N] -> [bS x K x 1] -> [bS x K]
        
-        //  xt = xt * mask
-        xt->template applyPairwiseTransform<simdOps::Multiply<T>>(mask, nullptr);
         // ft = sigmoid(ft + bf), rt = sigmoid(rt + bR)
         ft->addRowVector(bF, ft);
         rt->addRowVector(bR, rt);
@@ -95,7 +102,7 @@ CUSTOM_OP_IMPL(sru1, 5, 2, false, 0, 0) {
         ct_1 = ct;
     }
     
-    delete wiZ; delete wiF; delete wiR; delete wi; delete bF; delete bR; delete ct_1; delete gct;
+    delete wiZ; delete wiF; delete wiR; delete wi; delete bF; delete bR; delete ct_1; delete gct; delete xmt;
     
     return ND4J_STATUS_OK;
 }
@@ -133,7 +140,13 @@ CUSTOM_OP_IMPL(sru2, 5, 2, false, 0, 0) {
     NDArray<T>* weights = INPUT_VARIABLE(1);                // W, 2d tensor of weights [3K x K]
     NDArray<T>* bias    = INPUT_VARIABLE(2);                // B, row of biases with twice length [1 × 2*K]
     NDArray<T>* init    = INPUT_VARIABLE(3);                // C_{0}, 2d tensor of initial state [bS x K] at time t=0
-    NDArray<T>* mask    = INPUT_VARIABLE(4);                // 2d tensor of dropout mask [bS x K]
+    NDArray<T>* mask    = nullptr;                          // optional,  2d tensor of dropout mask [bS x K]
+
+    bool applyMask = false;        
+    if (block.getVariables()->size() > 4) {
+        mask = INPUT_VARIABLE(4);   
+        applyMask = true;
+    }
 
     NDArray<T>* output = OUTPUT_VARIABLE(0);                // h_t, [bS x K x N]
     NDArray<T>* state  = OUTPUT_VARIABLE(1);                // c_t, [bS x K x N]
@@ -146,22 +159,25 @@ CUSTOM_OP_IMPL(sru2, 5, 2, false, 0, 0) {
     const NDArray<T> bF = (*bias)({ {}, {0,  K} });                       // biases for forget gate [1 x K]
     const NDArray<T> bR = (*bias)({ {}, {K,2*K} });                       // biases for reset  gate [1 x K]    
 
-    NDArray<T>  xt(block.getWorkspace());
-    NDArray<T>  zt(block.getWorkspace()); 
-    NDArray<T>  ft(block.getWorkspace()); 
-    NDArray<T>  rt(block.getWorkspace());     
-    NDArray<T>  ht(block.getWorkspace());
-    NDArray<T>  ct = *init;
+    NDArray<T> xt(block.getWorkspace());
+    NDArray<T> zt(block.getWorkspace()); 
+    NDArray<T> ft(block.getWorkspace()); 
+    NDArray<T> rt(block.getWorkspace());     
+    NDArray<T> ht(block.getWorkspace());
+    NDArray<T> ct = *init;
     NDArray<T> gct(state->ordering(), {bS, K}, block.getWorkspace());
+    NDArray<T> xmt = *input; 
+    //  input = input * mask
+    if(applyMask)
+        xmt.template applyBroadcast<simdOps::Multiply<T>>({0, 1}, mask, &xmt, nullptr);            
     
     for (int t = 0; t < N; ++t) {
   
-        xt = (*input)({ {}, {},        {t,t+1} }); xt.reshapei(xt.ordering(), {bS, K});       // [bS x  K x N] -> [bS x K x 1] -> [bS x K]
-        zt =       wi({ {}, {0,    K}, {t,t+1} }); zt.reshapei(zt.ordering(), {bS, K});       // [bS x 3K x N] -> [bS x K x 1] -> [bS x K]
-        ft =       wi({ {}, {K,  2*K}, {t,t+1} }); ft.reshapei(ft.ordering(), {bS, K});       // [bS x 3K x N] -> [bS x K x 1] -> [bS x K]
-        rt =       wi({ {}, {2*K,3*K}, {t,t+1} }); rt.reshapei(rt.ordering(), {bS, K});       // [bS x 3K x N] -> [bS x K x 1] -> [bS x K]
+        xt = xmt({ {}, {},        {t,t+1} }); xt.reshapei(xt.ordering(), {bS, K});       // [bS x  K x N] -> [bS x K x 1] -> [bS x K]
+        zt =  wi({ {}, {0,    K}, {t,t+1} }); zt.reshapei(zt.ordering(), {bS, K});       // [bS x 3K x N] -> [bS x K x 1] -> [bS x K]
+        ft =  wi({ {}, {K,  2*K}, {t,t+1} }); ft.reshapei(ft.ordering(), {bS, K});       // [bS x 3K x N] -> [bS x K x 1] -> [bS x K]
+        rt =  wi({ {}, {2*K,3*K}, {t,t+1} }); rt.reshapei(rt.ordering(), {bS, K});       // [bS x 3K x N] -> [bS x K x 1] -> [bS x K]
 
-        xt *= (*mask);
         ft = sigmoid(ft + bF);
         rt = sigmoid(rt + bR);
         ct = ft * (ct - zt) + zt;                
@@ -209,11 +225,17 @@ CUSTOM_OP_IMPL(sru_bp_1, 8, 4, true, 0, 0) {
     NDArray<T>* input    = INPUT_VARIABLE(0);                // X, input 3d tensor [bS x K x N], N - number of time steps, bS - batch size, K - number of features
     NDArray<T>* weights  = INPUT_VARIABLE(1);                // W, 2d tensor of weights [3K x K]
     NDArray<T>* bias     = INPUT_VARIABLE(2);                // B, row of biases with twice length [1 × 2*K]
-    NDArray<T>* init     = INPUT_VARIABLE(3);                // C_{0}, 2d tensor of initial state [bS x K] at time t=0
-    NDArray<T>* mask     = INPUT_VARIABLE(4);                // 2d tensor of dropout mask [bS x K]
-    NDArray<T>* state    = INPUT_VARIABLE(5);                // C, [bS x K x N]
-    NDArray<T>* inGradCt = INPUT_VARIABLE(6);                // [bS x K]
-    NDArray<T>* inGradH  = INPUT_VARIABLE(7);                // [bS x K x N]
+    NDArray<T>* init     = INPUT_VARIABLE(3);                // C_{0}, 2d tensor of initial state [bS x K] at time t=0    
+    NDArray<T>* state    = INPUT_VARIABLE(4);                // C, [bS x K x N]
+    NDArray<T>* inGradCt = INPUT_VARIABLE(5);                // [bS x K]
+    NDArray<T>* inGradH  = INPUT_VARIABLE(6);                // [bS x K x N]
+    NDArray<T>* mask     = nullptr;                          // optional,  2d tensor of dropout mask [bS x K]
+
+    bool applyMask = false;        
+    if (block.getVariables()->size() > 7) {
+        mask = INPUT_VARIABLE(7);   
+        applyMask = true;
+    }
 
     NDArray<T>* gradX    = OUTPUT_VARIABLE(0);              // [bS x K x N]
     NDArray<T>* gradW    = OUTPUT_VARIABLE(1);              // [bS x 3K x K]
@@ -236,7 +258,8 @@ CUSTOM_OP_IMPL(sru_bp_1, 8, 4, true, 0, 0) {
     NDArray<T>* temp2    = new NDArray<T>(state->ordering(), {bS, K});       
 
     //  input = input * mask
-    input->template applyBroadcast<simdOps::Multiply<T>>({0, 1}, mask, input, nullptr);            // apply mask    
+    if(applyMask)
+        input->template applyBroadcast<simdOps::Multiply<T>>({0, 1}, mask, input, nullptr);            // apply mask    
     // multiplication matrix wi = matmul(weights,input), U = WX
     NDArray<T>* wi = NDArrayFactory<T>::mmulHelper(weights, input, nullptr, (T)1., (T)0.);      // U [bS x 3K x N]    
 
@@ -335,7 +358,8 @@ CUSTOM_OP_IMPL(sru_bp_1, 8, 4, true, 0, 0) {
     NDArray<T>* weightsT = weights->transpose();                                            // [K x 3K]
     NDArrayFactory<T>::mmulHelper(weightsT, gradU, gradX, (T)1., (T)0.);                    // [bS x K x N]    
     gradX->template applyPairwiseTransform<simdOps::Add<T>>(gradHX, gradX, nullptr);        // + grad_highway_x
-    gradX->template applyBroadcast<simdOps::Multiply<T>>({0,1}, mask, gradX, nullptr);        // apply mask
+    if(applyMask)
+        gradX->template applyBroadcast<simdOps::Multiply<T>>({0,1}, mask, gradX, nullptr);  // apply mask
 
     // gradB    
     NDArray<T>* temp3 = gradBias->template reduceAlongDimension<simdOps::Sum<T>>({0,2});    // [1 x 2K]
@@ -399,11 +423,17 @@ CUSTOM_OP_IMPL(sru_bp_2, 8, 4, true, 0, 0) {
     NDArray<T>* input    = INPUT_VARIABLE(0);                // X, input 3d tensor [bS x K x N], N - number of time steps, bS - batch size, K - number of features
     NDArray<T>* weights  = INPUT_VARIABLE(1);                // W, 2d tensor of weights [3K x K]
     NDArray<T>* bias     = INPUT_VARIABLE(2);                // B, row of biases with twice length [1 × 2*K]
-    NDArray<T>* init     = INPUT_VARIABLE(3);                // C_{0}, 2d tensor of initial state [bS x K] at time t=0
-    NDArray<T>* mask     = INPUT_VARIABLE(4);                // 2d tensor of dropout mask [bS x K]
-    NDArray<T>* state    = INPUT_VARIABLE(5);                // C, [bS x K x N]
-    NDArray<T>* inGradCt = INPUT_VARIABLE(6);                // [bS x K]
-    NDArray<T>* inGradH  = INPUT_VARIABLE(7);                // [bS x K x N]
+    NDArray<T>* init     = INPUT_VARIABLE(3);                // C_{0}, 2d tensor of initial state [bS x K] at time t=0    
+    NDArray<T>* state    = INPUT_VARIABLE(4);                // C, [bS x K x N]
+    NDArray<T>* inGradCt = INPUT_VARIABLE(5);                // [bS x K]
+    NDArray<T>* inGradH  = INPUT_VARIABLE(6);                // [bS x K x N]
+    NDArray<T>* mask     = nullptr;                          // optional,  2d tensor of dropout mask [bS x K]
+
+    bool applyMask = false;        
+    if (block.getVariables()->size() > 7) {
+        mask = INPUT_VARIABLE(7);   
+        applyMask = true;
+    }
 
     NDArray<T>* gradX    = OUTPUT_VARIABLE(0);              // [bS x K x N]
     NDArray<T>* gradW    = OUTPUT_VARIABLE(1);              // [bS x 3K x K]
@@ -438,7 +468,8 @@ CUSTOM_OP_IMPL(sru_bp_2, 8, 4, true, 0, 0) {
     NDArray<T> rtMinus(block.getWorkspace());
 
     //  input = input * mask    
-    input->template applyBroadcast<simdOps::Multiply<T>>({0, 1}, mask, input, nullptr);             // apply mask    
+    if(applyMask)
+        input->template applyBroadcast<simdOps::Multiply<T>>({0, 1}, mask, input, nullptr);             // apply mask    
     // multiplication matrix wi = matmul(weights,input), U = WX
     const NDArray<T> wi = mmul(*weights, *input);                                                   //  U [bS x 3K x N]            
 
@@ -495,7 +526,8 @@ CUSTOM_OP_IMPL(sru_bp_2, 8, 4, true, 0, 0) {
     // gradX 
     weights->transposei();                                                               // [K x 3K]
     *gradX = mmul(*weights, gradU) + gradHX;        
-    gradX->template applyBroadcast<simdOps::Multiply<T>>({0,1}, mask, gradX, nullptr);       // apply mask
+    if(applyMask)
+        gradX->template applyBroadcast<simdOps::Multiply<T>>({0,1}, mask, gradX, nullptr);       // apply mask
 
     // gradB    
     gradBias.template reduceAlongDimension<simdOps::Sum<T>>(gradB, {0,2});    // [1 x 2K]    
@@ -553,7 +585,13 @@ CUSTOM_OP_IMPL(sru_bi, 5, 2, true, 0, 0) {
     NDArray<T>* weights = INPUT_VARIABLE(1);                // W, 2d tensor of weights [2K x 6K]
     NDArray<T>* bias    = INPUT_VARIABLE(2);                // B, row of biases with twice length [1 × 4K]
     NDArray<T>* init    = INPUT_VARIABLE(3);                // C_{0}, 2d tensor of initial state [bS x 2K] at time t=0
-    NDArray<T>* mask    = INPUT_VARIABLE(4);                // 2d tensor of dropout mask [bS x 2K]
+    NDArray<T>* mask    = nullptr;                          // optional, 2d tensor of dropout mask [bS x 2K]
+
+    bool applyMask = false;        
+    if (block.getVariables()->size() > 4) {
+        mask = INPUT_VARIABLE(4);   
+        applyMask = true;
+    }
 
     NDArray<T>* output = OUTPUT_VARIABLE(0);                // h_t, [N x bS x 2K]
     NDArray<T>* state  = OUTPUT_VARIABLE(1);                // c_t, [N x bS x 2K]
@@ -563,7 +601,8 @@ CUSTOM_OP_IMPL(sru_bi, 5, 2, true, 0, 0) {
     const int K      = input->shapeOf()[2] / 2;                 // K - number of features
   
     //  input = input * mask    
-    input->template applyBroadcast<simdOps::Multiply<T>>({1, 2}, mask, input, nullptr);             // apply mask    
+    if(applyMask)
+        input->template applyBroadcast<simdOps::Multiply<T>>({1, 2}, mask, input, nullptr);             // apply mask    
     // U = input * weights 
     NDArray<T> wi = mmul(*input, *weights);                    //  U [N x bS x 6K]                
 
@@ -587,7 +626,7 @@ CUSTOM_OP_IMPL(sru_bi, 5, 2, true, 0, 0) {
     for (int col = 0; col < ncols; ++col) {           
         
         flip       = (col%d2) >= K;
-        maskVal    = *(pMask + col);
+        maskVal    = applyMask ? *(pMask + col) : (T)1.;
         cur        = *(pInit + col);
         bF         = *(pBias + col%d2);
         bR         = *(pBias + col%d2 + d2);
@@ -660,10 +699,16 @@ CUSTOM_OP_IMPL(sru_bi_bp, 8, 4, true, 0, 0) {
     NDArray<T>* weights  = INPUT_VARIABLE(1);                // W, 2d tensor of weights [2K x 6K]
     NDArray<T>* bias     = INPUT_VARIABLE(2);                // B, row of biases with twice length [1 × 4K]
     NDArray<T>* init     = INPUT_VARIABLE(3);                // C_{0}, 2d tensor of initial state [bS x 2K] at time t=0
-    NDArray<T>* mask     = INPUT_VARIABLE(4);                // 2d tensor of dropout mask [bS x 2K]
-    NDArray<T>* state    = INPUT_VARIABLE(5);                // C, [N x bS x 2K]
-    NDArray<T>* inGradCt = INPUT_VARIABLE(6);                // [bS x 2K]
-    NDArray<T>* inGradH  = INPUT_VARIABLE(7);                // [N x bS x 2K]
+    NDArray<T>* state    = INPUT_VARIABLE(4);                // C, [N x bS x 2K]
+    NDArray<T>* inGradCt = INPUT_VARIABLE(5);                // [bS x 2K]
+    NDArray<T>* inGradH  = INPUT_VARIABLE(6);                // [N x bS x 2K]
+    NDArray<T>* mask     = nullptr;                          // optional,  2d tensor of dropout mask [bS x 2K]
+
+    bool applyMask = false;        
+    if (block.getVariables()->size() > 7) {
+        mask = INPUT_VARIABLE(7);   
+        applyMask = true;
+    }
 
     NDArray<T>* gradInput   = OUTPUT_VARIABLE(0);              // [N x bS x 2K]
     NDArray<T>* gradWeights = OUTPUT_VARIABLE(1);              // [N x 2K x 6K]
@@ -675,7 +720,8 @@ CUSTOM_OP_IMPL(sru_bi_bp, 8, 4, true, 0, 0) {
     const int K       = input->shapeOf()[2] / 2;                     
 
     //  input = input * mask    
-    input->template applyBroadcast<simdOps::Multiply<T>>({1, 2}, mask, input, nullptr);             // apply mask    
+    if(applyMask)
+        input->template applyBroadcast<simdOps::Multiply<T>>({1, 2}, mask, input, nullptr);             // apply mask    
     // U = input * weights 
     NDArray<T> wi = mmul(*input, *weights);                    //  [N x bS x 2K] * [2K x 6K] = [N x bS x 6K]                
 
@@ -709,7 +755,7 @@ CUSTOM_OP_IMPL(sru_bi_bp, 8, 4, true, 0, 0) {
         gbF = gbR = (T)0.;
 
         flip          = (col%d2) >= K;
-        maskVal       = *(pMask     + col);    
+        maskVal       = applyMask ? *(pMask + col) : (T)1.;
         cur           = *(pInGradCt + col);
         bF            = *(pBias     + col%d2);
         bR            = *(pBias     + col%d2 + d2);

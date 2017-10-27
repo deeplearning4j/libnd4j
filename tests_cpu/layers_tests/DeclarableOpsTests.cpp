@@ -2552,7 +2552,7 @@ TEST_F(DeclarableOpsTests, sru_bp_1) {
     inGradH.assign(0.5);
     
     nd4j::ops::sru_bp_1<double> bp;
-    nd4j::ArrayList<double>*  resultsBP = bp.execute({&input, &weights, &bias, &init, &mask, &state, &inGradCt, &inGradH}, {}, {});
+    nd4j::ArrayList<double>*  resultsBP = bp.execute({&input, &weights, &bias, &init, &state, &inGradCt, &inGradH, &mask}, {}, {});
     ASSERT_TRUE(resultsBP->size() == 4);    
 
     NDArray<double>* gradX    = resultsBP->at(0);
@@ -2561,9 +2561,9 @@ TEST_F(DeclarableOpsTests, sru_bp_1) {
     NDArray<double>* gradInit = resultsBP->at(3);
 
     ASSERT_TRUE(expGradX.equalsTo(gradX,1e-4)); 
-    ASSERT_TRUE(expGradW.equalsTo(gradW,1e-4));
-    ASSERT_TRUE(expGradB.equalsTo(gradB,1e-4));
-    ASSERT_TRUE(expGradInit.equalsTo(gradInit,1e-4));
+    ASSERT_TRUE(expGradW.equalsTo(gradW));
+    ASSERT_TRUE(expGradB.equalsTo(gradB));
+    ASSERT_TRUE(expGradInit.equalsTo(gradInit));
     
     delete resultsBP;
 }
@@ -2608,7 +2608,7 @@ TEST_F(DeclarableOpsTests, sru_bp_2) {
     inGradH.assign(0.5);
     
     nd4j::ops::sru_bp_2<double> bp;
-    nd4j::ArrayList<double>*  resultsBP = bp.execute({&input, &weights, &bias, &init, &mask, &state, &inGradCt, &inGradH}, {}, {});
+    nd4j::ArrayList<double>*  resultsBP = bp.execute({&input, &weights, &bias, &init, &state, &inGradCt, &inGradH, &mask}, {}, {});
     ASSERT_TRUE(resultsBP->size() == 4);    
 
     NDArray<double>* gradX    = resultsBP->at(0);
@@ -2616,10 +2616,10 @@ TEST_F(DeclarableOpsTests, sru_bp_2) {
     NDArray<double>* gradB    = resultsBP->at(2); 
     NDArray<double>* gradInit = resultsBP->at(3);
 
-    ASSERT_TRUE(expGradX.equalsTo(gradX,1e-4)); 
-    ASSERT_TRUE(expGradW.equalsTo(gradW,1e-4));
-    ASSERT_TRUE(expGradB.equalsTo(gradB,1e-4));
-    ASSERT_TRUE(expGradInit.equalsTo(gradInit,1e-4));
+    ASSERT_TRUE(expGradX.equalsTo(gradX, 1e-4)); 
+    ASSERT_TRUE(expGradW.equalsTo(gradW));
+    ASSERT_TRUE(expGradB.equalsTo(gradB));
+    ASSERT_TRUE(expGradInit.equalsTo(gradInit));
     
     delete resultsBP;
 }
@@ -2704,7 +2704,7 @@ TEST_F(DeclarableOpsTests, sru_bi_bp_1) {
     inGradH.assign(0.5);
     
     nd4j::ops::sru_bi_bp<double> bp;
-    nd4j::ArrayList<double>*  resultsBP = bp.execute({&input, &weights, &bias, &init, &mask, &state, &inGradCt, &inGradH}, {}, {});
+    nd4j::ArrayList<double>*  resultsBP = bp.execute({&input, &weights, &bias, &init, &state, &inGradCt, &inGradH, &mask}, {}, {});
     ASSERT_TRUE(resultsBP->size() == 4);    
 
     NDArray<double>* gradX    = resultsBP->at(0);
@@ -2712,10 +2712,10 @@ TEST_F(DeclarableOpsTests, sru_bi_bp_1) {
     NDArray<double>* gradB    = resultsBP->at(2); 
     NDArray<double>* gradInit = resultsBP->at(3);    
 
-    ASSERT_TRUE(expGradX.equalsTo(gradX,1e-4)); 
-    ASSERT_TRUE(expGradW.equalsTo(gradW,1e-4));
-    ASSERT_TRUE(expGradB.equalsTo(gradB,1e-4));
-    ASSERT_TRUE(expGradInit.equalsTo(gradInit,1e-4));
+    ASSERT_TRUE(expGradX.equalsTo(gradX)); 
+    ASSERT_TRUE(expGradW.equalsTo(gradW));
+    ASSERT_TRUE(expGradB.equalsTo(gradB));
+    ASSERT_TRUE(expGradInit.equalsTo(gradInit));
     
     delete resultsBP;
 }
