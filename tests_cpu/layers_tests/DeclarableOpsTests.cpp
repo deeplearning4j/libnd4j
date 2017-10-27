@@ -2435,7 +2435,7 @@ TEST_F(DeclarableOpsTests, BatchNorm4D_BP) {
 }
 
 //////////////////////////////////////////////////////////////////////
-TEST_F(DeclarableOpsTests, sru_1) {
+TEST_F(DeclarableOpsTests, sru1) {
 
     const int bS = 2;
     const int K = 3;    
@@ -2459,7 +2459,7 @@ TEST_F(DeclarableOpsTests, sru_1) {
     expState.setBuffer(expStateBuff);
     expOut.setBuffer(expOutputBuff);    
 
-    nd4j::ops::sru1<double> op;
+    nd4j::ops::sru<double> op;
     nd4j::ArrayList<double>*  results = op.execute({&input, &weights, &bias, &init, &mask}, {}, {});
     ASSERT_TRUE(results->size() == 2);    
 
@@ -2474,7 +2474,7 @@ TEST_F(DeclarableOpsTests, sru_1) {
 }
 
 //////////////////////////////////////////////////////////////////
-TEST_F(DeclarableOpsTests, sru_2) {
+TEST_F(DeclarableOpsTests, sru_logic1) {
 
     const int bS = 2;
     const int K = 3;    
@@ -2498,7 +2498,7 @@ TEST_F(DeclarableOpsTests, sru_2) {
     expState.setBuffer(expStateBuff);
     expOut.setBuffer(expOutputBuff);    
 
-    nd4j::ops::sru2<double> op;
+    nd4j::ops::sru_logic<double> op;
     nd4j::ArrayList<double>*  results = op.execute({&input, &weights, &bias, &init, &mask}, {}, {});
     ASSERT_TRUE(results->size() == 2);    
 
@@ -2513,7 +2513,7 @@ TEST_F(DeclarableOpsTests, sru_2) {
 }
 
 //////////////////////////////////////////////////////////////////////
-TEST_F(DeclarableOpsTests, sru_bp_1) {
+TEST_F(DeclarableOpsTests, sru_bp) {
 
     const int bS = 2;
     const int K = 3;    
@@ -2551,7 +2551,7 @@ TEST_F(DeclarableOpsTests, sru_bp_1) {
     inGradCt.assign(0.5);
     inGradH.assign(0.5);
     
-    nd4j::ops::sru_bp_1<double> bp;
+    nd4j::ops::sru_bp<double> bp;
     nd4j::ArrayList<double>*  resultsBP = bp.execute({&input, &weights, &bias, &init, &state, &inGradCt, &inGradH, &mask}, {}, {});
     ASSERT_TRUE(resultsBP->size() == 4);    
 
@@ -2569,7 +2569,7 @@ TEST_F(DeclarableOpsTests, sru_bp_1) {
 }
 
 //////////////////////////////////////////////////////////////////////
-TEST_F(DeclarableOpsTests, sru_bp_2) {
+TEST_F(DeclarableOpsTests, sru_bp_logic1) {
 
     const int bS = 2;
     const int K = 3;    
@@ -2607,7 +2607,7 @@ TEST_F(DeclarableOpsTests, sru_bp_2) {
     inGradCt.assign(0.5);
     inGradH.assign(0.5);
     
-    nd4j::ops::sru_bp_2<double> bp;
+    nd4j::ops::sru_bp_logic<double> bp;
     nd4j::ArrayList<double>*  resultsBP = bp.execute({&input, &weights, &bias, &init, &state, &inGradCt, &inGradH, &mask}, {}, {});
     ASSERT_TRUE(resultsBP->size() == 4);    
 

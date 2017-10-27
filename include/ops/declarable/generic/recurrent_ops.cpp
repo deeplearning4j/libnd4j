@@ -33,7 +33,7 @@ NDArray<T> sigmoid(const NDArray<T>& arr) {
 }
 
 //////////////////////////////////////////////////////////////////////////
-CUSTOM_OP_IMPL(sru1, 5, 2, false, 0, 0) {
+CUSTOM_OP_IMPL(sru, 5, 2, false, 0, 0) {
 
     NDArray<T>* input   = INPUT_VARIABLE(0);                // X, input 3d tensor [bS x K x N], N - number of time steps, bS - batch size, K - number of features
     NDArray<T>* weights = INPUT_VARIABLE(1);                // W, 2d tensor of weights [3K x K]
@@ -107,7 +107,7 @@ CUSTOM_OP_IMPL(sru1, 5, 2, false, 0, 0) {
     return ND4J_STATUS_OK;
 }
 
-DECLARE_SHAPE_FN(sru1) {
+DECLARE_SHAPE_FN(sru) {
 
     int* inShape = inputShape->at(0);   // [bS x K x N]
     int rank = inShape[0];              // = 3
@@ -134,7 +134,7 @@ DECLARE_SHAPE_FN(sru1) {
 }   
 
 //////////////////////////////////////////////////////////////////////////
-CUSTOM_OP_IMPL(sru2, 5, 2, false, 0, 0) {
+CUSTOM_OP_IMPL(sru_logic, 5, 2, false, 0, 0) {
 
     NDArray<T>* input   = INPUT_VARIABLE(0);                // X, input 3d tensor [bS x K x N], N - number of time steps, bS - batch size, K - number of features
     NDArray<T>* weights = INPUT_VARIABLE(1);                // W, 2d tensor of weights [3K x K]
@@ -193,7 +193,7 @@ CUSTOM_OP_IMPL(sru2, 5, 2, false, 0, 0) {
     return ND4J_STATUS_OK;
 }
 
-DECLARE_SHAPE_FN(sru2) {
+DECLARE_SHAPE_FN(sru_logic) {
 
     int* inShape = inputShape->at(0);   // [bS x K x N]
     int rank = inShape[0];              // = 3
@@ -220,7 +220,7 @@ DECLARE_SHAPE_FN(sru2) {
 }   
 
 //////////////////////////////////////////////////////////////////////////
-CUSTOM_OP_IMPL(sru_bp_1, 8, 4, true, 0, 0) {
+CUSTOM_OP_IMPL(sru_bp, 8, 4, true, 0, 0) {
     
     NDArray<T>* input    = INPUT_VARIABLE(0);                // X, input 3d tensor [bS x K x N], N - number of time steps, bS - batch size, K - number of features
     NDArray<T>* weights  = INPUT_VARIABLE(1);                // W, 2d tensor of weights [3K x K]
@@ -377,7 +377,7 @@ CUSTOM_OP_IMPL(sru_bp_1, 8, 4, true, 0, 0) {
     return ND4J_STATUS_OK;
 }
 
-DECLARE_SHAPE_FN(sru_bp_1) {
+DECLARE_SHAPE_FN(sru_bp) {
 
     int* inShape = inputShape->at(0);   // [bS x K x N]
     int bS   = inShape[1];
@@ -418,7 +418,7 @@ DECLARE_SHAPE_FN(sru_bp_1) {
  
 
 //////////////////////////////////////////////////////////////////////////
-CUSTOM_OP_IMPL(sru_bp_2, 8, 4, true, 0, 0) {
+CUSTOM_OP_IMPL(sru_bp_logic, 8, 4, true, 0, 0) {
     
     NDArray<T>* input    = INPUT_VARIABLE(0);                // X, input 3d tensor [bS x K x N], N - number of time steps, bS - batch size, K - number of features
     NDArray<T>* weights  = INPUT_VARIABLE(1);                // W, 2d tensor of weights [3K x K]
@@ -539,7 +539,7 @@ CUSTOM_OP_IMPL(sru_bp_2, 8, 4, true, 0, 0) {
     return ND4J_STATUS_OK;
 }
 
-DECLARE_SHAPE_FN(sru_bp_2) {
+DECLARE_SHAPE_FN(sru_bp_logic) {
 
     int* inShape = inputShape->at(0);   // [bS x K x N]
     int bS   = inShape[1];
