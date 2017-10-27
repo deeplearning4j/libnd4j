@@ -77,6 +77,8 @@ namespace nd4j {
                     int lastNode = 0;
                     nd4j_debug("While [%i] got [%i] ops in body scope [%i]\n", node->id(), scopeBody->nodes()->size(), scopeBodyIndex);
                     for (auto v: *scopeBody->nodes()) {
+                        nd4j_debug("Op [<%s>]\n", v->getName()->c_str());
+                        v->getBlock()->updateVariables();
                         Nd4jStatus status = GraphExecutioner<T>::executeFlatNode(graph, v, __variableSpace);
                         if (status != ND4J_STATUS_OK)
                             return  status;

@@ -495,10 +495,6 @@ namespace nd4j {
                             nd4j_debug("Trying SI Node_%i:[%s]\n", node->id(), node->getName()->c_str());
                         }
 
-                        if (node->id() == 2)
-                            nd4j_debug("pew-pew\n", "pew");
-
-
                         int iNode = node->input()->at(0).first;
                         if (iNode < 0) {
                             // this is external variable, should we check, who's the last user of this variable?
@@ -564,7 +560,11 @@ namespace nd4j {
                         _unmapped.erase(node->id());
                     } else {
                         // multi-input node
-                        nd4j_logger("Trying MI Node_%i\n", node->id());
+                        if (node->getName() == nullptr) {
+                            nd4j_debug("Trying MI Node_%i\n", node->id());
+                        } else {
+                            nd4j_debug("Trying MI Node_%i:[%s]\n", node->id(), node->getName()->c_str());
+                        }
 
                         int maxLayer = 0;
                         for (unsigned int e = 0; e < node->input()->size(); e++) {
