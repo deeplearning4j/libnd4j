@@ -367,6 +367,9 @@ TEST_F(FlatBuffersTest, ReadLoops_3argsWhile_1) {
     ASSERT_TRUE(graph->getVariableSpace()->hasVariable(-2));
 
     auto phi = graph->getVariableSpace()->getVariable(-2)->getNDArray();
+    auto lessY = graph->getVariableSpace()->getVariable(-6)->getNDArray();
+
+    lessY->printBuffer("lessY");
 
     ASSERT_TRUE(expPhi.isSameShape(phi));
 
