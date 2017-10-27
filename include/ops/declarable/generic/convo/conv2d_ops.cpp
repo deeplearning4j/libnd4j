@@ -1040,9 +1040,12 @@ namespace nd4j {
         DECLARE_SHAPE_FN(upsampling2d_bp) {
             auto inShape = inputShape->at(0);
 
+            int scale = INT_ARG(0);
+
             int* newShape;
             ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(4), int);
-            memcpy(newShape, inShape, shape::shapeInfoByteLength(inShape));
+            int shape[] = {shape::shapeOf(inShape)[0], shape::shapeOf(inShape)[1], shape::shapeOf(inShape)[2] / scale, shape::shapeOf(inShape)[3] / scale};
+            shape::shapeBuffer(4, shape, newShape);
 
             return new ShapeList(newShape);
         }
