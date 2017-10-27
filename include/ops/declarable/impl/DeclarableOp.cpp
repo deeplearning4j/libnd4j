@@ -164,8 +164,9 @@ namespace nd4j {
 
             if (nd4j::Environment::getInstance()->isDebug()) {
                 T mean = array.meanNumber();
-                if (mean == (T) 0.0f || (mean < (T) 1e-5f && mean > (T) -1e-5f))
-                    nd4j_debug("node_%i:%i result has 0.0 as mean\n", block.getNodeId(), outputNumber);
+                //if (mean == (T) 0.0f || (mean < (T) 1e-5f && mean > (T) -1e-5f))
+                //    nd4j_debug("node_%i:%i result has 0.0 as mean\n", block.getNodeId(), outputNumber);
+                nd4j_debug("node_%i:%i result mean [%f]\n", block.getNodeId(), outputNumber, (float) mean);
             }
 
             // if that's the only output - treat it as singular variable
