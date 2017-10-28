@@ -391,6 +391,8 @@ TEST_F(FlatBuffersTest, ReadLoops_3argsWhile_1) {
 }
 
 TEST_F(FlatBuffersTest, ReadLoops_NestedWhile_1) {
+    // TF graph:
+    // https://gist.github.com/raver119/2aa49daf7ec09ed4ddddbc6262f213a0
     auto graph = GraphExecutioner<float>::importFromFlatBuffers("../../../tests_cpu/resources/nested_while.fb");
 
     ASSERT_TRUE(graph != nullptr);
