@@ -3,6 +3,7 @@
 //
 
 #include <graph/execution/LogicWhile.h>
+#include <graph/execution/LogicReturn.h>
 #include <GraphExecutioner.h>
 
 
@@ -75,8 +76,10 @@ namespace nd4j {
                 else {
                     auto scopeBody = graph->scopeById(scopeBodyIndex);
                     int lastNode = 0;
+                    int e = 0;
                     nd4j_debug("While [%i] got [%i] ops in body scope [%i]\n", node->id(), scopeBody->nodes()->size(), scopeBodyIndex);
-                    for (auto v: *scopeBody->nodes()) {
+                    for (; e < scopeBody->nodes()->size() - 1; e++) {
+                        Node<T>* v = scopeBody->nodes()->at(e);
                         nd4j_debug("Op [<%s>]\n", v->getName()->c_str());
                         v->getBlock()->updateVariables();
                         Nd4jStatus status = GraphExecutioner<T>::executeFlatNode(graph, v, __variableSpace);
@@ -85,6 +88,10 @@ namespace nd4j {
 
                         lastNode = v->id();
                     }
+
+                    // now execute return statement
+                    Node<T>* ret = scopeBody->nodes()->at(e);
+                    LogicReturn<T>::processNode(graph, ret);
                 }
 
                 breaker++;

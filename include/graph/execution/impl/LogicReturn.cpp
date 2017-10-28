@@ -14,11 +14,21 @@ namespace nd4j {
             for (int e = 0; e < node->input()->size(); e++) {
                 auto inputAddr = node->input()->at(e);
                 auto outputAddr = node->output()->at(e);
+
+                // FIXME!!
+                outputAddr.second = e;
+
+                if (Environment::getInstance()->isDebugAndVerbose())
+                    nd4j_debug("Return input: <%i, %i>; Return output: <%i, %i>\n", inputAddr.first, inputAddr.second, outputAddr.first, outputAddr.second);
+
                 auto varIn = __variableSpace->getVariable(inputAddr);
                 auto varOut = __variableSpace->getVariable(inputAddr);
 
                 // FIXME: this is obviously wrong, we should keep depth track for backprop here
-                varIn->getNDArray()->assign(varOut->getNDArray());
+                varOut->getNDArray()->assign(varIn->getNDArray());
+
+                if (Environment::getInstance()->isDebugAndVerbose())
+                    nd4j_debug("In after: [%f]; Out after: [%f]\n", varIn->getNDArray()->meanNumber(), varOut->getNDArray()->meanNumber());
             }
 
             return ND4J_STATUS_OK;
