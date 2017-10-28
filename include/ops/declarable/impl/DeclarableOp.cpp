@@ -79,7 +79,7 @@ namespace nd4j {
             NDArray<T>* z = nullptr;
 
             if (block.isInplace()) {
-                z = block.getVariables()->at(inputId)->getNDArray();
+                z = block.variable(inputId)->getNDArray();
             } else if (!block.isInplace() && block.getVariableSpace()->hasVariable(block.getNodeId())) {
                 std::pair<int, int> pair(block.getNodeId(), inputId);
 
@@ -118,7 +118,8 @@ namespace nd4j {
                 ShapeList inSha;
 
                 int cntIn = 0;
-                for (auto var: *block.getVariables()) {
+                for (auto p: *block.inputs()) {
+                    auto var = block.getVariableSpace()->getVariable(p);
                     NDArray<T> *array = var->getNDArray();
                     inSha.push_back(array->getShapeInfo());
 
@@ -307,10 +308,11 @@ namespace nd4j {
 
         template <typename T>
         Nd4jStatus nd4j::ops::DeclarableOp<T>::validateInputDimensions(Block<T>& block, int rank) {
-            if (block.getVariables()->size() == 0)
+            if (block.width() == 0)
                 return ND4J_STATUS_OK;
 
-            for (auto v: *block.getVariables()) {
+            for (auto p: *block.inputs()) {
+                auto v = block.variable(p);
                 NDArray<T> *aV = v->getNDArray();
 
                 if (aV == nullptr)
@@ -340,12 +342,13 @@ namespace nd4j {
 
         template <typename T>
         Nd4jStatus nd4j::ops::DeclarableOp<T>::validateNonEmptyInput(Block<T>& block) {
-            if (block.getVariables()->size() < 1)
+            if (block.width() < 1)
                 return ND4J_STATUS_BAD_INPUT;
 
 
             int cnt = 0;
-            for (auto v: *block.getVariables()) {
+            for (auto p: *block.inputs()) {
+                auto v = block.getVariableSpace()->getVariable(p);
                 if (v == nullptr) {
                     if (this->getOpName() != nullptr) {
                         nd4j_printf("Node [%i:<%s>]: Variable [%i] (%i:%i) is NULL\n", block.getNodeId(), this->getOpName()->c_str(), cnt, 0, 0);
@@ -368,11 +371,12 @@ namespace nd4j {
 
         template <typename T>
         Nd4jStatus nd4j::ops::DeclarableOp<T>::validateOrdersMatch(Block<T>& block) {
-            if (block.getVariables()->size() == 0)
+            if (block.width() == 0)
                 return ND4J_STATUS_OK;
 
-            NDArray<T> *a0 = block.getVariables()->at(0)->getNDArray();
-            for (auto v: *block.getVariables()) {
+            NDArray<T> *a0 = block.variable(0)->getNDArray();
+            for (auto p: *block.inputs()) {
+                auto v = block.variable(p);
                 NDArray<T> *aV = v->getNDArray();
                 if (a0->ordering() != aV->ordering())
                     return ND4J_STATUS_BAD_ORDER;
@@ -480,12 +484,13 @@ namespace nd4j {
 
         template <typename T>
         Nd4jStatus nd4j::ops::DeclarableOp<T>::validateInputDimensionsMatch(Block<T>& block) {
-            if (block.getVariables()->size() == 0)
+            if (block.width() == 0)
                 return ND4J_STATUS_OK;
 
 
-            NDArray<T> *a0 = block.getVariables()->at(0)->getNDArray();
-            for (auto v: *block.getVariables()) {
+            NDArray<T> *a0 = block.variable(0)->getNDArray();
+            for (auto p: *block.inputs()) {
+                auto v = block.variable(p);
                 NDArray<T> *aV = v->getNDArray();
                 if (!shape::equalsSoft(a0->getShapeInfo(), aV->getShapeInfo()))
                     return ND4J_STATUS_BAD_DIMENSIONS;
@@ -496,13 +501,13 @@ namespace nd4j {
 
         template <typename T>
         Nd4jStatus nd4j::ops::DeclarableOp<T>::validateInputLengthMatch(Block<T>& block) {
-            if (block.getVariables()->size() == 0)
+            if (block.width() == 0)
                 return ND4J_STATUS_OK;
 
 
-            Nd4jIndex l0 = block.getVariables()->at(0)->getNDArray()->lengthOf();
-            for (uint32_t e = 0; e < block.getVariables()->size(); e++) {
-                if (l0 != block.getVariables()->at(e)->getNDArray()->lengthOf())
+            Nd4jIndex l0 = block.variable(0)->getNDArray()->lengthOf();
+            for (uint32_t e = 0; e < block.width(); e++) {
+                if (l0 != block.variable(e)->getNDArray()->lengthOf())
                     return ND4J_STATUS_BAD_LENGTH;
             }
 

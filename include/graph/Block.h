@@ -33,7 +33,9 @@ namespace nd4j {
 
             // int ids of the input nodes
             std::vector<std::pair<int, int>> _inputs;
-            std::vector<nd4j::graph::Variable<T> *> _variables;
+
+            //std::vector<nd4j::graph::Variable<T> *> _variables;
+
             nd4j::graph::VariableSpace<T>* _variableSpace;
             std::pair<Nd4jIndex, Nd4jIndex> _executionTime;
             nd4j::random::RandomBuffer* _rng;
@@ -86,6 +88,7 @@ namespace nd4j {
             void markInplace(bool reallyInplace);
 
             void pickInput(int input);
+            void pickInput(std::pair<int, int>& p);
             void fillInputs(std::initializer_list<int> inputs);
             void fillInputs(std::vector<int>& inputs);
             std::vector<std::pair<int, int>>* inputs();
@@ -93,7 +96,7 @@ namespace nd4j {
             int getBranch();
             void setBranch(int branch);
 
-            void updateVariables();
+            //void updateVariables();
 
             /**
              * This method returns number of inputs available in this block
@@ -107,8 +110,11 @@ namespace nd4j {
             */
             VariableSpace<T>* getVariableSpace();
 
-            std::vector<nd4j::graph::Variable<T> *>* getVariables();
+            //std::vector<nd4j::graph::Variable<T> *>* getVariables();
 
+            Variable<T>* getVariable(int idx);
+            Variable<T>* variable(int idx);
+            Variable<T>* variable(std::pair<int,int>& p);
 
             int opNum();
             void setOpNum(int opNum);

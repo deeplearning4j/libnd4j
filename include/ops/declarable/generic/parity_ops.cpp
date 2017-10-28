@@ -36,8 +36,8 @@ namespace nd4j {
             NDArray<T> *first = INPUT_VARIABLE(0);
             NDArray<T> *output = this->getZ(block);
 
-            Nd4jPointer* buffers = new Nd4jPointer[block.getVariables()->size()];
-            Nd4jPointer* shapes = new Nd4jPointer[block.getVariables()->size()];
+            Nd4jPointer* buffers = new Nd4jPointer[block.width()];
+            Nd4jPointer* shapes = new Nd4jPointer[block.width()];
 
             buffers[0] = (Nd4jPointer) first->getBuffer();
             shapes[0] = (Nd4jPointer) first->getShapeInfo();
@@ -47,8 +47,8 @@ namespace nd4j {
                 shape::printShapeInfoLinear((int *) shapes[0]);
             }
 
-            for (int e = 1; e < (int) block.getVariables()->size(); e++) {
-                Variable<T> *var = block.getVariables()->at(e);
+            for (int e = 1; e < (int) block.width(); e++) {
+                Variable<T> *var = block.variable(e);
 
                 buffers[e] = (Nd4jPointer) var->getNDArray()->getBuffer();
                 shapes[e] = (Nd4jPointer) var->getNDArray()->getShapeInfo();
@@ -61,7 +61,7 @@ namespace nd4j {
             if (nd4j::Environment::getInstance()->isDebugAndVerbose())
                 fflush(stdout);
 
-            nd4j::SpecialMethods<T>::concatCpuGeneric(_dimension, block.getVariables()->size(), buffers, shapes, output->getBuffer(), output->getShapeInfo());
+            nd4j::SpecialMethods<T>::concatCpuGeneric(_dimension, block.width(), buffers, shapes, output->getBuffer(), output->getShapeInfo());
 
             STORE_RESULT(*output);
 
@@ -465,7 +465,7 @@ namespace nd4j {
         OP_IMPL(mergemax, -1, 1, false) {
             REQUIRE_OK(this->validateInputDimensionsMatch(block));
 
-            Nd4jIndex numArgs = block.getVariables()->size();
+            Nd4jIndex numArgs = block.width();
             NDArray<T> *x = INPUT_VARIABLE(0);
             auto z = OUTPUT_VARIABLE(0);
 
@@ -491,7 +491,7 @@ namespace nd4j {
         OP_IMPL(mergemaxindex, -1, 1, false) {
             REQUIRE_OK(this->validateInputDimensionsMatch(block));
 
-            Nd4jIndex numArgs = block.getVariables()->size();
+            Nd4jIndex numArgs = block.width();
             NDArray<T> *x = INPUT_VARIABLE(0);
             auto z = this->getZ(block);
 
@@ -520,7 +520,7 @@ namespace nd4j {
         OP_IMPL(mergeadd, -1, 1, false) {
             REQUIRE_OK(this->validateInputDimensionsMatch(block));
 
-            Nd4jIndex numArgs = block.getVariables()->size();
+            Nd4jIndex numArgs = block.width();
             NDArray<T> *x = INPUT_VARIABLE(0);
             auto z = this->getZ(block);
 
@@ -545,7 +545,7 @@ namespace nd4j {
         OP_IMPL(mergeavg, -1, 1, false) {
             REQUIRE_OK(this->validateInputDimensionsMatch(block));
 
-            Nd4jIndex numArgs = block.getVariables()->size();
+            Nd4jIndex numArgs = block.width();
             NDArray<T> *x = INPUT_VARIABLE(0);
             auto z = this->getZ(block);
 
@@ -1123,8 +1123,8 @@ namespace nd4j {
                 var->template applyScalar<simdOps::Add<T>>(eps, nullptr);
             }
             else {
-                mean = block.getVariables()->at(1)->getNDArray();
-                var = block.getVariables()->at(2)->getNDArray();
+                mean = INPUT_VARIABLE(1);
+                var = INPUT_VARIABLE(2);
             }
             
             NDArray<T> std(var->getShapeInfo(), block.getWorkspace());

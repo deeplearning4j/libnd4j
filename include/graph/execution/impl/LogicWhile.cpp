@@ -51,7 +51,7 @@ namespace nd4j {
                 nd4j_debug("While [%i]: got [%i] ops in condition scope [%i]\n", node->id(), scope->nodes()->size(), scopeConditionIndex);
 
                 for (Node<T>* v: *scope->nodes()) {
-                    v->getBlock()->updateVariables();
+                    //v->getBlock()->updateVariables();
                     Nd4jStatus status = GraphExecutioner<T>::executeFlatNode(graph, v, __variableSpace);
                     if (status != ND4J_STATUS_OK)
                         return  status;
@@ -81,7 +81,7 @@ namespace nd4j {
                     for (; e < scopeBody->nodes()->size() - 1; e++) {
                         Node<T>* v = scopeBody->nodes()->at(e);
                         nd4j_debug("Op [<%s>]\n", v->getName()->c_str());
-                        v->getBlock()->updateVariables();
+                        //v->getBlock()->updateVariables();
                         Nd4jStatus status = GraphExecutioner<T>::executeFlatNode(graph, v, __variableSpace);
                         if (status != ND4J_STATUS_OK)
                             return  status;
