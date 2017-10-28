@@ -174,3 +174,54 @@ TEST_F(JavaInteropTests, TestPNorm_1) {
 
     ASSERT_TRUE(output.meanNumber() > 0.0);
 }
+
+TEST_F(JavaInteropTests, TestUpsampling_1) {
+    /*
+        o.d.n.l.c.u.Upsampling2D - Input shape: [4, 1, 3, 4, 4, 16, 16, 4, 1, 0, 1, 99]
+        o.d.n.l.c.u.Upsampling2D - Output shape: [4, 1, 3, 8, 8, 192, 64, 8, 1, 0, 1, 99]
+        o.d.n.l.c.u.Upsampling2D - size: 2
+     */
+
+    NDArray<float> input('c', {1, 3, 4, 4});
+    NDArray<float> output('c', {1, 3, 8, 8});
+    NDArrayFactory<float>::linspace(1, input);
+
+    NativeOps nativeOps;
+
+    nd4j::ops::upsampling2d<float> op;
+
+    int exp[] = {2};
+
+    Nd4jPointer ptrsInBuffer[] = {(Nd4jPointer) input.getBuffer()};
+    Nd4jPointer ptrsInShapes[] = {(Nd4jPointer) input.getShapeInfo()};
+
+    Nd4jPointer ptrsOutBuffers[] = {(Nd4jPointer) output.getBuffer()};
+    Nd4jPointer ptrsOutShapes[] = {(Nd4jPointer) output.getShapeInfo()};
+
+    nativeOps.execCustomOpFloat(nullptr, op.getOpHash(), ptrsInBuffer, ptrsInShapes, 1, ptrsOutBuffers, ptrsOutShapes, 1, nullptr, 0, exp, 1, false);
+
+    ASSERT_TRUE(output.meanNumber() > 0.0);
+}
+
+
+TEST_F(JavaInteropTests, TestInplace_1) {
+    NDArray<float> input('c', {10, 10});
+    //NDArray<float> exp('c', {10, 10});
+    NDArrayFactory<float>::linspace(1, input);
+
+    NativeOps nativeOps;
+
+    nd4j::ops::clipbyvalue<float> op;
+
+    float extras[] = {-1.0f, 1.0f};
+
+    Nd4jPointer ptrsInBuffer[] = {(Nd4jPointer) input.getBuffer()};
+    Nd4jPointer ptrsInShapes[] = {(Nd4jPointer) input.getShapeInfo()};
+
+
+    Nd4jStatus result = nativeOps.execCustomOpFloat(nullptr, op.getOpHash(), ptrsInBuffer, ptrsInShapes, 1, nullptr, nullptr, 0, extras, 2, nullptr, 0, true);
+
+    ASSERT_EQ(ND4J_STATUS_OK, result);
+
+    ASSERT_NEAR(1.0, input.meanNumber(), 1e-5);
+}
