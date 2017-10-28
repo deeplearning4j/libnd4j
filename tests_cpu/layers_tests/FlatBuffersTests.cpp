@@ -389,3 +389,10 @@ TEST_F(FlatBuffersTest, ReadLoops_3argsWhile_1) {
     ASSERT_NEAR(110.0f, x->getNDArray()->meanNumber(), 1e-5);
     ASSERT_NEAR(33.0f, y->getNDArray()->meanNumber(), 1e-5);
 }
+
+TEST_F(FlatBuffersTest, ReadLoops_NestedWhile_1) {
+    auto graph = GraphExecutioner<float>::importFromFlatBuffers("../../../tests_cpu/resources/nested_while.fb");
+
+    ASSERT_TRUE(graph != nullptr);
+
+}
