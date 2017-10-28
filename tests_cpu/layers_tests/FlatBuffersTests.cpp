@@ -357,6 +357,8 @@ TEST_F(FlatBuffersTest, ReduceDim_1) {
 }
 
 TEST_F(FlatBuffersTest, ReadLoops_3argsWhile_1) {
+    // TF graph:
+    // https://gist.github.com/raver119/b86ef727e9a094aab386e2b35e878966
     auto graph = GraphExecutioner<float>::importFromFlatBuffers("../../../tests_cpu/resources/three_args_while.fb");
 
     ASSERT_TRUE(graph != nullptr);
@@ -375,7 +377,15 @@ TEST_F(FlatBuffersTest, ReadLoops_3argsWhile_1) {
 
     ASSERT_TRUE(expPhi.isSameShape(phi));
 
-    //Nd4jStatus status = GraphExecutioner<float>::execute(graph);
+    Nd4jStatus status = GraphExecutioner<float>::execute(graph);
 
-    //ASSERT_EQ(ND4J_STATUS_OK, status);
+    ASSERT_EQ(ND4J_STATUS_OK, status);
+
+    // now, we expect some values
+
+    auto x = graph->getVariableSpace()->getVariable(20);
+    auto y = graph->getVariableSpace()->getVariable(21);
+
+    ASSERT_NEAR(110.0f, x->getNDArray()->meanNumber(), 1e-5);
+    ASSERT_NEAR(33.0f, y->getNDArray()->meanNumber(), 1e-5);
 }

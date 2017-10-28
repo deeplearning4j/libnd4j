@@ -22,7 +22,7 @@ namespace nd4j {
                     nd4j_debug("Return input: <%i, %i>; Return output: <%i, %i>\n", inputAddr.first, inputAddr.second, outputAddr.first, outputAddr.second);
 
                 auto varIn = __variableSpace->getVariable(inputAddr);
-                auto varOut = __variableSpace->getVariable(inputAddr);
+                auto varOut = __variableSpace->getVariable(outputAddr);
 
                 // FIXME: this is obviously wrong, we should keep depth track for backprop here
                 varOut->getNDArray()->assign(varIn->getNDArray());
