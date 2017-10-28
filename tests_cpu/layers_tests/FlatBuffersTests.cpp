@@ -395,4 +395,15 @@ TEST_F(FlatBuffersTest, ReadLoops_NestedWhile_1) {
 
     ASSERT_TRUE(graph != nullptr);
 
+    Nd4jStatus status = GraphExecutioner<float>::execute(graph);
+
+    auto x = graph->getVariableSpace()->getVariable(28);
+    auto y = graph->getVariableSpace()->getVariable(29);
+    auto z = graph->getVariableSpace()->getVariable(11, 2);
+
+    ASSERT_NEAR(110.0f, x->getNDArray()->meanNumber(), 1e-5);
+    ASSERT_NEAR(33.0f, y->getNDArray()->meanNumber(), 1e-5);
+
+    // we should have only 3 cycles in nested loop
+    ASSERT_NEAR(30.0f, z->getNDArray()->meanNumber(), 1e-5);
 }

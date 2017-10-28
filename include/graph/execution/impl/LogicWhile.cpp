@@ -5,6 +5,7 @@
 #include <graph/execution/LogicWhile.h>
 #include <graph/execution/LogicReturn.h>
 #include <GraphExecutioner.h>
+#include <graph/execution/LogicExecutor.h>
 
 
 namespace nd4j {
@@ -52,9 +53,14 @@ namespace nd4j {
 
                 for (Node<T>* v: *scope->nodes()) {
                     //v->getBlock()->updateVariables();
-                    Nd4jStatus status = GraphExecutioner<T>::executeFlatNode(graph, v, __variableSpace);
-                    if (status != ND4J_STATUS_OK)
-                        return  status;
+                    if (v->opType() == OpType_LOGIC) {
+                        nd4j_debug("Falling back to logic\n","");
+                        LogicExecutor<T>::processNode(graph, v);
+                    } else {
+                        Nd4jStatus status = GraphExecutioner<T>::executeFlatNode(graph, v, __variableSpace);
+                        if (status != ND4J_STATUS_OK)
+                            return status;
+                    }
 
                     lastNode = v->id();
                 }
@@ -80,11 +86,17 @@ namespace nd4j {
                     nd4j_debug("While [%i] got [%i] ops in body scope [%i]\n", node->id(), scopeBody->nodes()->size(), scopeBodyIndex);
                     for (; e < scopeBody->nodes()->size() - 1; e++) {
                         Node<T>* v = scopeBody->nodes()->at(e);
-                        nd4j_debug("Op [<%s>]\n", v->getName()->c_str());
-                        //v->getBlock()->updateVariables();
-                        Nd4jStatus status = GraphExecutioner<T>::executeFlatNode(graph, v, __variableSpace);
-                        if (status != ND4J_STATUS_OK)
-                            return  status;
+
+                        if (v->opType() == OpType_LOGIC) {
+                            nd4j_debug("Falling back to logic\n","");
+                            LogicExecutor<T>::processNode(graph, v);
+                        } else {
+                            nd4j_debug("Op [<%s>]\n", v->getName()->c_str());
+                            //v->getBlock()->updateVariables();
+                            Nd4jStatus status = GraphExecutioner<T>::executeFlatNode(graph, v, __variableSpace);
+                            if (status != ND4J_STATUS_OK)
+                                return status;
+                        }
 
                         lastNode = v->id();
                     }
