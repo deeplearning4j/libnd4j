@@ -357,8 +357,8 @@ namespace nd4j {
                     // we need to check, if we should propagate output of this variable somewhere
                     for (int e = 0; e < node->output()->size(); e++) {
                         auto out = node->output()->at(e);
-                        if (out < 0) {
-                            nd4j_debug("Node [%i] will be propagating its output to Variable [%i]\n", node->id(), out);
+                        if (out.first < 0) {
+                            nd4j_debug("Node [%i] will be propagating its output to Variable [%i]\n", node->id(), out.first);
                             auto extVar = _variableSpace->getVariable(out);
                             if (extVar->hasNDArray()) {
                                 nodeState->setNDArray(extVar->getNDArray());
@@ -390,7 +390,7 @@ namespace nd4j {
                     pushToOutputOnce(node->id());
 
             // if outputs are undefined, we have to auto-create variable
-            if (node->output()->size() == 0 || (node->output()->size() == 1 && node->output()->at(0) == 0)){
+            if (node->output()->size() == 0 || (node->output()->size() == 1 && node->output()->at(0).first == 0)){
                 Variable<T>* var;
                 if (!_variableSpace->hasVariable(node->id())) {
                     var = new Variable<T>();
@@ -420,7 +420,7 @@ namespace nd4j {
                 // we're pushing this node to output only
                 if ((!node->hasInternalOutputs() && (_configuration->_outputMode == OutputMode_IMPLICIT || _configuration->_outputMode == OutputMode_EXPLICIT_AND_IMPLICIT)) ) {
                     for (int e = 0;  e < (int) node->output()->size(); e++) {
-                        if (node->output()->at(e) < 0)
+                        if (node->output()->at(e).first < 0)
                             pushToOutputOnce(node->output()->at(e).first);
                     }
 
