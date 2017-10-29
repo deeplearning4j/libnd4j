@@ -160,7 +160,7 @@ namespace nd4j {
             std::pair<Nd4jIndex, nd4j::ops::DeclarableOp<float>*> pair2(hash, op);
             _declarablesLF.insert(pair2);
 
-            nd4j_printf("Adding op [%s]:[%lld]\n", name, hash);
+            //nd4j_printf("Adding op [%s]:[%lld]\n", name, hash);
             return true;
         }
 
