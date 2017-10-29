@@ -11,16 +11,16 @@ namespace nd4j {
             // LocalResponseNormalization
 
             NDArray<T>* input = INPUT_VARIABLE(0);
-            NDArray<T>* z = this->getZ(block);
-            NDArray<T>* unitScale = this->getZ(block, 1);
-            NDArray<T>* scale = this->getZ(block, 2);
+            NDArray<T>* z = OUTPUT_VARIABLE(0);
+            NDArray<T>* unitScale = OUTPUT_VARIABLE(1);
+            NDArray<T>* scale = OUTPUT_VARIABLE(2);
 
             REQUIRE_TRUE(input->rankOf() == 4, 0, "Input rank of 4 expected, but got %i instead", input->rankOf());
 
-            T alpha = block.getTArguments()->at(0);
-            T beta = block.getTArguments()->at(1);
-            T bias = block.getTArguments()->at(2);
-            T depth = block.getTArguments()->at(3);
+            T alpha = T_ARG(0);
+            T beta = T_ARG(1);
+            T bias = T_ARG(2);
+            T depth = T_ARG(3);
 
             int halfDepth = (int) (depth / (T) 2.f);
 

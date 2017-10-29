@@ -464,6 +464,8 @@ namespace nd4j {
                         this->setBlock(block);
                     }
                 } else if (this->_opType == OpType_CUSTOM) {
+
+                    nd4j_printf("Op name: [%s]\n", this->_name.c_str());
                     auto op = nd4j::ops::OpRegistrator::getInstance()->getOperationFloat(this->opNum());
                     if (op == nullptr) {
                         nd4j_verbose("Can't find operation: %lld\n", this->opNum());
