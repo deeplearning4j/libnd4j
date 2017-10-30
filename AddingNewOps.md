@@ -1,8 +1,6 @@
 There's multiple different Ops designs supported in libND4j, and in this guide we'll try to explain how to build your very own operation.
 
-# General overview
-
-### XYZ operations
+## XYZ operations
 
 This kind of operations is actually split into multiple subtypes, based on element-access and result type:
 - Transform operations: These operations typically take some NDArray in, and change each element independent of others.
@@ -19,7 +17,9 @@ for (Nd4jIndex i = start; i < end; i++) {
 }
 ```
 
-Operation used in this loop will be template-driven, and compiled statically. Here's how `Add` operation will look like:
+Operation used in this loop will be template-driven, and compiled statically. There are another loops implementation, depending on op group or strides within NDArrays, but idea will be the same all the time: each element of the NDArray will be accessed within loop.
+
+Now, let's take a look into typical XYZ op implementation. Here's how `Add` operation will look like:
 
 ```c++
 
@@ -48,8 +48,12 @@ public:
 ```
 
 This particular operation is used in different XYZ op groups, but you see the idea: element-wise operation, which is invoked on each element in given NDArray.
+So, if you want to add new XYZ operation to libnd4j, you should just add operation implementation to file `includes/ops/ops.h`, and assign it to specific ops group in file `includes/loops/legacy_ops.h` together with some number unique to this ops group, i.e.: `(21, simdOps::Add)`
 
-### Custom operations
+After libnd4j is recompiled, this op will become available for legacy execution mechanism, NDArray wrappers, and `LegacyOp` wrappers (those are made to map legacy operations to CustomOps design for Graph).
+
+
+## Custom operations
 
 Custom operations is a new concept, added recently and mostly suits SameDiff/Graph needs.
 For CustomOps we defined universal signature, with variable number of input/output NDArrays, and variable number of floating-point and integer arguments.
@@ -111,17 +115,17 @@ DECLARE_SHAPE_FN(tear) {
 ```
 
 In the example above, we declare `tear` CustomOp implementation, and shape function for this op.
-So, at the moment of op execution, we assume we will either have output arrays provided by end-user, or, they will be generated via shape function.
+So, at the moment of op execution, we assume that we will either have output array(s) provided by end-user, or they will be generated with shape function.
 
 You can also see number of macros used, we'll cover those later as well. Beyond that - op execution logic is fairly simple & linear:
-Each new op implements protected member function `DeclarableOp<T>::validateAndExecute(Block<T>& block)`, and this method is eventuall called either from GraphExecutioner, or via direct call, like `DeclarableOp<T>::execute(Block<T>& block)`
+Each new op implements protected member function `DeclarableOp<T>::validateAndExecute(Block<T>& block)`, and this method is eventually called either from GraphExecutioner, or via direct call, like `DeclarableOp<T>::execute(Block<T>& block)`.
+
+## Backend-specific operation
+
+GPU/MPI/whatever to be added soon.
 
 
-
-
-
-
-### Utility macros
+## Utility macros
 We have number of utility macros, suitable for custom ops. Here they are:
 - **INPUT_VARIABLE**(int): this macro returns you NDArray at specified input index.
 - **OUTPUT_VARIABLE**(int): this macro returns you NDArray at specified output index.
@@ -134,20 +138,3 @@ We have number of utility macros, suitable for custom ops. Here they are:
 - **REQUIRE_TRUE**(...): this macro takes condition, and evaluates it. If evaluation doesn't end up as True - exception is raised, and specified message is printed out.
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-s
