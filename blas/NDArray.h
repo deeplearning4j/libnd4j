@@ -91,7 +91,9 @@ namespace nd4j {
         // This method replaces existing buffer/shapeinfo, AND releases original pointers (if releaseExisting TRUE)
         void replacePointers(T *buffer, int *shapeInfo, const bool releaseExisting = true);
  
-        NDArray<T>* repeat(int dimension, const std::vector<int>& reps);
+        NDArray<T>* repeat(int dimension, const std::vector<int>& reps) const;
+
+        void repeat(int dimension, NDArray<T>& target) const;
 
         NDArray<T>* getView();
 

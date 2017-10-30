@@ -1471,45 +1471,22 @@ template <typename T>
 
 
 //////////////////////////////////////////////////////////////////////////
-// change an array by repeating it the number of times given by reps
+// create new  array by repeating it the number of times given by reps
 template<typename T>
-    NDArray<T>* NDArray<T>::repeat(int dimension, const std::vector<int>& repeats) {
+    NDArray<T>* NDArray<T>::repeat(int dimension, const std::vector<int>& repeats) const {
 
-    if (dimension < 0)
-        dimension += this->rankOf();
+    std::vector<int> outShape = ShapeUtils<T>::evalRepeatShape(dimension, repeats, *this);
+    
+    // the size of outShape == rank
+    int rank = rankOf();            // = outShape.size()
 
-    std::vector<int> reps;
+    int *newShape = new int[rank];
+    for (int i = 0; i < rank; i++)
+        newShape[i] = outShape[i];
 
-    if ((int) reps.size() < this->rankOf()) {
-        if (dimension > 0) {
-            for (int e = 0; e < this->rankOf() - (int) repeats.size(); e++)
-                reps.push_back(1);
+    NDArray<T>* ret = new NDArray<T>('c', outShape, _workspace);
 
-            for (auto r: repeats)
-                reps.push_back(r);
-        } else {
-            for (auto r: repeats)
-                reps.push_back(r);
-
-            for (int e = 0; e < this->rankOf() - (int) repeats.size(); e++)
-                reps.push_back(1);
-        }
-    }/* else {
-        for (auto r: repeats)
-            reps.push_back(r);
-    }*/
-
-    int *newShape = new int[this->rankOf()];
-    std::vector<int> rShape;
-
-    for (int i = 0; i < this->rankOf(); i++) {
-        newShape[i] = this->sizeAt(i) * reps.at(i);
-        rShape.push_back(newShape[i]);
-    }
-
-    auto ret = new NDArray<T>('c', rShape, _workspace);
-
-    auto repeatDelta = shape::prodLong(newShape, this->rankOf()) / this->lengthOf();
+    auto repeatDelta = shape::prodLong(newShape, rank) / this->lengthOf();
     auto numTads = this->tensorsAlongDimension({dimension});
     for (int i = 0; i < numTads; i++) {
         auto thisTensor = this->tensorAlongDimension(i, {dimension});
@@ -1530,6 +1507,30 @@ template<typename T>
 
     return ret;
 }
+
+//////////////////////////////////////////////////////////////////////////
+// fill array by repeating it the number of times given by reps
+    template<typename T>
+    void NDArray<T>::repeat(int dimension, NDArray<T>& target) const {
+    
+    Nd4jIndex repeatDelta = shape::prodLong(target.shapeOf(), rankOf()) / this->lengthOf();
+    Nd4jIndex numTads = this->tensorsAlongDimension({dimension});
+    for (int i = 0; i < numTads; i++) {
+        NDArray<T>* thisTensor = this->tensorAlongDimension(i, {dimension});
+        NDArray<T>* retTensor = target.tensorAlongDimension(i, {dimension});
+        int retIdx = 0;
+        for (int k = 0; k < thisTensor->lengthOf(); k++) {
+            T s = thisTensor->getIndexedScalar(k);
+            for (int j = 0; j < repeatDelta; j++) {
+                retTensor->putIndexedScalar(retIdx++, s);
+            }
+        }
+
+        delete thisTensor;
+        delete retTensor;
+    }
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 template <typename T>

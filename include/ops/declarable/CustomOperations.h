@@ -91,6 +91,7 @@ namespace nd4j {
         DECLARE_CUSTOM_OP(upsampling2d, 1, 1, false, 0, 1);
         DECLARE_CUSTOM_OP(upsampling2d_bp, 2, 1, false, 0, 1);
         DECLARE_CUSTOM_OP(tensormmul, 2, 1, false, 0, -1);   
+        DECLARE_CUSTOM_OP(repeat, 1, 1, true, 0, -1);   // should become custom
 
         // recurrent ops
         DECLARE_CUSTOM_OP(sru,         5, 2, false, 0, 0);
@@ -102,8 +103,7 @@ namespace nd4j {
                 
         DECLARE_CONFIGURABLE_OP(clipbyvalue, 1, 1, true, 2, 0);
         DECLARE_CONFIGURABLE_OP(scatter_update, 2, 1, true, 0, -1);
-        DECLARE_CONFIGURABLE_OP(relu, 1, 1, true, 1, 0);
-        DECLARE_CONFIGURABLE_OP(repeat, 1, 1, true, 0, -1);   // should become custom
+        DECLARE_CONFIGURABLE_OP(relu, 1, 1, true, 1, 0);        
         DECLARE_CONFIGURABLE_OP(randomuniform, 1, 1, true, 2, 0);
         DECLARE_CONFIGURABLE_OP(permute, 1, 1, true, 0, -1);   // MAYBE should become custom :/
         DECLARE_CONFIGURABLE_OP(sum, 1, 1, false, 0, -1);       // should become reduction
