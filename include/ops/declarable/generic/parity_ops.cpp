@@ -22,6 +22,7 @@
 #include <ops/declarable/CustomOperations.h>
 #include <graph/Block.h>
 #include <ops/declarable/OpRegistrator.h>
+#include <helpers/ShapeUtils.h>
 
 namespace nd4j {
     namespace ops {
@@ -295,7 +296,7 @@ namespace nd4j {
 
             // evaluate shapes 
             std::vector<int> permutAt, permutBt, shapeAt, shapeBt;
-            std::vector<int> outShape = nd4j::NDArrayFactory<T>::evalShapeForTensorDot(a, b, axes_0, axes_1, permutAt, permutBt, shapeAt, shapeBt);
+            std::vector<int> outShape = nd4j::ShapeUtils<T>::evalShapeForTensorDot(a, b, axes_0, axes_1, permutAt, permutBt, shapeAt, shapeBt);
             
             int rank = outShape.size();
 
@@ -306,7 +307,7 @@ namespace nd4j {
             shape::updateStrides(newShapeInfo, 'c');
 
             return new ShapeList(newShapeInfo);
-    }
+        }
 
         //////////////////////////////////////////////////////////////////////////
         // test op, non-divergent
@@ -786,6 +787,19 @@ namespace nd4j {
 			return ND4J_STATUS_OK;				
         }
 		
+        // DECLARE_SHAPE_FN(repeat) {               
+        
+          
+
+        //     int* newShapeInfo = nullptr; 
+        //     ALLOCATE(newShapeInfo, block.getWorkspace(), shape::shapeInfoLength(rank), int); 
+        //     newShapeInfo[0] = rank;
+        //     copy(outShape.begin(), outShape.end(), newShapeInfo+1);
+        //     shape::updateStrides(newShapeInfo, 'c');
+
+        //     return new ShapeList(newShapeInfo);
+        // }
+
 		//////////////////////////////////////////////////////////////////////////
 		CONFIGURABLE_OP_IMPL(sum, 1, 1, false, 0, -1) {
 

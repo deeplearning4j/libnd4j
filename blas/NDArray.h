@@ -401,10 +401,7 @@ namespace nd4j {
 
 		// check whether array is unitary matrix
 		bool isUnitary(); 
-        
-        // evaluate resulting shape after reduce operation
-        int* evalReduceShapeInfo(const char order, std::vector<int>& dimensions) const;
-        
+                
         // reduce dimensions in this array relying on index operations
         template<typename OpName>
         NDArray<T>* applyIndexReduce(const std::vector<int>& dimensions, const T *extraParams = nullptr) const;

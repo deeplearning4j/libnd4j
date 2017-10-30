@@ -99,7 +99,7 @@ namespace nd4j {
         DECLARE_CUSTOM_OP(sru_bp,      8, 4, true,  0, 0);
         DECLARE_CUSTOM_OP(sru_bp_logic,8, 4, true,  0, 0);
         DECLARE_CUSTOM_OP(sru_bi_bp,   8, 4, true,  0, 0);
-        
+                
         DECLARE_CONFIGURABLE_OP(clipbyvalue, 1, 1, true, 2, 0);
         DECLARE_CONFIGURABLE_OP(scatter_update, 2, 1, true, 0, -1);
         DECLARE_CONFIGURABLE_OP(relu, 1, 1, true, 1, 0);

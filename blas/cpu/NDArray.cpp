@@ -18,6 +18,7 @@
 #include <loops/broadcasting.h>
 #include <indexing/NDIndex.h>
 #include <indexing/IndicesList.h>
+#include <helpers/ShapeUtils.h>
 
 namespace nd4j {
 
@@ -522,7 +523,7 @@ template <typename T>
         
         std::vector<int> copy(dimensions);
         
-        int* newShape = evalReduceShapeInfo('c', copy);  
+        int* newShape = ShapeUtils<T>::evalReduceShapeInfo('c', copy, *this);
         NDArray<T>* result = new NDArray<T>(newShape, _workspace);
         RELEASE(newShape, _workspace);        
         
@@ -549,7 +550,7 @@ template <typename T>
 
         std::vector<int> copy(dimensions);
 
-        int* newShape = evalReduceShapeInfo('c', copy);
+        int* newShape = ShapeUtils<T>::evalReduceShapeInfo('c', copy, *this);
         if(!shape::shapeEquals(newShape, target->getShapeInfo()))
             throw "NDArray::reduceAlongDimension method: wrong target shape !";
         RELEASE(newShape, _workspace);
@@ -2174,50 +2175,6 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
         return new NDArray<T>(this->_buffer + offset, newShape, this->_workspace);
     }
 
-    ////////////////////////////////////////////////////////////////////////
-    // evaluate resulting shape after reduce operation
-    template<typename T>
-    int* NDArray<T>::evalReduceShapeInfo(const char order, std::vector<int>& dimensions) const {
-        
-        int rank = rankOf();
-        shape::checkDimensions(rank, dimensions);
-        
-		int* newShape = nullptr;
-        int dimSize = dimensions.size();
-		int newRank = rank - dimSize;
-		if (newRank==0 || (dimSize==1 && dimensions[0]==INT_MAX)) { 			// check whether given dimension is meant for the whole dimension
-			ALLOCATE(newShape, _workspace, 8, int);		// set newRank = 2
-			newShape[0] = 2;
-			newShape[1] = 1;
-			newShape[2] = 1;			
-		}
-        else {
-			ALLOCATE(newShape, _workspace, shape::shapeInfoLength(2), int);
-			int* tempShape = shape::removeIndex(shapeOf(), const_cast<int*>(dimensions.data()), rank, dimSize);
-            newShape[0] = newRank;                      // set rank
-			for(int i=0; i<newRank; ++i)
-				newShape[i+1] = tempShape[i]; 			// ignore zero index (rank)
-			delete []tempShape;
-		}		
-		//ensure vector is proper shape 
-		if (newRank == 1) {            
-			int oldValue = newShape[1];
-			RELEASE(newShape, _workspace);
-			ALLOCATE(newShape, _workspace, shape::shapeInfoLength(2), int);		// set newRank = 2
-			newShape[0] = 2;
-            if (dimensions[0] == 0) {
-                newShape[1] = 1; 
-				newShape[2] = oldValue;
-			}
-            else {
-                newShape[1] = oldValue;
-				newShape[2] = 1; 				
-			}
-        } 
-		shape::updateStrides(newShape, order);
-        
-        return newShape;
-    }
 
     ////////////////////////////////////////////////////////////////////////
     // reduce dimensions in this array relying on index operations
@@ -2227,7 +2184,7 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
         
         std::vector<int> copy(dimensions);
 
-        int* newShape = evalReduceShapeInfo('c', copy);        
+        int* newShape = ShapeUtils<T>::evalReduceShapeInfo('c', copy, *this);
         NDArray<T>* result = new NDArray<T>(newShape, _workspace);
         RELEASE(newShape, _workspace);
 
@@ -2338,7 +2295,7 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
         shape::checkDimensions(rankOf(), copy);
         shape::checkDimensions(other->rankOf(), copy);               
 
-        int* newShape = evalReduceShapeInfo('c', copy);        
+        int* newShape = ShapeUtils<T>::evalReduceShapeInfo('c', copy, *this);
         NDArray<T>* result = new NDArray<T>(newShape, _workspace);
         RELEASE(newShape, _workspace);
         // create temporary array of extra parameters if array extraParams is empty (==nullptr)
@@ -2375,7 +2332,7 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
     
         std::vector<int> copy(dimensions);
             
-        int* newShape = evalReduceShapeInfo('c', copy);  
+        int* newShape = ShapeUtils<T>::evalReduceShapeInfo('c', copy, *this);
         NDArray<T>* result = new NDArray<T>(newShape, _workspace);
         RELEASE(newShape, _workspace);        
         
