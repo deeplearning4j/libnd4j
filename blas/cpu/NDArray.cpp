@@ -1459,7 +1459,7 @@ template <typename T>
 }
 
     template<typename T>
-    int NDArray<T>::sizeAt(int dim) {
+    int NDArray<T>::sizeAt(int dim) const {
         if (dim >= this->rankOf() || dim < -this->rankOf())
             throw "Bad size index requested";
 
@@ -1568,7 +1568,7 @@ bool NDArray<T>::permutei(const std::vector<int>& dimensions) {
 
 //////////////////////////////////////////////////////////////////////////
 template <typename T>
-NDArray<T>* NDArray<T>::permute(const int* dimensions, const int rank) {
+NDArray<T>* NDArray<T>::permute(const int* dimensions, const int rank) const {
 
     if (_buffer==nullptr || rank != rankOf())
         throw "Wrong arguments in permute method: either array is nullptr or rank is not suitable!";
@@ -1597,14 +1597,14 @@ NDArray<T>* NDArray<T>::permute(const int* dimensions, const int rank) {
 
 //////////////////////////////////////////////////////////////////////////
 template <typename T>
-NDArray<T>* NDArray<T>::permute(const std::vector<int>& dimensions) {
+NDArray<T>* NDArray<T>::permute(const std::vector<int>& dimensions) const {
     return permute(dimensions.data(), dimensions.size());
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 template <typename T>
-NDArray<T>* NDArray<T>::permute(const std::initializer_list<int>& dimensions) {
+NDArray<T>* NDArray<T>::permute(const std::initializer_list<int>& dimensions) const {
     std::vector<int> vec(dimensions);
     return permute(vec);
 }

@@ -133,7 +133,7 @@ namespace nd4j {
             _isShapeAlloc = shapeAllocated;
         }
 
-        int sizeAt(int dim);
+        int sizeAt(int dim) const;
 
         // This method returns order of this NDArray
         char ordering() const {
@@ -170,9 +170,9 @@ namespace nd4j {
         bool permutei(const std::vector<int>& dimensions);
         bool permutei(const int* dimensions, const int rank);
 
-		NDArray<T>* permute(const std::initializer_list<int>& dimensions);
-        NDArray<T>* permute(const std::vector<int>& dimensions);
-        NDArray<T>* permute(const int* dimensions, const int rank);
+		NDArray<T>* permute(const std::initializer_list<int>& dimensions) const;
+        NDArray<T>* permute(const std::vector<int>& dimensions) const;
+        NDArray<T>* permute(const int* dimensions, const int rank) const;
 
         // This method returns number of rows in this NDArray
         int rows() const {

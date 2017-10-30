@@ -242,6 +242,7 @@ namespace nd4j {
             return ND4J_STATUS_OK;
         }
 
+       //////////////////////////////////////////////////////////////////////////
         /**
          * tensorMmul/tensorDot operation
          * takes 2 ndarrays, and 2 sets of axes
@@ -252,24 +253,25 @@ namespace nd4j {
          * IArgs[] - number of axes along for second array
          * IArgs[1]... axes values for second array
          */
-        CONFIGURABLE_OP_IMPL(tensormmul, 2, 1, false, 0, -1) {
-            NDArray<T> *a = INPUT_VARIABLE(0);
-            NDArray<T> *b = INPUT_VARIABLE(1);
+        CUSTOM_OP_IMPL(tensormmul, 2, 1, false, 0, -1) {
+            NDArray<T>* a = INPUT_VARIABLE(0);
+            NDArray<T>* b = INPUT_VARIABLE(1);
+
+            NDArray<T>* c = OUTPUT_VARIABLE(0);                // 
 
             // building axes
             int axe0_size = block.getIArguments()->at(0);
             int axe1_size = block.getIArguments()->at(axe0_size+1);
             std::vector<int> axes_0, axes_1;
             for (int e = 0; e < axe0_size; e++)
-                axes_0.push_back((int) block.getIArguments()->at(e+1));
+                axes_0.emplace_back((int) block.getIArguments()->at(e+1));
 
             for (int e = 0; e < axe1_size; e++)
-                axes_1.push_back((int) block.getIArguments()->at(e + axe0_size + 2));
-
+                axes_1.emplace_back((int) block.getIArguments()->at(e + axe0_size + 2));
 
             nd4j_verbose("axe0: %i; axe1: %i;\n", axes_0.size(), axes_1.size());
 
-            auto c = nd4j::NDArrayFactory<T>::tensorDot(a, b, b, axes_0, axes_1);
+            nd4j::NDArrayFactory<T>::tensorDot(a, b, c, axes_0, axes_1);
 
             STORE_RESULT(*c);
 
@@ -278,6 +280,35 @@ namespace nd4j {
         DECLARE_SYN(tensordot, tensormmul);
 
 
+        DECLARE_SHAPE_FN(tensormmul) {               
+        
+            NDArray<T> *a = INPUT_VARIABLE(0);
+            NDArray<T> *b = INPUT_VARIABLE(1);  
+            // building axes
+            int axe0_size = block.getIArguments()->at(0);
+            int axe1_size = block.getIArguments()->at(axe0_size+1);
+            std::vector<int> axes_0, axes_1;
+            for (int e = 0; e < axe0_size; e++)
+                axes_0.emplace_back((int) block.getIArguments()->at(e+1));
+            for (int e = 0; e < axe1_size; e++)
+                axes_1.emplace_back((int) block.getIArguments()->at(e + axe0_size + 2));        
+
+            // evaluate shapes 
+            std::vector<int> permutAt, permutBt, shapeAt, shapeBt;
+            std::vector<int> outShape = nd4j::NDArrayFactory<T>::evalShapeForTensorDot(a, b, axes_0, axes_1, permutAt, permutBt, shapeAt, shapeBt);
+            
+            int rank = outShape.size();
+
+            int* newShapeInfo = nullptr; 
+            ALLOCATE(newShapeInfo, block.getWorkspace(), shape::shapeInfoLength(rank), int); 
+            newShapeInfo[0] = rank;
+            copy(outShape.begin(), outShape.end(), newShapeInfo+1);
+            shape::updateStrides(newShapeInfo, 'c');
+
+            return new ShapeList(newShapeInfo);
+    }
+
+        //////////////////////////////////////////////////////////////////////////
         // test op, non-divergent
         OP_IMPL(testop2i2o, 2, 2, true) {
             nd4j_printf("CPU op used!\n","");
@@ -293,7 +324,7 @@ namespace nd4j {
         }
         DECLARE_SYN(TestOp2i2o, testop2i2o);
 
-/////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////////////
         CUSTOM_OP_IMPL(testcustom, 1, 1, false, 0, -1) {
             auto z = this->getZ(block);
 
