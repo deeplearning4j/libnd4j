@@ -3,6 +3,7 @@
 //
 
 #include <helpers/ShapeUtils.h>
+#include <climits>
 
 
 namespace nd4j {
@@ -116,51 +117,41 @@ int* ShapeUtils<T>::evalReduceShapeInfo(const char order, std::vector<int>& dime
 
 //////////////////////////////////////////////////////////////////////////
 // evaluate shape for array which is result of repeat operation applied to arr
-// template<typename T>
-//     NDArray<T>* NDArray<T>::repeat(int dimension, const std::vector<int>& repeats, const NDArray<T>& arr) {
+	template<typename T>
+    std::vector<int> ShapeUtils<T>::evalRepeatShape(int dimension, const std::vector<int>& repeats, const NDArray<T>& arr) {
 
-//     if (dimension < 0)
-//         dimension += arr.rankOf();
+    int rank = arr.rankOf();
 
-//     std::vector<int> reps;
+    if (dimension < 0)
+        dimension += rank;
 
-//     if ((int) reps.size() < arr.rankOf()) {
-//         if (dimension > 0) {
-//             for (int e = 0; e < arr.rankOf() - (int) repeats.size(); e++)
-//                 reps.push_back(1);
+    std::vector<int> reps;
 
-//             for (auto r: repeats)
-//                 reps.push_back(r);
-//         } else {
-//             for (auto r: repeats)
-//                 reps.push_back(r);
+    if ((int) reps.size() < rank) {
+        if (dimension > 0) {
+            for (int e = 0; e < rank - (int) repeats.size(); e++)
+                reps.push_back(1);
 
-//             for (int e = 0; e < arr.rankOf() - (int) repeats.size(); e++)
-//                 reps.push_back(1);
-//         }
-//     }/* else {
-//         for (auto r: repeats)
-//             reps.push_back(r);
-//     }*/
+            for (auto r: repeats)
+                reps.push_back(r);
+        } else {
+            for (auto r: repeats)
+                reps.push_back(r);
 
-//     int *newShape = new int[arr.rankOf()];
-//     std::vector<int> rShape;
+            for (int e = 0; e < rank - (int) repeats.size(); e++)
+                reps.push_back(1);
+        }
+    }/* else {
+        for (auto r: repeats)
+            reps.push_back(r);
+    }*/
+    
+    std::vector<int> outShape(rank);
+    for (int i = 0; i < rank; i++)         
+        outShape[i] = arr.sizeAt(i) * reps.at(i);        
 
-//     for (int i = 0; i < arr.rankOf(); i++) {
-//         newShape[i] = arr.sizeAt(i) * reps.at(i);
-//         rShape.push_back(newShape[i]);
-//     }
-
-//     auto ret = new NDArray<T>('c', rShape, _workspace);
-
-//     auto repeatDelta = shape::prodLong(newShape, arr.rankOf()) / arr.lengthOf();
-//     auto numTads = arr.tensorsAlongDimension({dimension});
-
-
-//     delete[] newShape;
-
-//     return ret;
-// }
+    return outShape;
+}
 
 
 template class ND4J_EXPORT ShapeUtils<float>;

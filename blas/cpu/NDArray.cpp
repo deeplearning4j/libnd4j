@@ -11,7 +11,6 @@
 #include <pointercast.h>
 #include <stdexcept>
 #include <memory>
-#include <climits>
 #include <helpers/logger.h>
 #include <loops/pairwise_transform.h>
 #include <loops/transform.h>

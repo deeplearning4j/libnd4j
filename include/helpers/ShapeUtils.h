@@ -20,6 +20,10 @@ namespace nd4j {
 
        // evaluate resulting shape after reduce operation
        static int* evalReduceShapeInfo(const char order, std::vector<int>& dimensions, const NDArray<T>& arr);
+
+		// evaluate shape for array which is result of repeat operation applied to arr
+    	static std::vector<int> evalRepeatShape(int dimension, const std::vector<int>& repeats, const NDArray<T>& arr);
+
     
 
     };
