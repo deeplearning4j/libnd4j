@@ -113,8 +113,25 @@ DECLARE_SHAPE_FN(tear) {
 In the example above, we declare `tear` CustomOp implementation, and shape function for this op.
 So, at the moment of op execution, we assume we will either have output arrays provided by end-user, or, they will be generated via shape function.
 
-You can also see number of macros used, we'll cover those later as well.
+You can also see number of macros used, we'll cover those later as well. Beyond that - op execution logic is fairly simple & linear:
+Each new op implements protected member function `DeclarableOp<T>::validateAndExecute(Block<T>& block)`, and this method is eventuall called either from GraphExecutioner, or via direct call, like `DeclarableOp<T>::execute(Block<T>& block)`
 
+
+
+
+
+
+### Utility macros
+We have number of utility macros, suitable for custom ops. Here they are:
+- **INPUT_VARIABLE**(int): this macro returns you NDArray at specified input index.
+- **OUTPUT_VARIABLE**(int): this macro returns you NDArray at specified output index.
+- **STORE_RESULT**(NDArray<T>): this macro stores result to VariableSpace.
+- **STORE_2_RESULTS**(NDArray<T>, NDArray<T>): this macro stores results accordingly to VariableSpace.
+- **INT_ARG**(int): this macro returns you specific Integer argument passed to the given op.
+- **T_ARG**(int): this macro returns you specific T argument passed to the given op.
+- **ALLOCATE**(...): this macro check if Workspace is available, and either uses Workspace or direct memory allocation if Workspace isn't available.
+- **RELEASE**(...): this macro is made to release memory allocated with **ALLOCATE()** macro.
+- **REQUIRE_TRUE**(...): this macro takes condition, and evaluates it. If evaluation doesn't end up as True - exception is raised, and specified message is printed out.
 
 
 
