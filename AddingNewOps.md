@@ -19,7 +19,7 @@ for (Nd4jIndex i = start; i < end; i++) {
 }
 ```
 
-Operation used in this loop is template-driven, and compiled statically. Here's how, `Add` operation will look like:
+Operation used in this loop will be template-driven, and compiled statically. Here's how `Add` operation will look like:
 
 ```c++
 
@@ -51,4 +51,86 @@ This particular operation is used in different XYZ op groups, but you see the id
 
 ### Custom operations
 
-Custom operations is the new concept, added recently and mostly suits SameDiff needs.
+Custom operations is a new concept, added recently and mostly suits SameDiff/Graph needs.
+For CustomOps we defined universal signature, with variable number of input/output NDArrays, and variable number of floating-point and integer arguments.
+However, there are some minor difference between various CustomOp declarations:
+- **DECLARE_OP**(string, int, int, bool): these operations take no fp/int arguments, and output shape equals to input shape.
+- **DECLARE_CONFIGURABLE_OP**(string, int, int, bool, int, int): these operations do take fp/int output arguments, and output shape equals to input shape.
+- **DECLARE_REDUCTION_OP**(string, int, int, bool, int, int): these operations do take fp/int output arguments, and output shape is calculated as Reduction.
+- **DECLARE_CUSTOM_OP**(string, int, int, bool, int, int): these operations return NDArray with custom shape, that usually depends on input and arguments.
+- **DECLARE_BOOLEAN_OP**(string, int, bool): these operations take some NDArrays and return scalar, where 0 is **False**, and other values are treated as **True**.
+
+
+Let's take a look at example CustomOp:
+
+```c++
+
+CUSTOM_OP_IMPL(tear, 1, -1, false, 0, -1) {
+    auto input = INPUT_VARIABLE(0);
+
+    REQUIRE_TRUE(!block.getIArguments()->empty(), 0, "At least 1 dimension should be specified for Tear");
+
+    std::vector<int> dims(*block.getIArguments());
+
+    for (auto &v: dims)
+        REQUIRE_TRUE(v >= 0 && v < input->rankOf(), 0, "Tear dimensions should be non-negative values, and lower then input rank. Got %i instead", v);
+
+    auto tads = NDArrayFactory<T>::allTensorsAlongDimension(input, dims);
+    for (int e = 0; e < tads->size(); e++) {
+        auto outE = OUTPUT_VARIABLE(e);
+        outE->assign(tads->at(e));
+
+        this->storeResult(block, e, *outE);
+    }
+
+    delete tads;
+
+    return ND4J_STATUS_OK;
+}
+
+DECLARE_SHAPE_FN(tear) {
+    auto inShape = inputShape->at(0);
+
+    std::vector<int> dims(*block.getIArguments());
+    std::sort(dims.begin(), dims.end());
+
+    shape::TAD tad(inShape, dims.data(), (int) dims.size());
+    tad.createTadOnlyShapeInfo();
+    Nd4jIndex numTads = shape::tadLength(inShape, dims.data(), (int) dims.size());
+
+    auto result = new ShapeList();
+    for (int e = 0; e < numTads; e++) {
+        int *newShape;
+        ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(tad.tadOnlyShapeInfo), int);
+        memcpy(newShape, tad.tadOnlyShapeInfo, shape::shapeInfoByteLength(tad.tadOnlyShapeInfo));
+        result->push_back(newShape);
+    }
+
+    return result;
+}
+```
+
+In the example above, we declare `tear` CustomOp implementation, and shape function for this op.
+So, at the moment of op execution, we assume we will either have output arrays provided by end-user, or, they will be generated via shape function.
+
+You can also see number of macros used, we'll cover those later as well.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+s
