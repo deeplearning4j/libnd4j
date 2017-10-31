@@ -398,6 +398,8 @@ TEST_F(FlatBuffersTest, ReadLoops_NestedWhile_1) {
     ASSERT_TRUE(graph != nullptr);
 
     Nd4jStatus status = GraphExecutioner<float>::execute(graph);
+    
+    ASSERT_EQ(ND4J_STATUS_OK, status);
 
     auto x = graph->getVariableSpace()->getVariable(28);
     auto y = graph->getVariableSpace()->getVariable(29);
@@ -408,4 +410,16 @@ TEST_F(FlatBuffersTest, ReadLoops_NestedWhile_1) {
 
     // we should have only 3 cycles in nested loop
     ASSERT_NEAR(30.0f, z->getNDArray()->meanNumber(), 1e-5);
+}
+
+
+TEST_F(FlatBuffersTest, ReadStridedSlice_1) {
+    // TF graph: https://gist.github.com/raver119/fc3bf2d31c91e465c635b24020fd798d
+    auto graph = GraphExecutioner<float>::importFromFlatBuffers("../../../tests_cpu/resources/tensor_slice.fb");
+
+    ASSERT_TRUE(graph != nullptr);
+
+    Nd4jStatus status = GraphExecutioner<float>::execute(graph);
+
+    ASSERT_EQ(ND4J_STATUS_OK, status);
 }
