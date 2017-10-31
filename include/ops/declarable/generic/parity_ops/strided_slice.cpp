@@ -85,22 +85,13 @@ namespace nd4j {
                 auto stop = end[e];
                 auto stride = strides[e];
 
-                if (stride == 1) {
-                    auto elements = stop - start;
-                    nd4j_debug("Dimension [%i]; elements: [%i]\n", e, elements);
+                int elements = 0;
+                for (int i = start; i < stop; i += stride)
+                    elements++;
 
-                    shape.push_back(elements);
+                shape.push_back(elements);
 
-                    length *= elements;
-                } else {
-                    int elements = 0;
-                    for (int i = start; i < stop; i += stride)
-                        elements++;
-
-                    shape.push_back(elements);
-
-                    length *= elements;
-                }
+                length *= elements;
             }
 
             ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(inShape), int);
