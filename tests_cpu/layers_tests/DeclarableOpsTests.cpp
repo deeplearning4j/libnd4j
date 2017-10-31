@@ -2781,8 +2781,6 @@ TEST_F(DeclarableOpsTests, Avgpool2d_bp2) {
 
 TEST_F(DeclarableOpsTests, LRN1) {
     nd4j::ops::lrn<double> lrn;
-    nd4j::ops::strided_slice<float> slice;
 
     lrn.getOpName();
-    slice.getOpName();
 }
