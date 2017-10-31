@@ -99,6 +99,8 @@ namespace nd4j {
 
         NDArray<T> *subarray(IndicesList& indices) const;
 
+        NDArray<T> *subarray(IndicesList& indices, std::vector<int>& strides) const;
+
         NDArray<T>* subarray(const std::initializer_list<NDIndex*>& idx) const;
 
         NDArray<T>* subarray(const Intervals& idx) const;

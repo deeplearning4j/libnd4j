@@ -2075,6 +2075,16 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
     vt.transposei();
 }
 
+    template<typename T>
+    NDArray<T>* NDArray<T>::subarray(IndicesList& idx, std::vector<int>& strides) const {
+        auto raw = subarray(idx);
+
+        for (int e = 0; e < strides.size(); e++)
+            raw->stridesOf()[e] *= strides[e];
+
+        return raw;
+    }
+
     ////////////////////////////////////////////////////////////////////////
     template<typename T>
     NDArray<T>* NDArray<T>::subarray(IndicesList& idx) const {
@@ -2091,6 +2101,8 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
 
         Nd4jIndex offset = 0;
 
+        shape::printShapeInfoLinear(newShape);
+
         for (int d = 0; d < idx.size(); d++) {
             // building new shape first
             auto index = idx.at(d);
@@ -2103,8 +2115,13 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
                 // for offset we're taking only the first index
                 int first = index->getIndices().at(0);
                 offset += first * stridesOf[d];
+
+                shape::stride(newShape)[d] *= index->stride();
+                nd4j_debug("dimension_ [%i] stride [%i]\n", d, index->stride());
             }
         }
+
+        shape::printShapeInfoLinear(newShape);
 
         auto result = new NDArray<T>(this->_buffer + offset, newShape, this->_workspace);
 

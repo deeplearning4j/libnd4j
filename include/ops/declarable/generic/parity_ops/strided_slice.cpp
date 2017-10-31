@@ -47,11 +47,7 @@ namespace nd4j {
 
                 nd4j_debug("Dimension [%i]; elements: [%i]\n", e, elements);
 
-                //newShape.push_back(elements);
-
-                //offset += start * x->stridesOf()[e];
-                //length *= elements;
-                indices.push_back(NDIndex::interval(start, stop));
+                indices.push_back(NDIndex::interval(start, stop, stride));
             }
 
             nd4j_debug("Final offset: %i; Final length: %i\n", (int) offset, (int) length);
@@ -88,13 +84,23 @@ namespace nd4j {
                 auto start = begin[e];
                 auto stop = end[e];
                 auto stride = strides[e];
-                auto elements = (stop - start) / stride;
 
-                nd4j_debug("Dimension [%i]; elements: [%i]\n", e, elements);
+                if (stride == 1) {
+                    auto elements = stop - start;
+                    nd4j_debug("Dimension [%i]; elements: [%i]\n", e, elements);
 
-                shape.push_back(elements);
+                    shape.push_back(elements);
 
-                length *= elements;
+                    length *= elements;
+                } else {
+                    int elements = 0;
+                    for (int i = start; i < stop; i += stride)
+                        elements++;
+
+                    shape.push_back(elements);
+
+                    length *= elements;
+                }
             }
 
             ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(inShape), int);
