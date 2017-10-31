@@ -14,9 +14,6 @@ namespace nd4j {
         CUSTOM_OP_IMPL(strided_slice, 1, 1, true, 0, -1) {
             auto x = INPUT_VARIABLE(0);
 
-
-            nd4j_debug("x rank: %i\n", x->rankOf());
-
             REQUIRE_TRUE(block.getIArguments()->size() == x->rankOf() * 3, 0, "Number of Integer arguments should be equal to input rank x 3 = %i, but got %i instead", (x->rankOf() * 3), block.getIArguments()->size());
 
             std::vector<int> begin;
@@ -26,12 +23,6 @@ namespace nd4j {
             _buildChunk(begin, *(block.getIArguments()), x->rankOf(), 0);
             _buildChunk(end, *(block.getIArguments()), x->rankOf(), x->rankOf());
             _buildChunk(strides, *(block.getIArguments()), x->rankOf(), x->rankOf() * 2);
-
-
-            nd4j::Logger::printv("begin", begin);
-            nd4j::Logger::printv("end", end);
-            nd4j::Logger::printv("strides", strides);
-
 
             auto z = OUTPUT_VARIABLE(0);
 
@@ -45,13 +36,8 @@ namespace nd4j {
                 auto stride = strides[e];
                 auto elements = (stop - start) / stride;
 
-                nd4j_debug("Dimension [%i]; elements: [%i]\n", e, elements);
-
                 indices.push_back(NDIndex::interval(start, stop, stride));
             }
-
-            nd4j_debug("Final offset: %i; Final length: %i\n", (int) offset, (int) length);
-            nd4j::Logger::printv("Final shape", newShape);
 
             auto sub = x->subarray(indices);
             z->assign(sub);

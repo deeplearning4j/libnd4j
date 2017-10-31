@@ -398,7 +398,7 @@ TEST_F(FlatBuffersTest, ReadLoops_NestedWhile_1) {
     ASSERT_TRUE(graph != nullptr);
 
     Nd4jStatus status = GraphExecutioner<float>::execute(graph);
-    
+
     ASSERT_EQ(ND4J_STATUS_OK, status);
 
     auto x = graph->getVariableSpace()->getVariable(28);
@@ -410,6 +410,8 @@ TEST_F(FlatBuffersTest, ReadLoops_NestedWhile_1) {
 
     // we should have only 3 cycles in nested loop
     ASSERT_NEAR(30.0f, z->getNDArray()->meanNumber(), 1e-5);
+
+    delete graph;
 }
 
 
@@ -422,4 +424,12 @@ TEST_F(FlatBuffersTest, ReadStridedSlice_1) {
     Nd4jStatus status = GraphExecutioner<float>::execute(graph);
 
     ASSERT_EQ(ND4J_STATUS_OK, status);
+
+    ASSERT_TRUE(graph->getVariableSpace()->hasVariable(2));
+
+    auto z = graph->getVariableSpace()->getVariable(2)->getNDArray();
+
+    ASSERT_NEAR(73.5f, z->getScalar(0), 1e-5);
+
+    delete graph;
 }
