@@ -143,7 +143,8 @@
         (16,simdOps::GreaterThanOrEqual),\
         (17,simdOps::Remainder),\
         (18,simdOps::FMod) ,\
-        (19, simdOps::TruncateDiv)
+        (19, simdOps::TruncateDiv) ,\
+        (20, simdOps::FloorDiv)
 
 
 
@@ -231,8 +232,8 @@
         (59,simdOps::Remainder),\
         (60,simdOps::FMod),\
         (69,simdOps::Atan2) ,\
-        (19, simdOps::TruncateDiv)
-
+        (19, simdOps::TruncateDiv),\
+        (20, simdOps::FloorDiv)
 
 
 #define INDEX_REDUCE_OPS \
