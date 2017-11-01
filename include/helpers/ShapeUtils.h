@@ -31,6 +31,7 @@ namespace nd4j {
         // evaluate shapeInfo of transposed array
         static int* evalTranspShapeInfo(const NDArray<T>& arr);
 
+        static bool insertDimension(int rank, int *shape, int axis, int dimension);
     };
 
 

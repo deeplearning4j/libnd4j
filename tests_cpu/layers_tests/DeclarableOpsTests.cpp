@@ -2867,10 +2867,25 @@ TEST_F(DeclarableOpsTests, OneHotTests_1) {
     indices.putScalar(2, -1.0);
     indices.putScalar(3, 1.0);
 
+    float _expB[] = {1.000000, 0.000000, 0.000000, 0.000000, 0.000000, 1.000000, 0.000000, 0.000000, 0.000000, 0.000000, 1.000000, 0.000000};
+    NDArray<float> exp('c', {4, 3});
+    exp.setBuffer(_expB);
+
     nd4j::ops::onehot<float> op;
 
-    auto result = op.execute({&indices}, {1.0f, 0.0f}, {3, 1});
+    auto result = op.execute({&indices}, {1.0f, 0.0f}, {3, -1});
     ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}
+
+TEST_F(DeclarableOpsTests, OneHotTests_2) {
+    NDArray<float> indices('c', {2, 2});
 }
 
 TEST_F(DeclarableOpsTests, LRN1) {

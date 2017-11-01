@@ -3,6 +3,7 @@
 //
 
 #include <ops/declarable/CustomOperations.h>
+#include <helpers/ShapeUtils.h>
 
 namespace nd4j {
     namespace ops {
@@ -13,11 +14,28 @@ namespace nd4j {
             T off = T_ARG(1);
 
             auto depth = INT_ARG(0);
-            auto axis = INT_ARG(0);
+            auto axis = INT_ARG(1);
 
             REQUIRE_TRUE(input->isVector(), 0, "One-hot input should be Vector, but got %iD instead", input->rankOf());
 
             auto output = OUTPUT_VARIABLE(0);
+
+            if (axis < 0)
+                axis = output->rankOf() + axis;
+
+            auto tads = NDArrayFactory<T>::allTensorsAlongDimension(output, {axis});
+            for (int e = 0; e < tads->size(); e++) {
+                auto tad = tads->at(e);
+                tad->assign(off);
+
+                int idx = (int) input->getScalar(e);
+                if (idx < 0 || idx >= tad->lengthOf())
+                    continue;
+
+                tad->putIndexedScalar(idx, on);
+            }
+
+            delete tads;
 
             return ND4J_STATUS_OK;
         }
@@ -26,9 +44,24 @@ namespace nd4j {
             int *inShape = inputShape->at(0);
 
             auto depth = INT_ARG(0);
-            auto axis = INT_ARG(0);
+            auto axis = INT_ARG(1);
 
-            return new ShapeList();
+            int *newShape;
+            int rank = shape::rank(inShape);
+            if (shape::isVector(inShape)) {
+                ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(rank), int);
+
+                int* shape;
+                ALLOCATE(shape, block.getWorkspace(), rank, int);
+                memcpy(shape, shape::shapeOf(inShape), rank * sizeof(int));
+
+                ShapeUtils<T>::insertDimension(rank, shape, axis, depth);
+                shape::shapeBuffer(rank, shape, newShape);
+
+                RELEASE(shape, block.getWorkspace());
+            }
+
+            return new ShapeList(newShape);
         }
     }
 }

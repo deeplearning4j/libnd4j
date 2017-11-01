@@ -195,7 +195,27 @@ int* ShapeUtils<T>::evalReduceShapeInfo(const char order, std::vector<int>& dime
         return shapeInfoNew;
     }
 
-template class ND4J_EXPORT ShapeUtils<float>;
+    template<typename T>
+    bool ShapeUtils<T>::insertDimension(int rank, int *shape, int axis, int dimension) {
+        if (axis >= rank || axis <= -rank)
+            return false;
+
+        if (axis < 0)
+            axis = rank + axis;
+
+        std::vector<int> tmp;
+        for (int e = 0; e < rank; e++) {
+            if (shape[e] != 1)
+                tmp.emplace_back(shape[e]);
+        }
+
+        tmp.insert(tmp.begin() + axis, dimension);
+        memcpy(shape, tmp.data(), tmp.size() * sizeof(int));
+
+        return true;
+    }
+
+    template class ND4J_EXPORT ShapeUtils<float>;
 template class ND4J_EXPORT ShapeUtils<float16>;
 template class ND4J_EXPORT ShapeUtils<double>;
 
