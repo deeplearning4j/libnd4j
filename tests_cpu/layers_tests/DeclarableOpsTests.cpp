@@ -2840,6 +2840,26 @@ TEST_F(DeclarableOpsTests, ArgMin1) {
 }
 
 
+TEST_F(DeclarableOpsTests, SquareTests1) {
+    NDArray<float> x('c', {3, 5});
+    NDArrayFactory<float>::linspace(1, x);
+
+    NDArray<float> exp('c', {3, 5});
+    NDArrayFactory<float>::linspace(1, exp);
+    exp *= exp;
+
+    nd4j::ops::square<float> op;
+
+    auto result = op.execute({&x}, {}, {});
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}
+
 TEST_F(DeclarableOpsTests, LRN1) {
     nd4j::ops::lrn<double> lrn;
 
