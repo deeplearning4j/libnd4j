@@ -757,4 +757,17 @@ TEST_F(ConvolutionTests, TestSconvCrash_max_2) {
     delete result;
 }
 
+TEST_F(ConvolutionTests, Deconv2d_Another_Test_1) {
+    NDArray<double> input('c', {3, 3, 8, 8});
+    NDArray<double> weights('c', {2, 3, 1, 1});
+    NDArray<double> bias('c', {1, 2});
+
+    nd4j::ops::deconv2d<double> op;
+
+    auto result = op.execute({&input, &weights, &bias}, {}, {1, 1, 1, 1, 0, 0, 1, 1, 1});
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    delete result;
+}
+
 #endif //LIBND4J_CONVOLUTIONTESTS_H
