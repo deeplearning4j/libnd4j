@@ -142,7 +142,8 @@
         (15,simdOps::ReverseMod),\
         (16,simdOps::GreaterThanOrEqual),\
         (17,simdOps::Remainder),\
-        (18,simdOps::FMod)
+        (18,simdOps::FMod) ,\
+        (19, simdOps::TruncateDiv)
 
 
 
@@ -229,7 +230,8 @@
         (58,simdOps::Xor),\
         (59,simdOps::Remainder),\
         (60,simdOps::FMod),\
-        (69,simdOps::Atan2)
+        (69,simdOps::Atan2) ,\
+        (19, simdOps::TruncateDiv)
 
 
 

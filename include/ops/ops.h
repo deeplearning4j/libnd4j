@@ -198,6 +198,33 @@ namespace simdOps {
 	};
 
     template<typename T>
+    class TruncateDiv {
+    public:
+        op_def static T op(T d1, T d2) {
+            int i1 = (int) d1;
+            int i2 = (int) d2;
+            return (T)(i1 / i2);
+        }
+
+        op_def static T op(T d1, T d2, T *params) {
+            int i1 = (int) d1;
+            int i2 = (int) d2;
+            return (T)(i1 / i2);
+        }
+
+        op_def static T op(T d1) {
+            return d1;
+        }
+
+        // op for MetaOps
+        op_def static T op(T d1, T *params) {
+            int i1 = (int) d1;
+            int i2 = (int) params[0];
+            return (T)(i1 / i2);
+        }
+    };
+
+    template<typename T>
     class Remainder {
     public:
         op_def static T op(T d1, T d2) {
