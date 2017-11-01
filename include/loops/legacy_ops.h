@@ -110,7 +110,8 @@
         (72,simdOps::MatchCondition) ,\
         (73,simdOps::ClipByValue) ,\
         (74,simdOps::Swish) ,\
-        (75,simdOps::SwishDerivative)
+        (75,simdOps::SwishDerivative) ,\
+        (76,simdOps::RSqrt)
 
 
 
