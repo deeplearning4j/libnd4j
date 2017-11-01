@@ -19,7 +19,7 @@ namespace nd4j {
             REQUIRE_TRUE(input->rankOf() == 4, 0, "Input should be 4D, but got %iD instead", input->rankOf());
             REQUIRE_TRUE(weights->rankOf() == 4, 0, "Weights should be 4D, but got %iD instead", weights->rankOf());
 
-            int oD = weights->sizeAt(0);
+            int oD = weights->sizeAt(1);
 
             if (bias != nullptr) {
                 REQUIRE_TRUE(bias->isVector(), 0, "Bias should be vector");
@@ -29,17 +29,17 @@ namespace nd4j {
             int iY = input->sizeAt(2);
             int iX = input->sizeAt(3);
 
-            int kY = block.getIArguments()->at(0);
-            int kX = block.getIArguments()->at(1);
-            int sY = block.getIArguments()->at(2);
-            int sX = block.getIArguments()->at(3);
-            int pY = block.getIArguments()->at(4);
-            int pX = block.getIArguments()->at(5);
-            int dY = block.getIArguments()->at(6);
-            int dX = block.getIArguments()->at(7);
+            int kY = INT_ARG(0);
+            int kX = INT_ARG(1);
+            int sY = INT_ARG(2);
+            int sX = INT_ARG(3);
+            int pY = INT_ARG(4);
+            int pX = INT_ARG(5);
+            int dY = INT_ARG(6);
+            int dX = INT_ARG(7);
             const bool isSameMode = block.getIArguments()->at(8) != 0;
 
-            NDArray<T> *z = this->getZ(block);
+            NDArray<T> *z = OUTPUT_VARIABLE(0);
 
             int oY = z->sizeAt(2);
             int oX = z->sizeAt(3);
@@ -71,13 +71,13 @@ namespace nd4j {
             int iY = shape::shapeOf(inShape)[2];
             int iX = shape::shapeOf(inShape)[3];
 
-            int oC = shape::shapeOf(wShape)[0];
-            int kY = block.getIArguments()->at(0);
-            int kX = block.getIArguments()->at(1);
-            int sY = block.getIArguments()->at(2);
-            int sX = block.getIArguments()->at(3);
-            int pY = block.getIArguments()->at(4);
-            int pX = block.getIArguments()->at(5);
+            int oC = shape::shapeOf(wShape)[1];
+            int kY = INT_ARG(0);
+            int kX = INT_ARG(1);
+            int sY = INT_ARG(2);
+            int sX = INT_ARG(3);
+            int pY = INT_ARG(4);
+            int pX = INT_ARG(5);
 
             int oY = sY * (iY - 1) + kY - 2 * pY;
             int oX = sX * (iX - 1) + kX - 2 * pX;
@@ -106,22 +106,22 @@ namespace nd4j {
             REQUIRE_TRUE(weights->rankOf() == 4, 0, "Weights should be 4D, but got %iD instead", weights->rankOf());
             REQUIRE_TRUE(epsilonNext->rankOf() == 4, 0, "Epsilon should be 4D, but got %iD instead", epsilonNext->rankOf());
 
-            int kY = block.getIArguments()->at(0);
-            int kX = block.getIArguments()->at(1);
-            int sY = block.getIArguments()->at(2);
-            int sX = block.getIArguments()->at(3);
-            int pY = block.getIArguments()->at(4);
-            int pX = block.getIArguments()->at(5);
-            int dY = block.getIArguments()->at(6);
-            int dX = block.getIArguments()->at(7);
+            int kY = INT_ARG(0);
+            int kX = INT_ARG(1);
+            int sY = INT_ARG(2);
+            int sX = INT_ARG(3);
+            int pY = INT_ARG(4);
+            int pX = INT_ARG(5);
+            int dY = INT_ARG(6);
+            int dX = INT_ARG(7);
             const bool isSameMode = block.getIArguments()->at(8) != 0;
 
-            NDArray<T>* epsilon = this->getZ(block);
-            NDArray<T>* gradW = this->getZ(block, 1);
+            NDArray<T>* epsilon = OUTPUT_VARIABLE(0);
+            NDArray<T>* gradW = OUTPUT_VARIABLE(1);
             NDArray<T>* gradB = nullptr;
 
             if (bias != nullptr)
-                gradB = this->getZ(block, 2);
+                gradB = OUTPUT_VARIABLE(2);
 
             // epsilon for deconv2d is FF conv pass
 
