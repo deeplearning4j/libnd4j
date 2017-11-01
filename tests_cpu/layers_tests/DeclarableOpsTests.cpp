@@ -2909,6 +2909,24 @@ TEST_F(DeclarableOpsTests, OneHotTests_2) {
     delete result;
 }
 
+TEST_F(DeclarableOpsTests, FillAs_1) {
+    NDArray<float> x('c', {2, 2});
+    x.assign(117);
+
+    float scalar = 119.f;
+
+    nd4j::ops::fill_as<float> op;
+    auto result = op.execute({&x}, {scalar}, {});
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    ASSERT_TRUE(x.isSameShape(result->at(0)));
+
+    ASSERT_NEAR(scalar, result->at(0)->meanNumber(), 1e-5f);
+
+    delete result;
+}
+
 TEST_F(DeclarableOpsTests, LRN1) {
     nd4j::ops::lrn<double> lrn;
 
