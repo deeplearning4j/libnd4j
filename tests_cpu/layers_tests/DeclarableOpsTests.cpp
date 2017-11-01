@@ -1695,7 +1695,6 @@ TEST_F(DeclarableOpsTests, TestReductionShape1) {
     block->fillInputs({-1});
 
     // kernel params
-    block->getIArguments()->push_back(1);
     block->getIArguments()->push_back(MAX_INT);
 
     nd4j::ops::testreduction<float> testop;
@@ -1718,7 +1717,7 @@ TEST_F(DeclarableOpsTests, TestReductionShape2) {
     block->fillInputs({-1});
 
     // kernel params
-    block->getIArguments()->push_back(4);
+    //block->getIArguments()->push_back(4);
     block->getIArguments()->push_back(1);
     block->getIArguments()->push_back(2);
     block->getIArguments()->push_back(3);
@@ -1730,8 +1729,8 @@ TEST_F(DeclarableOpsTests, TestReductionShape2) {
 
     ASSERT_EQ(1,shapes->size());
     ASSERT_EQ(2,shapes->at(0)[0]);
-    ASSERT_EQ(1,shapes->at(0)[1]);
-    ASSERT_EQ(4,shapes->at(0)[2]);
+    ASSERT_EQ(4,shapes->at(0)[1]);
+    ASSERT_EQ(1,shapes->at(0)[2]);
 }
 
 TEST_F(DeclarableOpsTests, TestCustomShape1) {
@@ -2786,7 +2785,49 @@ TEST_F(DeclarableOpsTests, ArgMax1) {
 
     nd4j::ops::argmax<float> op;
 
+    auto result = op.execute({&x}, {}, {1});
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}
+
+
+TEST_F(DeclarableOpsTests, ArgMax2) {
+    NDArray<float> x('c', {3, 5});
+    NDArrayFactory<float>::linspace(1, x);
+    NDArray<float> exp('c', {1, 5});
+    exp.assign(2.0f);
+
+    nd4j::ops::argmax<float> op;
+
     auto result = op.execute({&x}, {}, {0});
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}
+
+
+TEST_F(DeclarableOpsTests, ArgMin1) {
+    NDArray<float> x('c', {3, 5});
+    NDArrayFactory<float>::linspace(1, x);
+    NDArray<float> exp('c', {3, 1});
+    exp.assign(0.0f);
+
+    nd4j::ops::argmin<float> op;
+
+    auto result = op.execute({&x}, {}, {1});
 
     ASSERT_EQ(ND4J_STATUS_OK, result->status());
 

@@ -67,29 +67,33 @@ std::vector<int> ShapeUtils<T>::evalShapeForTensorDot(const nd4j::NDArray<T>* a,
     aPlusB.insert(aPlusB.end(), oldShapeB.begin(), oldShapeB.end());            
     return aPlusB;
 }
-    
- 
 
-//////////////////////////////////////////////////////////////////////////
+
+    template<typename T>
+    int* ShapeUtils<T>::evalReduceShapeInfo(const char order, std::vector<int>& dimensions, const NDArray<T>& arr) {
+        return evalReduceShapeInfo(order, dimensions, arr.getShapeInfo(), arr.getWorkspace());
+    }
+
+    //////////////////////////////////////////////////////////////////////////
 // evaluate resulting shape after reduce operation
 template<typename T>
-int* ShapeUtils<T>::evalReduceShapeInfo(const char order, std::vector<int>& dimensions, const NDArray<T>& arr) {
+int* ShapeUtils<T>::evalReduceShapeInfo(const char order, std::vector<int>& dimensions, const int *shape , nd4j::memory::Workspace* workspace) {
         
-    int rank = arr.rankOf();
+    int rank = shape::rank(const_cast<int*>(shape));
     shape::checkDimensions(rank, dimensions);
        
 	int* newShape = nullptr;
     int dimSize = dimensions.size();
 	int newRank = rank - dimSize;
 	if (newRank==0 || (dimSize==1 && dimensions[0]==INT_MAX)) { 			// check whether given dimension is meant for the whole dimension
-		ALLOCATE(newShape, arr.getWorkspace(), 8, int);						// set newRank = 2
+		ALLOCATE(newShape, workspace, 8, int);						// set newRank = 2
 		newShape[0] = 2;
 		newShape[1] = 1;
 		newShape[2] = 1;			
 	}
        else {
-		ALLOCATE(newShape, arr.getWorkspace(), shape::shapeInfoLength(2), int);
-		int* tempShape = shape::removeIndex(arr.shapeOf(), const_cast<int*>(dimensions.data()), rank, dimSize);
+		ALLOCATE(newShape, workspace, shape::shapeInfoLength(2), int);
+		int* tempShape = shape::removeIndex(shape::shapeOf(const_cast<int*>(shape)), const_cast<int*>(dimensions.data()), rank, dimSize);
            newShape[0] = newRank;                      // set rank
 		for(int i=0; i<newRank; ++i)
 			newShape[i+1] = tempShape[i]; 			// ignore zero index (rank)
@@ -98,8 +102,8 @@ int* ShapeUtils<T>::evalReduceShapeInfo(const char order, std::vector<int>& dime
 	//ensure vector is proper shape 
 	if (newRank == 1) {
 		int oldValue = newShape[1];
-		RELEASE(newShape, arr.getWorkspace());
-		ALLOCATE(newShape, arr.getWorkspace(), shape::shapeInfoLength(2), int);		// set newRank = 2
+		RELEASE(newShape, workspace);
+		ALLOCATE(newShape, workspace, shape::shapeInfoLength(2), int);		// set newRank = 2
 		newShape[0] = 2;
         if (dimensions[0] == 0) {
                newShape[1] = 1; 

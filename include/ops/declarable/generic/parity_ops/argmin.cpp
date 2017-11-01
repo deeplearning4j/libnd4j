@@ -6,7 +6,7 @@
 
 namespace nd4j {
     namespace ops {
-        REDUCTION_OP_IMPL(argmax, 1, 1, false, 0, -2) {
+        REDUCTION_OP_IMPL(argmin, 1, 1, false, 0, -2) {
             auto input = INPUT_VARIABLE(0);
             auto output = OUTPUT_VARIABLE(0);
 
