@@ -16,7 +16,7 @@ namespace nd4j {
             auto depth = INT_ARG(0);
             auto axis = INT_ARG(1);
 
-            REQUIRE_TRUE(input->isVector(), 0, "One-hot input should be Vector, but got %iD instead", input->rankOf());
+            //REQUIRE_TRUE(input->isVector(), 0, "One-hot input should be Vector, but got %iD instead", input->rankOf());
 
             auto output = OUTPUT_VARIABLE(0);
 
@@ -59,6 +59,18 @@ namespace nd4j {
                 shape::shapeBuffer(rank, shape, newShape);
 
                 RELEASE(shape, block.getWorkspace());
+            } else {
+                ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(rank+1), int);
+
+                std::vector<int> shape;
+                for (int e = 0; e < rank; e++)
+                    shape.push_back(shape::shapeOf(inShape)[e]);
+
+                if (axis < 0)
+                    axis = rank + 1 + axis;
+
+                shape.insert(shape.begin() + axis, depth);
+                shape::shapeBuffer(rank+1, shape.data(), newShape);
             }
 
             return new ShapeList(newShape);
