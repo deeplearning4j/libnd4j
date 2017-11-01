@@ -98,7 +98,8 @@ namespace nd4j {
         DECLARE_CUSTOM_OP(permute, 1, 1, true, 0, -1);   
         DECLARE_CUSTOM_OP(reshapeas, 2, 1, true, 0, 0);      
         DECLARE_CUSTOM_OP(transpose, 1, 1, true, 0, 0);
-        DECLARE_CUSTOM_OP(size, 1, 1, false, 0, 0);
+        DECLARE_CUSTOM_OP(size, 1, 1, false, 0, 0); // add DeclarableScalarOp?
+        DECLARE_CUSTOM_OP(rank, 1, 1, false, 0, 0); // ^^^^
 
         // recurrent ops
         DECLARE_CUSTOM_OP(sru,         5, 2, false, 0, 0);
