@@ -23,6 +23,8 @@
 namespace nd4j {
     namespace ops {
         DECLARE_REDUCTION_OP(testreduction, 1, 1, false, 0, -1);
+        DECLARE_REDUCTION_OP(argmax, 1, 1, false, 0, -2);
+        DECLARE_REDUCTION_OP(argmin, 1, 1, false, 0, -2);
 
         DECLARE_OP(noop, -1, -1, true);
         DECLARE_OP(testop2i2o, 2, 2, true);
@@ -46,6 +48,7 @@ namespace nd4j {
         DECLARE_OP(divide, 2, 1, true);
         DECLARE_OP(reversedivide, 2, 1, true);
         DECLARE_OP(zeros_as, 1, 1, false);
+        DECLARE_OP(ones_as, 1, 1, false);
         DECLARE_OP(maximum, 2, 1, true);
         DECLARE_OP(minimum, 2, 1, true);
 
@@ -95,6 +98,7 @@ namespace nd4j {
         DECLARE_CUSTOM_OP(permute, 1, 1, true, 0, -1);   
         DECLARE_CUSTOM_OP(reshapeas, 2, 1, true, 0, 0);      
         DECLARE_CUSTOM_OP(transpose, 1, 1, true, 0, 0);
+        DECLARE_CUSTOM_OP(size, 1, 1, false, 0, 0);
 
         // recurrent ops
         DECLARE_CUSTOM_OP(sru,         5, 2, false, 0, 0);

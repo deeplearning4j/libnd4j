@@ -2778,6 +2778,26 @@ TEST_F(DeclarableOpsTests, Avgpool2d_bp2) {
     ASSERT_TRUE(expected.equalsTo(output));
 }
 
+TEST_F(DeclarableOpsTests, ArgMax1) {
+    NDArray<float> x('c', {3, 5});
+    NDArrayFactory<float>::linspace(1, x);
+    NDArray<float> exp('c', {3, 1});
+    exp.assign(4.0f);
+
+    nd4j::ops::argmax<float> op;
+
+    auto result = op.execute({&x}, {}, {0});
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}
+
 
 TEST_F(DeclarableOpsTests, LRN1) {
     nd4j::ops::lrn<double> lrn;

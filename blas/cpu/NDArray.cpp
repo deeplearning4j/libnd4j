@@ -2220,7 +2220,25 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
         return new NDArray<T>(this->_buffer + offset, newShape, this->_workspace);
     }
 
+    template<typename T>
+    template<typename OpName>
+    void NDArray<T>::applyIndexReduce(const NDArray<T>* target, const std::vector<int>& dimensions, const T *extraParams) const {
+        if (target->isScalar()) {
+            target->_buffer[0] = functions::indexreduce::IndexReduce<T>::template execScalar<OpName>(_buffer, _shapeInfo, const_cast<T*>(extraParams));
+        } else {
+            std::vector<int> copy(dimensions);
+            if (dimensions.size() > 1)
+                std::sort(copy.begin(), copy.end());
 
+            shape::TAD tad(_shapeInfo, copy.data(), copy.size());
+            tad.createTadOnlyShapeInfo();
+            tad.createOffsets();
+
+            functions::indexreduce::IndexReduce<T>::template exec<OpName>(_buffer, _shapeInfo, const_cast<T*>(extraParams), target->_buffer,
+                                                                          target->_shapeInfo, copy.data(), copy.size(),
+                                                                          tad.tadOnlyShapeInfo, tad.tadOffsets);
+        }
+    }
     ////////////////////////////////////////////////////////////////////////
     // reduce dimensions in this array relying on index operations
     template<typename T>
@@ -2228,6 +2246,8 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
     NDArray<T>* NDArray<T>::applyIndexReduce(const std::vector<int>& dimensions, const T* extraParams ) const {
         
         std::vector<int> copy(dimensions);
+        if (dimensions.size() > 1)
+            std::sort(copy.begin(), copy.end());
 
         int* newShape = ShapeUtils<T>::evalReduceShapeInfo('c', copy, *this);
         NDArray<T>* result = new NDArray<T>(newShape, _workspace);
