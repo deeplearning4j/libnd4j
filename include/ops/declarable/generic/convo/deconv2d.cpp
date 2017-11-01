@@ -46,8 +46,8 @@ namespace nd4j {
 
             weights->printShapeInfo("weights");
             input->printShapeInfo("input");
-            auto wP = weights->permute({1, 0, 2, 3});
-            auto gcol = nd4j::NDArrayFactory<T>::tensorDot(wP, input, {0}, {1});
+            //auto wP = weights->permute({1, 0, 2, 3});
+            auto gcol = nd4j::NDArrayFactory<T>::tensorDot(weights, input, {0}, {1});
             gcol->permutei({3, 0, 1, 2, 4, 5});
 
             std::vector<T> extrasCol2Im({(T) sY, (T) sX, (T) pY, (T) pX, (T) oY, (T) oX, (T) dY, (T) dX, isSameMode ? (T) 1.0f : (T) 0.0f});
@@ -55,7 +55,7 @@ namespace nd4j {
             gcol->template applyTransform<simdOps::Col2Im<T>>(z, extrasCol2Im.data());
 
             delete gcol;
-            delete wP;
+            //delete wP;
 
             if (bias != nullptr) {
                 z->template applyBroadcast<simdOps::Add<T>>({1}, bias);
@@ -120,12 +120,12 @@ namespace nd4j {
             int dX = block.getIArguments()->at(7);
             const bool isSameMode = block.getIArguments()->at(8) != 0;
 
-            NDArray<T>* epsilon = this->getZ(block);
-            NDArray<T>* gradW = this->getZ(block, 1);
+            NDArray<T>* epsilon = OUTPUT_VARIABLE(0);
+            NDArray<T>* gradW = OUTPUT_VARIABLE(1);
             NDArray<T>* gradB = nullptr;
 
             if (bias != nullptr)
-                gradB = this->getZ(block, 2);
+                gradB = OUTPUT_VARIABLE(2);
 
             // epsilon for deconv2d is FF conv pass
 
