@@ -2860,6 +2860,19 @@ TEST_F(DeclarableOpsTests, SquareTests1) {
     delete result;
 }
 
+TEST_F(DeclarableOpsTests, OneHotTests_1) {
+    NDArray<float> indices('c', {1, 4});
+    indices.putScalar(0, 0.0);
+    indices.putScalar(1, 2.0);
+    indices.putScalar(2, -1.0);
+    indices.putScalar(3, 1.0);
+
+    nd4j::ops::onehot<float> op;
+
+    auto result = op.execute({&indices}, {1.0f, 0.0f}, {3, 1});
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+}
+
 TEST_F(DeclarableOpsTests, LRN1) {
     nd4j::ops::lrn<double> lrn;
 
