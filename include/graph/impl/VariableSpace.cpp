@@ -80,7 +80,7 @@ namespace nd4j {
             if (pair.first == 0)
                 throw "0 requested";
 
-            nd4j_debug("Requested variable: [%i:%i]\n", pair.first, pair.second);
+            //nd4j_debug("Requested variable: [%i:%i]\n", pair.first, pair.second);
 
             if (pair.first < 0)
                 return getVariable(pair.first);

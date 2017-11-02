@@ -6,6 +6,8 @@ if(LINUX)
     link_directories(/lib)
 endif()
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 if(APPLE)
     message("Using apple")
     link_directories(/usr/local/lib)
