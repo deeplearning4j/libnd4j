@@ -18,3 +18,4 @@ testbuild
 .idea/
 libnd4jtests
 runtests
+.DS_Store

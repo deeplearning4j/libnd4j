@@ -32,6 +32,8 @@ namespace nd4j {
         static int* evalTranspShapeInfo(const NDArray<T>& arr);
 
         static bool insertDimension(int rank, int *shape, int axis, int dimension);
+
+        static bool copyVectorPart(std::vector<int>& target, std::vector<int>& source, int rank, int offset);
     };
 
 

@@ -89,7 +89,8 @@ namespace nd4j {
         DECLARE_CUSTOM_OP(unstack, 1, -1, false, 0, 1);
         DECLARE_CUSTOM_OP(im2col, 1, 1, false, 0, 9);
         DECLARE_CUSTOM_OP(col2im, 1, 1, false, 0, 9);
-        DECLARE_CUSTOM_OP(strided_slice, 1, 1, true, 0, -1); // TODO: new op type needed. that returns VIEW
+        DECLARE_CUSTOM_OP(strided_slice, 1, 1, false, 0, -1); // TODO: new op type needed. that returns VIEW
+        DECLARE_CUSTOM_OP(slice, 1, 1, false, 0, -1);
         DECLARE_CUSTOM_OP(upsampling2d, 1, 1, false, 0, 1);
         DECLARE_CUSTOM_OP(upsampling2d_bp, 2, 1, false, 0, 1);
         DECLARE_CUSTOM_OP(tensormmul, 2, 1, false, 0, -1);   

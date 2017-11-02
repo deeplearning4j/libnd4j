@@ -2,16 +2,13 @@
 // Created by raver119 on 12.10.2017.
 //
 #include <ops/declarable/CustomOperations.h>
+#include <helpers/ShapeUtils.h>
 
 namespace nd4j {
     namespace ops {
 
-        void _buildChunk(std::vector<int>& target, std::vector<int>& source, int rank, int offset) {
-            for (int e = offset; e < offset + rank; e++)
-                target.push_back(source[e]);
-        }
 
-        CUSTOM_OP_IMPL(strided_slice, 1, 1, true, 0, -1) {
+        CUSTOM_OP_IMPL(strided_slice, 1, 1, false, 0, -1) {
             auto x = INPUT_VARIABLE(0);
 
             REQUIRE_TRUE(block.getIArguments()->size() == x->rankOf() * 3, 0, "Number of Integer arguments should be equal to input rank x 3 = %i, but got %i instead", (x->rankOf() * 3), block.getIArguments()->size());
@@ -20,9 +17,9 @@ namespace nd4j {
             std::vector<int> end;
             std::vector<int> strides;
 
-            _buildChunk(begin, *(block.getIArguments()), x->rankOf(), 0);
-            _buildChunk(end, *(block.getIArguments()), x->rankOf(), x->rankOf());
-            _buildChunk(strides, *(block.getIArguments()), x->rankOf(), x->rankOf() * 2);
+            ShapeUtils<T>::copyVectorPart(begin, *(block.getIArguments()), x->rankOf(), 0);
+            ShapeUtils<T>::copyVectorPart(end, *(block.getIArguments()), x->rankOf(), x->rankOf());
+            ShapeUtils<T>::copyVectorPart(strides, *(block.getIArguments()), x->rankOf(), x->rankOf() * 2);
 
             auto z = OUTPUT_VARIABLE(0);
 
@@ -58,9 +55,9 @@ namespace nd4j {
 
             int x_rank = shape::rank(inShape);
 
-            _buildChunk(begin, *(block.getIArguments()), x_rank, 0);
-            _buildChunk(end, *(block.getIArguments()), x_rank, x_rank);
-            _buildChunk(strides, *(block.getIArguments()), x_rank, x_rank * 2);
+            ShapeUtils<T>::copyVectorPart(begin, *(block.getIArguments()), x_rank, 0);
+            ShapeUtils<T>::copyVectorPart(end, *(block.getIArguments()), x_rank, x_rank);
+            ShapeUtils<T>::copyVectorPart(strides, *(block.getIArguments()), x_rank, x_rank * 2);
 
             int *newShape;
 

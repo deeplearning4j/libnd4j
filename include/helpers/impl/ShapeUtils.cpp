@@ -215,6 +215,17 @@ int* ShapeUtils<T>::evalReduceShapeInfo(const char order, std::vector<int>& dime
         return true;
     }
 
+    template<typename T>
+    bool ShapeUtils<T>::copyVectorPart(std::vector<int>& target, std::vector<int>& source, int rank, int offset) {
+        if (source.size() < offset + rank)
+            return false;
+
+        for (int e = offset; e < offset + rank; e++)
+            target.push_back(source[e]);
+
+        return true;
+    }
+
     template class ND4J_EXPORT ShapeUtils<float>;
 template class ND4J_EXPORT ShapeUtils<float16>;
 template class ND4J_EXPORT ShapeUtils<double>;
