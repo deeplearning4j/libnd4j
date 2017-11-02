@@ -21,15 +21,20 @@ namespace nd4j {
 
             IndicesList indices;
             for (int e = 0; e < x_rank; e++) {
-                int size = end[e] - begin[e];
-                REQUIRE_TRUE(size > 1, 0, "Slice interval for dimension %i is less then 1", e);
+                int stop = end[e];
+                int start = begin[e];
 
-                indices.push_back(NDIndex::interval(begin[e], end[e]));
+
+                REQUIRE_TRUE(stop > 0, 0, "Slice interval for dimension %i is less then 1", e);
+
+                indices.push_back(NDIndex::interval(start, start+stop, 1));
             }
             auto sub = input->subarray(indices);
             output->assign(sub);
 
             delete sub;
+
+            STORE_RESULT(output);
 
             return ND4J_STATUS_OK;
         }
@@ -48,8 +53,10 @@ namespace nd4j {
             int *newShape;
             std::vector<int> shape;
             for (int e = 0; e < x_rank; e++) {
-                int size = end[e] - begin[e];
-                shape.push_back(size);
+                int stop = end[e];
+                int start = begin[e];
+
+                shape.push_back(stop);
             }
 
             ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(x_rank), int);

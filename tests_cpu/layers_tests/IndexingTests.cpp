@@ -91,3 +91,90 @@ TEST_F(IndexingTests, StridedSlice_3) {
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
 }
+
+
+TEST_F(IndexingTests, SimpleSlice_1) {
+    float _inB[] = {1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6};
+    NDArray<float> input('c', {3, 2, 3});
+    input.setBuffer(_inB);
+
+    NDArray<float> exp('c', {1, 1, 3});
+    exp.putScalar(0, 3.0f);
+    exp.putScalar(1, 3.0f);
+    exp.putScalar(2, 3.0f);
+
+    nd4j::ops::slice<float> op;
+
+    auto result = op.execute({&input}, {}, {1,0,0, 1,1,3});
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+
+    z->printBuffer("z");
+
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}
+
+
+TEST_F(IndexingTests, SimpleSlice_2) {
+    float _inB[] = {1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6};
+    NDArray<float> input('c', {3, 2, 3});
+    input.setBuffer(_inB);
+
+    NDArray<float> exp('c', {1, 2, 3});
+    exp.putScalar(0, 3.0f);
+    exp.putScalar(1, 3.0f);
+    exp.putScalar(2, 3.0f);
+    exp.putScalar(3, 4.0f);
+    exp.putScalar(4, 4.0f);
+    exp.putScalar(5, 4.0f);
+
+    nd4j::ops::slice<float> op;
+
+    auto result = op.execute({&input}, {}, {1,0,0, 1,2,3});
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+
+    z->printBuffer("z");
+
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}
+
+TEST_F(IndexingTests, SimpleSlice_3) {
+    float _inB[] = {1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6};
+    NDArray<float> input('c', {3, 2, 3});
+    input.setBuffer(_inB);
+
+    NDArray<float> exp('c', {2, 1, 3});
+    exp.putScalar(0, 3.0f);
+    exp.putScalar(1, 3.0f);
+    exp.putScalar(2, 3.0f);
+    exp.putScalar(3, 5.0f);
+    exp.putScalar(4, 5.0f);
+    exp.putScalar(5, 5.0f);
+
+    nd4j::ops::slice<float> op;
+
+    auto result = op.execute({&input}, {}, {1,0,0, 2,1,3});
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    z->printShapeInfo("z shape");
+    z->printBuffer("z buffer");
+
+    ASSERT_TRUE(exp.isSameShape(z));
+
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}
