@@ -463,6 +463,7 @@ namespace nd4j {
             return ND4J_STATUS_OK;
         }
         DECLARE_SYN(mergesum, mergeadd);
+        DECLARE_SYN(add_n, mergeadd);
 
         OP_IMPL(mergeavg, -1, 1, false) {
             REQUIRE_OK(this->validateInputDimensionsMatch(block));
