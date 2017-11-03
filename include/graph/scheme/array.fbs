@@ -1,0 +1,17 @@
+namespace nd4j.graph;
+
+enum DataType:byte {
+    INHERIT,
+    HALF,
+    FLOAT,
+    DOUBLE,
+    INT8,
+    UINT8,
+    FLOAT8
+}
+
+table FlatArray {
+    dtype:DataType;
+    buffer:[byte];
+    shape:[int];
+}

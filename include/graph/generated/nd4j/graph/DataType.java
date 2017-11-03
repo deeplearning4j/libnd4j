@@ -8,8 +8,11 @@ public final class DataType {
   public static final byte HALF = 1;
   public static final byte FLOAT = 2;
   public static final byte DOUBLE = 3;
+  public static final byte INT8 = 4;
+  public static final byte UINT8 = 5;
+  public static final byte FLOAT8 = 6;
 
-  public static final String[] names = { "INHERIT", "HALF", "FLOAT", "DOUBLE", };
+  public static final String[] names = { "INHERIT", "HALF", "FLOAT", "DOUBLE", "INT8", "UINT8", "FLOAT8", };
 
   public static String name(int e) { return names[e]; }
 }
