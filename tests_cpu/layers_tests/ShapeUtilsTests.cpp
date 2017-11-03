@@ -4,6 +4,7 @@
 
 #include "testlayers.h"
 #include <helpers/ShapeUtils.h>
+#include <NDArray.h>
 
 
 using namespace nd4j;
@@ -29,4 +30,11 @@ TEST_F(ShapeUtilsTests, BasicInject2) {
     ShapeUtils<float>::insertDimension(2, shape.data(), 0, 3);
     ASSERT_EQ(3, shape.at(0));
     ASSERT_EQ(4, shape.at(1));
+}
+
+TEST_F(ShapeUtilsTests, RandomTest) {
+    NDArray<float> array('c', {3, 3});
+    
+    array.printShapeInfo("my shape");
+    array.printBuffer();
 }
