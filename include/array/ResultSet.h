@@ -1,9 +1,13 @@
 //
+// This class is suited for execution results representation. 
+// 
+// PLESE NOTE: It will delete all stored NDArrays upon destructor call
+//
 // Created by raver119 on 07.09.17.
 //
 
-#ifndef LIBND4J_ARRAYLIST_H
-#define LIBND4J_ARRAYLIST_H
+#ifndef LIBND4J_RESULTSET_H
+#define LIBND4J_RESULTSET_H
 
 #include <NDArray.h>
 #include <vector>
@@ -30,4 +34,4 @@ namespace  nd4j {
     };
 }
 
-#endif //LIBND4J_ARRAYLIST_H
+#endif //LIBND4J_RESULTSET_H

@@ -12,8 +12,8 @@
 #include <Block.h>
 #include "OpDescriptor.h"
 #include <helpers/helper_hash.h>
-#include <ShapeList.h>
-#include <ResultSet.h>
+#include <graph/ShapeList.h>
+#include <array/ResultSet.h>
 //#include <ops/declarable/declarable_ops.h>
 
 #include <chrono>
