@@ -59,16 +59,18 @@ inline OpType (&EnumValuesOpType())[13] {
 }
 
 enum InputType {
-  InputType_NUMERIC = 0,
-  InputType_STRINGULAR = 1,
-  InputType_NUMERIC_SET = 2,
-  InputType_STRINGULAR_SET = 3,
-  InputType_MIN = InputType_NUMERIC,
+  InputType_UNDEFINED = 0,
+  InputType_NUMERIC = 1,
+  InputType_STRINGULAR = 2,
+  InputType_NUMERIC_SET = 3,
+  InputType_STRINGULAR_SET = 4,
+  InputType_MIN = InputType_UNDEFINED,
   InputType_MAX = InputType_STRINGULAR_SET
 };
 
-inline InputType (&EnumValuesInputType())[4] {
+inline InputType (&EnumValuesInputType())[5] {
   static InputType values[] = {
+    InputType_UNDEFINED,
     InputType_NUMERIC,
     InputType_STRINGULAR,
     InputType_NUMERIC_SET,
@@ -79,6 +81,7 @@ inline InputType (&EnumValuesInputType())[4] {
 
 inline const char **EnumNamesInputType() {
   static const char *names[] = {
+    "UNDEFINED",
     "NUMERIC",
     "STRINGULAR",
     "NUMERIC_SET",

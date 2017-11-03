@@ -9,6 +9,7 @@
 #include <indexing/NDIndex.h>
 #include <indexing/IndicesList.h>
 #include <graph/Intervals.h>
+#include <array/DataType.h>
 
 namespace nd4j {
 
@@ -39,6 +40,7 @@ namespace nd4j {
         bool _isShapeAlloc = false;                    // indicates whether user allocates memory for _shapeInfo by himself, in opposite case the memory must be allocated from outside
         bool _isBuffAlloc = false; 						// indicates whether user allocates memory for _buffer by himself, in opposite case the memory must be allocated from outside
 
+        DataType _dataType = DataType_FLOAT;
 
     public:
         void* operator new(size_t i);
@@ -94,6 +96,8 @@ namespace nd4j {
         NDArray<T>* repeat(int dimension, const std::vector<int>& reps) const;
 
         void repeat(int dimension, NDArray<T>& target) const;
+
+        DataType dataType() const;
 
         NDArray<T>* getView();
 

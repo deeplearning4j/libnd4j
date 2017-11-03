@@ -37,6 +37,7 @@ enum OpType:byte {
 }
 
 enum InputType:byte {
+    UNDEFINED,
     NUMERIC,
     STRINGULAR,
     NUMERIC_SET,

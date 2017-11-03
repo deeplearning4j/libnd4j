@@ -84,8 +84,8 @@ TEST_F(FlatBuffersTest, FlatGraphTest1) {
     auto name1 = builder.CreateString("wow1");
     auto name2 = builder.CreateString("wow2");
 
-    auto node1 = CreateFlatNode(builder, 1, name1, OpType_TRANSFORM, 0, in1, 0, DataType_INHERIT, vec1);
-    auto node2 = CreateFlatNode(builder, 2, name2, OpType_TRANSFORM, 2, in2, 0, DataType_INHERIT, vec2);
+    auto node1 = CreateFlatNode(builder, 1, name1, OpType_TRANSFORM, 0, in1, 0, nd4j::graph::DataType::DataType_FLOAT, vec1);
+    auto node2 = CreateFlatNode(builder, 2, name2, OpType_TRANSFORM, 2, in2, 0, nd4j::graph::DataType::DataType_FLOAT, vec2);
 
     std::vector<flatbuffers::Offset<FlatVariable>> variables_vector;
     variables_vector.push_back(fVar);
@@ -217,7 +217,7 @@ TEST_F(FlatBuffersTest, ExplicitOutputTest1) {
 
     auto name1 = builder.CreateString("wow1");
 
-    auto node1 = CreateFlatNode(builder, 1, name1, OpType_TRANSFORM, 0, in1, 0, DataType_FLOAT, out1);
+    auto node1 = CreateFlatNode(builder, 1, name1, OpType_TRANSFORM, 0, in1, 0, nd4j::graph::DataType::DataType_FLOAT, out1);
 
     std::vector<flatbuffers::Offset<FlatVariable>> variables_vector;
     variables_vector.push_back(fXVar);

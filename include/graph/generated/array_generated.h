@@ -13,25 +13,41 @@ struct FlatArray;
 
 enum DataType {
   DataType_INHERIT = 0,
-  DataType_HALF = 1,
-  DataType_FLOAT = 2,
-  DataType_DOUBLE = 3,
-  DataType_INT8 = 4,
-  DataType_UINT8 = 5,
-  DataType_FLOAT8 = 6,
+  DataType_BOOL = 1,
+  DataType_FLOAT8 = 2,
+  DataType_HALF = 3,
+  DataType_HALF2 = 4,
+  DataType_FLOAT = 5,
+  DataType_DOUBLE = 6,
+  DataType_INT8 = 7,
+  DataType_INT16 = 8,
+  DataType_INT32 = 9,
+  DataType_INT64 = 10,
+  DataType_UINT8 = 11,
+  DataType_UINT16 = 12,
+  DataType_UINT32 = 13,
+  DataType_UINT64 = 14,
   DataType_MIN = DataType_INHERIT,
-  DataType_MAX = DataType_FLOAT8
+  DataType_MAX = DataType_UINT64
 };
 
-inline DataType (&EnumValuesDataType())[7] {
+inline DataType (&EnumValuesDataType())[15] {
   static DataType values[] = {
     DataType_INHERIT,
+    DataType_BOOL,
+    DataType_FLOAT8,
     DataType_HALF,
+    DataType_HALF2,
     DataType_FLOAT,
     DataType_DOUBLE,
     DataType_INT8,
+    DataType_INT16,
+    DataType_INT32,
+    DataType_INT64,
     DataType_UINT8,
-    DataType_FLOAT8
+    DataType_UINT16,
+    DataType_UINT32,
+    DataType_UINT64
   };
   return values;
 }
@@ -39,12 +55,20 @@ inline DataType (&EnumValuesDataType())[7] {
 inline const char **EnumNamesDataType() {
   static const char *names[] = {
     "INHERIT",
+    "BOOL",
+    "FLOAT8",
     "HALF",
+    "HALF2",
     "FLOAT",
     "DOUBLE",
     "INT8",
+    "INT16",
+    "INT32",
+    "INT64",
     "UINT8",
-    "FLOAT8",
+    "UINT16",
+    "UINT32",
+    "UINT64",
     nullptr
   };
   return names;

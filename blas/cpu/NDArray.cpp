@@ -2601,6 +2601,11 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
         return result;
     }
 
+    template<typename T>
+    DataType NDArray<T>::dataType() const {
+        return _dataType;
+    }
+
     ////////////////////////////////////////////////////////////////////////
     template<typename T>
     void NDArray<T>::assign(const NDArray<T>& other, const Intervals& idx) {

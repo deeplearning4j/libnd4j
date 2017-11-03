@@ -4,12 +4,13 @@ package nd4j.graph;
 
 public final class InputType {
   private InputType() { }
-  public static final byte NUMERIC = 0;
-  public static final byte STRINGULAR = 1;
-  public static final byte NUMERIC_SET = 2;
-  public static final byte STRINGULAR_SET = 3;
+  public static final byte UNDEFINED = 0;
+  public static final byte NUMERIC = 1;
+  public static final byte STRINGULAR = 2;
+  public static final byte NUMERIC_SET = 3;
+  public static final byte STRINGULAR_SET = 4;
 
-  public static final String[] names = { "NUMERIC", "STRINGULAR", "NUMERIC_SET", "STRINGULAR_SET", };
+  public static final String[] names = { "UNDEFINED", "NUMERIC", "STRINGULAR", "NUMERIC_SET", "STRINGULAR_SET", };
 
   public static String name(int e) { return names[e]; }
 }
