@@ -240,10 +240,18 @@ int* ShapeUtils<T>::evalReduceShapeInfo(const char order, std::vector<int>& dime
         std::iota(newDimensions.begin(), newDimensions.end(), 0);   // fill with 0, 1, ... rank-1
     }   
     else {
-        for(int i=0; i<rank; ++i)
-            for(int j=0; j<size; ++j)
-                if(i != dimensions[j])
-                    newDimensions.emplace_back(i);
+        bool isAbsent;
+        for(int i=0; i<rank; ++i) {
+            isAbsent = true;
+            for(int j=0; j<size; ++j) {
+                if(i == dimensions[j]) {
+                    isAbsent = false;    
+                    break;
+                }            
+            }
+            if(isAbsent)
+                newDimensions.emplace_back(i);
+        }
     }
 
     return newDimensions;
