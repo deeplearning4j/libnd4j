@@ -2867,7 +2867,7 @@ TEST_F(DeclarableOpsTests, OneHotTests_1) {
     indices.putScalar(2, -1.0);
     indices.putScalar(3, 1.0);
 
-    float _expB[] = {1.000000, 0.000000, 0.000000, 0.000000, 0.000000, 1.000000, 0.000000, 0.000000, 0.000000, 0.000000, 1.000000, 0.000000};
+    float _expB[] = {1., 0., 0., 0., 0., 1., 0., 0., 0., 0., 1., 0.};
     NDArray<float> exp('c', {4, 3});
     exp.setBuffer(_expB);
 
@@ -2891,7 +2891,7 @@ TEST_F(DeclarableOpsTests, OneHotTests_2) {
     indices.putScalar(2, 1.0);
     indices.putScalar(3, -1.0);
 
-    float _expB[] = {1.000000, 0.000000, 0.000000, 0.000000, 0.000000, 1.000000, 0.000000, 1.000000, 0.000000, 0.000000, 0.000000, 0.000000};
+    float _expB[] = {1., 0., 0., 0., 0., 1., 0., 1., 0., 0., 0., 0.};
     NDArray<float> exp('c', {2, 2, 3});
     exp.setBuffer(_expB);
 
@@ -3077,20 +3077,20 @@ TEST_F(DeclarableOpsTests, Stack_6) {
 TEST_F(DeclarableOpsTests, Reverse_1 ) {
 
     float inBuff[]  = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,16,16,17,18,19,20,21,22,23,24};
-    float expBuff[] = {12., 11., 10., 9., 8., 7., 6., 5., 4., 3., 2., 1., 24., 23., 22., 21., 20., 19., 18., 17., 16., 16., 14., 13.};
-    // int shapeInfo[] = {3, 2, 3, 4, 12, 4, 1, 0, 1, 99};   
-    int shapeInfo[] = {2, 2, 12, 12, 1, 0, 1, 99};   
+    float expBuff[] = {24., 23., 22., 21., 20., 19., 18., 17., 16., 16., 14., 13., 12., 11., 10., 9., 8., 7., 6., 5., 4., 3., 2., 1.};
+    int shapeInfo[] = {3, 2, 3, 4, 12, 4, 1, 0, 1, 99};   
+    // int shapeInfo[] = {2, 2, 12, 12, 1, 0, 1, 99};   
 
     NDArray<float> input(inBuff, shapeInfo);
     NDArray<float> expected(expBuff, shapeInfo);
     NDArray<float> output(shapeInfo);
    
     nd4j::ops::reverse<float> op;
-    auto results = op.execute({&input}, {}, {0}, true);
+    auto results = op.execute({&input}, {}, {});
 
     ASSERT_EQ(ND4J_STATUS_OK, results->status());
 
-    auto result = results->at(0);
+    auto result = results->at(0);    
 
     ASSERT_TRUE(expected.isSameShapeStrict(result));
     ASSERT_TRUE(expected.equalsTo(result));
