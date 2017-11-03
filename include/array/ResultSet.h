@@ -11,15 +11,15 @@
 
 namespace  nd4j {
     template<typename T>
-    class ArrayList {
+    class ResultSet {
     private:
         std::vector<nd4j::NDArray<T> *> _content;
         Nd4jStatus _status = ND4J_STATUS_OK;
 
     public:
         // default constructor
-        ArrayList(const nd4j::graph::FlatResult* result = nullptr);
-        ~ArrayList();
+        ResultSet(const nd4j::graph::FlatResult* result = nullptr);
+        ~ResultSet();
 
         int size();
         nd4j::NDArray<T> *at(unsigned long idx);

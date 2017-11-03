@@ -286,7 +286,7 @@ TEST_F(FlatBuffersTest, ReadFile2) {
     uint8_t* data = nd4j::graph::readFlatBuffers("./resources/adam_sum.fb");
     Nd4jPointer result = GraphExecutioner<float>::executeFlatBuffer((Nd4jPointer) data);
 
-    ArrayList<float> arrays(GetFlatResult(result));
+    ResultSet<float> arrays(GetFlatResult(result));
 
     ASSERT_EQ(1, arrays.size());
     ASSERT_EQ(1, arrays.at(0)->lengthOf());

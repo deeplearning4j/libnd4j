@@ -401,7 +401,7 @@ namespace nd4j {
         }
 
         template<typename T>
-        nd4j::ArrayList<T>*  nd4j::ops::DeclarableOp<T>::execute(std::initializer_list<NDArray<T>*> inputs, std::initializer_list<T> tArgs, std::initializer_list<int> iArgs, bool isInplace) {
+        nd4j::ResultSet<T>*  nd4j::ops::DeclarableOp<T>::execute(std::initializer_list<NDArray<T>*> inputs, std::initializer_list<T> tArgs, std::initializer_list<int> iArgs, bool isInplace) {
             std::vector<NDArray<T>*> ins(inputs);
             std::vector<T> tas(tArgs);
             std::vector<int> ias(iArgs);
@@ -455,10 +455,10 @@ namespace nd4j {
         }
 
         template <typename T>
-        nd4j::ArrayList<T>* nd4j::ops::DeclarableOp<T>::execute(std::vector<NDArray<T>*>& inputs, std::vector<T>& tArgs, std::vector<int>& iArgs, bool isInplace) {
+        nd4j::ResultSet<T>* nd4j::ops::DeclarableOp<T>::execute(std::vector<NDArray<T>*>& inputs, std::vector<T>& tArgs, std::vector<int>& iArgs, bool isInplace) {
             VariableSpace<T> variableSpace;
-            auto arrayList = new ArrayList<T>();
-            //ArrayList<T> arrayList;
+            auto arrayList = new ResultSet<T>();
+            //ResultSet<T> arrayList;
 
             int cnt = -1;
             std::vector<int> in;

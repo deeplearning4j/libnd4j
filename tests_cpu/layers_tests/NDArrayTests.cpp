@@ -1086,7 +1086,7 @@ TEST_F(NDArrayTest, TestIndexedPut5) {
 TEST_F(NDArrayTest, TestAllTensors1) {
     NDArray<float> matrix(3, 5, 'c');
 
-    std::unique_ptr<ArrayList<float>> rows(NDArrayFactory<float>::allTensorsAlongDimension(&matrix, {1}));
+    std::unique_ptr<ResultSet<float>> rows(NDArrayFactory<float>::allTensorsAlongDimension(&matrix, {1}));
 
     ASSERT_EQ(3, rows->size());
 }

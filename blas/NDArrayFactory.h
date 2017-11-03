@@ -6,7 +6,7 @@
 #define LIBND4J_NDARRAYFACTORY_H
 
 #include "NDArray.h"
-#include <graph/ArrayList.h>
+#include <array/ResultSet.h>
 
 namespace nd4j {
     template<typename T>
@@ -15,13 +15,13 @@ namespace nd4j {
 
         static NDArray<T>* createUninitialized(NDArray<T>* other);
 
-        static ArrayList<T>* multipleTensorsAlongDimension(NDArray<T>* ndArray, std::vector<int> &indices, std::vector<int> &dimensions);
+        static ResultSet<T>* multipleTensorsAlongDimension(NDArray<T>* ndArray, std::vector<int> &indices, std::vector<int> &dimensions);
 
-        static ArrayList<T>* allTensorsAlongDimension(NDArray<T>* ndArray, std::vector<int> &dimensions);
+        static ResultSet<T>* allTensorsAlongDimension(NDArray<T>* ndArray, std::vector<int> &dimensions);
 
-        static ArrayList<T>* allExamples(NDArray<T>* ndArray);
+        static ResultSet<T>* allExamples(NDArray<T>* ndArray);
 
-        static ArrayList<T>* allTensorsAlongDimension(NDArray<T>* ndArray, std::initializer_list<int> dimensions);
+        static ResultSet<T>* allTensorsAlongDimension(NDArray<T>* ndArray, std::initializer_list<int> dimensions);
 
         static NDArray<T>* tile(NDArray<T> *original, std::vector<int>& dimensions);
 

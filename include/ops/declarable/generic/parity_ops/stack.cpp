@@ -21,7 +21,7 @@ CUSTOM_OP_IMPL(stack, -1, 1, false, 0, 1) {
     	dim += input->rankOf();                	
 
 	std::vector<int> dimsToExclude = ShapeUtils<T>::evalDimsToExclude(output->rankOf(), {dim});	
-	ArrayList<T>* list = NDArrayFactory<T>::allTensorsAlongDimension(output, dimsToExclude);		// list.size() == block.width()
+	ResultSet<T>* list = NDArrayFactory<T>::allTensorsAlongDimension(output, dimsToExclude);		// list.size() == block.width()
 
 	for(int i=0; i<list->size(); ++i)
 		list->at(i)->assign(INPUT_VARIABLE(i));
