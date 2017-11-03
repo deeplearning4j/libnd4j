@@ -32,6 +32,9 @@ namespace nd4j {
 
         // reference shape
         std::vector<int> _shape;
+
+        // unstack axis
+        int _axis = 0;
     public:
         NDArrayList(bool expandable = false);
         ~NDArrayList();
@@ -40,6 +43,7 @@ namespace nd4j {
         Nd4jStatus write(int idx, NDArray<T>* array);
 
         NDArray<T>* stack();
+        void unstack(NDArray<T>* array, int axis);
 
         std::pair<int,int>& id();
         std::string& name();

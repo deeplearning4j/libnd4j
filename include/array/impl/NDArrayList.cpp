@@ -2,7 +2,9 @@
 // @author raver119@gmail.com
 //
 
+#include <NDArrayFactory.h>
 #include <array/NDArrayList.h>
+#include <ops/declarable/CustomOperations.h>
 
 namespace nd4j {
 
@@ -53,8 +55,36 @@ namespace nd4j {
     }
 
     template <typename T>
+    void NDArrayList<T>::unstack(NDArray<T>* array, int axis) {
+        _axis = axis;
+        auto result = nd4j::NDArrayFactory<T>::allTensorsAlongDimension(array, {axis});
+        for (int e = 0; e < result->size(); e++) {
+            auto chunk = result->at(e)->dup(array->ordering());
+            write(e, chunk);
+        }
+        delete result;
+    }
+
+    template <typename T>
     NDArray<T>* NDArrayList<T>::stack() {
-        return nullptr;
+        // FIXME: this is bad for perf, but ok as poc
+        nd4j::ops::stack<T> op;
+        std::vector<NDArray<T>*> inputs;
+        std::vector<T> targs;
+        std::vector<int> iargs;
+
+        for (int e = 0; e < _elements.load(); e++)
+            inputs.emplace_back(_chunks[e]);
+
+        iargs.push_back(_axis);
+
+        auto result = op.execute(inputs, targs, iargs);
+
+        auto array = result->at(0)->dup(result->at(0)->ordering());
+
+        delete result;
+
+        return array;
     }
 
     template <typename T>
