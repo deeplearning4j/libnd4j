@@ -3073,5 +3073,69 @@ TEST_F(DeclarableOpsTests, Stack_6) {
 
 }
 
+TEST_F(DeclarableOpsTests, Test_Range_Integer_1) {
+    NDArray<float> exp('c', {1, 4});
+    NDArrayFactory<float>::linspace(1, exp);
 
+    nd4j::ops::range<float> op;
+
+    auto result = op.execute({}, {}, {1, 5, 1});
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+   
+    ASSERT_EQ(1, result->size());
+
+    auto array = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(array));
+    ASSERT_TRUE(exp.equalsTo(array));
+
+    delete result;
+}
+
+
+TEST_F(DeclarableOpsTests, Test_Range_Integer_2) {
+    NDArray<float> exp('c', {1, 4});
+    NDArrayFactory<float>::linspace(1, exp);
+
+    NDArray<float> start('c', {1, 1});
+    NDArray<float> stop('c', {1, 1});
+    NDArray<float> step('c', {1, 1});
+    start.putScalar(0, 1.f);
+    stop.putScalar(0, 5.f);
+    step.putScalar(0, 1.f);
+
+    nd4j::ops::range<float> op;
+
+    auto result = op.execute({&start, &stop, &step}, {}, {});
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    ASSERT_EQ(1, result->size());
+
+    auto array = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(array));
+    ASSERT_TRUE(exp.equalsTo(array));
+
+    delete result;
+}
+
+
+TEST_F(DeclarableOpsTests, Test_Range_Integer_3) {
+    NDArray<float> exp('c', {1, 4});
+    NDArrayFactory<float>::linspace(1, exp);
+
+    nd4j::ops::range<float> op;
+
+    auto result = op.execute({}, {1.f, 5.f, 1.f}, {});
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    ASSERT_EQ(1, result->size());
+
+    auto array = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(array));
+    ASSERT_TRUE(exp.equalsTo(array));
+
+    delete result;
+}
 

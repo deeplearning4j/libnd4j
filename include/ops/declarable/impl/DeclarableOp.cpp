@@ -357,6 +357,9 @@ namespace nd4j {
 
         template <typename T>
         Nd4jStatus nd4j::ops::DeclarableOp<T>::validateNonEmptyInput(Block<T>& block) {
+            if (this->getOpDescriptor()->getNumberOfInputs() == -2)
+                return ND4J_STATUS_OK;
+
             if (block.width() < 1)
                 return ND4J_STATUS_BAD_INPUT;
 
