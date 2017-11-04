@@ -245,6 +245,12 @@ int* ShapeUtils<T>::evalReduceShapeInfo(const char order, std::vector<int>& dime
     }
 
     template<typename T>
+    std::vector<int> ShapeUtils<T>::convertAxisToTadTarget(int rank, std::initializer_list<int> axis) {
+        std::vector<int> newAxis(axis);
+        return convertAxisToTadTarget(rank, newAxis);
+    }
+
+    template<typename T>
     std::vector<int> ShapeUtils<T>::convertAxisToTadTarget(int rank, std::vector<int>& axis) {
         std::vector<int> newAxis;
         for (int e = 0; e < rank; e++) {

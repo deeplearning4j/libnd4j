@@ -40,6 +40,8 @@ namespace nd4j {
 
         // this method converts axis, to set of axes for TAD. i.e. for 0 axis of 3D array becomes {1, 2}
         static std::vector<int> convertAxisToTadTarget(int rank, std::vector<int>& axis);
+
+        static std::vector<int> convertAxisToTadTarget(int rank, std::initializer_list<int> axis);
     };
 
 

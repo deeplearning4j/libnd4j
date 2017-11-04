@@ -32,9 +32,18 @@ TEST_F(ShapeUtilsTests, BasicInject2) {
     ASSERT_EQ(4, shape.at(1));
 }
 
-TEST_F(ShapeUtilsTests, RandomTest) {
-    NDArray<float> array('c', {3, 3});
-    
-    array.printShapeInfo("my shape");
-    array.printBuffer();
+TEST_F(ShapeUtilsTests, AxisConversionTest_1) {
+    std::vector<int> res = ShapeUtils<float>::convertAxisToTadTarget(3, {0});
+
+    ASSERT_EQ(2, res.size());
+    ASSERT_EQ(1, res.at(0));
+    ASSERT_EQ(2, res.at(1));
+}
+
+TEST_F(ShapeUtilsTests, AxisConversionTest_2) {
+    std::vector<int> res = ShapeUtils<float>::convertAxisToTadTarget(4, {2, 3});
+
+    ASSERT_EQ(2, res.size());
+    ASSERT_EQ(0, res.at(0));
+    ASSERT_EQ(1, res.at(1));
 }
