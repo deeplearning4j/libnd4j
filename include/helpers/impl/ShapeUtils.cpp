@@ -2,6 +2,8 @@
 // @author iuriish@yahoo.com
 //
 
+#include <algorithm>
+#include <vector>
 #include <helpers/ShapeUtils.h>
 #include <climits>
 
@@ -240,6 +242,17 @@ int* ShapeUtils<T>::evalReduceShapeInfo(const char order, std::vector<int>& dime
                     newDimensions.emplace_back(i);
 
         return newDimensions;
+    }
+
+    template<typename T>
+    std::vector<int> ShapeUtils<T>::convertAxisToTadTarget(int rank, std::vector<int>& axis) {
+        std::vector<int> newAxis;
+        for (int e = 0; e < rank; e++) {
+            if (std::find(axis.begin(), axis.end(), e) == axis.end())
+                newAxis.emplace_back(e);
+        }
+
+        return newAxis;
     }
 
 

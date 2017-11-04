@@ -4,6 +4,7 @@
 
 #include <NDArrayFactory.h>
 #include <array/NDArrayList.h>
+#include <helpers/ShapeUtils.h>
 #include <ops/declarable/CustomOperations.h>
 
 namespace nd4j {
@@ -57,7 +58,9 @@ namespace nd4j {
     template <typename T>
     void NDArrayList<T>::unstack(NDArray<T>* array, int axis) {
         _axis = axis;
-        auto result = nd4j::NDArrayFactory<T>::allTensorsAlongDimension(array, {axis});
+        std::vector<int> args({axis});
+        std::vector<int> newAxis = ShapeUtils<T>::convertAxisToTadTarget(array->rankOf(), args);
+        auto result = nd4j::NDArrayFactory<T>::allTensorsAlongDimension(array, newAxis);
         for (int e = 0; e < result->size(); e++) {
             auto chunk = result->at(e)->dup(array->ordering());
             write(e, chunk);

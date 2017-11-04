@@ -44,7 +44,7 @@ TEST_F(NDArrayListTests, Test_Stack_UnStack_1) {
 
     NDArrayList<float> list(false);
 
-    list.unstack(&input, 1);
+    list.unstack(&input, 0);
 
     ASSERT_EQ(10, list.elements());
 
@@ -52,7 +52,6 @@ TEST_F(NDArrayListTests, Test_Stack_UnStack_1) {
 
     ASSERT_TRUE(input.isSameShape(array));
 
-    array->printBuffer("result");
     ASSERT_TRUE(input.equalsTo(array));
 
     delete array;
