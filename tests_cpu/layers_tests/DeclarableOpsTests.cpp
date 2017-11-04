@@ -3139,3 +3139,24 @@ TEST_F(DeclarableOpsTests, Test_Range_Integer_3) {
     delete result;
 }
 
+TEST_F(DeclarableOpsTests, Test_SoftMax_2) {
+    NDArray<float> input('c', {10, 10});
+    NDArray<float> exp('c', {10, 10});
+    NDArrayFactory<float>::linspace(1, input);
+    NDArrayFactory<float>::linspace(1, exp);
+
+    nd4j::ops::softmax<float> op;
+
+    auto result = op.execute({&input}, {}, {});
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.equalsTo(&input));
+
+    ASSERT_FALSE(exp.equalsTo(z));
+
+
+    delete result;
+}
