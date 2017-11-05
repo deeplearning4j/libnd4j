@@ -5,7 +5,10 @@
 #ifndef LIBND4J_DECLARABLE_LIST_OP_H
 #define LIBND4J_DECLARABLE_LIST_OP_H
 
+#include <graph/Block.h>
 #include <ops/declarable/DeclarableOp.h>
+
+using namespace nd4j::graph;
 
 namespace nd4j {
     namespace ops {
@@ -17,6 +20,8 @@ namespace nd4j {
         public:
             DeclarableListOp(int numInputs, int numOutputs, const char* opName, int tArgs, int iArgs);
             ~DeclarableListOp();
+
+            void execute(Block<T>& block);
         };
     }
 }

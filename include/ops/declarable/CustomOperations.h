@@ -16,6 +16,7 @@
 #include <ops/declarable/LogicOp.h>
 #include <ops/declarable/DeclarableReductionOp.h>
 #include <ops/declarable/DeclarableCustomOp.h>
+#include <ops/declarable/DeclarableListOp.h>
 #include <ops/declarable/OpRegistrator.h>
 #include <helpers/ArrayUtils.h>
 #include <ShapeList.h>
@@ -134,6 +135,10 @@ namespace nd4j {
         DECLARE_BOOLEAN_OP(gte_scalar, 2, true);
         DECLARE_BOOLEAN_OP(eq_scalar, 2, true);
         DECLARE_BOOLEAN_OP(neq_scalar, 2, true);
+
+
+        // list operations, basically all around NDArrayList
+        DECLARE_LIST_OP(write, 2, 0, 0, 0);
     }
 }
 
