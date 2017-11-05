@@ -22,7 +22,11 @@ namespace nd4j {
             DeclarableListOp(int numInputs, int numOutputs, const char* opName, int tArgs, int iArgs);
             ~DeclarableListOp();
 
+            /*
             void execute(Block<T>& block);
+*/
+            Nd4jStatus execute(NDArrayList<T>* list, std::initializer_list<NDArray<T>*> inputs, std::initializer_list<T> tArgs, std::initializer_list<int> iArgs);
+            Nd4jStatus execute(NDArrayList<T>* list, std::vector<NDArray<T>*> inputs, std::vector<T> tArgs, std::vector<int> iArgs);
 
             ShapeList* calculateOutputShape(ShapeList* inputShape, nd4j::graph::Block<T>& block) override;
         };

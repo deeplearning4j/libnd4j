@@ -23,7 +23,7 @@ namespace nd4j {
             bool evaluate(std::vector<nd4j::NDArray<T> *>& args);
             bool evaluate(nd4j::graph::Block<T>& block);
 
-            Nd4jStatus execute(Block<T>* block) override;
+            Nd4jStatus execute(Block<T>* block);
 
             ShapeList *calculateOutputShape(ShapeList *inputShape, nd4j::graph::Block<T> &block) override;
 

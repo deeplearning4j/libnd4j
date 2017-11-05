@@ -1367,6 +1367,8 @@ struct __registratorDouble_##NAME {\
 #define INPUT_VARIABLE(INDEX)     (nd4j::NDArray<T> *) block.getVariable(INDEX)->getNDArray()
 #define OUTPUT_VARIABLE(INDEX)     this->getZ(block, INDEX);
 
+#define INPUT_LIST(INDEX)     (nd4j::NDArrayList<T> *) block.getVariable(INDEX)->getNDArrayList()
+
 #define INT_ARG(INDEX)     block.getIArguments()->at(INDEX)
 #define T_ARG(INDEX)     block.getTArguments()->at(INDEX)
 

@@ -4,6 +4,9 @@
 
 #include <ops/declarable/OpDescriptor.h>
 #include <ops/declarable/DeclarableListOp.h>
+#include <graph/Block.h>
+#include <graph/Variable.h>
+#include <graph/VariableSpace.h>
 
 namespace nd4j {
     namespace ops {
@@ -17,12 +20,12 @@ namespace nd4j {
             // This kind of operations work with sets: NDArrayList
             this->getOpDescriptor()->setInputType(InputType_NUMERIC_SET);
         }
-
+/*
         template <typename T>
         void DeclarableListOp<T>::execute(Block<T>& block)  {
             //
         }
-
+*/
         /**
          * This method just outputs scalar buffer
          *
@@ -42,5 +45,55 @@ namespace nd4j {
 
             return new ShapeList(newShape);
         }
+
+        template <typename T>
+        Nd4jStatus DeclarableListOp<T>::execute(NDArrayList<T>* list, std::initializer_list<NDArray<T>*> inputs, std::initializer_list<T> tArgs, std::initializer_list<int> iArgs) {
+            std::vector<NDArray<T>*> ins(inputs);
+            std::vector<T> tas(tArgs);
+            std::vector<int> ias(iArgs);
+            return this->execute(list, ins, tas, ias);
+        }
+
+        template <typename T>
+        Nd4jStatus DeclarableListOp<T>::execute(NDArrayList<T>* list, std::vector<NDArray<T>*> inputs, std::vector<T> tArgs, std::vector<int> iArgs) {
+            VariableSpace<T> varSpace;
+            int nodeId = 119;
+
+            // should be never used in practice, since in-graph NDArrayList should have id set
+            if (list->id().first == 0)
+                list->id().first = -119;
+
+            auto listVar = new Variable<T>(nullptr, nullptr, -119, 0);
+            listVar->setNDArrayList(list);
+            varSpace.putVariable(-119, listVar);
+
+            int cnt = -1;
+            std::vector<int> in({-119});
+            for (auto v: inputs) {
+                auto var = new Variable<T>(v);
+                var->markRemovable(false);
+                in.push_back(cnt);
+                varSpace.putVariable(cnt--, var);
+            }
+
+            Block<T> block(1, &varSpace, false);
+            block.fillInputs(in);
+
+            for (int e = 0; e < tArgs.size(); e++)
+                block.getTArguments()->emplace_back(tArgs.at(e));
+
+
+            for (int e = 0; e < iArgs.size(); e++)
+                block.getIArguments()->emplace_back(iArgs.at(e));
+
+
+            Nd4jStatus result = this->validateAndExecute(block);
+
+            return ND4J_STATUS_OK;
+        }
+
+        template class ND4J_EXPORT DeclarableListOp<float>;
+        template class ND4J_EXPORT DeclarableListOp<float16>;
+        template class ND4J_EXPORT DeclarableListOp<double>;
     }
 }
