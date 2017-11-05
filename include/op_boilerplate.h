@@ -1008,12 +1008,12 @@ struct __registratorDouble_##NAME {\
                                                             template class ND4J_EXPORT NAME<float16>;\
                                                             template class ND4J_EXPORT NAME<double>;\
                                                             template <typename OpName>  \
-                                                            struct __registratorFloat_##NAME {\
-                                                                __registratorFloat_##NAME() {\
+                                                            struct __registratorFloat_##NAME { \
+                                                                __registratorFloat_##NAME() { \
                                                                     OpName *ptr = new OpName(); \
                                                                     OpRegistrator::getInstance()->registerOperationFloat(ptr); \
-                                                                }\
-                                                            };\
+                                                                } \
+                                                            }; \
                                                             template <typename OpName>  \
                                                             struct __registratorHalf_##NAME {\
                                                                 __registratorHalf_##NAME() {\

@@ -113,6 +113,9 @@ namespace nd4j {
 
             // this method returns opNum (applicable for legacy XYZ ops only)
             int getOpNum();
+
+            void setInputType(InputType type);
+            InputType inputType();
         };
     }
 }

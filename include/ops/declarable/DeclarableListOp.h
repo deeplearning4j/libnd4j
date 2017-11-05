@@ -6,6 +6,7 @@
 #define LIBND4J_DECLARABLE_LIST_OP_H
 
 #include <graph/Block.h>
+#include <ops/declarable/OpRegistrator.h>
 #include <ops/declarable/DeclarableOp.h>
 
 using namespace nd4j::graph;
@@ -13,7 +14,7 @@ using namespace nd4j::graph;
 namespace nd4j {
     namespace ops {
         template <typename T>
-        class DeclarableListOp : nd4j::ops::DeclarableOp<T> {
+        class DeclarableListOp : public nd4j::ops::DeclarableOp<T> {
         protected:
             virtual Nd4jStatus validateAndExecute(Block<T>& block) = 0;
 
@@ -22,6 +23,8 @@ namespace nd4j {
             ~DeclarableListOp();
 
             void execute(Block<T>& block);
+
+            ShapeList* calculateOutputShape(ShapeList* inputShape, nd4j::graph::Block<T>& block) override;
         };
     }
 }

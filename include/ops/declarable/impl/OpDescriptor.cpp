@@ -114,5 +114,13 @@ namespace nd4j {
         int OpDescriptor::getOpNum() {
             return _opNum;
         }
+
+        void OpDescriptor::setInputType(InputType type) {
+            _inputType = type;
+        }
+
+        InputType OpDescriptor::inputType() {
+            return _inputType;
+        }
     }
 }
