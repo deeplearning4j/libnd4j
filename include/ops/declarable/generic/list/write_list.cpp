@@ -6,10 +6,14 @@
 
 namespace nd4j {
     namespace ops {
-        LIST_OP_IMPL(write_list, 2, 0, 0, 0) {
+        LIST_OP_IMPL(write_list, 2, 0, 0, 1) {
             auto list = INPUT_LIST(0);
+            auto input = INPUT_VARIABLE(1);
+            auto idx = INT_ARG(0);
 
-            return ND4J_STATUS_OK;
+            Nd4jStatus result = list->write(idx, input);
+
+            return result;
         }
     }
 }

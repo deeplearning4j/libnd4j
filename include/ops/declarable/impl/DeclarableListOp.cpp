@@ -55,7 +55,7 @@ namespace nd4j {
         }
 
         template <typename T>
-        Nd4jStatus DeclarableListOp<T>::execute(NDArrayList<T>* list, std::vector<NDArray<T>*> inputs, std::vector<T> tArgs, std::vector<int> iArgs) {
+        Nd4jStatus DeclarableListOp<T>::execute(NDArrayList<T>* list, std::vector<NDArray<T>*>& inputs, std::vector<T>& tArgs, std::vector<int>& iArgs) {
             VariableSpace<T> varSpace;
             int nodeId = 119;
 
