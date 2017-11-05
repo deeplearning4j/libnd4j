@@ -80,6 +80,7 @@ namespace nd4j {
         for (int e = 0; e < _elements.load(); e++)
             inputs.emplace_back(_chunks[e]);
 
+
         iargs.push_back(_axis);
 
         auto result = op.execute(inputs, targs, iargs);

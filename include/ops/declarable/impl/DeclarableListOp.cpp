@@ -47,7 +47,13 @@ namespace nd4j {
         }
 
         template <typename T>
-        Nd4jStatus DeclarableListOp<T>::execute(NDArrayList<T>* list, std::initializer_list<NDArray<T>*> inputs, std::initializer_list<T> tArgs, std::initializer_list<int> iArgs) {
+        nd4j::NDArray<T>* nd4j::ops::DeclarableListOp<T>::getZ(Block<T>& block, int inputId) {
+            //nd4j_printf("wow\n","");
+            return nullptr;
+        }
+
+        template <typename T>
+        ResultSet<T>* DeclarableListOp<T>::execute(NDArrayList<T>* list, std::initializer_list<NDArray<T>*> inputs, std::initializer_list<T> tArgs, std::initializer_list<int> iArgs) {
             std::vector<NDArray<T>*> ins(inputs);
             std::vector<T> tas(tArgs);
             std::vector<int> ias(iArgs);
@@ -55,7 +61,7 @@ namespace nd4j {
         }
 
         template <typename T>
-        Nd4jStatus DeclarableListOp<T>::execute(NDArrayList<T>* list, std::vector<NDArray<T>*>& inputs, std::vector<T>& tArgs, std::vector<int>& iArgs) {
+        ResultSet<T>* DeclarableListOp<T>::execute(NDArrayList<T>* list, std::vector<NDArray<T>*>& inputs, std::vector<T>& tArgs, std::vector<int>& iArgs) {
             VariableSpace<T> varSpace;
             int nodeId = 119;
 
@@ -88,8 +94,20 @@ namespace nd4j {
 
 
             Nd4jStatus result = this->validateAndExecute(block);
+            auto res = new ResultSet<T>();
+            res->setStatus(result);
 
-            return ND4J_STATUS_OK;
+            for (int e = 0; e < 65536; e++) {
+                std::pair<int,int> pair(1, e);
+                if (varSpace.hasVariable(pair)) {
+                    auto var = varSpace.getVariable(pair);
+                    var->markRemovable(false);
+                    res->push_back(var->getNDArray());
+                } else
+                    break;
+            }
+
+            return res;
         }
 
         template class ND4J_EXPORT DeclarableListOp<float>;

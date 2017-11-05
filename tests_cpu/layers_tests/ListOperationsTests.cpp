@@ -32,10 +32,25 @@ TEST_F(ListOperationsTests, BasicTest_1) {
 
 TEST_F(ListOperationsTests, BasicTest_2) {
     NDArrayList<double> list;
+    NDArray<double> exp('c', {10, 100});
+    auto tads = NDArrayFactory<double>::allTensorsAlongDimension(&exp, {1});
     for (int e = 0; e < 10; e++) {
-        NDArray<double> row('c', {1, 100});
-        row.assign((double) e);
-        list.write(e, &row);
+        auto row = new NDArray<double>('c', {1, 100});
+        row->assign((double) e);
+        list.write(e, row);
+        tads->at(e)->assign(row);
     }
 
+    nd4j::ops::stack_list<double> op;
+
+    auto result = op.execute(&list, {}, {}, {1});
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
 }
