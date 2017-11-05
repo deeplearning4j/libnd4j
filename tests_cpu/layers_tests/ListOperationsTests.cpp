@@ -29,3 +29,13 @@ TEST_F(ListOperationsTests, BasicTest_1) {
 
     ASSERT_EQ(2, list.elements());
 }
+
+TEST_F(ListOperationsTests, BasicTest_2) {
+    NDArrayList<double> list;
+    for (int e = 0; e < 10; e++) {
+        NDArray<double> row('c', {1, 100});
+        row.assign((double) e);
+        list.write(e, &row);
+    }
+
+}
