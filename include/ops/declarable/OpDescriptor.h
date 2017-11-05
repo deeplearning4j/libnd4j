@@ -7,6 +7,7 @@
 
 #include <string>
 #include <helpers/helper_hash.h>
+#include <ops/InputType.h>
 #include <graph/generated/node_generated.h>
 
 namespace nd4j {
@@ -53,6 +54,9 @@ namespace nd4j {
 
             // field for LogicOps
             bool _logic = false;
+
+            // default InputType is numeric
+            InputType _inputType = InputType_NUMERIC;
 
         public:
             // default constructor

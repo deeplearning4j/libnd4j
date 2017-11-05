@@ -22,7 +22,7 @@ namespace nd4j {
         DataType_UINT16 = 12,
         DataType_UINT32 = 13,
         DataType_UINT64 = 14,
-      };
+    };
 }
 
 #endif

@@ -35,6 +35,9 @@ namespace nd4j {
 
         // unstack axis
         int _axis = 0;
+
+        // 
+        bool _expandable = false;
     public:
         NDArrayList(bool expandable = false);
         ~NDArrayList();
@@ -48,6 +51,8 @@ namespace nd4j {
         std::pair<int,int>& id();
         std::string& name();
         nd4j::memory::Workspace* workspace();
+
+        NDArrayList<T>* clone();
 
         int elements();
     };

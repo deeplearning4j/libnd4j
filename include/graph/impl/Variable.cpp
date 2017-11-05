@@ -17,12 +17,21 @@ namespace nd4j {
             if (this->_ndarray != nullptr)
                 result->_ndarray = this->_ndarray->dup(this->_ndarray->ordering());
 
+            // TODO: clone NDArrayList
+            if (this->_list != nullptr)
+                result->_list = this->_list->clone();
+
             return result;
         }
 
         template <typename T>
         bool nd4j::graph::Variable<T>::hasNDArray() {
             return _ndarray != nullptr;
+        }
+
+        template <typename T>
+        bool nd4j::graph::Variable<T>::hasNDArrayList() {
+            return _list != nullptr;
         }
 
         template <typename T>
@@ -83,6 +92,16 @@ namespace nd4j {
         template <typename T>
         nd4j::NDArray<T> * nd4j::graph::Variable<T>::getNDArray() {
             return this->_ndarray;
+        }
+
+        template <typename T>
+        nd4j::NDArrayList<T> * nd4j::graph::Variable<T>::getNDArrayList() {
+            return this->_list;
+        }
+
+        template <typename T>
+        void nd4j::graph::Variable<T>::setNDArrayList(nd4j::NDArrayList<T> * list) {
+            this->_list = list;
         }
 
         template <typename T>

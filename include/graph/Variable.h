@@ -7,6 +7,7 @@
 
 #include <string>
 #include <NDArray.h>
+#include <array/NDArrayList.h>
 #include <graph/generated/array_generated.h>
 #include <graph/generated/node_generated.h>
 #include <graph/generated/graph_generated.h>
@@ -31,6 +32,8 @@ namespace nd4j {
             //InputType _variableType = InputType_UNDEFINED;
             //DataType _dataType = DataType_INHERIT;
 
+            nd4j::NDArrayList<T>* _list = nullptr;
+
         public:
             Variable(bool placeHolder);
             Variable(nd4j::NDArray<T> *arrayw, const char *name, int id, int idx = 0);
@@ -40,14 +43,19 @@ namespace nd4j {
 
             Variable<T>* clone();
 
-            nd4j::NDArray<T> *getNDArray();
+            bool hasNDArray();
+            nd4j::NDArray<T>* getNDArray();
             void setNDArray(nd4j::NDArray<T> * array);
+
+            bool hasNDArrayList();
+            nd4j::NDArrayList<T>* getNDArrayList();
+            void setNDArrayList(nd4j::NDArrayList<T>* list);
+
             bool isExternal();
             bool isReadOnly();
             bool isEmpty();
 
             bool isPlaceholder();
-            bool hasNDArray();
 
             /**
              * This method returns InputType of this variable  
