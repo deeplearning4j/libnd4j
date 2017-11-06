@@ -441,10 +441,15 @@ template <typename T>
     T* newBuffer;
     int* newShapeInfo;
 
+    char order = newOrder;
+
+    if (order == 'a')
+        order = this->ordering();
+
     if (_workspace == nullptr) {
         newBuffer = new T[newLength];
 
-        if (newOrder == 'f')
+        if (order == 'f')
             newShapeInfo = shape::shapeBufferFortran(rankOf(), shapeOf());
         else
             newShapeInfo = shape::shapeBuffer(rankOf(), shapeOf());
@@ -453,7 +458,7 @@ template <typename T>
         newBuffer = (T*) _workspace->allocateBytes(newLength * sizeOfT());
         newShapeInfo = (int*) _workspace->allocateBytes(shape::shapeInfoByteLength(this->rankOf()));
 
-        if (newOrder == 'f')
+        if (order == 'f')
             shape::shapeBufferFortran(rankOf(), shapeOf(), newShapeInfo);
         else
             shape::shapeBuffer(rankOf(), shapeOf(), newShapeInfo);

@@ -10,11 +10,12 @@
 namespace nd4j {
 
     template <typename T>
-    NDArrayList<T>::NDArrayList(bool expandable) {
+    NDArrayList<T>::NDArrayList(int height, bool expandable) {
         _expandable = expandable;
         _elements.store(0);
         _id.first = 0;
         _id.second = 0;
+        _height = height;
     }
 
     template <typename T>
@@ -45,6 +46,7 @@ namespace nd4j {
             if (array->rankOf() != _shape.size())
                 return ND4J_STATUS_BAD_DIMENSIONS;
 
+            // we should validate shape before adding new array to chunks
             for (int e = 0; e < array->rankOf(); e++)
                 if (_shape[e] != array->sizeAt(e))
                     return ND4J_STATUS_BAD_DIMENSIONS;
@@ -87,7 +89,7 @@ namespace nd4j {
 
         auto result = op.execute(inputs, targs, iargs);
 
-        auto array = result->at(0)->dup(result->at(0)->ordering());
+        auto array = result->at(0)->dup();
 
         delete result;
 
@@ -115,8 +117,40 @@ namespace nd4j {
     }
 
     template <typename T>
+    int NDArrayList<T>::height() {
+        return _height;
+    }
+
+    template <typename T>
+    NDArray<T> *NDArrayList<T>::pick(std::initializer_list<int> indices) {
+        std::vector<int> idcs(indices);
+        return pick(idcs);
+    }
+
+    template <typename T>
+    NDArray<T> *NDArrayList<T>::pick(std::vector<int> &indices) {
+        std::vector<int> shape(_shape);
+
+        //shape.insert(shape.begin() + _axis, indices.size());
+        shape[_axis] = indices.size();
+        // do we have to enforce C order here?
+        auto array = new NDArray<T>('c', shape, _workspace);
+        std::vector<int> axis = ShapeUtils<T>::convertAxisToTadTarget(shape.size(), {_axis});
+        auto tads = NDArrayFactory<T>::allTensorsAlongDimension(array, axis);
+
+        // just for lulz
+#pragma omp parallel for
+        for (int e = 0; e < indices.size(); e++)
+            tads->at(e)->assign(_chunks[indices[e]]);
+
+        delete tads;
+
+        return array;
+    }
+
+    template <typename T>
     NDArrayList<T>* NDArrayList<T>::clone() {
-        NDArrayList<T>* list = new NDArrayList<T>(_expandable);
+        NDArrayList<T>* list = new NDArrayList<T>(_height, _expandable);
         list->_axis = _axis;
         list->_id.first = _id.first;
         list->_id.second = _id.second;

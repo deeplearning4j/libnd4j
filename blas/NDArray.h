@@ -216,7 +216,7 @@ namespace nd4j {
         void assign(const T value);
 
         // This method returns new copy of this NDArray, optionally in different order
-        NDArray<T> *dup(const char newOrder);
+        NDArray<T> *dup(const char newOrder = 'a');
 
         // Returns true if these two NDArrays have same shape
         inline bool isSameShape(const NDArray<T> *other) const;

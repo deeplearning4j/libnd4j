@@ -15,7 +15,7 @@ class ListOperationsTests : public testing::Test {
 };
 
 TEST_F(ListOperationsTests, BasicTest_1) {
-    NDArrayList<double> list;
+    NDArrayList<double> list(5);
     NDArray<double> x('c', {1, 128});
     NDArrayFactory<double>::linspace(1, x);
 
@@ -31,7 +31,7 @@ TEST_F(ListOperationsTests, BasicTest_1) {
 }
 
 TEST_F(ListOperationsTests, BasicTest_2) {
-    NDArrayList<double> list;
+    NDArrayList<double> list(10);
     NDArray<double> exp('c', {10, 100});
     auto tads = NDArrayFactory<double>::allTensorsAlongDimension(&exp, {1});
     for (int e = 0; e < 10; e++) {
@@ -58,7 +58,7 @@ TEST_F(ListOperationsTests, BasicTest_2) {
 
 
 TEST_F(ListOperationsTests, BasicTest_3) {
-    NDArrayList<double> list;
+    NDArrayList<double> list(10);
     NDArray<double> exp('c', {1, 100});
     exp.assign(4.0f);
 
@@ -80,4 +80,35 @@ TEST_F(ListOperationsTests, BasicTest_3) {
     ASSERT_TRUE(exp.equalsTo(z));
 
     delete result;
+}
+
+TEST_F(ListOperationsTests, BasicTest_4) {
+    NDArrayList<double> list(10);
+    NDArray<double> exp('c', {4, 100});
+
+    for (int e = 0; e < 10; e++) {
+        auto row = new NDArray<double>('c', {1, 100});
+        row->assign((double) e);
+        list.write(e, row);
+    }
+
+    auto tads = NDArrayFactory<double>::allTensorsAlongDimension(&exp, {1});
+    tads->at(0)->assign(1.0f);
+    tads->at(1)->assign(1.0f);
+    tads->at(2)->assign(3.0f);
+    tads->at(3)->assign(3.0f);
+
+
+    nd4j::ops::pick_list<double> op;
+    auto result = op.execute(&list, {}, {}, {1, 1, 3, 3});
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+    delete tads;
 }

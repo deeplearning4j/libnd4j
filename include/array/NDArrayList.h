@@ -18,7 +18,7 @@ namespace nd4j {
     class NDArrayList {
     private:
         // workspace where chunks belong to
-        nd4j::memory::Workspace* _workspace;
+        nd4j::memory::Workspace* _workspace = nullptr;
 
         // numeric and symbolic ids of this list
         std::pair<int, int> _id;
@@ -36,14 +36,20 @@ namespace nd4j {
         // unstack axis
         int _axis = 0;
 
-        // 
+        //
         bool _expandable = false;
+
+        // maximum number of elements
+        int _height = 0;
     public:
-        NDArrayList(bool expandable = false);
+        NDArrayList(int height, bool expandable = false);
         ~NDArrayList();
 
         NDArray<T>* read(int idx);
         Nd4jStatus write(int idx, NDArray<T>* array);
+
+        NDArray<T>* pick(std::initializer_list<int> indices);
+        NDArray<T>* pick(std::vector<int>& indices);
 
         NDArray<T>* stack();
         void unstack(NDArray<T>* array, int axis);
@@ -55,6 +61,7 @@ namespace nd4j {
         NDArrayList<T>* clone();
 
         int elements();
+        int height();
     };
 }
 
