@@ -2134,7 +2134,7 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
 
         Nd4jIndex offset = 0;
 
-        shape::printShapeInfoLinear(newShape);
+        //shape::printShapeInfoLinear(newShape);
 
         for (int d = 0; d < idx.size(); d++) {
             // building new shape first
@@ -2154,7 +2154,7 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
             }
         }
 
-        shape::printShapeInfoLinear(newShape);
+        //shape::printShapeInfoLinear(newShape);
 
         auto result = new NDArray<T>(this->_buffer + offset, newShape, this->_workspace);
 

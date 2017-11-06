@@ -148,3 +148,46 @@ TEST_F(ListOperationsTests, BasicTest_Create_1) {
     ASSERT_EQ(ND4J_STATUS_OK, result->status());
     ASSERT_EQ(0, result->size());
 }
+
+TEST_F(ListOperationsTests, BasicTest_Split_1) {
+    NDArrayList<double> list(0, true);
+
+    NDArray<double> exp0('c', {2, 5});
+    NDArray<double> exp1('c', {3, 5});
+    NDArray<double> exp2('c', {5, 5});
+
+    NDArray<double> matrix('c', {10, 5});
+
+    NDArray<double> lengths('c', {1, 3});
+    lengths.putScalar(0, 2);
+    lengths.putScalar(1, 3);
+    lengths.putScalar(2, 5);
+
+    auto tads = NDArrayFactory<double>::allTensorsAlongDimension(&matrix, {1});
+
+    auto tads0 = NDArrayFactory<double>::allTensorsAlongDimension(&exp0, {1});
+    auto tads1 = NDArrayFactory<double>::allTensorsAlongDimension(&exp1, {1});
+    auto tads2 = NDArrayFactory<double>::allTensorsAlongDimension(&exp2, {1});
+
+    int cnt0 = 0;
+    int cnt1 = 0;
+    int cnt2 = 0;
+    for (int e = 0; e < 10; e++) {
+        auto row = new NDArray<double>('c', {1, 5});
+        row->assign((double) e);
+        tads->at(e)->assign(row);
+
+        if (e < 2)
+            tads0->at(cnt0++)->assign(row);
+        else if (e < 5)
+            tads1->at(cnt1++)->assign(row);
+        else
+            tads2->at(cnt2++)->assign(row);
+    }
+
+    nd4j::ops::split_list<double> op;
+    auto result = op.execute(&list, {&matrix, &lengths}, {}, {});
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    ASSERT_EQ(3, list.height());
+}
