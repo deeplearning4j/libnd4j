@@ -25,7 +25,7 @@ namespace nd4j {
         std::string _name;
 
         // stored chunks
-        std::map<int, NDArray<T>*> _chunks;
+        std::map<int, nd4j::NDArray<T>*> _chunks;
 
         // just a counter, for stored elements
         std::atomic<int> _elements;

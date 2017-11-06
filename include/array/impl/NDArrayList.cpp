@@ -13,6 +13,8 @@ namespace nd4j {
     NDArrayList<T>::NDArrayList(bool expandable) {
         _expandable = expandable;
         _elements.store(0);
+        _id.first = 0;
+        _id.second = 0;
     }
 
     template <typename T>
@@ -116,7 +118,8 @@ namespace nd4j {
     NDArrayList<T>* NDArrayList<T>::clone() {
         NDArrayList<T>* list = new NDArrayList<T>(_expandable);
         list->_axis = _axis;
-        list->_id = _id;
+        list->_id.first = _id.first;
+        list->_id.second = _id.second;
         list->_name = _name;
         list->_elements.store(_elements.load());
 

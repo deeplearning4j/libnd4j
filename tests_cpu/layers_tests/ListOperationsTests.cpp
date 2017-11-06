@@ -53,4 +53,31 @@ TEST_F(ListOperationsTests, BasicTest_2) {
     ASSERT_TRUE(exp.equalsTo(z));
 
     delete result;
+    delete tads;
+}
+
+
+TEST_F(ListOperationsTests, BasicTest_3) {
+    NDArrayList<double> list;
+    NDArray<double> exp('c', {1, 100});
+    exp.assign(4.0f);
+
+    for (int e = 0; e < 10; e++) {
+        auto row = new NDArray<double>('c', {1, 100});
+        row->assign((double) e);
+        list.write(e, row);
+    }
+
+    nd4j::ops::read_list<double> op;
+
+    auto result = op.execute(&list, {}, {}, {4});
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
 }

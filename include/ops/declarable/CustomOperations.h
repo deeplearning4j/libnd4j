@@ -140,6 +140,7 @@ namespace nd4j {
         // list operations, basically all around NDArrayList
         DECLARE_LIST_OP(write_list, 2, 0, 0, 1);
         DECLARE_LIST_OP(stack_list, 1, 1, 0, 1);
+        DECLARE_LIST_OP(read_list, 1, 1, 0, 1);
     }
 }
 
