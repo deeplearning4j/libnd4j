@@ -136,3 +136,15 @@ TEST_F(ListOperationsTests, BasicTest_Size_1) {
 
     delete result;
 }
+
+TEST_F(ListOperationsTests, BasicTest_Create_1) {
+    NDArray<double> matrix('c', {3, 2});
+    NDArrayFactory<double>::linspace(1, matrix);
+
+    nd4j::ops::create_list<double> op;
+
+    auto result = op.execute(nullptr, {&matrix}, {}, {1, 1});
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    ASSERT_EQ(0, result->size());
+}

@@ -66,15 +66,20 @@ namespace nd4j {
             int nodeId = 119;
 
             // should be never used in practice, since in-graph NDArrayList should have id set
-            if (list->id().first == 0)
-                list->id().first = -119;
-
-            auto listVar = new Variable<T>(nullptr, nullptr, -119, 0);
-            listVar->setNDArrayList(list);
-            varSpace.putVariable(-119, listVar);
-
             int cnt = -1;
-            std::vector<int> in({-119});
+            std::vector<int> in;
+            if (list != nullptr) {
+                if (list->id().first == 0)
+                    list->id().first = -1;
+
+                auto listVar = new Variable<T>(nullptr, nullptr, -119, 0);
+                listVar->setNDArrayList(list);
+                varSpace.putVariable(-1, listVar);
+                in.push_back(-1);
+                cnt--;
+            }
+
+
             for (auto v: inputs) {
                 auto var = new Variable<T>(v);
                 var->markRemovable(false);
@@ -101,8 +106,10 @@ namespace nd4j {
                 std::pair<int,int> pair(1, e);
                 if (varSpace.hasVariable(pair)) {
                     auto var = varSpace.getVariable(pair);
-                    var->markRemovable(false);
-                    res->push_back(var->getNDArray());
+                    if (var->getNDArray() != nullptr) {
+                        var->markRemovable(false);
+                        res->push_back(var->getNDArray());
+                    }
                 } else
                     break;
             }
