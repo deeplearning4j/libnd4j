@@ -57,6 +57,7 @@ namespace nd4j {
                         nd4j_debug("Falling back to logic\n","");
                         LogicExecutor<T>::processNode(graph, v);
                     } else {
+                        nd4j_debug("Op [<%s>]\n", v->getName()->c_str());
                         Nd4jStatus status = GraphExecutioner<T>::executeFlatNode(graph, v, __variableSpace);
                         if (status != ND4J_STATUS_OK)
                             return status;

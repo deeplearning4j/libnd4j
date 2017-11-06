@@ -26,7 +26,8 @@ namespace nd4j {
 
             /*
             void execute(Block<T>& block);
-*/
+            */
+
             ResultSet<T>* execute(NDArrayList<T>* list, std::initializer_list<NDArray<T>*> inputs, std::initializer_list<T> tArgs, std::initializer_list<int> iArgs);
             ResultSet<T>* execute(NDArrayList<T>* list, std::vector<NDArray<T>*>& inputs, std::vector<T>& tArgs, std::vector<int>& iArgs);
 

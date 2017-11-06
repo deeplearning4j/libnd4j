@@ -129,7 +129,7 @@ namespace nd4j {
              * @param block
              * @return 0 if OK, error code otherwise
              */
-            Nd4jStatus execute(Block<T>* block);
+            virtual Nd4jStatus execute(Block<T>* block);
 
             nd4j::ResultSet<T>* execute(std::initializer_list<NDArray<T>*> inputs, std::initializer_list<T> tArgs, std::initializer_list<int> iArgs, bool isInplace = false);
             Nd4jStatus execute(std::initializer_list<NDArray<T>*> inputs, std::initializer_list<NDArray<T>*> outputs , std::initializer_list<T> tArgs, std::initializer_list<int> iArgs, bool isInplace = false);
