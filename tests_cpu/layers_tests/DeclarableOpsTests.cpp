@@ -3300,3 +3300,29 @@ TEST_F(DeclarableOpsTests, Reverse_9 ) {
 }
 
 
+////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests, Pad_1) {
+
+    float inBuff[]  = {1,2,3,4,5,6};
+    float padBuff[] = {1,1,2,2};
+    float expBuff[] = {0,0,0,0,0,0,0, 0,0,1,2,3,0,0, 0,0,4,5,6,0,0, 0,0,0,0,0,0,0};    
+
+    NDArray<float> input   (inBuff,  'c', {2,3});
+    NDArray<float> paddings(padBuff, 'c', {2,2});
+    NDArray<float> expected(expBuff, 'c', {4,7});
+
+    nd4j::ops::pad<float> op;
+    auto results = op.execute({&input, &paddings}, {}, {0});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<float>* result = results->at(0);    
+    // result->printIndexedBuffer();
+
+    ASSERT_TRUE(expected.isSameShapeStrict(result));
+    ASSERT_TRUE(expected.equalsTo(result));
+
+    delete results;
+}
+
+
