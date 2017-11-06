@@ -12,10 +12,13 @@ namespace nd4j {
             NDArray<T>* array = nullptr;
             NDArray<T>* sizes = nullptr;
 
+            bool hasList = false;
+
             if (block.width() == 3){
                 list = INPUT_LIST(0);
                 array = INPUT_VARIABLE(1);
                 sizes = INPUT_VARIABLE(2);
+                hasList = true;
             } else {
                 array = INPUT_VARIABLE(0);
                 sizes = INPUT_VARIABLE(1);
@@ -23,7 +26,6 @@ namespace nd4j {
             }
 
             // now let's build subarrays
-            std::vector<int> axis = ShapeUtils<T>::convertAxisToTadTarget(array->rankOf(), {0});
             int cnt = 0;
             for (int e = 0; e < sizes->lengthOf(); e++) {
                 int c_size = (int) sizes->getIndexedScalar(e);
@@ -48,7 +50,7 @@ namespace nd4j {
                 cnt += c_size;
             }
 
-            if (list == nullptr) {
+            if (!hasList) {
                 OVERWRITE_RESULT(list);
             }
 

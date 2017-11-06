@@ -147,6 +147,8 @@ TEST_F(ListOperationsTests, BasicTest_Create_1) {
 
     ASSERT_EQ(ND4J_STATUS_OK, result->status());
     ASSERT_EQ(0, result->size());
+
+    delete result;
 }
 
 TEST_F(ListOperationsTests, BasicTest_Split_1) {
@@ -199,4 +201,41 @@ TEST_F(ListOperationsTests, BasicTest_Split_1) {
 
     ASSERT_TRUE(exp2.isSameShape(list.read(2)));
     ASSERT_TRUE(exp2.equalsTo(list.read(2)));
+
+    delete result;
+    delete tads;
+    delete tads0;
+    delete tads1;
+    delete tads2;
+}
+
+TEST_F(ListOperationsTests, BasicTest_Scatter_1) {
+    NDArrayList<double> list(0, true);
+
+    NDArray<double> matrix('c', {10, 5});
+    auto tads = NDArrayFactory<double>::allTensorsAlongDimension(&matrix, {1});
+    for (int e = 0; e < 10; e++) {
+        auto row = new NDArray<double>('c', {1, 5});
+        row->assign((double) e);
+        tads->at(e)->assign(row);
+    }
+    NDArray<double> indices('c', {1, 10});
+    for (int e = 0; e < matrix.rows(); e++)
+        indices.putScalar(e, 9 - e);
+
+    nd4j::ops::scatter_list<double> op;
+    auto result = op.execute(&list, {&matrix, &indices}, {}, {});
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    for (int e = 0; e < 10; e++) {
+        auto row = tads->at(9 - e);
+        auto chunk = list.read(e);
+
+        ASSERT_TRUE(chunk->isSameShape(row));
+
+        ASSERT_TRUE(chunk->equalsTo(row));
+    }
+
+    delete tads;
 }
