@@ -64,6 +64,18 @@ namespace nd4j {
             bool allocateResult(Block<T>& block, std::initializer_list<int>& shape, char order = 'c');
             bool allocateResult(Block<T>& block, int* shape);
 
+            /**
+             * This method overwrites existen NDArray or NDArrayList in VariableSpace
+             *
+             * PLEASE NOTE: This method is dangerous.
+             *
+             * @param block
+             * @param numOutput
+             * @param array
+             */
+            void overwriteResult(Block<T>& block, int outputIdx, NDArray<T>* array);
+            void overwriteResult(Block<T>& block, int outputIdx, NDArrayList<T>* list);
+
             /*
             * This method attaches array to specific Variable, identified by node ID and outputNumber (which is output index for multi-output operations)
             */

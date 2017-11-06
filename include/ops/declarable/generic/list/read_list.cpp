@@ -12,14 +12,7 @@ namespace nd4j {
             auto index = INT_ARG(0);
             auto result = list->read(index);
 
-            auto varSpace = block.getVariableSpace();
-            if (varSpace->hasVariable(block.getNodeId())) {
-                auto var = varSpace->getVariable(block.getNodeId());
-                var->setNDArray(result);
-            } else {
-                auto var = new Variable<T>(result, nullptr, block.getNodeId(), 0);
-                varSpace->putVariable(block.getNodeId(), var);
-            }
+            OVERWRITE_RESULT(result);
 
             return ND4J_STATUS_OK;
         }

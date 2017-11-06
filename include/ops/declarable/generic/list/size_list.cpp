@@ -11,14 +11,7 @@ namespace nd4j {
 
             auto result = NDArrayFactory<T>::scalar((T) list->height());
 
-            auto varSpace = block.getVariableSpace();
-            if (varSpace->hasVariable(block.getNodeId())) {
-                auto var = varSpace->getVariable(block.getNodeId());
-                var->setNDArray(result);
-            } else {
-                auto var = new Variable<T>(result, nullptr, block.getNodeId(), 0);
-                varSpace->putVariable(block.getNodeId(), var);
-            }
+            OVERWRITE_RESULT(result);
 
             return ND4J_STATUS_OK;
         }

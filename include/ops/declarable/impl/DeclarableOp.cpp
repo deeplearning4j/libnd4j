@@ -292,6 +292,34 @@ namespace nd4j {
         }
 
         template <typename T>
+        void DeclarableOp<T>::overwriteResult(Block<T> &block, int outputIdx, NDArray<T> *array) {
+            auto varSpace = block.getVariableSpace();
+            if (varSpace->hasVariable(block.getNodeId(), outputIdx)) {
+                auto var = varSpace->getVariable(block.getNodeId(), outputIdx);
+                if (var->getNDArray() != nullptr)
+                    delete var->getNDArray();
+
+                var->setNDArray(array);
+            } else {
+                auto var = new Variable<T>(array, nullptr, block.getNodeId(), outputIdx);
+                varSpace->putVariable(block.getNodeId(), outputIdx, var);
+            }
+        }
+
+        template <typename T>
+        void DeclarableOp<T>::overwriteResult(Block<T> &block, int outputIdx, NDArrayList<T> *list) {
+            auto varSpace = block.getVariableSpace();
+            if (varSpace->hasVariable(block.getNodeId(), outputIdx)) {
+                auto var = varSpace->getVariable(block.getNodeId(), outputIdx);
+                var->setNDArrayList(list);
+            } else {
+                auto var = new Variable<T>(nullptr, nullptr, block.getNodeId(), outputIdx);
+                var->setNDArrayList(list);
+                varSpace->putVariable(block.getNodeId(), outputIdx, var);
+            }
+        }
+
+        template <typename T>
         Nd4jStatus nd4j::ops::DeclarableOp<T>::validateArguments(Block<T>& block) {
             /*
              * We're checking number of T and I arguments. If number of args is finite number - we check strict equality

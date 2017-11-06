@@ -162,6 +162,11 @@ namespace nd4j {
             this->putVariable(pair, array);
         }
 
+        template <typename T>
+        void nd4j::graph::VariableSpace<T>::putVariable(int node, int idx, Variable<T> *variable) {
+            std::pair<int, int> pair(node, idx);
+            this->putVariable(pair, variable);
+        }
 
         template <typename T>
         void nd4j::graph::VariableSpace<T>::silentPutVariable(std::pair<int,int>& pair, Variable<T> *variable) {

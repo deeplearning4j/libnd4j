@@ -21,15 +21,7 @@ namespace nd4j {
             // we recieve input array for graph integrity purposes only
             auto input = INPUT_VARIABLE(0);
 
-            auto varSpace = block.getVariableSpace();
-            if (varSpace->hasVariable(block.getNodeId())) {
-                auto var = varSpace->getVariable(block.getNodeId());
-                var->setNDArrayList(list);
-            } else {
-                auto var = new Variable<T>(nullptr, nullptr, block.getNodeId(), 0);
-                var->setNDArrayList(list);
-                varSpace->putVariable(block.getNodeId(), var);
-            }
+            OVERWRITE_RESULT(list);
 
             return ND4J_STATUS_OK;
         }
