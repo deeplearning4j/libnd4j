@@ -118,7 +118,10 @@ namespace nd4j {
 
     template <typename T>
     int NDArrayList<T>::height() {
-        return _height;
+        if (_height != 0)
+            return _height;
+        else
+            return (int) _chunks.size();
     }
 
     template <typename T>

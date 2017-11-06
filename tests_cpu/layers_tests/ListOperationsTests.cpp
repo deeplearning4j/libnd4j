@@ -190,4 +190,13 @@ TEST_F(ListOperationsTests, BasicTest_Split_1) {
     ASSERT_EQ(ND4J_STATUS_OK, result->status());
 
     ASSERT_EQ(3, list.height());
+
+    ASSERT_TRUE(exp0.isSameShape(list.read(0)));
+    ASSERT_TRUE(exp0.equalsTo(list.read(0)));
+
+    ASSERT_TRUE(exp1.isSameShape(list.read(1)));
+    ASSERT_TRUE(exp1.equalsTo(list.read(1)));
+
+    ASSERT_TRUE(exp2.isSameShape(list.read(2)));
+    ASSERT_TRUE(exp2.equalsTo(list.read(2)));
 }
