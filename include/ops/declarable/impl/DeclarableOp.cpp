@@ -406,7 +406,7 @@ namespace nd4j {
 
                 NDArray<T> *aV = v->getNDArray();
 
-                if (aV == nullptr || !aV->nonNull())
+                if ((aV == nullptr || !aV->nonNull()) && v->getNDArrayList() == nullptr)
                     return ND4J_STATUS_BAD_INPUT;
 
                 cnt++;

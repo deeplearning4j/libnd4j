@@ -60,6 +60,8 @@ namespace nd4j {
 
         NDArrayList<T>* clone();
 
+        bool equals(NDArrayList<T>& other);
+
         int elements();
         int height();
     };

@@ -62,7 +62,29 @@ namespace nd4j {
 
         template <typename T>
         Nd4jStatus DeclarableListOp<T>::execute(Block<T>* block) {
-            return DeclarableOp<T>::execute(block);
+            if (block == nullptr)
+                throw std::invalid_argument("Block is NULL");
+
+            nd4j_debug("Executing op: [%s]\n", this->getOpName()->c_str());
+
+            // basic validation: ensure inputs are set
+            REQUIRE_OK(this->validateNonEmptyInput(*block));
+
+            // ensure number of IArgs, TArgs match our expectations
+            REQUIRE_OK(this->validateArguments(*block));
+
+            // we shouldn't call for this in ListOp
+            //this->prepareOutputs(*block);
+
+            auto timeStart = std::chrono::system_clock::now();
+
+            Nd4jStatus status = this->validateAndExecute(*block);
+
+            auto timeEnd = std::chrono::system_clock::now();
+            auto outerTime = std::chrono::duration_cast<std::chrono::microseconds> (timeEnd - timeStart).count();
+            block->setInnerTime(outerTime);
+
+            return status;
         }
 
         template <typename T>

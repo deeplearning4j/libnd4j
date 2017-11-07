@@ -245,6 +245,7 @@ TEST_F(ListOperationsTests, BasicTest_Clone_1) {
 
     VariableSpace<double> variableSpace;
     auto var = new Variable<double>(nullptr, nullptr, -1, 0);
+    var->setNDArrayList(list);
 
     variableSpace.putVariable(-1, var);
 
@@ -253,7 +254,17 @@ TEST_F(ListOperationsTests, BasicTest_Clone_1) {
 
     nd4j::ops::clone_list<double> op;
 
+    ASSERT_TRUE(list == block.variable(0)->getNDArrayList());
+
     auto result = op.execute(&block);
 
     ASSERT_EQ(ND4J_STATUS_OK, result);
+
+    auto resVar = variableSpace.getVariable(1);
+
+    auto resList = resVar->getNDArrayList();
+
+    ASSERT_TRUE( resList != nullptr);
+
+    ASSERT_TRUE(list->equals(*resList));
 }

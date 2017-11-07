@@ -2,6 +2,8 @@
 // @author raver119@gmail.com
 //
 
+
+#include <iterator>
 #include <NDArrayFactory.h>
 #include <array/NDArrayList.h>
 #include <helpers/ShapeUtils.h>
@@ -160,7 +162,34 @@ namespace nd4j {
         list->_name = _name;
         list->_elements.store(_elements.load());
 
+        for (auto const& v : _chunks) {
+            list->_chunks[v.first] = v.second->dup();
+        }
+
         return list;
+    }
+
+    template <typename T>
+    bool NDArrayList<T>::equals(NDArrayList<T>& other) {
+        if (_axis != other._axis)
+            return false;
+
+        if (_chunks.size() != other._chunks.size())
+            return false;
+
+        for (auto const& v : _chunks) {
+            //list->_chunks[iter->first] = iter->second->dup();
+            if (other._chunks.count(v.first) == 0)
+                return false;
+
+            auto arrThis = _chunks[v.first];
+            auto arrThat = other._chunks[v.first];
+
+            if (!arrThis->equalsTo(arrThat))
+                return false;
+        }
+
+        return true;
     }
 
     template class ND4J_EXPORT NDArrayList<float>;
