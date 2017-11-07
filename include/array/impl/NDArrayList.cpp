@@ -178,7 +178,6 @@ namespace nd4j {
             return false;
 
         for (auto const& v : _chunks) {
-            //list->_chunks[iter->first] = iter->second->dup();
             if (other._chunks.count(v.first) == 0)
                 return false;
 

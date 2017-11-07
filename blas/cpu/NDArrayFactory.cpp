@@ -452,11 +452,11 @@ namespace nd4j {
     }
 
     template<typename T>
-    void NDArrayFactory<T>::linspace(T from, NDArray<T>& arr) {
+    void NDArrayFactory<T>::linspace(T from, NDArray<T>& arr, T step) {
         
         int size = arr.lengthOf();
         for (Nd4jIndex i = 0; i < size; ++i)
-            arr(i) = from++;
+            arr(i) = from + (step * i);
     }
 
     template<typename T>

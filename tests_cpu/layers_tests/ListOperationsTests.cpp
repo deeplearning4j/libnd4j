@@ -268,3 +268,15 @@ TEST_F(ListOperationsTests, BasicTest_Clone_1) {
 
     ASSERT_TRUE(list->equals(*resList));
 }
+
+TEST_F(ListOperationsTests, BasicTest_Gather_1) {
+    NDArrayList<double> list(0, true);
+
+    NDArray<double> indices('c', {1, 10});
+    NDArrayFactory<double>::linspace(9, indices, -1);
+
+    nd4j::ops::gather_list<double> op;
+    auto result = op.execute(&list, {&indices}, {}, {});
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+}
