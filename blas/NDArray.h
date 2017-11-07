@@ -109,6 +109,10 @@ namespace nd4j {
 
         NDArray<T>* subarray(const Intervals& idx) const;
 
+        NDArray<T>* cast(DataType dtype);
+
+        void cast(NDArray<T>* target, DataType dtype);
+
         nd4j::memory::Workspace* getWorkspace() const {
             return _workspace;
         }

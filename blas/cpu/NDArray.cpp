@@ -2225,6 +2225,17 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
         return new NDArray<T>(this->_buffer + offset, newShape, this->_workspace);
     }
 
+    template <typename T>
+    NDArray<T>* NDArray<T>::cast(DataType dtype) {
+        // TODO: to be implemented
+        return nullptr;
+    }
+
+    template <typename T>
+    void NDArray<T>::cast(NDArray<T>* target, DataType dtype) {
+        // TODO: to be implemented
+    }
+
     template<typename T>
     template<typename OpName>
     void NDArray<T>::applyIndexReduce(const NDArray<T>* target, const std::vector<int>& dimensions, const T *extraParams) const {
