@@ -8,7 +8,9 @@
 namespace nd4j {
     class DataTypeUtils {
     public:
+        static int asInt(DataType type);
         static DataType fromInt(int dtype);
         static DataType fromFlatDataType(nd4j::graph::DataType dtype);
+        static size_t sizeOfElement(DataType type);
     };
 }

@@ -2233,7 +2233,8 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
 
     template <typename T>
     void NDArray<T>::cast(NDArray<T>* target, DataType dtype) {
-        // TODO: to be implemented
+        // TODO: to be implemented properly
+        target->assign(this);
     }
 
     template<typename T>

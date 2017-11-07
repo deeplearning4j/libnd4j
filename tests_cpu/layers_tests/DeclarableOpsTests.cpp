@@ -1294,6 +1294,23 @@ TEST_F(DeclarableOpsTests, Reshapeas1) {
     delete block;
 }
 
+TEST_F(DeclarableOpsTests, Test_Cast_1) {
+    // TODO: right now there's no real cast implementation, but genera idea should be the same: arrays equality to be expected
+    NDArray<float> x('c', {5, 5});
+    NDArrayFactory<float>::linspace(1, x);
+
+    nd4j::ops::cast<float> op;
+
+    auto result = op.execute({&x}, {}, {3});
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(x.equalsTo(z));
+
+    delete result;
+}
+
 //////////////////////////////////////////////////////////////////////
 TEST_F(DeclarableOpsTests, TestRegistrator1) {
     auto res = nd4j::ops::OpRegistrator::getInstance()->getAllCustomOperations();
