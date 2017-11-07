@@ -239,3 +239,21 @@ TEST_F(ListOperationsTests, BasicTest_Scatter_1) {
 
     delete tads;
 }
+
+TEST_F(ListOperationsTests, BasicTest_Clone_1) {
+    auto list = new NDArrayList<double>(0, true);
+
+    VariableSpace<double> variableSpace;
+    auto var = new Variable<double>(nullptr, nullptr, -1, 0);
+
+    variableSpace.putVariable(-1, var);
+
+    Block<double> block(1, &variableSpace);
+    block.pickInput(-1);
+
+    nd4j::ops::clone_list<double> op;
+
+    auto result = op.execute(&block);
+
+    ASSERT_EQ(ND4J_STATUS_OK, result);
+}
