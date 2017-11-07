@@ -127,6 +127,14 @@ namespace nd4j {
     }
 
     template <typename T>
+    bool NDArrayList<T>::isWritten(int index) {
+        if (_chunks.count(index) > 0)
+            return true;
+        else
+            return false;
+    }
+
+    template <typename T>
     NDArray<T> *NDArrayList<T>::pick(std::initializer_list<int> indices) {
         std::vector<int> idcs(indices);
         return pick(idcs);

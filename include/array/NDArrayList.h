@@ -50,6 +50,7 @@ namespace nd4j {
 
         NDArray<T>* pick(std::initializer_list<int> indices);
         NDArray<T>* pick(std::vector<int>& indices);
+        bool isWritten(int index);
 
         NDArray<T>* stack();
         void unstack(NDArray<T>* array, int axis);

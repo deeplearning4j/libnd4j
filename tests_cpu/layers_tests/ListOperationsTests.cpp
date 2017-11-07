@@ -271,6 +271,19 @@ TEST_F(ListOperationsTests, BasicTest_Clone_1) {
 
 TEST_F(ListOperationsTests, BasicTest_Gather_1) {
     NDArrayList<double> list(0, true);
+    for (int e = 0; e < 10; e++) {
+        auto row = new NDArray<double>('c', {1, 10});
+        row->assign((double) e);
+        list.write(e, row);
+    }
+
+    NDArray<double> exp('c', {10, 10});
+    auto tads = NDArrayFactory<double>::allTensorsAlongDimension(&exp, {1});
+    for (int e = 0; e < 10; e++) {
+        auto row = new NDArray<double>('c', {1, 10});
+        auto tad = tads->at(9 - e);
+        tad->assign(row);
+    }
 
     NDArray<double> indices('c', {1, 10});
     NDArrayFactory<double>::linspace(9, indices, -1);
@@ -279,4 +292,12 @@ TEST_F(ListOperationsTests, BasicTest_Gather_1) {
     auto result = op.execute(&list, {&indices}, {}, {});
 
     ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    ASSERT_EQ(1, result->size());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
 }
