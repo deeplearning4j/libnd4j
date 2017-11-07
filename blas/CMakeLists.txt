@@ -144,7 +144,7 @@ if(CUDA_BLAS)
         endif()
 
 
-        file(GLOB_RECURSE TYPES_SOURCES false ../include/types/*.cpp ../types/array/*.h)
+        file(GLOB_RECURSE TYPES_SOURCES false ../include/types/*.cpp ../include/types/*.h)
         file(GLOB_RECURSE ARRAY_SOURCES false ../include/array/*.cpp ../include/array/*.h)
         file(GLOB_RECURSE MEMORY_SOURCES false ../include/memory/*.cpp ../include/memory/*.h)
         file(GLOB_RECURSE GRAPH_SOURCES false ../include/graph/*.cpp ../include/graph/*.h)
@@ -170,7 +170,7 @@ if(CUDA_BLAS)
     endif(CUDA_FOUND)
 elseif(CPU_BLAS)
 
-    file(GLOB_RECURSE TYPES_SOURCES false ../include/types/*.cpp ../types/array/*.h)
+    file(GLOB_RECURSE TYPES_SOURCES false ../include/types/*.cpp ../include/types/*.h)
     file(GLOB_RECURSE ARRAY_SOURCES false ../include/array/*.cpp ../include/array/*.h)
     file(GLOB_RECURSE MEMORY_SOURCES false ../include/memory/*.cpp ../include/memory/*.h)
     file(GLOB_RECURSE GRAPH_SOURCES false ../include/graph/*.cpp ../include/graph/*.h)

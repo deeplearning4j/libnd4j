@@ -55,7 +55,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     include_directories("/usr/local/include")
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
-file(GLOB_RECURSE TYPES_SOURCES false ../../include/types/*.cpp ../../types/array/*.h)
+file(GLOB_RECURSE TYPES_SOURCES false ../../include/types/*.cpp ../../include/types/*.h)
 file(GLOB_RECURSE ARRAY_SOURCES false ../../include/array/*.cpp ../../include/array/*.h)
 file(GLOB_RECURSE MEMORY_SOURCES false ../../include/memory/*.cpp ../../include/memory/*.h)
 file(GLOB_RECURSE GRAPH_SOURCES false ../../include/graph/*.cpp ../../include/graph/*.h)
