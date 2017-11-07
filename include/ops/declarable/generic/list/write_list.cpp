@@ -15,5 +15,6 @@ namespace nd4j {
 
             return result;
         }
+        DECLARE_SYN(TensorArrayWriteV3, write_list);
     }
 }

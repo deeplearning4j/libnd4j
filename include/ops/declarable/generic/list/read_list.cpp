@@ -21,5 +21,6 @@ namespace nd4j {
 
             return ND4J_STATUS_OK;
         }
+        DECLARE_SYN(TensorArrayReadV3, read_list);
     }
 }

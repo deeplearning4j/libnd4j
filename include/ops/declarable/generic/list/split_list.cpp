@@ -56,5 +56,6 @@ namespace nd4j {
 
             return ND4J_STATUS_OK;
         }
+        DECLARE_SYN(TensorArraySplitV3, split_list);
     }
 }
