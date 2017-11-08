@@ -103,7 +103,7 @@ namespace nd4j {
         template <typename T>
         nd4j::NDArray<T> * nd4j::graph::Variable<T>::getNDArray() {
             if (_variableType != VariableType::NDARRAY) {
-                nd4j_printf("Variable[%i:%i/<%s>] is has [%s] type, but NDArray was requested", this->_id, this->_index, this->_name.c_str(), EnumUtils::_VariableTypeToString(_variableType));
+                nd4j_printf("Variable[%i:%i/<%s>] is has [%s] type, but NDArray was requested\n", this->_id, this->_index, this->_name.c_str(), EnumUtils::_VariableTypeToString(_variableType));
             }
 
             return this->_ndarray;
@@ -112,7 +112,7 @@ namespace nd4j {
         template <typename T>
         nd4j::NDArrayList<T> * nd4j::graph::Variable<T>::getNDArrayList() {
             if (_variableType != VariableType::ARRAY_LIST) {
-                nd4j_printf("Variable[%i:%i/<%s>] is has [%s] type, but NDArrayList was requested", this->_id, this->_index, this->_name.c_str(), EnumUtils::_VariableTypeToString(_variableType));
+                nd4j_printf("Variable[%i:%i/<%s>] is has [%s] type, but NDArrayList was requested\n", this->_id, this->_index, this->_name.c_str(), EnumUtils::_VariableTypeToString(_variableType));
             }
             return this->_list;
         }
@@ -194,7 +194,7 @@ namespace nd4j {
 
             if (_variableType == VariableType::ARRAY_LIST)
                 if (_list != nullptr)
-                    nd4j_debug("Eventually we should delete list here","");
+                    nd4j_debug("Eventually we should delete list here\n","");
         }
 
         template <typename T>

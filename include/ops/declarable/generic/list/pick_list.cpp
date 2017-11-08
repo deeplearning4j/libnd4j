@@ -10,7 +10,7 @@ namespace nd4j {
             auto list = INPUT_LIST(0);
 
             std::vector<int> indices;
-            if (block.width() == 2) {
+            if (block.width() > 1 && block.getVariable(1)->getNDArray()->isVector()) {
                 auto ia = INPUT_VARIABLE(1);
                 for (int e = 0; e < ia->lengthOf(); e++)
                     indices.emplace_back((int) ia->getIndexedScalar(e));

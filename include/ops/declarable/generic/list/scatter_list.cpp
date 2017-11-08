@@ -7,7 +7,7 @@
 
 namespace nd4j {
     namespace ops {
-        LIST_OP_IMPL(scatter_list, 1, 1, 0, -1) {
+        LIST_OP_IMPL(scatter_list, 1, 1, 0, -2) {
             NDArrayList<T> *list = nullptr;
             NDArray<T>* array = nullptr;
             NDArray<T>* indices = nullptr;
