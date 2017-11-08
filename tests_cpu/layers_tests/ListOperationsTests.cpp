@@ -390,6 +390,27 @@ TEST_F(ListOperationsTests, GraphTests_Sequential_1) {
 
     graph.addNode(nodeG);
 
+    // let's also validate structural integrity
+    graph.buildGraph();
+
+    ASSERT_EQ(0, nodeA->getLayer());
+    ASSERT_EQ(1, nodeB->getLayer());
+    ASSERT_EQ(2, nodeC->getLayer());
+
+    ASSERT_EQ(3, nodeD0->getLayer());
+    ASSERT_EQ(3, nodeD1->getLayer());
+    ASSERT_EQ(3, nodeD2->getLayer());
+
+    ASSERT_EQ(4, nodeE0->getLayer());
+    ASSERT_EQ(4, nodeE1->getLayer());
+    ASSERT_EQ(4, nodeE2->getLayer());
+
+    ASSERT_EQ(5, nodeF0->getLayer());
+    ASSERT_EQ(5, nodeF1->getLayer());
+    ASSERT_EQ(5, nodeF2->getLayer());
+
+    ASSERT_EQ(6, nodeG->getLayer());
+
     auto result = GraphExecutioner<float>::execute(&graph);
     ASSERT_EQ(ND4J_STATUS_OK, result);
 
