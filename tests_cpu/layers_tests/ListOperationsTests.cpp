@@ -312,8 +312,16 @@ TEST_F(ListOperationsTests, GraphTests_Sequential_1) {
         tads->at(e)->assign((float) (e+1));
     }
 
-    auto indices = new NDArray<float>('c', {1, 3});
-    NDArrayFactory<float>::linspace(0, *indices);
+
+    NDArray<float> exp('c', {3, 3});
+    auto tadsExp = NDArrayFactory<float>::allTensorsAlongDimension(&exp, {1});
+    tadsExp->at(0)->assign(0.f);
+    tadsExp->at(1)->assign(-1.f);
+    tadsExp->at(2)->assign(-2.f);
+    delete tadsExp;
+
+    auto indices = NDArrayFactory<float>::valueOf({1, 3}, 1.0f, 'c');
+    //NDArrayFactory<float>::linspace(0, *indices);
 
 
     auto variableSpace = graph.getVariableSpace();
@@ -324,7 +332,7 @@ TEST_F(ListOperationsTests, GraphTests_Sequential_1) {
     auto nodeA = new Node<float>(OpType_TRANSFORM, 0, 1, {-1});
 
     // creating list
-    auto nodeB = new Node<float>(OpType_CUSTOM, 0, 2, {1});
+    auto nodeB = new Node<float>(OpType_CUSTOM, 0, 2, {1},{},{}, 0.0f, {}, {0, 1});
     nd4j::ops::create_list<float> opB;
     nodeB->setCustomOp(&opB);
 
@@ -334,13 +342,74 @@ TEST_F(ListOperationsTests, GraphTests_Sequential_1) {
     nd4j::ops::split_list<float> opC;
     nodeC->setCustomOp(&opC);
 
+    // reading chunks from List. We're adding op number 3 in inputs, to ensure graph will execute this node after split
+    auto nodeD0 = new Node<float>(OpType_CUSTOM, 0, 5, {2, 3}, {},{}, 0.0f, {}, {0});
+    auto nodeD1 = new Node<float>(OpType_CUSTOM, 0, 6, {2, 3}, {},{}, 0.0f, {}, {1});
+    auto nodeD2 = new Node<float>(OpType_CUSTOM, 0, 7, {2, 3}, {},{}, 0.0f, {}, {2});
+
+    nd4j::ops::read_list<float> opD;
+    nodeD0->setCustomOp(&opD);
+    nodeD1->setCustomOp(&opD);
+    nodeD2->setCustomOp(&opD);
+
+    // using OneMinus on each chunk separately
+    auto nodeE0 = new Node<float>(OpType_TRANSFORM, 35, 10, {5});
+    auto nodeE1 = new Node<float>(OpType_TRANSFORM, 35, 11, {6});
+    auto nodeE2 = new Node<float>(OpType_TRANSFORM, 35, 12, {7});
+
+    // writing chunks back to the List
+    auto nodeF0 = new Node<float>(OpType_CUSTOM, 0, 15, {2, 10}, {},{}, 0.0f, {}, {0});
+    auto nodeF1 = new Node<float>(OpType_CUSTOM, 0, 16, {2, 11}, {},{}, 0.0f, {}, {1});
+    auto nodeF2 = new Node<float>(OpType_CUSTOM, 0, 17, {2, 12}, {},{}, 0.0f, {}, {2});
+
+    nd4j::ops::write_list<float> opF;
+    nodeF0->setCustomOp(&opF);
+    nodeF1->setCustomOp(&opF);
+    nodeF2->setCustomOp(&opF);
+
+    // now we're stacking chunks back to matrix state
+    auto nodeG = new Node<float>(OpType_CUSTOM, 0, 20, {2, 15, 16, 17});
+
+    nd4j::ops::stack_list<float> opG;
+    nodeG->setCustomOp(&opG);
+
+
     graph.addNode(nodeA);
     graph.addNode(nodeB);
     graph.addNode(nodeC);
+    graph.addNode(nodeD0);
+    graph.addNode(nodeD1);
+    graph.addNode(nodeD2);
+    graph.addNode(nodeE0);
+    graph.addNode(nodeE1);
+    graph.addNode(nodeE2);
 
+    graph.addNode(nodeF0);
+    graph.addNode(nodeF1);
+    graph.addNode(nodeF2);
+
+    graph.addNode(nodeG);
 
     auto result = GraphExecutioner<float>::execute(&graph);
     ASSERT_EQ(ND4J_STATUS_OK, result);
+
+    ASSERT_TRUE(variableSpace->hasVariable(2));
+    auto list = variableSpace->getVariable(2)->getNDArrayList();
+
+    ASSERT_TRUE(list != nullptr);
+
+    ASSERT_EQ(3, list->height());
+    ASSERT_EQ(3, list->elements());
+
+
+    ASSERT_TRUE(variableSpace->hasVariable(20));
+
+    auto stack = variableSpace->getVariable(20)->getNDArray();
+
+    ASSERT_TRUE(stack != nullptr);
+
+    ASSERT_TRUE(exp.isSameShape(stack));
+    ASSERT_TRUE(exp.equalsTo(stack));
 
     delete tads;
 }

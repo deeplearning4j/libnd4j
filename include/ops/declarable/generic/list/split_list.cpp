@@ -7,7 +7,7 @@
 
 namespace nd4j {
     namespace ops {
-        LIST_OP_IMPL(split_list, 2, 1, 0, -1) {
+        LIST_OP_IMPL(split_list, 2, 1, 0, -2) {
             NDArrayList<T> *list = nullptr;
             NDArray<T>* array = nullptr;
             NDArray<T>* sizes = nullptr;
@@ -26,10 +26,16 @@ namespace nd4j {
             }
 
             // now let's build subarrays
+            nd4j_debug("Sizes length: %i\n", sizes->lengthOf());
             int cnt = 0;
             for (int e = 0; e < sizes->lengthOf(); e++) {
                 int c_size = (int) sizes->getIndexedScalar(e);
                 IndicesList indices;
+
+                nd4j_debug("Slice start: [%i]; Slice size: [%i]\n", cnt, c_size);
+
+                REQUIRE_TRUE(c_size > 0, 0, "Slice size should have postive value, but got %i instead", c_size);
+                REQUIRE_TRUE(cnt < array->sizeAt(0) && cnt + c_size <= array->sizeAt(0), 0, "Slices size should NOT be higher then number of TADs of source array. Source size: [%i]; Slice start: [%i]; Slice size: [%i]", array->sizeAt(0), cnt, c_size);
 
                 // we're adding our interval along zeroth dimension
                 indices.push_back(NDIndex::interval(cnt, cnt+c_size));
@@ -46,6 +52,8 @@ namespace nd4j {
                     return status;
 
                 delete subarray;
+
+
 
                 cnt += c_size;
             }

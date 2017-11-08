@@ -37,11 +37,11 @@ namespace nd4j {
 
     template <typename T>
     Nd4jStatus NDArrayList<T>::write(int idx, NDArray<T>* array) {
-        if (_chunks.count(idx) > 0)
-            return ND4J_STATUS_DOUBLE_WRITE;
+        if (_chunks.count(idx) == 0)
+            _elements++;
 
         // we store reference shape on first write
-        if (_elements.load() == 0) {
+        if (_chunks.size() == 0) {
             for (int e = 0; e < array->rankOf(); e++)
                 _shape.emplace_back(array->sizeAt(e));
         } else {
@@ -54,7 +54,7 @@ namespace nd4j {
             //        return ND4J_STATUS_BAD_DIMENSIONS;
         }
         
-        _elements++;
+        //_elements++;
 
         // storing reference
         _chunks[idx] = array;

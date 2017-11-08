@@ -349,6 +349,16 @@ namespace nd4j {
                     block->getTArguments()->emplace_back(v);
 
                 this->setBlock(block);
+            } else if (opType == OpType_CUSTOM) {
+                auto block = new Block<T>(this->id(), nullptr, false);
+
+                for (auto v: iArgs)
+                    block->getIArguments()->emplace_back(v);
+
+                for (auto v: tArgs)
+                    block->getTArguments()->emplace_back(v);
+
+                this->setBlock(block);
             }
         };
 

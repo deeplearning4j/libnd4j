@@ -327,23 +327,27 @@ namespace nd4j {
              */
             if (_descriptor->getNumberOfTArgs() > 0) {
                 if ((int) block.getTArguments()->size() < _descriptor->getNumberOfTArgs()) {
-                    nd4j_debug("% T args expected, but %i received", _descriptor->getNumberOfTArgs(), block.getTArguments()->size());
+                    nd4j_printf("% T args expected, but %i received", _descriptor->getNumberOfTArgs(), block.getTArguments()->size());
                     return ND4J_STATUS_BAD_PARAMS;
                 }
             } else
             if (_descriptor->getNumberOfTArgs() == -1)
-                if (block.getTArguments()->size() == 0)
+                if (block.getTArguments()->size() == 0) {
+                    nd4j_printf("Number of T arguments should be positive number, but got 0 arguments\n", "");
                     return ND4J_STATUS_BAD_PARAMS;
+                }
 
             if (_descriptor->getNumberOfIArgs() > 0) {
                 if ((int) block.getIArguments()->size() < _descriptor->getNumberOfIArgs()) {
-                    nd4j_debug("% int args expected, but %i received", _descriptor->getNumberOfIArgs(), block.getIArguments()->size());
+                    nd4j_printf("% int args expected, but %i received", _descriptor->getNumberOfIArgs(), block.getIArguments()->size());
                     return ND4J_STATUS_BAD_PARAMS;
                 }
             } else
             if (_descriptor->getNumberOfIArgs() == -1)
-                if (block.getIArguments()->size() == 0)
+                if (block.getIArguments()->size() == 0) {
+                    nd4j_printf("Number of Integer arguments should be positive number, but got 0 arguments\n", "");
                     return ND4J_STATUS_BAD_PARAMS;
+                }
 
 
             return ND4J_STATUS_OK;

@@ -65,10 +65,10 @@ namespace nd4j {
             if (block == nullptr)
                 throw std::invalid_argument("Block is NULL");
 
-            nd4j_debug("Executing op: [%s]\n", this->getOpName()->c_str());
+            nd4j_debug("Executing list op: [%s]\n", this->getOpName()->c_str());
 
             // basic validation: ensure inputs are set
-            REQUIRE_OK(this->validateNonEmptyInput(*block));
+            //REQUIRE_OK(this->validateNonEmptyInput(*block));
 
             // ensure number of IArgs, TArgs match our expectations
             REQUIRE_OK(this->validateArguments(*block));
