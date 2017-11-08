@@ -5,6 +5,7 @@
 #include "testlayers.h"
 #include <NDArray.h>
 #include <NDArrayFactory.h>
+#include <GraphExecutioner.h>
 #include <ops/declarable/CustomOperations.h>
 
 using namespace nd4j;
@@ -300,4 +301,47 @@ TEST_F(ListOperationsTests, BasicTest_Gather_1) {
     ASSERT_TRUE(exp.equalsTo(z));
 
     delete result;
+}
+
+TEST_F(ListOperationsTests, GraphTests_Sequential_1) {
+    Graph<float> graph;
+
+    auto matrix = new NDArray<float>('c', {3, 3});
+    auto tads = NDArrayFactory<float>::allTensorsAlongDimension(matrix, {1});
+    for (int e = 0; e < tads->size(); e++) {
+        tads->at(e)->assign((float) (e+1));
+    }
+
+    auto indices = new NDArray<float>('c', {1, 3});
+    NDArrayFactory<float>::linspace(0, *indices);
+
+
+    auto variableSpace = graph.getVariableSpace();
+    variableSpace->putVariable(-1, matrix);
+    variableSpace->putVariable(-2, indices);
+
+
+    auto nodeA = new Node<float>(OpType_TRANSFORM, 0, 1, {-1});
+
+    // creating list
+    auto nodeB = new Node<float>(OpType_CUSTOM, 0, 2, {1});
+    nd4j::ops::create_list<float> opB;
+    nodeB->setCustomOp(&opB);
+
+
+    // filling list with matrix
+    auto nodeC = new Node<float>(OpType_CUSTOM, 0, 3, {2, 1, -2});
+
+    nd4j::ops::split_list<float> opC;
+    nodeC->setCustomOp(&opC);
+
+    graph.addNode(nodeA);
+    graph.addNode(nodeB);
+    graph.addNode(nodeC);
+
+
+    auto result = GraphExecutioner<float>::execute(&graph);
+    ASSERT_EQ(ND4J_STATUS_OK, result);
+
+    delete tads;
 }
