@@ -3301,6 +3301,7 @@ TEST_F(DeclarableOpsTests, Reverse_9 ) {
 
 
 ////////////////////////////////////////////////////////////////////
+// CONSTANT mode 2D
 TEST_F(DeclarableOpsTests, Pad_1) {
 
     float inBuff[]  = {1,2,3,4,5,6};
@@ -3326,3 +3327,139 @@ TEST_F(DeclarableOpsTests, Pad_1) {
 }
 
 
+////////////////////////////////////////////////////////////////////
+// REFLECT mode 2D
+TEST_F(DeclarableOpsTests, Pad_2) {
+
+    float inBuff[]  = {1,2,3,4,5,6};
+    float padBuff[] = {1,1,2,2};
+    float expBuff[] = {6,5,4,5,6,5,4, 3,2,1,2,3,2,1, 6,5,4,5,6,5,4, 3,2,1,2,3,2,1};    
+
+    NDArray<float> input   (inBuff,  'c', {2,3});
+    NDArray<float> paddings(padBuff, 'c', {2,2});
+    NDArray<float> expected(expBuff, 'c', {4,7});
+
+    nd4j::ops::pad<float> op;
+    auto results = op.execute({&input, &paddings}, {}, {1});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<float>* result = results->at(0);    
+    // result->printIndexedBuffer();
+
+    ASSERT_TRUE(expected.isSameShapeStrict(result));
+    ASSERT_TRUE(expected.equalsTo(result));
+
+    delete results;
+}
+
+
+////////////////////////////////////////////////////////////////////
+// SYMMETRIC mode 2D
+TEST_F(DeclarableOpsTests, Pad_3) {
+
+    float inBuff[]  = {1,2,3,4,5,6};
+    float padBuff[] = {1,1,2,2};
+    float expBuff[] = {2,1,1,2,3,3,2, 2,1,1,2,3,3,2, 5,4,4,5,6,6,5, 5,4,4,5,6,6,5};    
+
+    NDArray<float> input   (inBuff,  'c', {2,3});
+    NDArray<float> paddings(padBuff, 'c', {2,2});
+    NDArray<float> expected(expBuff, 'c', {4,7});
+
+    nd4j::ops::pad<float> op;
+    auto results = op.execute({&input, &paddings}, {}, {2});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<float>* result = results->at(0);    
+    // result->printIndexedBuffer();
+
+    ASSERT_TRUE(expected.isSameShapeStrict(result));
+    ASSERT_TRUE(expected.equalsTo(result));
+
+    delete results;
+}
+
+
+////////////////////////////////////////////////////////////////////
+// CONSTANT mode 3D
+TEST_F(DeclarableOpsTests, Pad_4) {
+
+    float inBuff[]  = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18};
+    float padBuff[] = {1,1,2,2,2,2};
+    float expBuff[] = {0,0, 0, 0, 0,0,0,0,0, 0, 0, 0,0,0,0,0, 0, 0, 0,0,0,0,0, 0, 0, 0,0,0,0,0, 0, 0, 0,0,0,0,0, 0, 0, 0,0,0,0,0, 0, 0, 0,0,0,0,0, 0, 0, 0,0,0,0,0, 0, 0, 0,0,0,0,0, 1, 2, 3,0,0,0,0, 4, 5, 6,0,0,0,0, 7, 8, 9,0,0,0,0, 0, 0, 0,0,0,0,0, 0, 0, 0,0,0,0,0, 0, 0, 0,0,0,0,0, 0, 0, 0,0,0,0,0,10,11,12,0,0,0,0,13,14,15,0,0,0,0,16,17,18,0,0,0,0, 0, 0, 0,0,0,0,0, 0, 0, 0,0,0,0,0, 0, 0, 0,0,0,0,0, 0, 0, 0,0,0,0,0, 0, 0, 0,0,0,0,0, 0, 0, 0,0,0,0,0, 0, 0, 0,0,0,0,0, 0, 0, 0,0,0,0,0, 0, 0, 0,0,0};
+
+    NDArray<float> input   (inBuff,  'c', {2,3,3});
+    NDArray<float> paddings(padBuff, 'c', {3,2});
+    NDArray<float> expected(expBuff, 'c', {4,7,7});
+
+    nd4j::ops::pad<float> op;
+    auto results = op.execute({&input, &paddings}, {}, {0});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<float>* result = results->at(0);    
+    // result->printIndexedBuffer();
+
+    ASSERT_TRUE(expected.isSameShapeStrict(result));
+    ASSERT_TRUE(expected.equalsTo(result));
+
+    delete results;
+}
+
+
+
+////////////////////////////////////////////////////////////////////
+// REFLECT mode 3D
+TEST_F(DeclarableOpsTests, Pad_5) {
+
+    float inBuff[]  = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18};
+    float padBuff[] = {1,1,2,2,2,2};
+    float expBuff[] = {18,17,16,17,18,17,16, 15,14,13,14,15,14,13, 12,11,10,11,12,11,10, 15,14,13,14,15,14,13, 18,17,16,17,18,17,16, 15,14,13,14,15,14,13, 12,11,10,11,12,11,10, 9, 8, 7, 8, 9, 8, 7, 6, 5, 4, 5, 6, 5, 4, 3, 2, 1, 2, 3, 2, 1, 6, 5, 4, 5, 6, 5, 4, 9, 8, 7, 8, 9, 8, 7, 6, 5, 4, 5, 6, 5, 4, 3, 2, 1, 2, 3, 2, 1, 18,17,16,17,18,17,16, 15,14,13,14,15,14,13, 12,11,10,11,12,11,10, 15,14,13,14,15,14,13, 18,17,16,17,18,17,16, 15,14,13,14,15,14,13, 12,11,10,11,12,11,10, 9, 8, 7, 8, 9, 8, 7, 6, 5, 4, 5, 6, 5, 4, 3, 2, 1, 2, 3, 2, 1, 6, 5, 4, 5, 6, 5, 4, 9, 8, 7, 8, 9, 8, 7, 6, 5, 4, 5, 6, 5, 4, 3, 2, 1, 2, 3, 2, 1};
+
+    NDArray<float> input   (inBuff,  'c', {2,3,3});
+    NDArray<float> paddings(padBuff, 'c', {3,2});
+    NDArray<float> expected(expBuff, 'c', {4,7,7});
+
+    nd4j::ops::pad<float> op;
+    auto results = op.execute({&input, &paddings}, {}, {1});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<float>* result = results->at(0);    
+    // result->printIndexedBuffer();
+
+    ASSERT_TRUE(expected.isSameShapeStrict(result));
+    ASSERT_TRUE(expected.equalsTo(result));
+
+    delete results;
+}
+
+
+////////////////////////////////////////////////////////////////////
+// SYMMETRIC mode 3D
+TEST_F(DeclarableOpsTests, Pad_6) {
+
+    float inBuff[]  = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18};
+    float padBuff[] = {1,1,2,2,2,2};
+    float expBuff[] = {5, 4, 4, 5, 6, 6, 5, 2, 1, 1, 2, 3, 3, 2, 2, 1, 1, 2, 3, 3, 2, 5, 4, 4, 5, 6, 6, 5, 8, 7, 7, 8, 9, 9, 8, 8, 7, 7, 8, 9, 9, 8, 5, 4, 4, 5, 6, 6, 5, 5, 4, 4, 5, 6, 6, 5, 2, 1, 1, 2, 3, 3, 2, 2, 1, 1, 2, 3, 3, 2, 5, 4, 4, 5, 6, 6, 5, 8, 7, 7, 8, 9, 9, 8, 8, 7, 7, 8, 9, 9, 8, 5, 4, 4, 5, 6, 6, 5, 14,13,13,14,15,15,14, 11,10,10,11,12,12,11, 11,10,10,11,12,12,11, 14,13,13,14,15,15,14, 17,16,16,17,18,18,17, 17,16,16,17,18,18,17, 14,13,13,14,15,15,14, 14,13,13,14,15,15,14, 11,10,10,11,12,12,11, 11,10,10,11,12,12,11, 14,13,13,14,15,15,14, 17,16,16,17,18,18,17, 17,16,16,17,18,18,17, 14,13,13,14,15,15,14};
+
+    NDArray<float> input   (inBuff,  'c', {2,3,3});
+    NDArray<float> paddings(padBuff, 'c', {3,2});
+    NDArray<float> expected(expBuff, 'c', {4,7,7});
+
+    nd4j::ops::pad<float> op;
+    auto results = op.execute({&input, &paddings}, {}, {2});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<float>* result = results->at(0);    
+    // result->printIndexedBuffer();
+
+    ASSERT_TRUE(expected.isSameShapeStrict(result));
+    ASSERT_TRUE(expected.equalsTo(result));
+
+    delete results;
+}
+
+ 
