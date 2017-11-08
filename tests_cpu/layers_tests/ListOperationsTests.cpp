@@ -369,6 +369,7 @@ TEST_F(ListOperationsTests, GraphTests_Sequential_1) {
 
     // now we're stacking chunks back to matrix state
     auto nodeG = new Node<float>(OpType_CUSTOM, 0, 20, {2, 15, 16, 17});
+    //auto nodeG = new Node<float>(OpType_CUSTOM, 0, 20, {2});
 
     nd4j::ops::stack_list<float> opG;
     nodeG->setCustomOp(&opG);

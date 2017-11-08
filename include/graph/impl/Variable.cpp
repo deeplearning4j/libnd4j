@@ -2,6 +2,7 @@
 // @author raver119@gmail.com
 //
 
+#include <helpers/EnumUtils.h>
 #include <graph/Variable.h>
 
 namespace nd4j {
@@ -26,12 +27,17 @@ namespace nd4j {
 
         template <typename T>
         bool nd4j::graph::Variable<T>::hasNDArray() {
-            return _ndarray != nullptr;
+            return _variableType == VariableType::NDARRAY && _ndarray != nullptr;
+        }
+
+        template <typename T>
+        void nd4j::graph::Variable<T>::setVariableType(VariableType variableType) {
+            _variableType = variableType;
         }
 
         template <typename T>
         bool nd4j::graph::Variable<T>::hasNDArrayList() {
-            return _list != nullptr;
+            return _variableType == VariableType::ARRAY_LIST && _list != nullptr;
         }
 
         template <typename T>
@@ -61,7 +67,12 @@ namespace nd4j {
 
         template <typename T>
         bool nd4j::graph::Variable<T>::isEmpty() {
-            return _ndarray == nullptr || !_ndarray->nonNull();
+            if (_variableType == VariableType::NDARRAY) 
+                return _ndarray == nullptr || !_ndarray->nonNull();
+            else if (_variableType == VariableType::ARRAY_LIST)
+                return _list == nullptr;
+
+            return false;
         }
 
         template <typename T>
@@ -91,22 +102,36 @@ namespace nd4j {
 
         template <typename T>
         nd4j::NDArray<T> * nd4j::graph::Variable<T>::getNDArray() {
+            if (_variableType != VariableType::NDARRAY) {
+                nd4j_printf("Variable[%i:%i/<%s>] is has [%s] type, but NDArray was requested", this->_id, this->_index, this->_name.c_str(), EnumUtils::_VariableTypeToString(_variableType));
+            }
+
             return this->_ndarray;
         }
 
         template <typename T>
         nd4j::NDArrayList<T> * nd4j::graph::Variable<T>::getNDArrayList() {
+            if (_variableType != VariableType::ARRAY_LIST) {
+                nd4j_printf("Variable[%i:%i/<%s>] is has [%s] type, but NDArrayList was requested", this->_id, this->_index, this->_name.c_str(), EnumUtils::_VariableTypeToString(_variableType));
+            }
             return this->_list;
         }
 
         template <typename T>
         void nd4j::graph::Variable<T>::setNDArrayList(nd4j::NDArrayList<T> * list) {
+            this->_variableType = VariableType::ARRAY_LIST;
             this->_list = list;
         }
 
         template <typename T>
         void nd4j::graph::Variable<T>::setNDArray(nd4j::NDArray<T> * array) {
+            this->_variableType = VariableType::NDARRAY;
             this->_ndarray = array;
+        }
+
+        template <typename T>
+        VariableType nd4j::graph::Variable<T>::variableType() {
+            return _variableType;
         }
 
         template <typename T>
@@ -163,8 +188,13 @@ namespace nd4j {
         template <typename T>
         nd4j::graph::Variable<T>::~Variable() {
             //nd4j_debug("Removing variable [%i:%i]\n", _id, _index);
-            if (_ndarray != nullptr && _removable)
-                delete _ndarray;
+            if (_variableType == VariableType::NDARRAY)
+                if (_ndarray != nullptr && _removable)
+                    delete _ndarray;
+
+            if (_variableType == VariableType::ARRAY_LIST)
+                if (_list != nullptr)
+                    nd4j_debug("Eventually we should delete list here","");
         }
 
         template <typename T>
