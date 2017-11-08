@@ -328,7 +328,6 @@ TEST_F(ListOperationsTests, GraphTests_Sequential_1) {
     nd4j::ops::create_list<float> opB;
     nodeB->setCustomOp(&opB);
 
-
     // filling list with matrix
     auto nodeC = new Node<float>(OpType_CUSTOM, 0, 3, {2, 1, -2});
 
