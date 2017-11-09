@@ -22,6 +22,7 @@ CUSTOM_OP_IMPL(pad, 2, 1, false, 0, 1) {
     NDArray<T>* output   = OUTPUT_VARIABLE(0);
     std::vector<int>* argI = block.getIArguments();
 
+	// CONSTANT->0, REFLECT->1, SYMMETRIC->2
     if(argI->at(0) < 0 || argI->at(0) > 2)
     	throw "CUSTOM_OP pad: unknown padding mode, there are only three possible legal values -> 0,1,2 !";
 
@@ -53,7 +54,7 @@ DECLARE_SHAPE_FN(pad) {
 		for(int dim=0; dim < rank; ++dim)
 			if(!(paddings->getScalar(dim,0) <= (input->shapeOf()[dim]-1) && paddings->getScalar(dim,1) <= (input->shapeOf()[dim]-1)))
 				throw "CUSTOM_OP pad: wrong shape of input paddings for REFLECT mode !";
-	// REFLECT case
+	// SYMMETRIC case
 	if(argI->at(0) == 2)				
 	for(int dim=0; dim < rank; ++dim)
 		if(!(paddings->getScalar(dim,0) <= input->shapeOf()[dim] && paddings->getScalar(dim,1) <= input->shapeOf()[dim]))
@@ -129,7 +130,7 @@ void recursiveLoop(const int mode, Block<T>& block, NDArray<T>* input, const NDA
 					for(int j = 0; j < subArrIn.lengthOf(); ++j) 										// fill middle
 						subArrOut.putIndexedScalar(leftOffset + j, subArrIn.getIndexedScalar(j));					
 					for(int j = (subArrOut.lengthOf() - leftOffset); j < subArrOut.lengthOf(); ++j)		// fill right side
-						subArrOut.putIndexedScalar(j, subArrIn.getIndexedScalar(subArrIn.lengthOf() + leftOffset + 1 - j));
+						subArrOut.putIndexedScalar(j, subArrIn.getIndexedScalar(subArrOut.lengthOf() - j - 1));
 					break;
 
 				case 2:				// SYMMETRIC mode				
@@ -138,7 +139,7 @@ void recursiveLoop(const int mode, Block<T>& block, NDArray<T>* input, const NDA
 					for(int j = 0; j < subArrIn.lengthOf(); ++j) 										// fill middle
 						subArrOut.putIndexedScalar(leftOffset + j, subArrIn.getIndexedScalar(j));					
 					for(int j = (subArrOut.lengthOf() - leftOffset); j < subArrOut.lengthOf(); ++j)		// fill right side
-						subArrOut.putIndexedScalar(j, subArrIn.getIndexedScalar(subArrIn.lengthOf() + leftOffset + 2 - j));		
+						subArrOut.putIndexedScalar(j, subArrIn.getIndexedScalar(subArrOut.lengthOf() - j));		
 					break;
 			}
 		}	
