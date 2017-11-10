@@ -698,7 +698,7 @@ Nd4jPointer GraphExecutioner<T>::executeFlatBuffer(Nd4jPointer pointer) {
     for (int e = 0; e < (int) outputs->size(); e++) {
         auto var = outputs->at(e);
 
-        auto fShape = builder.CreateVector(var->getNDArray()->getShapeAsVector());
+        auto fShape = builder.CreateVector(var->getNDArray()->getShapeInfoAsVector());
         auto fBuffer = builder.CreateVector(var->getNDArray()->getBufferAsVector());
         auto fName = builder.CreateString(*(var->getName()));
 

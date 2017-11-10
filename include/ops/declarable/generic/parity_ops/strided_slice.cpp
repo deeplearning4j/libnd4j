@@ -3,23 +3,40 @@
 //
 #include <ops/declarable/CustomOperations.h>
 #include <helpers/ShapeUtils.h>
+#include <helpers/BitwiseUtils.h>
 
 namespace nd4j {
     namespace ops {
-
-
-        CUSTOM_OP_IMPL(strided_slice, 1, 1, false, 0, -1) {
+        CUSTOM_OP_IMPL(strided_slice, 1, 1, false, 0, 8) {
             auto x = INPUT_VARIABLE(0);
 
-            REQUIRE_TRUE(block.getIArguments()->size() == x->rankOf() * 3, 0, "Number of Integer arguments should be equal to input rank x 3 = %i, but got %i instead", (x->rankOf() * 3), block.getIArguments()->size());
+            int begin_mask = INT_ARG(0);
+            int ellipsis_mask = INT_ARG(1);
+            int end_mask = INT_ARG(2);
+            int new_axis_mask = INT_ARG(3);
+            int shrink_axis_mask = INT_ARG(4);
+
+            int dim_values = block.getIArguments()->size() - 5;
+            int delta = dim_values % 3;
+            int elements = dim_values / 3;
+
+            REQUIRE_TRUE(delta == 0, 0, "Number of Integer arguments should be equal to input rank x 3 = %i, but got %i instead", (x->rankOf() * 3), dim_values);
 
             std::vector<int> begin;
             std::vector<int> end;
             std::vector<int> strides;
 
-            ShapeUtils<T>::copyVectorPart(begin, *(block.getIArguments()), x->rankOf(), 0);
-            ShapeUtils<T>::copyVectorPart(end, *(block.getIArguments()), x->rankOf(), x->rankOf());
-            ShapeUtils<T>::copyVectorPart(strides, *(block.getIArguments()), x->rankOf(), x->rankOf() * 2);
+            int ellipsis = -1;
+            if (ellipsis_mask != 0)
+                ellipsis = BitwiseUtils::valueBit(ellipsis_mask);
+
+            std::vector<int> args;
+            for (int e = 5; e < block.getIArguments()->size(); e++)
+                args.emplace_back(block.getIArguments()->at(e));
+
+            ShapeUtils<T>::copyVectorPart(begin, args, elements, 0);
+            ShapeUtils<T>::copyVectorPart(end, args, elements, elements);
+            ShapeUtils<T>::copyVectorPart(strides, args, elements, elements * 2);
 
             auto z = OUTPUT_VARIABLE(0);
 
@@ -37,6 +54,21 @@ namespace nd4j {
             }
 
             auto sub = x->subarray(indices);
+
+            std::vector<int> new_axis_positions;
+            if (new_axis_mask != 0) {
+                new_axis_positions = BitwiseUtils::valueBits(new_axis_mask);
+
+                std::vector<int> newShape = sub->getShapeAsVector();
+
+                for (int e = 0; e < sub->rankOf(); e++) {
+                    if (new_axis_positions[e] == 1)
+                        newShape.insert(newShape.begin() + e, 1);
+                }
+
+                sub->reshapei(sub->ordering(), newShape);
+            }
+
             z->assign(sub);
 
             STORE_RESULT(*z);
@@ -49,15 +81,29 @@ namespace nd4j {
         DECLARE_SHAPE_FN(strided_slice) {
             auto inShape = inputShape->at(0);
 
+            int begin_mask = INT_ARG(0);
+            int ellipsis_mask = INT_ARG(1);
+            int end_mask = INT_ARG(2);
+            int new_axis_mask = INT_ARG(3);
+            int shrink_axis_mask = INT_ARG(4);
+
+            int dim_values = block.getIArguments()->size() - 5;
+            int delta = dim_values % 3;
+            int elements = dim_values / 3;
+
             std::vector<int> begin;
             std::vector<int> end;
             std::vector<int> strides;
 
             int x_rank = shape::rank(inShape);
 
-            ShapeUtils<T>::copyVectorPart(begin, *(block.getIArguments()), x_rank, 0);
-            ShapeUtils<T>::copyVectorPart(end, *(block.getIArguments()), x_rank, x_rank);
-            ShapeUtils<T>::copyVectorPart(strides, *(block.getIArguments()), x_rank, x_rank * 2);
+            std::vector<int> args;
+            for (int e = 5; e < block.getIArguments()->size(); e++)
+                args.emplace_back(block.getIArguments()->at(e));
+
+            ShapeUtils<T>::copyVectorPart(begin, args, elements, 0);
+            ShapeUtils<T>::copyVectorPart(end, args, elements, elements);
+            ShapeUtils<T>::copyVectorPart(strides, args, elements, elements * 2);
 
             int *newShape;
 
@@ -68,11 +114,11 @@ namespace nd4j {
                 auto stop = end[e];
                 auto stride = strides[e];
 
-                int elements = 0;
+                int els = 0;
                 for (int i = start; i < stop; i += stride)
-                    elements++;
+                    els++;
 
-                shape.push_back(elements);
+                shape.push_back(els);
 
                 length *= elements;
             }

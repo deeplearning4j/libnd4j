@@ -62,7 +62,7 @@ TEST_F(FlatBuffersTest, FlatGraphTest1) {
     auto array = new NDArray<float>(5, 5, 'c');
     array->assign(-2.0f);
 
-    auto fShape = builder.CreateVector(array->getShapeAsVector());
+    auto fShape = builder.CreateVector(array->getShapeInfoAsVector());
     auto fBuffer = builder.CreateVector(array->getBufferAsVector());
 
     auto fVar = CreateFlatVariable(builder, -1, 0, fShape, fBuffer);
@@ -189,7 +189,7 @@ TEST_F(FlatBuffersTest, ExplicitOutputTest1) {
     auto x = new NDArray<float>(5, 5, 'c');
     x->assign(-2.0f);
 
-    auto fXShape = builder.CreateVector(x->getShapeAsVector());
+    auto fXShape = builder.CreateVector(x->getShapeInfoAsVector());
     auto fXBuffer = builder.CreateVector(x->getBufferAsVector());
 
     auto fXVar = CreateFlatVariable(builder, -1, 0, fXShape, fXBuffer);
@@ -198,7 +198,7 @@ TEST_F(FlatBuffersTest, ExplicitOutputTest1) {
     auto y = new NDArray<float>(5, 5, 'c');
     y->assign(-1.0f);
 
-    auto fYShape = builder.CreateVector(y->getShapeAsVector());
+    auto fYShape = builder.CreateVector(y->getShapeInfoAsVector());
     auto fYBuffer = builder.CreateVector(y->getBufferAsVector());
 
     auto fYVar = CreateFlatVariable(builder, -2, 0, fYShape, fYBuffer);

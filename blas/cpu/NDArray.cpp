@@ -183,7 +183,6 @@ template <typename T>
     std::vector<T> NDArray<T>::getBufferAsVector() {
         std::vector<T> vector;
 
-#pragma omp simd
         for (int e = 0; e < this->lengthOf(); e++) {
             vector.push_back(this->getScalar(e));
         }
@@ -192,14 +191,22 @@ template <typename T>
     }
 
     template<typename T>
-    std::vector<int32_t> NDArray<T>::getShapeAsVector() {
-        std::vector<int32_t> vector;
+    std::vector<int> NDArray<T>::getShapeAsVector() {
+        std::vector<int> vector;
 
-        int magicNumber = this->rankOf() * 2 + 4;
-#pragma omp simd
-        for (int e = 0; e < magicNumber; e++) {
+        for (int e = 0; e < this->rankOf(); e++)
+            vector.emplace_back(this->sizeAt(e));
+
+        return vector;
+    }
+
+    template<typename T>
+    std::vector<int> NDArray<T>::getShapeInfoAsVector() {
+        std::vector<int> vector;
+
+        int magicNumber = shape::shapeInfoLength(this->rankOf());
+        for (int e = 0; e < magicNumber; e++)
             vector.push_back(this->_shapeInfo[e]);
-        }
 
         return vector;
     }

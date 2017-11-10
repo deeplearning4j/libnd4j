@@ -463,7 +463,7 @@ TEST_F(NDArrayTest, TestVectors1) {
     auto *array = new NDArray<float>(c, cShape);
 
 
-    auto vecShape = array->getShapeAsVector();
+    auto vecShape = array->getShapeInfoAsVector();
     auto vecBuffer = array->getBufferAsVector();
 
     ASSERT_EQ(8, vecShape.size());
