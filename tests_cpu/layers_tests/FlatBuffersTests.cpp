@@ -433,3 +433,22 @@ TEST_F(FlatBuffersTest, ReadStridedSlice_1) {
 
     delete graph;
 }
+
+TEST_F(FlatBuffersTest, ReadTensorArray_1) {
+    // TF graph: https://gist.github.com/raver119/3265923eed48feecc465d17ec842b6e2
+    auto graph = GraphExecutioner<float>::importFromFlatBuffers("./resources/tensor_array.fb");
+
+    ASSERT_TRUE(graph != nullptr);
+
+    Nd4jStatus status = GraphExecutioner<float>::execute(graph);
+
+    ASSERT_EQ(ND4J_STATUS_OK, status);
+
+//    ASSERT_TRUE(graph->getVariableSpace()->hasVariable(2));
+
+//    auto z = graph->getVariableSpace()->getVariable(2)->getNDArray();
+
+//    ASSERT_NEAR(73.5f, z->getScalar(0), 1e-5);
+
+    delete graph;
+}
