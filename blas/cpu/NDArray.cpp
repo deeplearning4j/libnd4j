@@ -2454,16 +2454,16 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
     template<typename T>
     NDArray<T> NDArray<T>::operator+(const NDArray<T>& other) const {
 
-        NDArray<T> result(this->_shapeInfo, this->_workspace);
-        if(other.isRowVector())
-            this->addRowVector (&other, &result);
-        else if(other.isColumnVector())
-            this->addColumnVector(&other, &result);
-        else {
-            if (other.lengthOf() != lengthOf())
-                throw std::invalid_argument("NDArray::operator+ : lengths of arrays are mismatched !");
-            functions::pairwise_transforms::PairWiseTransform<T>::template exec<simdOps::Add<T>>(this->_buffer, this->_shapeInfo, other._buffer, other._shapeInfo, result._buffer, result._shapeInfo, nullptr);
-        }
+        // NDArray<T> result(this->_shapeInfo, this->_workspace);
+        // if(other.isRowVector())
+        //     this->addRowVector (&other, &result);
+        // else if(other.isColumnVector())
+        //     this->addColumnVector(&other, &result);
+        // else {
+        //     if (other.lengthOf() != lengthOf())
+        //         throw std::invalid_argument("NDArray::operator+ : lengths of arrays are mismatched !");
+        //     functions::pairwise_transforms::PairWiseTransform<T>::template exec<simdOps::Add<T>>(this->_buffer, this->_shapeInfo, other._buffer, other._shapeInfo, result._buffer, result._shapeInfo, nullptr);
+        // }
 
         return result;
     }

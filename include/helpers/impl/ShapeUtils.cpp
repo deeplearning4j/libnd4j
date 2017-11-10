@@ -20,7 +20,7 @@ std::vector<int> ShapeUtils<T>::evalShapeForTensorDot(const nd4j::NDArray<T>* a,
     int validationLength = nd4j::math::nd4j_min<int>(axe0_size, axe1_size);
     for (int i = 0; i < validationLength; i++) {
         if (a->sizeAt(axes_0[i]) != b->sizeAt(axes_1[i]))
-            throw "Size of the given axes at each dimension must be the same size.";
+            throw "ShapeUtils::evalShapeForTensorDot: size of the given axes at each dimension must be the same size.";
         if (axes_0[i] < 0)
             axes_0[i] += a->rankOf();
         if (axes_1[i] < 0)
@@ -257,9 +257,50 @@ int* ShapeUtils<T>::evalReduceShapeInfo(const char order, std::vector<int>& dime
     return newDimensions;
 }
 
+//////////////////////////////////////////////////////////////////////////
+// check the possibility of broadcast operation, if true return shapeInfo of resulting array
+static int *evalBroadcastShapeInfo(const NDArray<T> &x, const NDArray<T> &y) {
+
+    int *maxShapeInfo(nullptr), *minShapeInfo(nullptr);
+    int maxRank, minRank;
+
+    if (x.rankOf() > y.rankOf()) {
+        maxShapeInfo = x.getShapeInfo();
+        minShapeInfo = y.getShapeInfo();
+        maxRank      = x.rankOf();
+        minRank      = y.rankOf();
+    }
+    else {
+        maxShapeInfo = y.getShapeInfo();
+        minShapeInfo = x.getShapeInfo();
+        maxRank      = y.rankOf();
+        minRank      = x.rankOf();
+    }
+
+    // check whether broadcast operation is possible for input arrays
+    for (int i = 0; i < minRank; ++i)
+        if (maxShapeInfo[maxRank - i] != minShapeInfo[minRank - i] || maxShapeInfo[maxRank - i] != 1 || minShapeInfo[minRank - i] != 1)
+            throw "ShapeUtils::evalBroadcastShapeInfo method: the shapes of input arrays are not compatible for broadcast operation !" ;
+    
+    // evaluate shapeInfo for resulting array
+    int *shapeInfoNew = nullptr;
+    ALLOCATE(shapeInfoNew, x.getWorkspace(), shape::shapeInfoLength(maxRank), int);
+    memcpy(shapeInfoNew, maxShapeInfo, shape::shapeInfoLength(maxRank) * sizeof(int));
+    for (int i = 0; i < minRank; ++i)
+        shapeInfoNew[maxRank - i] = maxShapeInfo[maxRank-i] > minShapeInfo[minRank-i] ? maxShapeInfo[maxRank-i] : minShapeInfo[minRank-i];
+
+    shape::updateStrides(shapeInfoNew, x.ordering());
+        
+}
+
+
+
+
+
 
 
 template class ND4J_EXPORT ShapeUtils<float>;
 template class ND4J_EXPORT ShapeUtils<float16>;
 template class ND4J_EXPORT ShapeUtils<double>;
 }
+

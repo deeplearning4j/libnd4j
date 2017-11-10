@@ -38,6 +38,8 @@ namespace nd4j {
         // return new (shorter) dimensions array without dimensions that are present in input vector
         static std::vector<int> evalDimsToExclude(const int rank, const std::vector<int>& dimensions);
 
+        // check the possibility of broadcast operation, if true return shapeInfo of resulting array
+        static int* evalBroadcastShapeInfo(const NDArray<T>& x, const NDArray<T>& y);
     };
 
 
