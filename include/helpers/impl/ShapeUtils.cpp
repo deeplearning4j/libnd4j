@@ -20,7 +20,7 @@ std::vector<int> ShapeUtils<T>::evalShapeForTensorDot(const nd4j::NDArray<T>* a,
     int validationLength = nd4j::math::nd4j_min<int>(axe0_size, axe1_size);
     for (int i = 0; i < validationLength; i++) {
         if (a->sizeAt(axes_0[i]) != b->sizeAt(axes_1[i]))
-            throw "ShapeUtils::evalShapeForTensorDot: size of the given axes at each dimension must be the same size.";
+            throw "ShapeUtils::evalShapeForTensorDot method: size of the given axes at each dimension must be the same size.";
         if (axes_0[i] < 0)
             axes_0[i] += a->rankOf();
         if (axes_1[i] < 0)
@@ -292,6 +292,7 @@ static int *evalBroadcastShapeInfo(const NDArray<T> &x, const NDArray<T> &y) {
     shape::updateStrides(shapeInfoNew, x.ordering());
         
 }
+
 
 
 
