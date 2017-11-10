@@ -49,9 +49,9 @@ namespace nd4j {
                 return ND4J_STATUS_BAD_DIMENSIONS;
 
             // we should validate shape before adding new array to chunks
-            //for (int e = 0; e < array->rankOf(); e++)
-            //    if (_shape[e] != array->sizeAt(e))
-            //        return ND4J_STATUS_BAD_DIMENSIONS;
+            for (int e = 1; e < array->rankOf(); e++)
+                if (_shape[e] != array->sizeAt(e))
+                    return ND4J_STATUS_BAD_DIMENSIONS;
         }
         
         //_elements++;

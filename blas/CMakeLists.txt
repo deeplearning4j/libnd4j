@@ -194,7 +194,7 @@ else()
     add_library(nd4jcpu SHARED cpu/NativeOps.cpp cpu/GraphExecutioner.cpp
             cpu/NativeOpExcutioner.cpp cpu/NDArray.cpp cpu/NDArrayFactory.cpp
             ../include/cnpy/cnpy.cpp  ../include/nd4jmemset.h ../include/nd4jmalloc.h
-            Environment.cpp Environment.h ${LOOPS_SOURCES}  ${ARRAY_SOURCES}
+            Environment.cpp Environment.h ${LOOPS_SOURCES}  ${ARRAY_SOURCES} ${TYPES_SOURCES}
             ${MEMORY_SOURCES} ${GRAPH_SOURCES} ${CUSTOMOPS_SOURCES} ${INDEXING_SOURCES} ${HELPERS_SOURCES}
             ${OPS_SOURCES} )
 endif()
