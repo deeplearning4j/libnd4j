@@ -36,7 +36,7 @@ TEST_F(IndexingTests, StridedSlice_1) {
 
     nd4j::ops::strided_slice<float> op;
 
-    auto result = op.execute({&x}, {}, {2,2,0,  3,3,3,  1,1,1});
+    auto result = op.execute({&x}, {}, {0,0,0,0,0, 2,2,0,  3,3,3,  1,1,1});
     ASSERT_EQ(ND4J_STATUS_OK, result->status());
 
     auto z = result->at(0);
@@ -58,7 +58,7 @@ TEST_F(IndexingTests, StridedSlice_2) {
 
     nd4j::ops::strided_slice<float> op;
 
-    auto result = op.execute({&x}, {}, {3,2,0,  5,5,3,  1,1,1});
+    auto result = op.execute({&x}, {}, {0,0,0,0,0, 3,2,0,  5,5,3,  1,1,1});
     ASSERT_EQ(ND4J_STATUS_OK, result->status());
 
     auto z = result->at(0);
@@ -81,7 +81,7 @@ TEST_F(IndexingTests, StridedSlice_3) {
 
     nd4j::ops::strided_slice<float> op;
 
-    auto result = op.execute({&x}, {}, {3,2,0,  5,5,3,  1,1,2});
+    auto result = op.execute({&x}, {}, {0,0,0,0,0, 3,2,0,  5,5,3,  1,1,2});
     ASSERT_EQ(ND4J_STATUS_OK, result->status());
 
     auto z = result->at(0);
@@ -177,4 +177,17 @@ TEST_F(IndexingTests, SimpleSlice_3) {
     ASSERT_TRUE(exp.equalsTo(z));
 
     delete result;
+}
+
+TEST_F(IndexingTests, MaskedSlice_1) {
+    NDArray<float> matrix('c', {3, 2});
+    NDArrayFactory<float>::linspace(1, matrix);
+
+    nd4j::ops::strided_slice<float> op;
+    auto result = op.execute({&matrix}, {}, {0,0,0,0,1,   0, 1, 1});
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    delete result;
+    
 }
