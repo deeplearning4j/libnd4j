@@ -42,16 +42,27 @@ namespace nd4j {
 
             Nd4jIndex offset = 0;
             Nd4jIndex length = 1;
-            std::vector<int> newShape;
             IndicesList indices;
-            for (int e = 0; e < x->rankOf(); e++) {
-                auto start = begin[e];
-                auto stop = end[e];
-                auto stride = strides[e];
-                auto elements = (stop - start) / stride;
+            std::vector<int> shrinks;
+            if (shrink_axis_mask != 0)
+                shrinks = BitwiseUtils::valueBits(shrink_axis_mask);
 
-                indices.push_back(NDIndex::interval(start, stop, stride));
+            for (int e = 0; e < x->rankOf(); e++) {
+                if (e < begin.size()) {
+                    auto start = begin[e];
+                    auto stop = end[e];
+                    auto stride = strides[e];
+                    auto elements = (stop - start) / stride;
+
+                    if (shrink_axis_mask != 0 && shrinks[e] != 0)
+                        indices.push_back(NDIndex::point(start));
+                    else
+                        indices.push_back(NDIndex::interval(start, stop, stride));
+                } else {
+                    indices.push_back(NDIndex::all());
+                }
             }
+
 
             auto sub = x->subarray(indices);
 
@@ -87,15 +98,20 @@ namespace nd4j {
             int new_axis_mask = INT_ARG(3);
             int shrink_axis_mask = INT_ARG(4);
 
+            int x_rank = shape::rank(inShape);
+
             int dim_values = block.getIArguments()->size() - 5;
             int delta = dim_values % 3;
             int elements = dim_values / 3;
 
+            int delta2 = dim_values / x_rank;
+
+            nd4j_printf("delta: %i\n", delta);
+            nd4j_printf("delta2: %i\n", delta2);
+
             std::vector<int> begin;
             std::vector<int> end;
             std::vector<int> strides;
-
-            int x_rank = shape::rank(inShape);
 
             std::vector<int> args;
             for (int e = 5; e < block.getIArguments()->size(); e++)
@@ -109,22 +125,53 @@ namespace nd4j {
 
             Nd4jIndex length = 1;
             std::vector<int> shape;
+            // depending on existance of specific shapes - we should calculate result array shape
             for (int e = 0; e < shape::rank(inShape); e++) {
-                auto start = begin[e];
-                auto stop = end[e];
-                auto stride = strides[e];
+                if (e < begin.size()) {
+                    auto start = begin[e];
+                    auto stop = end[e];
+                    auto stride = strides[e];
 
-                int els = 0;
-                for (int i = start; i < stop; i += stride)
-                    els++;
+                    int els = 0;
+                    for (int i = start; i < stop; i += stride)
+                        els++;
 
-                shape.push_back(els);
+                    shape.push_back(els);
 
-                length *= elements;
+                    length *= els;
+                } else {
+                    int els = shape::shapeOf(inShape)[e];
+                    shape.push_back(els);
+
+                    length *= els;
+                }
             }
 
-            ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(inShape), int);
-            shape::shapeBuffer(x_rank, shape.data(), newShape);
+            // shape reduction part, applies only to arrays with rank > 2
+            if (shrink_axis_mask != 0) {
+                std::vector<int> shrinks = BitwiseUtils::valueBits(shrink_axis_mask);
+                std::vector<int> shrinked;
+                for (int e = 0; e < shape.size(); e++) {
+                    if (shrinks[e] == 1) {
+                        // noop
+                    } else {
+                        shrinked.push_back(shape[e]);
+                    }
+                }
+
+                shape = shrinked;
+            }
+
+            nd4j_printv("shape", shape);
+
+            // we don't want shape ranks below 2
+            if (shape.size() < 2)
+                shape.insert(shape.begin(), 1);
+
+            ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(shape.size()), int);
+            shape::shapeBuffer(shape.size(), shape.data(), newShape);
+
+            shape::printShapeInfoLinear(newShape);
 
             return new ShapeList(newShape);
         }

@@ -14,6 +14,9 @@ namespace nd4j {
      }
 
     int BitwiseUtils::valueBit(int holder) {
+        if (holder == 0)
+            return -1;
+
 #ifdef __LITTLE_ENDIAN__
         for (int e = 0; e < 32; e++) {
 #elif __BIG_ENDIAN__
@@ -38,6 +41,13 @@ namespace nd4j {
 
     std::vector<int> BitwiseUtils::valueBits(int holder) {
         std::vector<int> bits;
+        if (holder == 0) {
+            for (int e = 0; e < 32; e++)
+                bits.emplace_back(0);
+
+            return bits;
+        }
+
 
 #ifdef __LITTLE_ENDIAN__
         for (int e = 0; e < 32; e++) {
