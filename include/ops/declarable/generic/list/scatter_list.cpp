@@ -50,5 +50,6 @@ namespace nd4j {
             return ND4J_STATUS_OK;
         }
         DECLARE_SYN(TensorArrayScatterV3, scatter_list);
+        DECLARE_SYN(tensorarrayscatterv3, scatter_list);
     }
 }

@@ -19,5 +19,6 @@ namespace nd4j {
             return ND4J_STATUS_OK;
         }
         DECLARE_SYN(TensorArrayConcatV3, stack_list);
+        DECLARE_SYN(tensorarrayconcatv3, stack_list);
     }
 }

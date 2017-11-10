@@ -16,5 +16,6 @@ namespace nd4j {
             return ND4J_STATUS_OK;
         }
         DECLARE_SYN(TensorArraySizeV3, size_list);
+        DECLARE_SYN(tensorarraysizev3, size_list);
     }
 }

@@ -25,6 +25,9 @@ namespace nd4j {
 
             return ND4J_STATUS_OK;
         }
+        DECLARE_SYN(TensorArrayV3, create_list);
+        DECLARE_SYN(tensorarrayv3, create_list);
         DECLARE_SYN(TensorArrayCreateV3, create_list);
+        DECLARE_SYN(tensorarraycreatev3, create_list);
     }
 }
