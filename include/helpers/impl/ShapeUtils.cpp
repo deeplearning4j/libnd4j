@@ -259,7 +259,9 @@ int* ShapeUtils<T>::evalReduceShapeInfo(const char order, std::vector<int>& dime
 
 //////////////////////////////////////////////////////////////////////////
 // check the possibility of broadcast operation, if true return shapeInfo of resulting array
-static int *evalBroadcastShapeInfo(const NDArray<T> &x, const NDArray<T> &y) {
+template <typename T>
+int* ShapeUtils<T>::evalBroadcastShapeInfo(const NDArray<T> &x, const NDArray<T> &y)
+{
 
     int *maxShapeInfo(nullptr), *minShapeInfo(nullptr);
     int maxRank, minRank;
@@ -279,7 +281,7 @@ static int *evalBroadcastShapeInfo(const NDArray<T> &x, const NDArray<T> &y) {
 
     // check whether broadcast operation is possible for input arrays
     for (int i = 0; i < minRank; ++i)
-        if (maxShapeInfo[maxRank - i] != minShapeInfo[minRank - i] || maxShapeInfo[maxRank - i] != 1 || minShapeInfo[minRank - i] != 1)
+        if (maxShapeInfo[maxRank - i] != minShapeInfo[minRank - i] && maxShapeInfo[maxRank - i] != 1 && minShapeInfo[minRank - i] != 1)
             throw "ShapeUtils::evalBroadcastShapeInfo method: the shapes of input arrays are not compatible for broadcast operation !" ;
     
     // evaluate shapeInfo for resulting array
@@ -290,7 +292,8 @@ static int *evalBroadcastShapeInfo(const NDArray<T> &x, const NDArray<T> &y) {
         shapeInfoNew[maxRank - i] = maxShapeInfo[maxRank-i] > minShapeInfo[minRank-i] ? maxShapeInfo[maxRank-i] : minShapeInfo[minRank-i];
 
     shape::updateStrides(shapeInfoNew, x.ordering());
-        
+
+    return shapeInfoNew;        
 }
 
 

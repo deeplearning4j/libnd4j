@@ -1764,7 +1764,7 @@ template<typename T>
 
     template<typename T>
     template<typename OpName>
-    void NDArray<T>::applyBroadcast(std::initializer_list<int> dimensions, NDArray<T>* tadArray, NDArray<T>* target, T* extraArgs) {
+    void NDArray<T>::applyBroadcast(std::initializer_list<int> dimensions, const NDArray<T>* tadArray, NDArray<T>* target, T* extraArgs) {
         std::vector<int> vec(dimensions);
         applyBroadcast<OpName>(vec, tadArray, target, extraArgs);
     }
@@ -1772,7 +1772,7 @@ template<typename T>
 
     template<typename T>
     template<typename OpName>
-    void NDArray<T>::applyBroadcast(std::vector<int>& dimensions, NDArray<T>* tadArray, NDArray<T>* target, T* extraArgs) {
+    void NDArray<T>::applyBroadcast(std::vector<int>& dimensions, const NDArray<T>* tadArray, NDArray<T>* target, T* extraArgs) {
         if (dimensions.size() == 0)
             return;
 
@@ -1792,7 +1792,7 @@ template<typename T>
         NDArray<T>* result = target == nullptr ? this : target;
 
         // TODO: eventually we want separate tads here
-        functions::broadcast::Broadcast<T>::template exec<OpName>(this->_buffer, this->_shapeInfo, tadArray->_buffer, tadArray->_shapeInfo, result->_buffer, result->_shapeInfo, copy.data(), (int) copy.size(), tad.tadOnlyShapeInfo, tad.tadOffsets, tad.tadOnlyShapeInfo, tad.tadOffsets);
+        functions::broadcast::Broadcast<T>::template exec<OpName>(this->_buffer, this->_shapeInfo, tadArray->_buffer, tadArray->_shapeInfo, result->_buffer, result->_shapeInfo, copy.data(), (int)copy.size(), tad.tadOnlyShapeInfo, tad.tadOffsets, tad.tadOnlyShapeInfo, tad.tadOffsets);
     }
 
 //////////////////////////////////////////////////////////////////////////
@@ -2499,8 +2499,31 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
         //         throw std::invalid_argument("NDArray::operator+ : lengths of arrays are mismatched !");
         //     functions::pairwise_transforms::PairWiseTransform<T>::template exec<simdOps::Add<T>>(this->_buffer, this->_shapeInfo, other._buffer, other._shapeInfo, result._buffer, result._shapeInfo, nullptr);
         // }
-
-        return result;
+        if (other.lengthOf() == lengthOf()) {
+            NDArray<T> result(this->_shapeInfo, this->_workspace);
+            functions::pairwise_transforms::PairWiseTransform<T>::template exec<simdOps::Add<T>>(this->_buffer, this->_shapeInfo, other._buffer, other._shapeInfo, result._buffer, result._shapeInfo, nullptr);
+            return result;
+        }
+        else {
+            int* newShapeInfo = ShapeUtils<T>::evalBroadcastShapeInfo(*this, other);
+            NDArray<T> result(newShapeInfo, this->_workspace);
+            delete newShapeInfo;
+            int maxRank, minRank;
+            if (this->rankOf() > other.rankOf())
+            {
+                maxRank = this->rankOf();
+                minRank = other.rankOf();
+            }
+            else
+            {                
+                maxRank = other.rankOf();
+                minRank = this->rankOf();
+            }
+            std::vector<int> dimensions(maxRank - minRank);
+            std::iota(dimensions.begin(), dimensions.end(), 0);            
+            const_cast<NDArray<T>*>(this)->template applyBroadcast<simdOps::Add<T>>({1}, &other, &result, nullptr);
+            return result;
+        }        
     }
 
     ////////////////////////////////////////////////////////////////////////

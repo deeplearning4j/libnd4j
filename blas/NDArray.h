@@ -54,7 +54,7 @@ namespace nd4j {
         // modifying operator for matrix, i - absolute index
         // be careful this method doesn't check the boundaries of array
         T& operator()(const Nd4jIndex i);
-    
+
         // accessing operator for 2D array, i - row, j - column
         // be careful this method doesn't check the rank of array
         T operator()(const int i, const int j) const;        
@@ -273,10 +273,10 @@ namespace nd4j {
         void applyPairwiseTransform(NDArray<T> *other, NDArray<T> *target, T *extraParams);
 
         template<typename OpName>
-        void applyBroadcast(std::initializer_list<int> dimensions, NDArray<T>* tad, NDArray<T>* target = nullptr, T* extraArgs = nullptr);
+        void applyBroadcast(std::initializer_list<int> dimensions, const NDArray<T>* tad, NDArray<T>* target = nullptr, T* extraArgs = nullptr);
 
-        template<typename OpName>
-        void applyBroadcast(std::vector<int>& dimensions, NDArray<T>* tad, NDArray<T>* target = nullptr, T* extraArgs = nullptr);
+        template <typename OpName>
+        void applyBroadcast(std::vector<int> &dimensions, const NDArray<T> *tad, NDArray<T> *target = nullptr, T *extraArgs = nullptr);
 
         template<typename OpName>
         void applyScalar(T scalar, NDArray<T>* target = nullptr, T *extraParams = nullptr);
