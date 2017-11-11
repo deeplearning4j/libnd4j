@@ -7,7 +7,7 @@
 
 namespace nd4j {
     namespace ops {
-        CUSTOM_OP_IMPL(strided_slice, 1, 1, false, 0, 8) {
+        CUSTOM_OP_IMPL(strided_slice, 1, 1, false, 0, 5) {
             auto x = INPUT_VARIABLE(0);
 
             int begin_mask = INT_ARG(0);
@@ -16,23 +16,64 @@ namespace nd4j {
             int new_axis_mask = INT_ARG(3);
             int shrink_axis_mask = INT_ARG(4);
 
-            int dim_values = block.getIArguments()->size() - 5;
-            int delta = dim_values % 3;
-            int elements = dim_values / 3;
-
-            REQUIRE_TRUE(delta == 0, 0, "Number of Integer arguments should be equal to input rank x 3 = %i, but got %i instead", (x->rankOf() * 3), dim_values);
+            int dim_values = 0; //block.getIArguments()->size() - 5;
+            int delta = 0; //dim_values % 3;
+            int elements = 0; //dim_values / 3;
 
             std::vector<int> begin;
             std::vector<int> end;
             std::vector<int> strides;
 
+            std::vector<int> args;
+
+            // statically evaluated 
+            if (block.getIArguments()->size() > 5) {
+                dim_values = block.getIArguments()->size() - 5;
+                delta = dim_values % 3;
+                elements = dim_values / 3;
+
+                for (int e = 5; e < block.getIArguments()->size(); e++)
+                    args.emplace_back(block.getIArguments()->at(e));
+
+            } else if (block.width() >= 3) {
+                auto v_begin = INPUT_VARIABLE(1);
+                auto v_end = INPUT_VARIABLE(2);
+
+                elements = v_begin->lengthOf();
+
+                v_begin->printIndexedBuffer("v_begin");
+                v_end->printIndexedBuffer("v_end");
+
+                REQUIRE_TRUE(v_begin->lengthOf() == v_end->lengthOf(), 0, "Length of begin/end should match, but got %i vs %i instead", (int) v_begin->lengthOf(), (int) v_end->lengthOf());
+
+                for (int e = 0; e < v_begin->lengthOf(); e++)
+                    args.emplace_back((int) v_begin->getIndexedScalar(e));
+
+                for (int e = 0; e < v_end->lengthOf(); e++)
+                    args.emplace_back((int) v_end->getIndexedScalar(e));
+
+                if (block.width() >= 4) {
+                    auto v_stride = INPUT_VARIABLE(3);
+
+                    v_stride->printIndexedBuffer("v_stride");
+
+                    REQUIRE_TRUE(v_stride->lengthOf() == v_begin->lengthOf(), 0, "Length of begin/end/stride should match, but got %i vs %i vs %i instead", (int) v_begin->lengthOf(), (int) v_end->lengthOf(), (int) v_stride->lengthOf());
+
+                    for (int e = 0; e < v_stride->lengthOf(); e++)
+                        args.emplace_back((int) v_stride->getIndexedScalar(e));
+                } else {
+                    for (int e = 0; e < v_begin->lengthOf(); e++)
+                        args.emplace_back(1);
+                }
+            } else {
+                REQUIRE_TRUE(false, 0, "Can't find begin/end/stride information neither in IArguments or in input arrays");
+            }
+
+            REQUIRE_TRUE(delta == 0, 0, "Number of Integer arguments should be equal to input rank x 3 = %i, but got %i instead", (x->rankOf() * 3), dim_values);
+
             int ellipsis = -1;
             if (ellipsis_mask != 0)
                 ellipsis = BitwiseUtils::valueBit(ellipsis_mask);
-
-            std::vector<int> args;
-            for (int e = 5; e < block.getIArguments()->size(); e++)
-                args.emplace_back(block.getIArguments()->at(e));
 
             ShapeUtils<T>::copyVectorPart(begin, args, elements, 0);
             ShapeUtils<T>::copyVectorPart(end, args, elements, elements);
@@ -65,6 +106,8 @@ namespace nd4j {
 
 
             auto sub = x->subarray(indices);
+
+            sub->printShapeInfo("sub shape");
 
             std::vector<int> new_axis_positions;
             if (new_axis_mask != 0) {

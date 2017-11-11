@@ -263,6 +263,34 @@ TEST_F(IndexingTests, MaskedSlice_4) {
     delete result;
 }
 
+TEST_F(IndexingTests, Live_Slice_1) {
+    float _buff[] = {1.f, 1.2f, 1.3f, 2.f, 2.2f, 2.3f, 3.f, 3.2f, 3.3f, 4.f, 4.2f, 4.3f, 5.f,  5.2f, 5.3f, 6.f,   6.2f,  6.3f,  7.f,   7.2f,  7.3f,  8.f,   8.2f,  8.3f,  9.f,   9.2f,  9.3f};
+    NDArray<float> matrix('c', {3, 3, 3});
+    matrix.setBuffer(_buff);
+
+    float _expB[] = { 4.f,   4.2f,  4.3f};
+    NDArray<float> exp('c', {1, 3});
+    exp.setBuffer(_expB);
+
+    NDArray<float> begin('c', {1, 3}, {1.0f, 0.0f, 0.0f});
+    NDArray<float> end('c', {1, 3}, {3.0f, 3.0f, 3.0f});
+    NDArray<float> stride('c', {1, 3}, {1.0f, 1.0f, 1.0f});
+
+    // output = tf.strided_slice(a, [1, 0, 0], [3, 3, 3], shrink_axis_mask=5)
+    nd4j::ops::strided_slice<float> op;
+    auto result = op.execute({&matrix, &begin, &end, &stride}, {}, {0,0,0,0,3});
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}
+
 /*
 TEST_F(IndexingTests, MaskedSlice_5) {
     float _buff[] = {1.f, 1.2f, 1.3f, 2.f, 2.2f, 2.3f, 3.f, 3.2f, 3.3f, 4.f, 4.2f, 4.3f, 5.f,  5.2f, 5.3f, 6.f,   6.2f,  6.3f,  7.f,   7.2f,  7.3f,  8.f,   8.2f,  8.3f,  9.f,   9.2f,  9.3f};

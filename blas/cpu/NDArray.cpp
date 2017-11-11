@@ -367,7 +367,51 @@ void NDArray<T>::replacePointers(T *buffer, int *shapeInfo, const bool releaseEx
     }
 }
 
+    template<typename T>
+    NDArray<T>::NDArray(const char order, const std::vector<int> &shape, const std::vector<T> &data, nd4j::memory::Workspace* workspace) {
+        int rank = (int) shape.size();
 
+        if (rank > MAX_RANK)
+            throw std::invalid_argument("Rank of NDArray can't exceed 32");
+
+        int *shapeOf = new int[rank];
+        int cnt = 0;
+
+        for (auto &item: shape)
+            shapeOf[cnt++] = item;
+
+        _workspace = workspace;
+        if (workspace == nullptr) {
+            if (order == 'f')
+                _shapeInfo = shape::shapeBufferFortran(rank, shapeOf);
+            else
+                _shapeInfo = shape::shapeBuffer(rank, shapeOf);
+
+            _buffer =  new T[shape::length(_shapeInfo)];
+        } else {
+            int *shapeInfo = order == 'f' ? shape::shapeBufferFortran(rank, shapeOf) : shape::shapeBuffer(rank, shapeOf);
+
+            _shapeInfo = (int*) _workspace->allocateBytes(shape::shapeInfoByteLength(rank));
+            memcpy(_shapeInfo, shapeInfo, shape::shapeInfoByteLength(rank));
+
+            _buffer = (T*) _workspace->allocateBytes(shape::length(_shapeInfo) * sizeOfT());
+
+            delete[] shapeInfo;
+        }
+
+        if (shape::length(_shapeInfo) != data.size()) {
+            nd4j_printf("Data size [%i] doesn't match shape length [%i]\n", data.size(), shape::length(_shapeInfo));
+            throw "Data size doesn't match shape";
+        }
+
+        //memset(_buffer, 0, sizeOfT() * shape::length(_shapeInfo));
+        memcpy(_buffer, data.data(), sizeOfT() * shape::length(_shapeInfo));
+        
+		_isBuffAlloc = true; 
+		_isShapeAlloc = true;
+
+        delete[] shapeOf;
+    }
 
     template<typename T>
     NDArray<T>::NDArray(const char order, const std::vector<int> &shape, nd4j::memory::Workspace* workspace) {
