@@ -436,6 +436,10 @@ TEST_F(FlatBuffersTest, ReadStridedSlice_1) {
 
 TEST_F(FlatBuffersTest, ReadTensorArray_1) {
     // TF graph: https://gist.github.com/raver119/3265923eed48feecc465d17ec842b6e2
+    float _expB[] = {1.000000, 1.000000, 2.000000, 2.000000, 3.000000, 3.000000};
+    NDArray<float> exp('c', {3, 2});
+    exp.setBuffer(_expB);
+
     auto graph = GraphExecutioner<float>::importFromFlatBuffers("./resources/tensor_array.fb");
 
     ASSERT_TRUE(graph != nullptr);
@@ -444,11 +448,12 @@ TEST_F(FlatBuffersTest, ReadTensorArray_1) {
 
     ASSERT_EQ(ND4J_STATUS_OK, status);
 
-//    ASSERT_TRUE(graph->getVariableSpace()->hasVariable(2));
+    ASSERT_TRUE(graph->getVariableSpace()->hasVariable(14));
 
-//    auto z = graph->getVariableSpace()->getVariable(2)->getNDArray();
+    auto z = graph->getVariableSpace()->getVariable(14)->getNDArray();
 
-//    ASSERT_NEAR(73.5f, z->getScalar(0), 1e-5);
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
 
     delete graph;
 }

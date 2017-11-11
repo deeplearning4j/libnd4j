@@ -263,7 +263,7 @@ TEST_F(IndexingTests, MaskedSlice_4) {
     delete result;
 }
 
-
+/*
 TEST_F(IndexingTests, MaskedSlice_5) {
     float _buff[] = {1.f, 1.2f, 1.3f, 2.f, 2.2f, 2.3f, 3.f, 3.2f, 3.3f, 4.f, 4.2f, 4.3f, 5.f,  5.2f, 5.3f, 6.f,   6.2f,  6.3f,  7.f,   7.2f,  7.3f,  8.f,   8.2f,  8.3f,  9.f,   9.2f,  9.3f};
     NDArray<float> matrix('c', {3, 3, 3});
@@ -286,3 +286,4 @@ TEST_F(IndexingTests, MaskedSlice_5) {
 
     delete result;
 }
+*/

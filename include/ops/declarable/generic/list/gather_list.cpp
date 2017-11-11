@@ -41,7 +41,10 @@ namespace nd4j {
 
                 auto subarray = result->subarray(indicesList);
                 subarray->assign(array);
+
+                skipPosition += array->sizeAt(0);
             }
+
 
             OVERWRITE_RESULT(result);
     

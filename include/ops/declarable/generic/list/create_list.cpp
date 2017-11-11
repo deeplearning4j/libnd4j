@@ -6,7 +6,7 @@
 
 namespace nd4j {
     namespace ops {
-        LIST_OP_IMPL(create_list, 1, 1, 0, -1) {
+        LIST_OP_IMPL(create_list, 1, 1, 0, -2) {
             int height = 0;
             bool expandable = false;
             if (block.getIArguments()->size() == 1) {
@@ -14,6 +14,9 @@ namespace nd4j {
                 expandable = (bool) INT_ARG(1);
             } else if (block.getIArguments()->size() == 2) {
                 height = INT_ARG(0);
+            } else {
+                height = 0;
+                expandable = true;
             }
 
             auto list = new NDArrayList<T>(height, expandable);
