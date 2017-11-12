@@ -286,8 +286,9 @@ namespace nd4j {
                 nd4j_debug("Adding LogicOp [%i]\n", node->opNum());
                 // SCOPE
                 if (node->opNum() == 10) {
-                    auto scope = new Scope<T>(node->id(), node->getName()->c_str());
+                    auto scope = new Scope<T>(node->id(), node->getName() != nullptr ? node->getName()->c_str() : "");
                     _mappedScopes[node->id()] = scope;
+                    _scopes.push_back(scope);
                 }
             }
 
@@ -765,9 +766,41 @@ namespace nd4j {
         };
 
         template <typename T>
+        void Graph<T>::printOutNode(Node<T>* node) {
+            printf("%i. ", node->id());
+            switch(node->opType()) {
+                case OpType_CUSTOM: {
+                    printf("%s; ", node->getCustomOp()->getOpName()->c_str());
+                }
+                    break;
+                case OpType_LOGIC: {
+                    printf("%s; ", EnumUtils::_LogicOpToString(node->opNum()));
+                }
+                    break;
+                default: {
+                    printf("%s:{%i}; ", EnumUtils::_OpTypeToString(node->opType()), node->opNum());
+                }
+            }
+
+            printf("Inputs: [");
+            //auto block = node->getBlock();
+            for (int e = 0; e < node->input()->size(); e++) {
+
+                auto in = node->input()->at(e);
+                printf("{%i:%i}", in.first, in.second);
+                if (e < node->input()->size() - 1)
+                    printf(", ");
+            }
+            printf("]; ");
+
+            printf("\n");
+            fflush(stdout);
+        }
+
+        template <typename T>
         void Graph<T>::printOut() {
-            nd4j_printf("Printing out graph...\n", "");
             buildGraph();
+            nd4j_printf("Printing out Graph...\n", "");
             
             int opCnt = 0;
             for (int l = 0; l < _onion->size(); l++) {
@@ -776,34 +809,23 @@ namespace nd4j {
                 for (int n = 0; n < layerSize; n++) {
                     Node<T>* node = _onion->at(l)->at(n);
 
-                    printf("%i. ", ++opCnt);
-                    switch(node->opType()) {
-                        case OpType_CUSTOM: {
-                                printf("%s; ", node->getCustomOp()->getOpName()->c_str());
-                            }
-                            break;
-                        case OpType_LOGIC: {
-                                printf("%s; ", EnumUtils::_LogicOpToString(node->opNum()));
-                            }
-                            break;
-                        default: {
-                                printf("Type: {%s}; ", EnumUtils::_OpTypeToString(node->opType()));
-                            }
-                    }
+                    // we're skipping Scopes here
+                    if (node->opType() == OpType_LOGIC && node->opNum() == 10)
+                        continue;
 
-                    printf("Inputs: [");
-                    auto block = node->getBlock();
-                    for (int e = 0; e < block->width(); e++) {
-                        
-                        auto in = block->input(e);
-                        printf("{%i:%i}", in->first, in->second);
-                        if (e < block->width() - 1)
-                            printf(", ");
-                    }
-                    printf("]; ");
+                    printOutNode(node);
+                }
+            }
 
-                    printf("\n");
-                    fflush(stdout);
+
+            nd4j_printf("Printing out Scopes...\n","");
+            for (int s = 0; s < _scopes.size(); s++) {
+                Scope<T>* scope = _scopes.at(s);
+                nd4j_printf("Scope %i:<%s>:\n", scope->id(), scope->name()->c_str());
+
+                for (int n = 0; n < scope->nodes()->size(); n++) {
+                    Node<T>* node = scope->nodes()->at(n);
+                    printOutNode(node);
                 }
             }
 

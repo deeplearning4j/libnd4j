@@ -57,6 +57,8 @@ namespace nd4j {
             void injectNode(nd4j::graph::Node<T> *node);
 
             void pushToOutputOnce(int32_t id);
+
+            void printOutNode(Node<T>* node);
         public:
             Graph(const FlatGraph *flatGraph = nullptr);
 
