@@ -133,6 +133,11 @@ namespace nd4j {
             std::vector<nd4j::graph::Node<T>*> *getAllNodes();
 
             /**
+             * This method prints out Graph op-by-op, and respective inputs
+             */
+            void printOut();
+
+            /**
              * This method returns Scope ptr specified with id
              *
              * @param id

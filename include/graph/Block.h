@@ -128,6 +128,7 @@ namespace nd4j {
              */
             Variable<T>* getVariable(int idx);
             Variable<T>* variable(int idx);
+            std::pair<int, int>* input(int idx);
 
             /**
              * This method fetches variable from Workspace DIRECTLY

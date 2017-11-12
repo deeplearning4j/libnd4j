@@ -3,6 +3,7 @@
 //
 
 #include <graph/Graph.h>
+#include <helpers/EnumUtils.h>
 
 namespace nd4j {
     namespace graph {
@@ -762,6 +763,52 @@ namespace nd4j {
 
             return ND4J_STATUS_OK;
         };
+
+        template <typename T>
+        void Graph<T>::printOut() {
+            nd4j_printf("Printing out graph...\n", "");
+            buildGraph();
+            
+            int opCnt = 0;
+            for (int l = 0; l < _onion->size(); l++) {
+                int layerSize = _onion->count(l) == 1 ? _onion->at(l)->size() : 0;
+
+                for (int n = 0; n < layerSize; n++) {
+                    Node<T>* node = _onion->at(l)->at(n);
+
+                    printf("%i. ", ++opCnt);
+                    switch(node->opType()) {
+                        case OpType_CUSTOM: {
+                                printf("%s; ", node->getCustomOp()->getOpName()->c_str());
+                            }
+                            break;
+                        case OpType_LOGIC: {
+                                printf("%s; ", EnumUtils::_LogicOpToString(node->opNum()));
+                            }
+                            break;
+                        default: {
+                                printf("Type: {%s}; ", EnumUtils::_OpTypeToString(node->opType()));
+                            }
+                    }
+
+                    printf("Inputs: [");
+                    auto block = node->getBlock();
+                    for (int e = 0; e < block->width(); e++) {
+                        
+                        auto in = block->input(e);
+                        printf("{%i:%i}", in->first, in->second);
+                        if (e < block->width() - 1)
+                            printf(", ");
+                    }
+                    printf("]; ");
+
+                    printf("\n");
+                    fflush(stdout);
+                }
+            }
+
+            fflush(stdout);
+        }
 
         template <typename T>
         Nd4jStatus Graph<T>::validateNode(Node<T> *node) {

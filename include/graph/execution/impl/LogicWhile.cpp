@@ -14,6 +14,8 @@ namespace nd4j {
         Nd4jStatus LogicWhile<T>::processNode(Graph<T> *graph, Node<T> *node) {
             auto __variableSpace = graph->getVariableSpace();
 
+            nd4j_debug("Starting on WHILE loop: [%s]\n", node->id());
+
             // total number of inputs. 2 last inputs are scopes
             int inputs = node->input()->size();
 

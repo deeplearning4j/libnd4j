@@ -120,6 +120,11 @@ namespace nd4j {
         }
 
         template <typename T>
+        std::pair<int, int>* Block<T>::input(int idx) {
+            return &(_inputs.at(idx));
+        }
+
+        template <typename T>
         void Block<T>::fillInputs(std::initializer_list<int> inputs) {
             for (auto v: inputs) {
                 pickInput(v);

@@ -16,4 +16,31 @@ namespace nd4j {
             default: return "UNKNOWN VariableType";
         }
     }
+
+    const char * EnumUtils::_OpTypeToString(nd4j::graph::OpType opType) {
+        switch(opType) {
+            case OpType_ACCUMULATION: return "ACCUMULATION";
+            case OpType_BOOLEAN: return "BOOLEAN";
+            case OpType_BROADCAST: return "BROADCAST";
+            case OpType_CUSTOM: return "CUSTOM";
+            case OpType_LOGIC: return "LOGIC";
+            case OpType_TRANSFORM: return "TRANSFORM";
+            case OpType_INDEX_ACCUMULATION: return "INDEX_ACCUMULATION";
+            case OpType_SCALAR: return "SCALAR";
+            case OpType_SHAPE: return "SHAPE";
+            default: return "UNKNOWN OpType";
+        }
+    }
+
+
+    const char * EnumUtils::_LogicOpToString(int opNum) {
+        switch(opNum) {
+            case 0: return "WHILE";
+            case 10: return "SCOPE";
+            case 20: return "CONDITIONAL";
+            case 30: return "SWITCH";
+            case 40: return "RETURN";
+            default: return "UNKNOWN OPERATION";
+        } 
+    }
 }
