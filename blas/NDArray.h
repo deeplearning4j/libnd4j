@@ -92,6 +92,8 @@ namespace nd4j {
 
         NDArray(const char order, const std::vector<int> &shape, const std::vector<T> &data, nd4j::memory::Workspace* workspace = nullptr);
 
+        NDArray(T *buffer, const char order, const std::vector<int> &shape , nd4j::memory::Workspace* workspace = nullptr);
+
         // This method replaces existing buffer/shapeinfo, AND releases original pointers (if releaseExisting TRUE)
         void replacePointers(T *buffer, int *shapeInfo, const bool releaseExisting = true);
  
@@ -321,7 +323,7 @@ namespace nd4j {
         // Return value from linear buffer
         T getScalar(const Nd4jIndex i) const;
 
-        T getIndexedScalar(const Nd4jIndex i);
+        T getIndexedScalar(const Nd4jIndex i) const;
 
         // Returns value from 2D matrix by coordinates/indexes 
         T getScalar(const int i, const int j) const;
