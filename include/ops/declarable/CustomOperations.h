@@ -53,6 +53,7 @@ namespace nd4j {
         DECLARE_OP(maximum, 2, 1, true);
         DECLARE_OP(minimum, 2, 1, true);
         DECLARE_OP(square, 1, 1, true);
+        DECLARE_OP(expose, -1, -1, true);
 
         DECLARE_DIVERGENT_OP(Switch, 2, 2, true);
 
