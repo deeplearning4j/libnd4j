@@ -2505,23 +2505,30 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
             return result;
         }
         else {
-            int* newShapeInfo = ShapeUtils<T>::evalBroadcastShapeInfo(*this, other);
+            const NDArray<T>* min(nullptr), *max(nullptr);
+            if(this->rankOf() >= other.rankOf()) {
+                max = this;
+                min = &other;
+            }
+            else {
+                max = &other;
+                min = this;
+            }
+
+            int* newShapeInfo = ShapeUtils<T>::evalBroadcastShapeInfo(max, min);
             NDArray<T> result(newShapeInfo, this->_workspace);
             delete newShapeInfo;
-            int maxRank, minRank;
-            if (this->rankOf() > other.rankOf())
-            {
-                maxRank = this->rankOf();
-                minRank = other.rankOf();
+
+            std::vector<int> sameDims = ShapeUtils<T>::getDimsWithSameShape(max, min);
+            
+            if(!sameDims.empty())            
+                const_cast<NDArray<T>*>(max)->template applyBroadcast<simdOps::Add<T>>(sameDims, min, &result);
+            else {                
+                std::vector<int> sameDims2 = ShapeUtils<T>::getDimsWithSameShape(result, max);
+                std::vector<int> sameDims3 = ShapeUtils<T>::getDimsWithSameShape(result, min);
+                result.template applyBroadcast<simdOps::Copy<T>>(sameDims2, max);
+                result.template applyBroadcast<simdOps::Add<T>> (sameDims3, min);
             }
-            else
-            {                
-                maxRank = other.rankOf();
-                minRank = this->rankOf();
-            }
-            std::vector<int> dimensions(maxRank - minRank);
-            std::iota(dimensions.begin(), dimensions.end(), 0);            
-            const_cast<NDArray<T>*>(this)->template applyBroadcast<simdOps::Add<T>>({1}, &other, &result, nullptr);
             return result;
         }        
     }

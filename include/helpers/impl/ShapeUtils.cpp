@@ -259,25 +259,15 @@ int* ShapeUtils<T>::evalReduceShapeInfo(const char order, std::vector<int>& dime
 
 //////////////////////////////////////////////////////////////////////////
 // check the possibility of broadcast operation, if true return shapeInfo of resulting array
+// the array with larger dimensions number has to be passed as first argument
 template <typename T>
-int* ShapeUtils<T>::evalBroadcastShapeInfo(const NDArray<T> &x, const NDArray<T> &y)
+int* ShapeUtils<T>::evalBroadcastShapeInfo(const NDArray<T> &max, const NDArray<T> &min)
 {
 
-    int *maxShapeInfo(nullptr), *minShapeInfo(nullptr);
-    int maxRank, minRank;
-
-    if (x.rankOf() > y.rankOf()) {
-        maxShapeInfo = x.getShapeInfo();
-        minShapeInfo = y.getShapeInfo();
-        maxRank      = x.rankOf();
-        minRank      = y.rankOf();
-    }
-    else {
-        maxShapeInfo = y.getShapeInfo();
-        minShapeInfo = x.getShapeInfo();
-        maxRank      = y.rankOf();
-        minRank      = x.rankOf();
-    }
+    int* maxShapeInfo = max.getShapeInfo(); 
+    int* minShapeInfo = min.getShapeInfo();
+    int  maxRank      = maxShapeInfo[0];
+    int  minRank      = minShapeInfo[0];
 
     // check whether broadcast operation is possible for input arrays
     for (int i = 0; i < minRank; ++i)
@@ -286,19 +276,35 @@ int* ShapeUtils<T>::evalBroadcastShapeInfo(const NDArray<T> &x, const NDArray<T>
     
     // evaluate shapeInfo for resulting array
     int *shapeInfoNew = nullptr;
-    ALLOCATE(shapeInfoNew, x.getWorkspace(), shape::shapeInfoLength(maxRank), int);
+    ALLOCATE(shapeInfoNew, max.getWorkspace(), shape::shapeInfoLength(maxRank), int);
     memcpy(shapeInfoNew, maxShapeInfo, shape::shapeInfoLength(maxRank) * sizeof(int));
     for (int i = 0; i < minRank; ++i)
         shapeInfoNew[maxRank - i] = maxShapeInfo[maxRank-i] > minShapeInfo[minRank-i] ? maxShapeInfo[maxRank-i] : minShapeInfo[minRank-i];
 
-    shape::updateStrides(shapeInfoNew, x.ordering());
+    shape::updateStrides(shapeInfoNew, max.ordering());
 
     return shapeInfoNew;        
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+// return sorted vector of dimensions of array with larger dimensions number along which two input arrays have same shape
+// the array with larger dimensions number has to be passed as first argument
+template <typename T>
+std::vector<int> ShapeUtils<T>::getDimsWithSameShape(const NDArray<T>& max, const NDArray<T>& min) {
 
+    std::vector<int> result;
+    int* maxShapeInfo = max.getShapeInfo(); 
+    int* minShapeInfo = min.getShapeInfo();
+    int  maxRank      = maxShapeInfo[0];
+    int  minRank      = minShapeInfo[0];
 
+    for(int i = 1; i <= minRank; ++i)
+        if(minShapeInfo[i] == maxShapeInfo[maxRank - minRank + i])
+            result.emplace_back(maxRank - minRank + i - 1);
+
+    return result;
+}
 
 
 

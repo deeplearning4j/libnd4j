@@ -39,7 +39,11 @@ namespace nd4j {
         static std::vector<int> evalDimsToExclude(const int rank, const std::vector<int>& dimensions);
 
         // check the possibility of broadcast operation, if true return shapeInfo of resulting array
-        static int* evalBroadcastShapeInfo(const NDArray<T>& x, const NDArray<T>& y);
+        // the array with larger dimensions number has to be passed as first argument
+        static int* evalBroadcastShapeInfo(const NDArray<T>& max, const NDArray<T>& min);
+
+        // return sorted vector of dimensions of array with larger dimensions number along which two input arrays have same shape
+        static std::vector<int> getDimsWithSameShape(const NDArray<T>& max, const NDArray<T>& min);
     };
 
 
