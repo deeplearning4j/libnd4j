@@ -107,6 +107,10 @@ namespace nd4j {
             return _divergent;
         }
 
+        void OpDescriptor::setOpNum(int opNum) {
+            _opNum = opNum;
+        }
+
         bool OpDescriptor::allowsInplace() {
             return _allowsInplace;
         }

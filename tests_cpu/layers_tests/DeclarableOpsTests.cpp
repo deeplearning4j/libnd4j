@@ -11,6 +11,7 @@
 #include <ops/declarable/CustomOperations.h>
 #include <helpers/helper_hash.h>
 #include <NDArray.h>
+#include <array/NDArrayList.h>
 #include <NDArrayFactory.h>
 #include <NativeOps.h>
 #include <ops/gemm.h>
@@ -3730,11 +3731,32 @@ TEST_F(DeclarableOpsTests, Pad_9)
 }
 
 TEST_F(DeclarableOpsTests, Test_Expose_1) {
-    NDArray<float> input('c', {2, 3}, {1, 2, 3, 6, 5, 4});
+    NDArray<float> input0('c', {2, 3}, {1, 2, 3, 6, 5, 4});
+    NDArray<float> input1('c', {2, 3}, {3, 2, 1, 4, 5, 6});
 
     nd4j::ops::expose<float> op;
 
-    auto result = op.execute({&input}, {}, {});
+    auto result = op.execute({&input0, &input1}, {}, {});
 
     ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z0 = result->at(0);
+    auto z1 = result->at(1);
+
+    ASSERT_TRUE(input0.equalsTo(z0));
+    ASSERT_TRUE(input0.equalsTo(z1));
+
+    delete result;
+}
+
+TEST_F(DeclarableOpsTests, Test_Expose_2) {
+    auto list = new NDArrayList<float>(0, true);
+
+    VariableSpace<float> variableSpace;
+    Block<float> block(1, &variableSpace);
+
+    nd4j::ops::expose<float> op;
+    auto result = op.execute(&block);
+
+    ASSERT_EQ(ND4J_STATUS_OK, result);
 }
