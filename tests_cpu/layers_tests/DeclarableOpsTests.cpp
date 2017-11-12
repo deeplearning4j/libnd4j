@@ -3434,6 +3434,8 @@ TEST_F(DeclarableOpsTests, Test_Stack_Edge_1) {
 
     auto z = result->at(0);
 
+    z->printShapeInfo("z");
+
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
 
@@ -3452,6 +3454,27 @@ TEST_F(DeclarableOpsTests, Test_Stack_Edge_2) {
     ASSERT_EQ(ND4J_STATUS_OK, result->status());
 
     auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}
+
+
+TEST_F(DeclarableOpsTests, Test_Stack_Edge_3) {
+    NDArray<float> input('c', {1, 3}, {1.0f, 2.0f, 3.0f});
+
+    NDArray<float> exp('c', {3, 1}, {1.0f, 2.0f, 3.0f});
+
+    nd4j::ops::stack<float> op;
+
+    auto result = op.execute({&input}, {}, {1});
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    z->printShapeInfo("z 1");
 
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
