@@ -11,5 +11,9 @@ namespace nd4j {
             // do we really want this?
             return ND4J_STATUS_OK;
         }
+
+        template class ND4J_EXPORT LogicExpose<float>;
+        //   template class ND4J_EXPORT LogicExpose<float16>;
+        //   template class ND4J_EXPORT LogicExpose<double>;
     }
 }
