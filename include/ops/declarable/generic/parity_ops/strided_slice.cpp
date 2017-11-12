@@ -41,9 +41,6 @@ namespace nd4j {
 
                 elements = v_begin->lengthOf();
 
-                v_begin->printIndexedBuffer("v_begin");
-                v_end->printIndexedBuffer("v_end");
-
                 REQUIRE_TRUE(v_begin->lengthOf() == v_end->lengthOf(), 0, "Length of begin/end should match, but got %i vs %i instead", (int) v_begin->lengthOf(), (int) v_end->lengthOf());
 
                 for (int e = 0; e < v_begin->lengthOf(); e++)
@@ -54,8 +51,6 @@ namespace nd4j {
 
                 if (block.width() >= 4) {
                     auto v_stride = INPUT_VARIABLE(3);
-
-                    v_stride->printIndexedBuffer("v_stride");
 
                     REQUIRE_TRUE(v_stride->lengthOf() == v_begin->lengthOf(), 0, "Length of begin/end/stride should match, but got %i vs %i vs %i instead", (int) v_begin->lengthOf(), (int) v_end->lengthOf(), (int) v_stride->lengthOf());
 
@@ -148,9 +143,6 @@ namespace nd4j {
             int elements = dim_values / 3;
 
             int delta2 = dim_values / x_rank;
-
-            nd4j_printf("delta: %i\n", delta);
-            nd4j_printf("delta2: %i\n", delta2);
 
             std::vector<int> begin;
             std::vector<int> end;

@@ -14,7 +14,7 @@ namespace nd4j {
         Nd4jStatus LogicWhile<T>::processNode(Graph<T> *graph, Node<T> *node) {
             auto __variableSpace = graph->getVariableSpace();
 
-            nd4j_debug("Starting on WHILE loop: [%s]\n", node->id());
+            nd4j_debug("Starting on WHILE loop: [%i]\n", node->id());
 
             // total number of inputs. 2 last inputs are scopes
             int inputs = node->input()->size();
@@ -36,7 +36,9 @@ namespace nd4j {
                 if (innerVar->hasNDArray()) {
                     // TODO: ???
                 } else {
-                    innerVar->setNDArray(inputVar->getNDArray()->dup(inputVar->getNDArray()->ordering()));
+                    // FIXME: in some cases it's possible to have no NDArray
+                    if (inputVar->hasNDArray())
+                        innerVar->setNDArray(inputVar->getNDArray()->dup(inputVar->getNDArray()->ordering()));
                 }
             }
 

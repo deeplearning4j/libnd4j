@@ -5,7 +5,7 @@
 #include <types/float8.h>
 
 namespace nd4j {
-    local_def float cpu_quarter2float(quarter b) {
+    float cpu_quarter2float(quarter b) {
         unsigned sign = ((b.x >> 7) & 1);
         unsigned exponent = ((b.x >> 4) & 0x7);
         unsigned mantissa = ((b.x & 0xf) << 19);
@@ -35,7 +35,7 @@ namespace nd4j {
 
 
 
-    local_def quarter cpu_float2quarter_rn(float f)
+    quarter cpu_float2quarter_rn(float f)
     {
         quarter ret;
 
@@ -93,30 +93,30 @@ namespace nd4j {
     }
 
 
-    local_def float8::float8() {
+    float8::float8() {
         data = cpu_float2quarter_rn(0.0f);
     }
 
     template <class T>
-    local_def float8::float8(const T& rhs) {
+    float8::float8(const T& rhs) {
         assign(rhs);
     }
 
     template <class T>
-    local_def float8& float8::operator=(const T& rhs) {
+    float8& float8::operator=(const T& rhs) {
         assign(rhs); return *this;
     }
 
 
-    local_def float8::operator float() const {
+    float8::operator float() const {
         return cpu_quarter2float(data);
     }
 
-    local_def void float8::assign(double rhs) {
+    void float8::assign(double rhs) {
         assign((float)rhs);
     }
 
-    local_def void float8::assign(float rhs) {
+    void float8::assign(float rhs) {
         data = cpu_float2quarter_rn(rhs);
     }
 

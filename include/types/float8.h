@@ -5,6 +5,7 @@
 #ifndef LIBND4J_FLOAT8_H
 #define LIBND4J_FLOAT8_H
 
+/*
 #ifdef __CUDACC__
 #define local_def __host__ __device__
 #elif _MSC_VER
@@ -14,7 +15,7 @@
 #elif __GNUC__
 #define local_def
 #endif
-
+*/
 
 
 namespace nd4j {
@@ -31,20 +32,19 @@ namespace nd4j {
     struct float8 {
         quarter data;
 
-        local_def float8();
+        float8();
 
         template <class T>
-        local_def float8(const T& rhs);
+        float8(const T& rhs);
 
         template <class T>
-        local_def float8& operator=(const T& rhs);
+        float8& operator=(const T& rhs);
 
+        operator float() const;
 
-        local_def operator float() const;
+        void assign(double rhs);
 
-        local_def void assign(double rhs);
-
-        local_def void assign(float rhs);
+        void assign(float rhs);
     };
 }
 

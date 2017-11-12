@@ -146,7 +146,7 @@ namespace nd4j {
         DECLARE_LIST_OP(read_list, 1, 1, 0, 1);
         DECLARE_LIST_OP(pick_list, 1, 1, -2, -2);
         DECLARE_LIST_OP(size_list, 1, 1, 0, 0);
-        DECLARE_LIST_OP(create_list, 1, 1, 0, -2);
+        DECLARE_LIST_OP(create_list, 1, 2, 0, -2);
         DECLARE_LIST_OP(scatter_list, 1, 1, 0, -2);
         DECLARE_LIST_OP(split_list, 2, 1, 0, -2);
         DECLARE_LIST_OP(gather_list, 2, 1, 0, -2);

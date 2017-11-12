@@ -6,7 +6,7 @@
 
 namespace nd4j {
     namespace ops {
-        LIST_OP_IMPL(create_list, 1, 1, 0, -2) {
+        LIST_OP_IMPL(create_list, 1, 2, 0, -2) {
             int height = 0;
             bool expandable = false;
             if (block.getIArguments()->size() == 1) {
@@ -25,6 +25,10 @@ namespace nd4j {
             auto input = INPUT_VARIABLE(0);
 
             OVERWRITE_RESULT(list);
+
+            auto var = block.getVariableSpace()->getVariable(block.getNodeId(), 1);
+            auto scalar = NDArrayFactory<T>::scalar((T) 0.0f);
+            var->setNDArray(scalar);
 
             return ND4J_STATUS_OK;
         }

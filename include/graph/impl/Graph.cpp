@@ -800,7 +800,7 @@ namespace nd4j {
         template <typename T>
         void Graph<T>::printOut() {
             buildGraph();
-            nd4j_printf("Printing out Graph...\n", "");
+            nd4j_printf("\nPrinting out Graph...\n", "");
             
             int opCnt = 0;
             for (int l = 0; l < _onion->size(); l++) {
@@ -818,7 +818,7 @@ namespace nd4j {
             }
 
 
-            nd4j_printf("Printing out Scopes...\n","");
+            nd4j_printf("\nPrinting out Scopes...\n","");
             for (int s = 0; s < _scopes.size(); s++) {
                 Scope<T>* scope = _scopes.at(s);
                 nd4j_printf("Scope %i:<%s>:\n", scope->id(), scope->name()->c_str());

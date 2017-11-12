@@ -9,10 +9,18 @@ namespace nd4j {
         OP_IMPL(expose, -1, -1, true) {
 
             for (int e = 0; e < block.width(); e++) {
-                auto in = INPUT_VARIABLE(e);
-                auto out = OUTPUT_VARIABLE(e);
+                auto inVar = block.variable(e);
+                if (inVar->variableType() == VariableType::NDARRAY) {
+                    auto in = INPUT_VARIABLE(e);
+                    auto out = OUTPUT_VARIABLE(e);
 
-                out->assign(in);
+                    out->assign(in);
+                } else if (inVar->variableType() == VariableType::ARRAY_LIST) {
+                    auto list = inVar->getNDArrayList();
+
+                    auto outVar = block.getVariableSpace()->getVariable(block.getNodeId(), e);
+                    outVar->setNDArrayList(list);
+                }
             }
 
             return ND4J_STATUS_OK;
