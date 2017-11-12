@@ -457,3 +457,14 @@ TEST_F(FlatBuffersTest, ReadTensorArray_1) {
 
     delete graph;
 }
+
+
+TEST_F(FlatBuffersTest, ReadTensorArrayLoop_1) {
+    auto graph = GraphExecutioner<float>::importFromFlatBuffers("./resources/tensor_array_loop.fb");
+
+    ASSERT_TRUE(graph != nullptr);
+
+    Nd4jStatus status = GraphExecutioner<float>::execute(graph);
+
+    ASSERT_EQ(ND4J_STATUS_OK, status);
+}

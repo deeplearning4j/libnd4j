@@ -719,6 +719,7 @@ namespace nd4j {
                         nd4j_verbose("Orphan node detected: %i; AutoOutput to be considered\n", node->id());
                     }
 
+                    nd4j_debug("Node name: [%s]\n", node->name()->c_str());
                     this->addNode(new Node<T>(node));
                 }
             }

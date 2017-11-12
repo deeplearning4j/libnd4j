@@ -3729,4 +3729,12 @@ TEST_F(DeclarableOpsTests, Pad_9)
     delete results;
 }
 
+TEST_F(DeclarableOpsTests, Test_Expose_1) {
+    NDArray<float> input('c', {2, 3}, {1, 2, 3, 6, 5, 4});
 
+    nd4j::ops::expose<float> op;
+
+    auto result = op.execute({&input}, {}, {});
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+}
