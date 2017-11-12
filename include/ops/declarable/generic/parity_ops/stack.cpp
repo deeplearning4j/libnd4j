@@ -40,6 +40,8 @@ CUSTOM_OP_IMPL(stack, -1, 1, false, 0, 1) {
 	delete list;
     return ND4J_STATUS_OK;
 }
+DECLARE_SYN(pack, stack);
+DECLARE_SYN(Pack, stack);
 
 DECLARE_SHAPE_FN(stack) {
 
