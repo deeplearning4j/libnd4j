@@ -685,7 +685,7 @@ namespace nd4j {
                     auto flatVar = flatGraph->variables()->Get(e);
 
                     auto var = new Variable<T>(flatVar);
-                    nd4j_verbose("Registering variable: %i\n", var->id());
+                    //nd4j_printf("Registering variable: %i\n", var->id());
                     _variableSpace->putVariable(flatVar->id(), var);
 
                     // if that's VariableSpace mode - we're pushing it to _output
@@ -722,7 +722,8 @@ namespace nd4j {
                     }
 
                     nd4j_debug("Node name: [%s]\n", node->name()->c_str());
-                    this->addNode(new Node<T>(node));
+                    auto nnode = new Node<T>(node);
+                    this->addNode(nnode);
                 }
             }
         }

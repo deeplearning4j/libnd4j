@@ -92,6 +92,8 @@ namespace nd4j {
 
         template <typename T>
         void nd4j::graph::Variable<T>::markRemovable(bool reallyRemovable) {
+            if (!reallyRemovable)
+                nd4j_debug("","");
             this->_removable = reallyRemovable;
         }
 
@@ -196,7 +198,7 @@ namespace nd4j {
 
         template <typename T>
         nd4j::graph::Variable<T>::~Variable() {
-            //nd4j_debug("Removing variable [%i:%i]\n", _id, _index);
+            //nd4j_printf("Removing variable [%i:%i]\n", _id, _index);
             if (_variableType == VariableType::NDARRAY)
                 if (_ndarray != nullptr && _removable)
                     delete _ndarray;

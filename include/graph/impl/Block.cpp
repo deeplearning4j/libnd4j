@@ -25,8 +25,9 @@ namespace nd4j {
 
         template<typename T>
         Block<T>::~Block() {
-            //_variables.clear();
-            //_inputs.clear();
+            _iArgs.clear();
+            _tArgs.clear();
+            _inputs.clear();
         }
 
 

@@ -972,6 +972,7 @@ Graph<T>* GraphExecutioner<T>::importFromFlatBuffers(const char *filename) {
     auto restoredGraph = new Graph<float>(fg);
 
     delete[] data;
+    //delete fg;
 
     return restoredGraph;
 }

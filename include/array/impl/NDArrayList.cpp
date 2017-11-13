@@ -19,10 +19,12 @@ namespace nd4j {
         _id.first = 0;
         _id.second = 0;
         _height = height;
+        //nd4j_printf("\nCreating NDArrayList\n","");
     }
 
     template <typename T>
     NDArrayList<T>::~NDArrayList() {
+        //nd4j_printf("\nDeleting NDArrayList: [%i]\n", _chunks.size());
         for (auto const& v : _chunks)
             delete v.second;
 
@@ -48,6 +50,10 @@ namespace nd4j {
     Nd4jStatus NDArrayList<T>::write(int idx, NDArray<T>* array) {
         if (_chunks.count(idx) == 0)
             _elements++;
+        else {
+            delete _chunks[idx];
+        }
+
 
         // we store reference shape on first write
         if (_chunks.size() == 0) {

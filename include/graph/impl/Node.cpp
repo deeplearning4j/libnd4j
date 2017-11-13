@@ -175,7 +175,7 @@ namespace nd4j {
         template <typename T>
         void nd4j::graph::Node<T>::pickOutput(int outputId) {
             std::pair<int, int> pair(outputId, 0);
-            _output.push_back(pair);
+            _output.emplace_back(pair);
 
             if (outputId < 0)
                 _hasExternalOutputs = true;
@@ -391,9 +391,6 @@ namespace nd4j {
                     this->_name = node->name()->str();
                 }
 
-                if (node->id() == 12)
-                    nd4j_verbose("Pulled node_%i (%s)\n", node->id(), this->_name.c_str())
-
                 if (node->inputPaired() != nullptr && node->inputPaired()->size() > 0) {
                     for (int e = 0; e < (int) node->inputPaired()->size(); e++) {
                         auto pair = node->inputPaired()->Get(e);
@@ -405,8 +402,7 @@ namespace nd4j {
                 } else {
                     if (this->opType() != OpType_LOGIC) {
                         if (this->_name.size() > 0) {
-                            nd4j_printf("Node [%i:<%s>] do not have any inputs defined\n", this->_id,
-                                        this->_name.c_str());
+                            nd4j_printf("Node [%i:<%s>] do not have any inputs defined\n", this->_id, this->_name.c_str());
                         } else {
                             nd4j_printf("Node [%i:<noname>] do not have any inputs defined\n", this->_id);
                         }
@@ -439,7 +435,7 @@ namespace nd4j {
                 // these ops allow in-place execution by design
                 if (this->_opType == OpType_TRANSFORM || this->_opType == OpType_SCALAR || this->_opType == OpType_BROADCAST || this->_opType == OpType_ACCUMULATION || this->_opType == OpType_SUMMARYSTATS || this->_opType == OpType_INDEX_ACCUMULATION) {
                     if (_output.size() <= 1) {
-                        //_isInplace = true;
+                        _isInplace = true;
                     }
 
                     if (node->input() != nullptr && node->input()->size() > 0) {
@@ -493,8 +489,10 @@ namespace nd4j {
                     }
 
                     if (node->extraInteger() != nullptr)
-                        for (uint32_t e = 0; e < node->extraInteger()->size(); e++)
-                            block->getIArguments()->emplace_back(node->extraInteger()->Get(e));
+                        for (uint32_t e = 0; e < node->extraInteger()->size(); e++) {
+                            int v = node->extraInteger()->Get(e);
+                            block->getIArguments()->push_back(v);
+                        }
 
                     if (node->extraParams() != nullptr)
                         for (uint32_t e = 0; e < node->extraParams()->size(); e++)

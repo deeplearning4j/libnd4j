@@ -229,7 +229,7 @@ TEST_F(CyclicTests, Test_ArrayList_9) {
         exp.setBuffer(_expB);
 
         auto graph = GraphExecutioner<float>::importFromFlatBuffers("./resources/tensor_array.fb");
-/*
+
         ASSERT_TRUE(graph != nullptr);
 
         Nd4jStatus status = GraphExecutioner<float>::execute(graph);
@@ -242,7 +242,7 @@ TEST_F(CyclicTests, Test_ArrayList_9) {
 
         ASSERT_TRUE(exp.isSameShape(z));
         ASSERT_TRUE(exp.equalsTo(z));
-*/
+
         delete graph;
 
     }

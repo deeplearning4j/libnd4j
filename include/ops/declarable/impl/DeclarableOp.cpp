@@ -155,7 +155,9 @@ namespace nd4j {
                         }
 
                         var->setNDArray(outArr);
-                        var->markRemovable(true);
+
+                        // FIXME: this one should be removable
+                        var->markRemovable(false);
                     }
                 }
 
@@ -240,7 +242,7 @@ namespace nd4j {
                 T* buffer;
                 ALLOCATE(buffer, workspace, len, T);
 
-                var ->setNDArray(new NDArray<T>(buffer, __shape, workspace));
+                var->setNDArray(new NDArray<T>(buffer, __shape, workspace));
                 var->getNDArray()->triggerAllocationFlag(true, true);
             }
 
@@ -257,12 +259,12 @@ namespace nd4j {
             Nd4jIndex len = shape::length(shape);
             // if that's first run - we probably have nothing here
             if (var->getNDArray() == nullptr) {
-                var ->setNDArray(new NDArray<T>(order, shape, workspace));
+                var->setNDArray(new NDArray<T>(order, shape, workspace));
                 var->getNDArray()->triggerAllocationFlag(true, true);
             } else if(var->getNDArray()->lengthOf() != len) {
                 // if length not match - lets reallocate array
                 delete var->getNDArray();
-                var ->setNDArray(new NDArray<T>(order, shape, workspace));
+                var->setNDArray(new NDArray<T>(order, shape, workspace));
                 var->getNDArray()->triggerAllocationFlag(true, true);
             }
 
@@ -303,7 +305,7 @@ namespace nd4j {
             auto varSpace = block.getVariableSpace();
             if (varSpace->hasVariable(block.getNodeId(), outputIdx)) {
                 auto var = varSpace->getVariable(block.getNodeId(), outputIdx);
-                if (var->getNDArray() != nullptr)
+                if (var->getNDArray() != nullptr && var->isRemovable())
                     delete var->getNDArray();
 
                 var->setNDArray(array);

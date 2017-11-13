@@ -59,7 +59,7 @@ namespace nd4j {
                     auto var = varSpace->getVariable(block.getNodeId());
                     auto arr = var->getNDArray();
 
-                    if (arr != nullptr)
+                    if (arr != nullptr && var->isRemovable())
                         delete arr;
                         
                     var->setNDArray(array);

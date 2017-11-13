@@ -18,7 +18,8 @@ namespace nd4j {
 
         template <typename T>
         Scope<T>::~Scope() {
-
+            for (auto v: _nodes)
+                delete v;
         }
 
         template <typename T>
@@ -47,8 +48,8 @@ namespace nd4j {
         }
 
         template class Scope<float>;
-        template class Scope<float16>;
-        template class Scope<double>;
+        //template class Scope<float16>;
+        //template class Scope<double>;
     }
 }
 

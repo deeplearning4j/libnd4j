@@ -22,13 +22,18 @@ TEST_F(ListOperationsTests, BasicTest_Write_1) {
 
     nd4j::ops::write_list<double> op;
 
-    op.execute(&list, {&x}, {}, {1});
+    auto result = op.execute(&list, {&x}, {}, {1});
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
 
     ASSERT_EQ(1, list.elements());
 
-    op.execute(&list, {&x}, {}, {2});
+    auto result2 = op.execute(&list, {&x}, {}, {2});
 
     ASSERT_EQ(2, list.elements());
+
+    delete result;
+    delete result2;
 }
 
 TEST_F(ListOperationsTests, BasicTest_Stack_1) {
@@ -204,14 +209,14 @@ TEST_F(ListOperationsTests, BasicTest_Split_1) {
 
     ASSERT_EQ(3, list.height());
 
-    ASSERT_TRUE(exp0.isSameShape(list.read(0)));
-    ASSERT_TRUE(exp0.equalsTo(list.read(0)));
+    ASSERT_TRUE(exp0.isSameShape(list.readRaw(0)));
+    ASSERT_TRUE(exp0.equalsTo(list.readRaw(0)));
 
-    ASSERT_TRUE(exp1.isSameShape(list.read(1)));
-    ASSERT_TRUE(exp1.equalsTo(list.read(1)));
+    ASSERT_TRUE(exp1.isSameShape(list.readRaw(1)));
+    ASSERT_TRUE(exp1.equalsTo(list.readRaw(1)));
 
-    ASSERT_TRUE(exp2.isSameShape(list.read(2)));
-    ASSERT_TRUE(exp2.equalsTo(list.read(2)));
+    ASSERT_TRUE(exp2.isSameShape(list.readRaw(2)));
+    ASSERT_TRUE(exp2.equalsTo(list.readRaw(2)));
 
     delete result;
     delete tads;
@@ -243,7 +248,7 @@ TEST_F(ListOperationsTests, BasicTest_Scatter_1) {
 
     for (int e = 0; e < 10; e++) {
         auto row = tads->at(9 - e);
-        auto chunk = list.read(e);
+        auto chunk = list.readRaw(e);
 
         ASSERT_TRUE(chunk->isSameShape(row));
 
@@ -251,6 +256,7 @@ TEST_F(ListOperationsTests, BasicTest_Scatter_1) {
     }
 
     delete tads;
+    delete result;
 }
 
 TEST_F(ListOperationsTests, BasicTest_Clone_1) {
@@ -261,6 +267,7 @@ TEST_F(ListOperationsTests, BasicTest_Clone_1) {
     var->setNDArrayList(list);
 
     variableSpace.putVariable(-1, var);
+    variableSpace.trackList(list);
 
     Block<double> block(1, &variableSpace);
     block.pickInput(-1);
