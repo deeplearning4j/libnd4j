@@ -630,7 +630,7 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph) {
                 auto array = __variableSpace->getVariable(node->id())->getNDArray();
                 auto list = __variableSpace->getVariable(node->id())->getNDArrayList();
                 if (array != nullptr) {
-                    nd4j_debug("node_%i finished. result meanNumber: %f\n", node->id(), array->meanNumber());
+                    nd4j_debug("node_%i finished. result length: [%i]; meanNumber: [%f]\n", node->id(), (int) array->lengthOf(), array->meanNumber());
                 } else if (list != nullptr) {
                     nd4j_debug("node_% is ListOp, skipping evaluation", node->id());
                 }

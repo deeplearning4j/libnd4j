@@ -29,6 +29,7 @@ namespace nd4j {
 
         // just a counter, for stored elements
         std::atomic<int> _elements;
+        std::atomic<int> _counter;
 
         // reference shape
         std::vector<int> _shape;
@@ -65,6 +66,8 @@ namespace nd4j {
 
         int elements();
         int height();
+
+        int counter();
     };
 }
 

@@ -27,7 +27,7 @@ namespace nd4j {
             OVERWRITE_RESULT(list);
 
             auto var = block.getVariableSpace()->getVariable(block.getNodeId(), 1);
-            auto scalar = NDArrayFactory<T>::scalar((T) 0.0f);
+            auto scalar = NDArrayFactory<T>::scalar(list->counter());
             var->setNDArray(scalar);
 
             return ND4J_STATUS_OK;

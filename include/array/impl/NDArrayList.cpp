@@ -15,6 +15,7 @@ namespace nd4j {
     NDArrayList<T>::NDArrayList(int height, bool expandable) {
         _expandable = expandable;
         _elements.store(0);
+        _counter.store(0);
         _id.first = 0;
         _id.second = 0;
         _height = height;
@@ -60,6 +61,11 @@ namespace nd4j {
         _chunks[idx] = array;
 
         return ND4J_STATUS_OK;
+    }
+
+    template <typename T>
+    int NDArrayList<T>::counter() {
+        return _counter++;
     }
 
     template <typename T>

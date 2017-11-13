@@ -460,6 +460,7 @@ TEST_F(FlatBuffersTest, ReadTensorArray_1) {
 
 
 TEST_F(FlatBuffersTest, ReadTensorArrayLoop_1) {
+    NDArray<float> exp('c', {5, 2}, {3., 6., 9., 12., 15., 18., 21., 24., 27., 30.});
     auto graph = GraphExecutioner<float>::importFromFlatBuffers("./resources/tensor_array_loop.fb");
 
     ASSERT_TRUE(graph != nullptr);
@@ -469,4 +470,18 @@ TEST_F(FlatBuffersTest, ReadTensorArrayLoop_1) {
     Nd4jStatus status = GraphExecutioner<float>::execute(graph);
 
     ASSERT_EQ(ND4J_STATUS_OK, status);
+
+    auto variableSpace = graph->getVariableSpace();
+
+    ASSERT_TRUE(variableSpace->hasVariable(23,0));
+
+    auto z = variableSpace->getVariable(23)->getNDArray();
+
+    z->printShapeInfo("z shape");
+    z->printIndexedBuffer("z buffer");
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete graph;
 }
