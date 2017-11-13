@@ -66,7 +66,9 @@ TEST_F(ListOperationsTests, BasicTest_Read_1) {
     for (int e = 0; e < 10; e++) {
         auto row = new NDArray<double>('c', {1, 100});
         row->assign((double) e);
-        list.write(e, row);
+        list.write(e, row->dup());
+
+        delete row;
     }
 
     nd4j::ops::read_list<double> op;
@@ -90,7 +92,9 @@ TEST_F(ListOperationsTests, BasicTest_Pick_1) {
     for (int e = 0; e < 10; e++) {
         auto row = new NDArray<double>('c', {1, 100});
         row->assign((double) e);
-        list.write(e, row);
+        list.write(e, row->dup());
+
+        delete row;
     }
 
     auto tads = NDArrayFactory<double>::allTensorsAlongDimension(&exp, {1});
@@ -121,7 +125,9 @@ TEST_F(ListOperationsTests, BasicTest_Size_1) {
     for (int e = 0; e < 10; e++) {
         auto row = new NDArray<double>('c', {1, 100});
         row->assign((double) e);
-        list.write(e, row);
+        list.write(e, row->dup());
+
+        delete row;
     }
 
     nd4j::ops::size_list<double> op;
@@ -188,6 +194,8 @@ TEST_F(ListOperationsTests, BasicTest_Split_1) {
             tads1->at(cnt1++)->assign(row);
         else
             tads2->at(cnt2++)->assign(row);
+
+        delete row;
     }
 
     nd4j::ops::split_list<double> op;
@@ -221,6 +229,8 @@ TEST_F(ListOperationsTests, BasicTest_Scatter_1) {
         auto row = new NDArray<double>('c', {1, 5});
         row->assign((double) e);
         tads->at(e)->assign(row);
+
+        delete row;
     }
     NDArray<double> indices('c', {1, 10});
     for (int e = 0; e < matrix.rows(); e++)
@@ -277,7 +287,9 @@ TEST_F(ListOperationsTests, BasicTest_Gather_1) {
     for (int e = 0; e < 10; e++) {
         auto row = new NDArray<double>('c', {1, 3});
         row->assign((double) e);
-        list.write(e, row);
+        list.write(e, row->dup());
+
+        delete row;
     }
 
     NDArray<double> exp('c', {10, 3});

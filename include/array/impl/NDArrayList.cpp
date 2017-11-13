@@ -23,7 +23,6 @@ namespace nd4j {
 
     template <typename T>
     NDArrayList<T>::~NDArrayList() {
-
         for (auto const& v : _chunks)
             delete v.second;
 
@@ -37,7 +36,7 @@ namespace nd4j {
             throw "Bad index";
         }
 
-        return _chunks[idx];
+        return _chunks[idx]->dup();
     }
 
     template <typename T>

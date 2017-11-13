@@ -191,10 +191,6 @@ namespace nd4j {
             if (_variableType == VariableType::NDARRAY)
                 if (_ndarray != nullptr && _removable)
                     delete _ndarray;
-
-            if (_variableType == VariableType::ARRAY_LIST)
-                if (_list != nullptr)
-                    nd4j_debug("Eventually we should delete list here\n","");
         }
 
         template <typename T>
