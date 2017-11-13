@@ -3744,7 +3744,7 @@ TEST_F(DeclarableOpsTests, Test_Expose_1) {
     auto z1 = result->at(1);
 
     ASSERT_TRUE(input0.equalsTo(z0));
-    ASSERT_TRUE(input0.equalsTo(z1));
+    ASSERT_TRUE(input1.equalsTo(z1));
 
     delete result;
 }
@@ -3752,11 +3752,26 @@ TEST_F(DeclarableOpsTests, Test_Expose_1) {
 TEST_F(DeclarableOpsTests, Test_Expose_2) {
     auto list = new NDArrayList<float>(0, true);
 
+    auto var = new Variable<float>(nullptr, "arraylist", -1, 0);
+    var->setNDArrayList(list);
+
     VariableSpace<float> variableSpace;
+    variableSpace.putVariable(-1, var);
+
     Block<float> block(1, &variableSpace);
+    block.pickInput(-1);
 
     nd4j::ops::expose<float> op;
     auto result = op.execute(&block);
 
     ASSERT_EQ(ND4J_STATUS_OK, result);
+    ASSERT_TRUE(variableSpace.hasVariable(1));
+
+    auto var1 = variableSpace.getVariable(1);
+
+    ASSERT_EQ(var->variableType(), var1->variableType());
+
+    auto list1 = var1->getNDArrayList();
+
+    ASSERT_TRUE(list == list1);
 }

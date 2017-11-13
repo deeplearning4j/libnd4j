@@ -120,9 +120,11 @@ namespace nd4j {
                 int cntIn = 0;
                 for (auto p: *block.inputs()) {
                     auto var = block.getVariableSpace()->getVariable(p);
-                    NDArray<T> *array = var->getNDArray();
-                    inSha.push_back(array->getShapeInfo());
+                    if (var->variableType() == VariableType::NDARRAY) {
+                        NDArray<T> *array = var->getNDArray();
+                        inSha.push_back(array->getShapeInfo());
 
+                    }
                     //array->printShapeInfo("prepOutput");
                     cntIn++;
                 }
@@ -408,10 +410,12 @@ namespace nd4j {
                     throw "Bad input";
                 }
 
-                NDArray<T> *aV = v->getNDArray();
+                if (v->variableType() == VariableType::NDARRAY) {
+                    NDArray<T> *aV = v->getNDArray();
 
-                if ((aV == nullptr || !aV->nonNull()) && v->getNDArrayList() == nullptr)
-                    return ND4J_STATUS_BAD_INPUT;
+                    if (aV == nullptr || !aV->nonNull())
+                        return ND4J_STATUS_BAD_INPUT;
+                }
 
                 cnt++;
             }
