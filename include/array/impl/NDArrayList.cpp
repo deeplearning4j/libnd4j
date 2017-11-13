@@ -23,7 +23,11 @@ namespace nd4j {
 
     template <typename T>
     NDArrayList<T>::~NDArrayList() {
-        //
+
+        for (auto const& v : _chunks)
+            delete v.second;
+
+        _chunks.clear();
     }
 
     template <typename T>

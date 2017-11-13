@@ -24,6 +24,8 @@ namespace nd4j {
             // we recieve input array for graph integrity purposes only
             auto input = INPUT_VARIABLE(0);
 
+            block.getVariableSpace()->trackList(list);
+
             OVERWRITE_RESULT(list);
 
             if (!block.getVariableSpace()->hasVariable(block.nodeId(), 1)) {

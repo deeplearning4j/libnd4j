@@ -9,11 +9,13 @@
 #include <NDArray.h>
 #include <Block.h>
 #include <Node.h>
+#include <memory/MemoryRegistrator.h>
 #include <graph/Variable.h>
 #include <graph/VariableSpace.h>
 #include <ops/declarable/DeclarableOp.h>
 #include <ops/declarable/generic/convo/conv2d.cpp>
 
+using namespace nd4j;
 using namespace nd4j::graph;
 
 class CyclicTests : public testing::Test {
@@ -153,6 +155,25 @@ TEST_F(CyclicTests, TestCustomOpExecution1) {
 
         //delete input;
         //delete output;
+    }
+}
+
+TEST_F(CyclicTests, Test_ArrayList_1) {
+    for (int e = 0; e < numLoops; e++) {
+
+        NDArray<double> matrix('c', {3, 2});
+        NDArrayFactory<double>::linspace(1, matrix);
+
+        nd4j::ops::create_list<double> op;
+
+        auto result = op.execute(nullptr, {&matrix}, {}, {1, 1});
+
+        ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+        // we return flow as well
+        ASSERT_EQ(1, result->size());
+
+        delete result;
     }
 }
 

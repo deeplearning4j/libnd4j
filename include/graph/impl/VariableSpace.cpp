@@ -202,6 +202,11 @@ namespace nd4j {
         }
 
         template <typename T>
+        void VariableSpace<T>::trackList(nd4j::NDArrayList<T>* list) {
+            _lists.emplace_back(list);
+        }
+
+        template <typename T>
         void nd4j::graph::VariableSpace<T>::putVariable(int id, Variable<T> *variable) {
             // we don't want to add variables more then once
             if (_variables.count(id) > 0 || _temporary.count(id) > 0) {
@@ -294,6 +299,9 @@ namespace nd4j {
             //_internal.clear();
             //_external.clear();
             //_temporary.clear();
+
+            for (auto p: _lists)
+                delete p;
         }
 
 
