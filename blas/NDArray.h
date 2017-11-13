@@ -277,6 +277,9 @@ namespace nd4j {
 
         template <typename OpName>
         void applyBroadcast(std::vector<int> &dimensions, const NDArray<T> *tad, NDArray<T> *target = nullptr, T *extraArgs = nullptr);
+        
+        template <typename OpName>
+        NDArray<T> applyTrueBroadcast(const NDArray<T>& tad, T *extraArgs = nullptr) const;
 
         template<typename OpName>
         void applyScalar(T scalar, NDArray<T>* target = nullptr, T *extraParams = nullptr);
@@ -400,7 +403,10 @@ namespace nd4j {
 		void tilei(const std::vector<int>& reps);
 
 		// tile an array by repeating it the number of times given by reps.
-		NDArray<T>*  tile(const std::vector<int>& reps);
+		NDArray<T> tile(const std::vector<int>& reps) const;
+
+        // tile an array by repeating it the number of times given by reps.
+        void tile(const std::vector<int>& reps, NDArray<T>& target) const;
         
 		// return array which is broadcasted from this and argument array  
 		NDArray<T>*  broadcast(const NDArray<T>& other);

@@ -258,7 +258,7 @@ int* ShapeUtils<T>::evalReduceShapeInfo(const char order, std::vector<int>& dime
 }
 
 //////////////////////////////////////////////////////////////////////////
-// check the possibility of broadcast operation, if true return shapeInfo of resulting array
+// check the possibility of broadcast operation, if true then return shapeInfo of resulting array
 // the array with larger dimensions number has to be passed as first argument
 template <typename T>
 int* ShapeUtils<T>::evalBroadcastShapeInfo(const NDArray<T> &max, const NDArray<T> &min)
@@ -306,6 +306,73 @@ std::vector<int> ShapeUtils<T>::getDimsWithSameShape(const NDArray<T>& max, cons
     return result;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+// return absolute index of array min, min is sub-array of max, index to be returned is min index and it corresponds maxIdx of max array 
+template <typename T>
+int ShapeUtils<T>::getSubArrayIndex(const int* maxShapeInfo, const int* minShapeInfo, const int maxIdx) {
+    // check shape consistence 
+    if(maxShapeInfo[0] < minShapeInfo[0])
+        throw "ShapeUtils::getSubArrayIndex: rank of max-array must greater or equal to min-array rank !";
+    bool isConsistent = true;
+    for(int i = 0; i < minShapeInfo[0]; ++i)
+        if(maxShapeInfo[maxShapeInfo[0] - i] < minShapeInfo[minShapeInfo[0] - i] || maxShapeInfo[maxShapeInfo[0] - i] % minShapeInfo[minShapeInfo[0] - i] != 0)
+            isConsistent = false;
+    if(!isConsistent)
+        throw "ShapeUtils::getSubArrayIndex: some of dimension shape of max-array is smaller than those of min-array or the max shape is not multiple of min shape !";
+
+    int idxPerRank[maxShapeInfo[0]];
+    shape::ind2subC(maxShapeInfo[0], const_cast<int*>(maxShapeInfo)+1, const_cast<int&>(maxIdx), idxPerRank);    
+
+    int minIdx = 0;
+    for(int i = 0; i < minShapeInfo[0]; ++i) {
+        if(minShapeInfo[minShapeInfo[0] - i] == 1 || idxPerRank[maxShapeInfo[0] - i - 1] == 0)
+            continue;
+        if(idxPerRank[maxShapeInfo[0] - i - 1] >= minShapeInfo[minShapeInfo[0] - i])
+            idxPerRank[maxShapeInfo[0] - i - 1] %= minShapeInfo[minShapeInfo[0] - i];
+        minIdx += idxPerRank[maxShapeInfo[0] - i - 1] * shape::stride(const_cast<int*>(minShapeInfo))[minShapeInfo[0] - i - 1];
+    }
+    
+    return minIdx;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// evaluate shapeInfo for resulting array of tile operation
+template <typename T>
+int* ShapeUtils<T>::evalTileShapeInfo(const NDArray<T>& arr, const std::vector<int>& reps) {
+
+    // check whether reps contains at least one zero (then throw exception) or whether all elements in reps are unities (then simply reshape or do nothing)
+    int dim = reps.size();  
+    int product = 1;
+    for(const auto& item : reps)
+        product *= item;
+    if(product == 0)
+        throw "NDArray::tile method: one of the elements in reps array is zero !";
+
+    int rankOld = arr.rankOf();
+    int diff = rankOld - dim;
+    
+    // evaluate new shapeInfo
+    int* newShapeInfo = nullptr;    
+    if(diff < 0) {      
+        ALLOCATE(newShapeInfo, arr.getWorkspace(), dim*2 + 4, int);
+        newShapeInfo[0] = dim;                  // set new rank
+        for(int i=1; i <= -diff; ++i)
+            newShapeInfo[i] = 1;                // set unities to be new dimensions at left-hand side of newShapeInfo shape place
+        memcpy(newShapeInfo + 1 - diff, arr.getShapeInfo() + 1, rankOld*sizeof(int));       // copy old dimensions to the right-hand side of newShapeInfo shape place
+        for(int i=1; i <= dim; ++i)
+            newShapeInfo[i] *= reps[i - 1];     // set new shape by multiplying old dimensions by corresponding numbers from reps 
+    }
+    else {      
+        ALLOCATE(newShapeInfo, arr.getWorkspace(), rankOld*2 + 4, int);
+        memcpy(newShapeInfo, arr.getShapeInfo(), (rankOld*2 + 4)*sizeof(int));      // copy all elements of _shapeInfo to newShapeInfo
+        for(int i=1; i <= dim; ++i)
+            newShapeInfo[rankOld + 1 - i] *= reps[dim - i];     // set new shape by multiplying old dimensions by corresponding numbers from reps 
+    }
+    shape::updateStrides(newShapeInfo, arr.ordering());
+    
+    return newShapeInfo;
+}
 
 
 

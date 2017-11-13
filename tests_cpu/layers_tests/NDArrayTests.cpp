@@ -593,16 +593,16 @@ TEST_F(NDArrayTest, TestTile1) {
     auto tiled = array1.tile(tileShape1);
 
     array2.printShapeInfo("Expct shape");
-    tiled->printShapeInfo("Tiled shape");
-    tiled->printBuffer();
+    tiled.printShapeInfo("Tiled shape");
+    tiled.printBuffer();
 
-	ASSERT_TRUE(tiled->isSameShape(&array2));
-	ASSERT_TRUE(tiled->equalsTo(&array2));
+	ASSERT_TRUE(tiled.isSameShape(&array2));
+	ASSERT_TRUE(tiled.equalsTo(&array2));
 
     ASSERT_TRUE(expA->isSameShape(&array1));
     ASSERT_TRUE(expA->equalsTo(&array1));
 	
-	delete tiled;
+	// delete tiled;
 	delete expA;
 }
 
@@ -611,11 +611,11 @@ TEST_F(NDArrayTest, TestTile2) {
 	NDArray<float> array1(arr1,shape1);
 	NDArray<float> array2(arr2,shape2);
 
-    NDArray<float>* tiled = array1.tile(tileShape1);
+    NDArray<float> tiled = array1.tile(tileShape1);
 
-	ASSERT_TRUE(tiled->isSameShape(&array2));
-	ASSERT_TRUE(tiled->equalsTo(&array2));
-	delete tiled;
+	ASSERT_TRUE(tiled.isSameShape(&array2));
+	ASSERT_TRUE(tiled.equalsTo(&array2));
+	// delete tiled;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -628,6 +628,36 @@ TEST_F(NDArrayTest, TestTile3) {
 
 	ASSERT_TRUE(array1.isSameShapeStrict(&array2));
 	ASSERT_TRUE(array1.equalsTo(&array2));
+}
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest, TestTile4) {
+
+    float xBuff[]   = {1,2,3,4,5,6};
+    float expBuff[] = {1.,2., 1.,2., 3.,4., 3.,4., 5.,6., 5.,6.};
+
+    NDArray<float> x(xBuff, 'c', {3,1,2});
+    NDArray<float> exp(expBuff, 'c', {3,2,2});    
+
+    NDArray<float> result = x.tile({2,1});
+
+    ASSERT_TRUE(result.isSameShapeStrict(&exp));
+    ASSERT_TRUE(result.equalsTo(&exp));
+}
+
+////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest, TestTile5) {
+
+    float xBuff[]   = {1,2,3,4,5,6,7,8,9,10,11,12};
+    float expBuff[] = {1., 2., 3., 4., 1., 2., 3., 4., 5., 6., 7., 8., 5., 6., 7., 8., 9.,10., 11.,12., 9.,10., 11.,12.};
+
+    NDArray<float> x(xBuff, 'c', {3,2,2});
+    NDArray<float> exp(expBuff, 'c', {3,4,2});    
+
+    NDArray<float> result = x.tile({2,1});
+
+    ASSERT_TRUE(result.isSameShapeStrict(&exp));
+    ASSERT_TRUE(result.equalsTo(&exp));
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -1681,21 +1711,21 @@ TEST_F(NDArrayTest, Oerator_Plus_Test_2)
 
 
 //////////////////////////////////////////////////////////////////////
-// TEST_F(NDArrayTest, Oerator_Plus_Test_3)
-// {
-//     double expBuff[] = {2., 3, 3., 4., 4., 5, 5., 6., 6., 7, 7., 8.};
+TEST_F(NDArrayTest, Oerator_Plus_Test_3)
+{
+    double expBuff[] = {2., 3, 3., 4., 4., 5, 5., 6., 6., 7, 7., 8.};
 
-//     NDArray<double> x('c', {3, 2, 1});
-//     NDArray<double> y('c',    {1, 2});
-//     NDArray<double> expected(expBuff, 'c', {3, 2, 2});
+    NDArray<double> x('c', {3, 2, 1});
+    NDArray<double> y('c',    {1, 2});
+    NDArray<double> expected(expBuff, 'c', {3, 2, 2});
 
-//     NDArrayFactory<double>::linspace(1, x);
-//     NDArrayFactory<double>::linspace(1, y);
+    NDArrayFactory<double>::linspace(1, x);
+    NDArrayFactory<double>::linspace(1, y);
 
-//     NDArray<double> result = x + y;
-//     // result.printIndexedBuffer();
+    NDArray<double> result = x + y;
+    // result.printIndexedBuffer();
+    ASSERT_TRUE(expected.isSameShape(&result));
+    ASSERT_TRUE(expected.equalsTo(&result));
+}
 
-//     ASSERT_TRUE(expected.isSameShape(&result));
-//     ASSERT_TRUE(expected.equalsTo(&result));
-// }
-
+ 
