@@ -23,6 +23,7 @@ namespace nd4j {
                 array = INPUT_VARIABLE(0);
                 sizes = INPUT_VARIABLE(1);
                 list = new NDArrayList<T>(sizes->lengthOf(), false);
+                block.getVariableSpace()->trackList(list);
             }
 
             // now let's build subarrays
@@ -32,7 +33,7 @@ namespace nd4j {
                 int c_size = (int) sizes->getIndexedScalar(e);
                 IndicesList indices;
 
-                nd4j_debug("Slice start: [%i]; Slice size: [%i]\n", cnt, c_size);
+                //nd4j_debug("Slice start: [%i]; Slice size: [%i]\n", cnt, c_size);
 
                 REQUIRE_TRUE(c_size > 0, 0, "Slice size should have postive value, but got %i instead", c_size);
                 REQUIRE_TRUE(cnt < array->sizeAt(0) && cnt + c_size <= array->sizeAt(0), 0, "Slices size should NOT be higher then number of TADs of source array. Source size: [%i]; Slice start: [%i]; Slice size: [%i]", array->sizeAt(0), cnt, c_size);
@@ -52,8 +53,6 @@ namespace nd4j {
                     return status;
 
                 delete subarray;
-
-
 
                 cnt += c_size;
             }

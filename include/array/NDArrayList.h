@@ -47,6 +47,7 @@ namespace nd4j {
         ~NDArrayList();
 
         NDArray<T>* read(int idx);
+        NDArray<T>* readRaw(int idx);
         Nd4jStatus write(int idx, NDArray<T>* array);
 
         NDArray<T>* pick(std::initializer_list<int> indices);

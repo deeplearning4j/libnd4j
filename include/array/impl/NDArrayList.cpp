@@ -31,12 +31,17 @@ namespace nd4j {
 
     template <typename T>
     NDArray<T>* NDArrayList<T>::read(int idx) {
+        return readRaw(idx)->dup();
+    }
+
+    template <typename T>
+    NDArray<T>* NDArrayList<T>::readRaw(int idx) {
         if (_chunks.count(idx) < 1) {
             nd4j_printf("Non-existent chunk requested: [%i]\n", idx);
             throw "Bad index";
         }
 
-        return _chunks[idx]->dup();
+        return _chunks[idx];
     }
 
     template <typename T>

@@ -58,7 +58,10 @@ namespace nd4j {
                 if (varSpace->hasVariable(block.getNodeId())) {
                     auto var = varSpace->getVariable(block.getNodeId());
                     auto arr = var->getNDArray();
-                    delete arr;
+
+                    if (arr != nullptr)
+                        delete arr;
+                        
                     var->setNDArray(array);
                 } else {
                     varSpace->putVariable(block.getNodeId(), array);

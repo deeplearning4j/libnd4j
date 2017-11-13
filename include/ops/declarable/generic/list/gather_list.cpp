@@ -30,7 +30,7 @@ namespace nd4j {
             int skipPosition = 0;
             for (int e = 0; e < indices->lengthOf(); e++) {
                 int idx = (int) indices->getIndexedScalar(e);
-                auto array = list->read(idx);
+                auto array = list->readRaw(idx);
                 
                 IndicesList indicesList;
                 // first dimension

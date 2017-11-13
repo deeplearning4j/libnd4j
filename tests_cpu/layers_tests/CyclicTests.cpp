@@ -268,8 +268,8 @@ TEST_F(CyclicTests, Test_ArrayList_10) {
 
         auto z = variableSpace->getVariable(23)->getNDArray();
 
-//        ASSERT_TRUE(exp.isSameShape(z));
-//        ASSERT_TRUE(exp.equalsTo(z));
+        ASSERT_TRUE(exp.isSameShape(z));
+        ASSERT_TRUE(exp.equalsTo(z));
 
         delete graph;
 
