@@ -17,7 +17,7 @@ namespace nd4j {
             // first of all we need to get shapes
             std::vector<int> shape({0});
             for (int e = 0; e < list->height(); e++) {
-                auto array = list->read(e);
+                auto array = list->readRaw(e);
                 shape[0] += array->sizeAt(0);
 
                 // now we should fill other dimensions 

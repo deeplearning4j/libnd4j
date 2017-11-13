@@ -63,6 +63,7 @@ namespace nd4j {
                         delete arr;
                         
                     var->setNDArray(array);
+                    var->markRemovable(true);
                 } else {
                     varSpace->putVariable(block.getNodeId(), array);
                 }

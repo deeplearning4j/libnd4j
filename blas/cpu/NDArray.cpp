@@ -2243,6 +2243,7 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
         //shape::printShapeInfoLinear(newShape);
 
         auto result = new NDArray<T>(this->_buffer + offset, newShape, this->_workspace);
+        result->_isShapeAlloc = true;
 
         return result;
     }
@@ -2278,6 +2279,7 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
         }
 
         auto result = new NDArray<T>(this->_buffer + offset, newShape, this->_workspace);
+        result->_isShapeAlloc = true;
 
         return result;
     }
@@ -2308,7 +2310,11 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
                 offset += idx[d][0] * stridesOf[d];
             }
         }
-        return new NDArray<T>(this->_buffer + offset, newShape, this->_workspace);
+
+        auto result = new NDArray<T>(this->_buffer + offset, newShape, this->_workspace);
+        result->_isShapeAlloc = true;
+
+        return result;
     }
 
     template <typename T>

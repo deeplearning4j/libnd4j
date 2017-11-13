@@ -146,11 +146,16 @@ namespace nd4j {
 
                     auto var = block.getVariableSpace()->getVariable(pair);
                     if (var == nullptr) {
-                        var = new Variable<T>(outArr);
+                        var = new Variable<T>(outArr, nullptr, pair.first, pair.second);
                         block.getVariableSpace()->putVariable(pair, var);
                     } else {
                         //block.getVariableSpace()->putVariable(pair, outArr);
+                        if (var->hasNDArray()) {
+                            nd4j_printf("Leaked array 318!\n","");
+                        }
+
                         var->setNDArray(outArr);
+                        var->markRemovable(true);
                     }
                 }
 
@@ -302,6 +307,7 @@ namespace nd4j {
                     delete var->getNDArray();
 
                 var->setNDArray(array);
+                var->markRemovable(true);
             } else {
                 auto var = new Variable<T>(array, nullptr, block.getNodeId(), outputIdx);
                 varSpace->putVariable(block.getNodeId(), outputIdx, var);

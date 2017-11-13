@@ -494,11 +494,11 @@ namespace nd4j {
 
                     if (node->extraInteger() != nullptr)
                         for (uint32_t e = 0; e < node->extraInteger()->size(); e++)
-                            block->getIArguments()->push_back(node->extraInteger()->Get(e));
+                            block->getIArguments()->emplace_back(node->extraInteger()->Get(e));
 
                     if (node->extraParams() != nullptr)
                         for (uint32_t e = 0; e < node->extraParams()->size(); e++)
-                            block->getTArguments()->push_back(node->extraParams()->Get(e));
+                            block->getTArguments()->emplace_back(node->extraParams()->Get(e));
 
                     this->setBlock(block);
 

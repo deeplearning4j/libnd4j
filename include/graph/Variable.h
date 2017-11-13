@@ -57,6 +57,7 @@ namespace nd4j {
             bool isExternal();
             bool isReadOnly();
             bool isEmpty();
+            bool isRemovable();
 
             bool isPlaceholder();
 

@@ -118,6 +118,11 @@ namespace nd4j {
         }
 
         template <typename T>
+        bool Variable<T>::isRemovable() {
+            return _removable;
+        }
+
+        template <typename T>
         void nd4j::graph::Variable<T>::setNDArrayList(nd4j::NDArrayList<T> * list) {
             this->_variableType = VariableType::ARRAY_LIST;
             this->_list = list;
@@ -161,6 +166,7 @@ namespace nd4j {
 
             _ndarray = new NDArray<T>(buffer, shape);
             _ndarray->triggerAllocationFlag(true, true);
+            _variableType = VariableType::NDARRAY;
         }
 
         template <typename T>
@@ -177,6 +183,9 @@ namespace nd4j {
 
             if (name != nullptr)
                 _name = std::string(name);
+
+            if (_ndarray != nullptr)
+                _variableType = VariableType::NDARRAY;
         }
 
         template <typename T>
