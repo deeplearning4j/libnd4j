@@ -335,6 +335,7 @@ namespace nd4j {
                     opType == OpType_SCALAR) {
 
                 this->setCustomOp(Node<T>::buildOpByType(opType, (int) input.size(), opNum, scalar));
+                this->_isDeductable = true;
 
                 auto block = new Block<T>(this->id(), nullptr, false);
 
@@ -402,10 +403,13 @@ namespace nd4j {
                     for (int e = 0; e < (int) node->input()->size(); e++)
                         pickInput(node->input()->Get(e));
                 } else {
-                    if (this->_name.size() > 0) {
-                        nd4j_printf("Node [%i:<%s>] do not have any inputs defined\n", this->_id, this->_name.c_str());
-                    } else {
-                        nd4j_printf("Node [%i:<noname>] do not have any inputs defined\n", this->_id);
+                    if (this->opType() != OpType_LOGIC) {
+                        if (this->_name.size() > 0) {
+                            nd4j_printf("Node [%i:<%s>] do not have any inputs defined\n", this->_id,
+                                        this->_name.c_str());
+                        } else {
+                            nd4j_printf("Node [%i:<noname>] do not have any inputs defined\n", this->_id);
+                        }
                     }
                 }
 
@@ -440,6 +444,7 @@ namespace nd4j {
 
                     if (node->input() != nullptr && node->input()->size() > 0) {
                         this->setCustomOp(Node<T>::buildOpByType(_opType, (int) node->input()->size(), _opNum, _scalar));
+                        this->_isDeductable = true;
 
                         auto block = new Block<T>(this->id(), nullptr, false);
 
@@ -455,6 +460,7 @@ namespace nd4j {
                         this->setBlock(block);
                     } else if (node->inputPaired() != nullptr && node->inputPaired()->size() > 0) {
                         this->setCustomOp(Node<T>::buildOpByType(_opType, (int) node->inputPaired()->size(), _opNum, _scalar));
+                        this->_isDeductable = true;
 
                         auto block = new Block<T>(this->id(), nullptr, false);
 
@@ -513,6 +519,10 @@ namespace nd4j {
 
             if (_block != nullptr)
                 delete _block;
+
+            if (_isDeductable && _customOp != nullptr)
+                delete _customOp;
+
         }
 
         template <typename T>

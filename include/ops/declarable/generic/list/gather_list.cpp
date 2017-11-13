@@ -26,8 +26,6 @@ namespace nd4j {
                         shape.emplace_back(array->sizeAt(d));
             }
 
-            indices->printIndexedBuffer("gather indices");
-
             auto result = new NDArray<T>('c', shape);
             int skipPosition = 0;
             for (int e = 0; e < indices->lengthOf(); e++) {
@@ -43,9 +41,6 @@ namespace nd4j {
 
                 auto subarray = result->subarray(indicesList);
                 subarray->assign(array);
-
-                subarray->printShapeInfo("subarray shape");
-                array->printIndexedBuffer("subarray to write");
 
                 skipPosition += array->sizeAt(0);
 

@@ -12,7 +12,7 @@
 #include <memory/MemoryRegistrator.h>
 #include <graph/Variable.h>
 #include <graph/VariableSpace.h>
-#include <ops/declarable/DeclarableOp.h>
+#include <ops/declarable/CustomOperations.h>
 #include <ops/declarable/generic/convo/conv2d.cpp>
 
 using namespace nd4j;
@@ -158,6 +158,19 @@ TEST_F(CyclicTests, TestCustomOpExecution1) {
     }
 }
 
+
+TEST_F(CyclicTests, Test_LegacyOp_1) {
+    for (int e = 0; e < numLoops; e++) {
+        Graph<float> graph;
+
+        auto node = new Node<float>(OpType_TRANSFORM, 10, 1);
+
+        graph.addNode(node);
+
+        graph.buildGraph();
+    }
+}
+
 TEST_F(CyclicTests, Test_ArrayList_1) {
     for (int e = 0; e < numLoops; e++) {
 
@@ -174,6 +187,34 @@ TEST_F(CyclicTests, Test_ArrayList_1) {
         ASSERT_EQ(1, result->size());
 
         delete result;
+    }
+}
+
+TEST_F(CyclicTests, Test_ArrayList_10) {
+
+
+    for (int e = 0; e < numLoops; e++) {
+
+        NDArray<float> exp('c', {5, 2}, {3., 6., 9., 12., 15., 18., 21., 24., 27., 30.});
+        auto graph = GraphExecutioner<float>::importFromFlatBuffers("./resources/tensor_array_loop.fb");
+
+        ASSERT_TRUE(graph != nullptr);
+
+        Nd4jStatus status = GraphExecutioner<float>::execute(graph);
+
+        ASSERT_EQ(ND4J_STATUS_OK, status);
+
+        auto variableSpace = graph->getVariableSpace();
+
+        ASSERT_TRUE(variableSpace->hasVariable(23,0));
+
+        auto z = variableSpace->getVariable(23)->getNDArray();
+
+        ASSERT_TRUE(exp.isSameShape(z));
+        ASSERT_TRUE(exp.equalsTo(z));
+
+        delete graph;
+
     }
 }
 

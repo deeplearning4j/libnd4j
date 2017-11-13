@@ -26,10 +26,6 @@ namespace nd4j {
 
                 REQUIRE_TRUE(idx->isScalar(), 0, "Index should be Scalar");
 
-
-                input->printIndexedBuffer("writing row");
-                idx->printIndexedBuffer("index to write at");
-
                 Nd4jStatus result = list->write(idx->getScalar(0), input->dup());
 
                 auto res = NDArrayFactory<T>::scalar(list->counter());

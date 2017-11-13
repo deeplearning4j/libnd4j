@@ -102,8 +102,6 @@ namespace nd4j {
 
             auto sub = x->subarray(indices);
 
-            sub->printShapeInfo("sub shape");
-
             std::vector<int> new_axis_positions;
             if (new_axis_mask != 0) {
                 new_axis_positions = BitwiseUtils::valueBits(new_axis_mask);
@@ -197,8 +195,6 @@ namespace nd4j {
                 shape = shrinked;
             }
 
-            nd4j_printv("shape", shape);
-
             // we don't want shape ranks below 2
             if (shape.size() < 2)
                 shape.insert(shape.begin(), 1);
@@ -206,7 +202,7 @@ namespace nd4j {
             ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(shape.size()), int);
             shape::shapeBuffer(shape.size(), shape.data(), newShape);
 
-            shape::printShapeInfoLinear(newShape);
+            //shape::printShapeInfoLinear(newShape);
 
             return new ShapeList(newShape);
         }
