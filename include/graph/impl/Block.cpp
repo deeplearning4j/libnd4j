@@ -76,6 +76,11 @@ namespace nd4j {
         }
 
         template <typename T>
+        int Block<T>::nodeId() {
+            return getNodeId();
+        }
+
+        template <typename T>
         int Block<T>::getNodeId() {
             return _nodeId;
         }

@@ -88,6 +88,7 @@ namespace nd4j {
             nd4j::random::RandomBuffer* getRNG();
             void setRNG(nd4j::random::RandomBuffer* rng);
             int getNodeId();
+            int nodeId();
 
 
             std::vector<T>* getTArguments();

@@ -26,6 +26,10 @@ namespace nd4j {
 
             OVERWRITE_RESULT(list);
 
+            if (!block.getVariableSpace()->hasVariable(block.nodeId(), 1)) {
+                block.getVariableSpace()->putVariable(block.nodeId(), 1, new Variable<T>(nullptr, nullptr, block.nodeId(), 1));
+            }
+
             auto var = block.getVariableSpace()->getVariable(block.getNodeId(), 1);
             auto scalar = NDArrayFactory<T>::scalar(list->counter());
             var->setNDArray(scalar);

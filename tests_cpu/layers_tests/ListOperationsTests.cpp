@@ -147,7 +147,9 @@ TEST_F(ListOperationsTests, BasicTest_Create_1) {
     auto result = op.execute(nullptr, {&matrix}, {}, {1, 1});
 
     ASSERT_EQ(ND4J_STATUS_OK, result->status());
-    ASSERT_EQ(0, result->size());
+
+    // we return flow as well
+    ASSERT_EQ(1, result->size());
 
     delete result;
 }
