@@ -157,7 +157,7 @@ namespace nd4j {
                         var->setNDArray(outArr);
 
                         // FIXME: this one should be removable
-                        var->markRemovable(false);
+                        var->markRemovable(true);
                     }
                 }
 

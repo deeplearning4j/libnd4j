@@ -140,6 +140,10 @@ namespace nd4j {
 
             int opNum();
             void setOpNum(int opNum);
+
+
+            void pushNDArrayToVariableSpace(int nodeId, int index, NDArray<T>* array);
+            void pushNDArrayToVariableSpace(std::pair<int, int>& pair, NDArray<T>* array);
         };
     }
 }

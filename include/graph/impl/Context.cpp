@@ -243,6 +243,19 @@ namespace nd4j {
             pickInput(pair);
         }
 
+
+        template <typename T>
+        void Context<T>::pushNDArrayToVariableSpace(int nodeId, int index, NDArray<T> *array) {
+            std::pair<int,int> pair(nodeId, index);
+            pushNDArrayToVariableSpace(pair, array);
+        }
+
+        template <typename T>
+        void Context<T>::pushNDArrayToVariableSpace(std::pair<int, int> &pair, NDArray<T> *array) {
+
+        }
+
+
         template class ND4J_EXPORT Context<float>;
         template class ND4J_EXPORT Context<float16>;
         template class ND4J_EXPORT Context<double>;
