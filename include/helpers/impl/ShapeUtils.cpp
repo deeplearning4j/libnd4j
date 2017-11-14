@@ -2,6 +2,7 @@
 // @author iuriish@yahoo.com
 //
 
+#include <algorithm>
 #include <helpers/ShapeUtils.h>
 #include <climits>
 #include <numeric>
@@ -232,22 +233,22 @@ int* ShapeUtils<T>::evalReduceShapeInfo(const char order, std::vector<int>& dime
 // return new (shorter) dimensions array without dimensions that are present in input vector
     template<typename T>
     std::vector<int> ShapeUtils<T>::evalDimsToExclude(const int rank, const std::vector<int>& dimensions) {
-   
+
     std::vector<int> newDimensions;
     int size = dimensions.size();
     if(size == 0) {                          // if input vector is empty then return whole shape range
         newDimensions.resize(rank);
         std::iota(newDimensions.begin(), newDimensions.end(), 0);   // fill with 0, 1, ... rank-1
-    }   
+    }
     else {
         bool isAbsent;
         for(int i=0; i<rank; ++i) {
             isAbsent = true;
             for(int j=0; j<size; ++j) {
                 if(i == dimensions[j]) {
-                    isAbsent = false;    
+                    isAbsent = false;
                     break;
-                }            
+                }
             }
             if(isAbsent)
                 newDimensions.emplace_back(i);
@@ -283,7 +284,7 @@ int* ShapeUtils<T>::evalBroadcastShapeInfo(const NDArray<T> &max, const NDArray<
 
     shape::updateStrides(shapeInfoNew, max.ordering());
 
-    return shapeInfoNew;        
+    return shapeInfoNew;
 }
 
 
@@ -361,6 +362,25 @@ int* ShapeUtils<T>::evalTileShapeInfo(const NDArray<T>& arr, const std::vector<i
     
     return newShapeInfo;
 }
+
+//////////////////////////////////////////////////////////////////////////
+    template<typename T>
+    std::vector<int> ShapeUtils<T>::convertAxisToTadTarget(int rank, std::initializer_list<int> axis) {
+        std::vector<int> newAxis(axis);
+        return convertAxisToTadTarget(rank, newAxis);
+    }
+
+    template<typename T>
+    std::vector<int> ShapeUtils<T>::convertAxisToTadTarget(int rank, std::vector<int>& axis) {
+        std::vector<int> newAxis;
+        for (int e = 0; e < rank; e++) {
+            if (std::find(axis.begin(), axis.end(), e) == axis.end())
+                newAxis.emplace_back(e);
+        }
+
+        return newAxis;
+    }
+
 
 
 

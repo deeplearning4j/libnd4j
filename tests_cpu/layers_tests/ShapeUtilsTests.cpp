@@ -4,6 +4,7 @@
 
 #include "testlayers.h"
 #include <helpers/ShapeUtils.h>
+#include <NDArray.h>
 
 
 using namespace nd4j;
@@ -29,6 +30,22 @@ TEST_F(ShapeUtilsTests, BasicInject2) {
     ShapeUtils<float>::insertDimension(2, shape.data(), 0, 3);
     ASSERT_EQ(3, shape.at(0));
     ASSERT_EQ(4, shape.at(1));
+}
+
+TEST_F(ShapeUtilsTests, AxisConversionTest_1) {
+    std::vector<int> res = ShapeUtils<float>::convertAxisToTadTarget(3, {0});
+
+    ASSERT_EQ(2, res.size());
+    ASSERT_EQ(1, res.at(0));
+    ASSERT_EQ(2, res.at(1));
+}
+
+TEST_F(ShapeUtilsTests, AxisConversionTest_2) {
+    std::vector<int> res = ShapeUtils<float>::convertAxisToTadTarget(4, {2, 3});
+
+    ASSERT_EQ(2, res.size());
+    ASSERT_EQ(0, res.at(0));
+    ASSERT_EQ(1, res.at(1));
 }
 
 //////////////////////////////////////////////////////////////////
@@ -85,19 +102,22 @@ TEST_F(ShapeUtilsTests, EvalBroadcastShapeInfo_3)
     RELEASE(newShapeInfo, x.getWorkspace());
 }
 
-// TEST_F(ShapeUtilsTests, EvalBroadcastShapeInfo_4)
-// {
+TEST_F(ShapeUtilsTests, EvalBroadcastShapeInfo_4)
+{
 
-//     int xShapeInfo[]   = {2,    2, 1,     1, 1, 0, 1, 99};
-//     int yShapeInfo[]   = {3, 8, 4, 3, 12, 3, 1, 0, 1, 99};
-//     int expShapeInfo[] = {3, 15, 3, 5, 15, 5, 1, 0, 1, 99};
+    int xShapeInfo[]   = {3, 8, 1, 3,  3, 3, 1, 0, 1, 99};
+    int yShapeInfo[]   = {2,    4, 3,     3, 1, 0, 1, 99};    
+    int expShapeInfo[] = {3, 8, 4, 3, 12, 3, 1, 0, 1, 99};
 
-//     NDArray<float> x(xShapeInfo);
-//     NDArray<float> y(yShapeInfo);
+    NDArray<float> x(xShapeInfo);
+    NDArray<float> y(yShapeInfo);
 
-//     int *newShapeInfo = ShapeUtils<float>::evalBroadcastShapeInfo(x, y);
+    int *newShapeInfo = ShapeUtils<float>::evalBroadcastShapeInfo(x, y);
+    for(int i=0; i<2*newShapeInfo[0]+4; ++i)
+        std::cout<<newShapeInfo[i]<<" ";
+    std::cout<<std::endl;
 
-//     ASSERT_TRUE(shape::equalsStrict(expShapeInfo, newShapeInfo));
+    ASSERT_TRUE(shape::equalsStrict(expShapeInfo, newShapeInfo));
 
-//     RELEASE(newShapeInfo, x.getWorkspace());
-// }
+    RELEASE(newShapeInfo, x.getWorkspace());
+}
