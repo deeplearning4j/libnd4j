@@ -34,8 +34,14 @@ namespace nd4j {
 
     template <typename T>
     ResultSet<T>::~ResultSet() {
-        for (auto v: _content)
-            delete v;
+        if (_removable)
+            for (auto v: _content)
+                delete v;
+    }
+
+    template <typename T>
+    void ResultSet<T>::setNonRemovable() {
+        _removable = false;
     }
 
     template <typename T>

@@ -91,7 +91,7 @@ namespace nd4j {
             delete col6d;
             delete col6dPermuted;
             delete epsilon1d;
-            // delete col2d;
+            delete col2d;
 
             return ND4J_STATUS_OK;
         }

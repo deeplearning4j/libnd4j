@@ -457,6 +457,9 @@ namespace nd4j {
             auto arrayList = new ResultSet<T>();
             //ResultSet<T> arrayList;
 
+            if (isInplace)
+                arrayList->setNonRemovable();
+
             int cnt = -1;
             std::vector<int> in;
             for (auto v: inputs) {

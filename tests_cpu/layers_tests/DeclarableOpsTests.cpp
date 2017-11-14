@@ -1723,10 +1723,10 @@ TEST_F(DeclarableOpsTests, Conv3D_ff_Test1) {
 }
 
 TEST_F(DeclarableOpsTests, TestReductionShape1) {
-    NDArray<float> input('c', {4, 5, 5, 10, 10});
+    auto input = new NDArray<float>('c', {4, 5, 5, 10, 10});
 
     VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &input);
+    variableSpace->putVariable(-1, input);
 
     Context<float>* block = new Context<float>(1, variableSpace, false);  // not-in-place
     block->fillInputs({-1});
@@ -1736,19 +1736,32 @@ TEST_F(DeclarableOpsTests, TestReductionShape1) {
 
     nd4j::ops::testreduction<float> testop;
 
-    auto shapes = testop.calculateOutputShape(new ShapeList(input.getShapeInfo()), *block);
+    int* inP = new int[shape::shapeInfoLength(input->getShapeInfo())];
+    memcpy(inP, input->getShapeInfo(), shape::shapeInfoByteLength(input->rankOf()));
+
+    auto inshape = new ShapeList(inP);
+
+    auto shapes = testop.calculateOutputShape(inshape, *block);
 
     ASSERT_EQ(1,shapes->size());
     ASSERT_EQ(2,shapes->at(0)[0]);
     ASSERT_EQ(1,shapes->at(0)[1]);
     ASSERT_EQ(1,shapes->at(0)[2]);
+
+    delete[] inP;
+    shapes->destroy();
+    delete variableSpace;
+    delete block;
+    delete inshape;
+    delete shapes;
+
 }
 
 TEST_F(DeclarableOpsTests, TestReductionShape2) {
-    NDArray<float> input('c', {4, 5, 5, 10, 10});
+    auto input = new NDArray<float>('c', {4, 5, 5, 10, 10});
 
     VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &input);
+    variableSpace->putVariable(-1, input);
 
     Context<float>* block = new Context<float>(1, variableSpace, false);  // not-in-place
     block->fillInputs({-1});
@@ -1762,44 +1775,58 @@ TEST_F(DeclarableOpsTests, TestReductionShape2) {
 
     nd4j::ops::testreduction<float> testop;
 
-    auto shapes = testop.calculateOutputShape(new ShapeList(input.getShapeInfo()), *block);
+    auto inshapes = new ShapeList(input->getShapeInfo());
+    auto shapes = testop.calculateOutputShape(inshapes, *block);
 
     ASSERT_EQ(1,shapes->size());
     ASSERT_EQ(2,shapes->at(0)[0]);
     ASSERT_EQ(4,shapes->at(0)[1]);
     ASSERT_EQ(1,shapes->at(0)[2]);
+
+    shapes->destroy();
+    delete variableSpace;
+    delete block;
+    delete shapes;
+    delete inshapes;
 }
 
 TEST_F(DeclarableOpsTests, TestCustomShape1) {
-    NDArray<float> input('c', {2, 3, 4});
+    auto input = new NDArray<float>('c', {2, 3, 4});
 
     VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &input);
+    variableSpace->putVariable(-1, input);
 
     Context<float>* block = new Context<float>(1, variableSpace, false);  // not-in-place
     block->fillInputs({-1});
 
     nd4j::ops::testcustom<float> test;
 
-    auto shapes = test.calculateOutputShape(new ShapeList(input.getShapeInfo()), *block);
+    auto inshapes = new ShapeList(input->getShapeInfo());
+    auto shapes = test.calculateOutputShape(inshapes, *block);
 
     //input.printShapeInfo("input");
     //shape::printShapeInfoLinear(shape);
 
-    ASSERT_EQ(input.getShapeInfo()[0]    , shapes->at(0)[0]);
-    ASSERT_EQ(input.getShapeInfo()[1] * 2, shapes->at(0)[1]);
-    ASSERT_EQ(input.getShapeInfo()[2] * 2, shapes->at(0)[2]);
-    ASSERT_EQ(input.getShapeInfo()[3] * 2, shapes->at(0)[3]);
+    ASSERT_EQ(input->getShapeInfo()[0]    , shapes->at(0)[0]);
+    ASSERT_EQ(input->getShapeInfo()[1] * 2, shapes->at(0)[1]);
+    ASSERT_EQ(input->getShapeInfo()[2] * 2, shapes->at(0)[2]);
+    ASSERT_EQ(input->getShapeInfo()[3] * 2, shapes->at(0)[3]);
+
+    shapes->destroy();
+    delete variableSpace;
+    delete block;
+    delete shapes;
+    delete inshapes;
 }
 
 
 TEST_F(DeclarableOpsTests, DilatedMaxPool3D_ff_Test1) {
-    NDArray<float> input('c', {4, 2, 1, 11, 11});
+    auto input = new NDArray<float>('c', {4, 2, 1, 11, 11});
 
-    input.assign(451.0);
+    input->assign(451.0);
 
-    NDArray<float> output('c', {4, 2, 1, 10, 10});
-    NDArray<float> indices('c', {4, 2, 1, 10, 10});
+    auto output = new NDArray<float>('c', {4, 2, 1, 10, 10});
+    auto indices = new NDArray<float>('c', {4, 2, 1, 10, 10});
 
 
     std::pair<int, int> pair0(1,0);
@@ -1807,10 +1834,10 @@ TEST_F(DeclarableOpsTests, DilatedMaxPool3D_ff_Test1) {
 
 
     VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &input);
+    variableSpace->putVariable(-1, input);
 
-    variableSpace->putVariable(pair0, &output);
-    variableSpace->putVariable(pair1, &indices);
+    variableSpace->putVariable(pair0, output);
+    variableSpace->putVariable(pair1, indices);
 
     Context<float>* block = new Context<float>(1, variableSpace, false);  // not-in-place
     block->fillInputs({-1});
@@ -1847,9 +1874,10 @@ TEST_F(DeclarableOpsTests, DilatedMaxPool3D_ff_Test1) {
 
     //output.printBuffer("Result");
 
-    ASSERT_NEAR(451.0f, output.template reduceNumber<simdOps::Mean<float>>(), 1e-5);
+    ASSERT_NEAR(451.0f, output->template reduceNumber<simdOps::Mean<float>>(), 1e-5);
 
-
+    delete variableSpace;
+    delete block;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -1890,12 +1918,12 @@ TEST_F(DeclarableOpsTests, Sum1) {
 //////////////////////////////////////////////////////////////////////
 TEST_F(DeclarableOpsTests, Maxpool2d1) {
 
-	NDArray<float> x('c', {bS,iD,iH,iW});
+	auto x = new NDArray<float>('c', {bS,iD,iH,iW});
 	NDArray<float> exp('c',{bS,iD,oH,oW});
 	// NDArray<float> z('c',{bS,iD,oH,oW});
 
 	VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &x);
+    variableSpace->putVariable(-1, x);
 	// variableSpace->putVariable(1, &z);
 
 	Context<float>* block = new Context<float>(1, variableSpace, false);
@@ -1909,18 +1937,21 @@ TEST_F(DeclarableOpsTests, Maxpool2d1) {
 	
 	NDArray<float>* result = variableSpace->getVariable(block->getNodeId())->getNDArray();
     ASSERT_TRUE(exp.isSameShape(result));
+
+    delete variableSpace;
+    delete block;
 }
 
 
 //////////////////////////////////////////////////////////////////////
 TEST_F(DeclarableOpsTests, Avgpool2d1) {
 
-	NDArray<float> x('c', {bS,iD,iH,iW});
+	auto x = new NDArray<float>('c', {bS,iD,iH,iW});
 	NDArray<float> exp('c',{bS,iD,oH,oW});
 	// NDArray<float> z('c',{bS,iD,oH,oW});
 
 	VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &x);
+    variableSpace->putVariable(-1, x);
 	// variableSpace->putVariable(1, &z);
 
 	Context<float>* block = new Context<float>(1, variableSpace, false);
@@ -1934,18 +1965,22 @@ TEST_F(DeclarableOpsTests, Avgpool2d1) {
 	
 	NDArray<float>* result = variableSpace->getVariable(block->getNodeId())->getNDArray();
     ASSERT_TRUE(exp.isSameShape(result));
+
+
+    delete variableSpace;
+    delete block;
 }
 
 
 //////////////////////////////////////////////////////////////////////
 TEST_F(DeclarableOpsTests, Pnormpool2d1) {
 
-	NDArray<float> x('c', {bS,iD,iH,iW});
+	auto x = new NDArray<float>('c', {bS,iD,iH,iW});
 	NDArray<float> exp('c',{bS,iD,oH,oW});
 	// NDArray<float> z('c',{bS,iD,oH,oW});
 
 	VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &x);
+    variableSpace->putVariable(-1, x);
 	// variableSpace->putVariable(1, &z);
 
 	Context<float>* block = new Context<float>(1, variableSpace, false);
@@ -1959,6 +1994,9 @@ TEST_F(DeclarableOpsTests, Pnormpool2d1) {
 	
 	NDArray<float>* result = variableSpace->getVariable(block->getNodeId())->getNDArray();
     ASSERT_TRUE(exp.isSameShape(result));
+
+    delete variableSpace;
+    delete block;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -1968,11 +2006,11 @@ TEST_F(DeclarableOpsTests, IsMax1) {
 	int xShape[]    = {2,3,3,3,1,0,1,99};
 	float expBuff[] = {0,0,1,0,0,1,0,0,1};
 
-	NDArray<float> x(xBuff, xShape);	
+	auto x = new NDArray<float>(xBuff, xShape);
 	NDArray<float> exp(expBuff, xShape);	
 
 	VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &x);
+    variableSpace->putVariable(-1, x);
 
 	Context<float>* block = new Context<float>(1, variableSpace, false);
     block->fillInputs({-1});
@@ -1985,17 +2023,20 @@ TEST_F(DeclarableOpsTests, IsMax1) {
 	
 	NDArray<float>* result = variableSpace->getVariable(block->getNodeId())->getNDArray();	
     ASSERT_TRUE(exp.equalsTo(result));
+
+    delete variableSpace;
+    delete block;
 }
 
 //////////////////////////////////////////////////////////////////////
 TEST_F(DeclarableOpsTests, Pooling2d1) {
 
-	NDArray<float> x('c', {bS,iD,iH,iW});
+	auto x = new NDArray<float>('c', {bS,iD,iH,iW});
 	NDArray<float> exp('c',{bS,iD,oH,oW});
 	// NDArray<float> z('c',{bS,iD,oH,oW});
 
 	VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &x);
+    variableSpace->putVariable(-1, x);
 	// variableSpace->putVariable(1, &z);
 
 	Context<float>* block = new Context<float>(1, variableSpace, false);
@@ -2010,18 +2051,21 @@ TEST_F(DeclarableOpsTests, Pooling2d1) {
 	
 	NDArray<float>* result = variableSpace->getVariable(block->getNodeId())->getNDArray();
     ASSERT_TRUE(exp.isSameShape(result));
+
+    delete variableSpace;
+    delete block;
 }
 
 //////////////////////////////////////////////////////////////////////
 TEST_F(DeclarableOpsTests, MaxPool2d_bp1) {
 
-	NDArray<float> input  ('c', {bS,iD,iH,iW});
-	NDArray<float> epsilon('c', {bS,iD,oH,oW});
+	auto input = new NDArray<float>('c', {bS,iD,iH,iW});
+	auto epsilon = new NDArray<float>('c', {bS,iD,oH,oW});
 	NDArray<float> exp    ('c', {bS,iD,iH,iW});
 	
 	VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &input);
-	variableSpace->putVariable(-2, &epsilon);
+    variableSpace->putVariable(-1, input);
+	variableSpace->putVariable(-2, epsilon);
 	// variableSpace->putVariable(1, &z);
 
 	Context<float>* block = new Context<float>(1, variableSpace, false);
@@ -2037,18 +2081,20 @@ TEST_F(DeclarableOpsTests, MaxPool2d_bp1) {
 	NDArray<float>* result = variableSpace->getVariable(block->getNodeId())->getNDArray();
     ASSERT_TRUE(exp.isSameShape(result));
 
+    delete variableSpace;
+    delete block;
 }
 
 //////////////////////////////////////////////////////////////////////
 TEST_F(DeclarableOpsTests, AvgPool2dBP) {
 
-	NDArray<float> input  ('c', {bS,iD,iH,iW});
-	NDArray<float> epsilon('c', {bS,iD,oH,oW});
+	auto input = new NDArray<float>('c', {bS,iD,iH,iW});
+	auto epsilon = new NDArray<float>('c', {bS,iD,oH,oW});
 	NDArray<float> exp    ('c', {bS,iD,iH,iW});
 	
 	VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &input);
-	variableSpace->putVariable(-2, &epsilon);
+    variableSpace->putVariable(-1, input);
+	variableSpace->putVariable(-2, epsilon);
 	// variableSpace->putVariable(1, &z);
 
 	Context<float>* block = new Context<float>(1, variableSpace, false);
@@ -2064,18 +2110,20 @@ TEST_F(DeclarableOpsTests, AvgPool2dBP) {
 	NDArray<float>* result = variableSpace->getVariable(block->getNodeId())->getNDArray();
     ASSERT_TRUE(exp.isSameShape(result));
 
+    delete variableSpace;
+    delete block;
 }
 
 //////////////////////////////////////////////////////////////////////
 TEST_F(DeclarableOpsTests, PnormPool2dBP) {
 
-	NDArray<float> input  ('c', {bS,iD,iH,iW});
-	NDArray<float> epsilon('c', {bS,iD,oH,oW});
+	auto input = new NDArray<float>('c', {bS,iD,iH,iW});
+	auto epsilon = new NDArray<float>('c', {bS,iD,oH,oW});
 	NDArray<float> exp    ('c', {bS,iD,iH,iW});
 	
 	VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &input);
-	variableSpace->putVariable(-2, &epsilon);
+    variableSpace->putVariable(-1, input);
+	variableSpace->putVariable(-2, epsilon);
 	// variableSpace->putVariable(1, &z);
 
 	Context<float>* block = new Context<float>(1, variableSpace, false);
@@ -2093,6 +2141,8 @@ TEST_F(DeclarableOpsTests, PnormPool2dBP) {
 	NDArray<float>* result = variableSpace->getVariable(block->getNodeId())->getNDArray();
     ASSERT_TRUE(exp.isSameShape(result));
 
+    delete variableSpace;
+    delete block;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -2157,24 +2207,32 @@ TEST_F(DeclarableOpsTests, BatchNorm2D) {
     const float g = 2.;
     const float b = 1.;
     const float decay = 1.;
-    NDArray<float> input('c', {bS, K});
-    NDArray<float> gamma('c', {1, K});
-    NDArray<float> beta ('c', {1, K});
+    auto input = new NDArray<float>('c', {bS, K});
+    auto gamma = new NDArray<float>('c', {1, K});
+    auto beta = new NDArray<float>('c', {1, K});
     NDArray<float> xHat ('c', {bS, K});    
-    NDArray<float> globalMeanView('c', {1, K});
-    NDArray<float> globalVarView('c', {1, K});
-    NDArray<float> output('c', {bS, K});
+    auto globalMeanView = new NDArray<float>('c', {1, K});
+    auto globalVarView = new NDArray<float>('c', {1, K});
+    auto output = new NDArray<float>('c', {bS, K});
     NDArray<float> outExpected('c', {bS, K});
-    input(0,0)=1;input(0,1)=2;input(0,2)=3;input(0,3)=4;input(1,0)=5;input(1,1)=6;input(1,2)=7;input(1,3)=8;
-    gamma.assign(1);
+    (*input)(0,0)=1;
+    (*input)(0,1)=2;
+    (*input)(0,2)=3;
+    (*input)(0,3)=4;
+    (*input)(1,0)=5;
+    (*input)(1,1)=6;
+    (*input)(1,2)=7;
+    (*input)(1,3)=8;
+
+    gamma->assign(1);
 
     VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &input);
-    variableSpace->putVariable(-2, &globalMeanView);
-    variableSpace->putVariable(-3, &globalVarView);
-    variableSpace->putVariable(-4, &gamma);
-    variableSpace->putVariable(-5, &beta);
-    variableSpace->putVariable(1, &output);
+    variableSpace->putVariable(-1, input);
+    variableSpace->putVariable(-2, globalMeanView);
+    variableSpace->putVariable(-3, globalVarView);
+    variableSpace->putVariable(-4, gamma);
+    variableSpace->putVariable(-5, beta);
+    variableSpace->putVariable(1, output);
     
 
     Context<float>* block = new Context<float>(1, variableSpace, false);
@@ -2184,15 +2242,15 @@ TEST_F(DeclarableOpsTests, BatchNorm2D) {
     *argI = {training, isLockGammaBeta, isMinibatch};  
     *argT = {eps, g, b, decay};  
     
-    NDArray<float>* mean = input.template reduceAlongDimension<simdOps::Mean<float>>({0});        
-    NDArray<float>* var  = input.template varianceAlongDimension<simdOps::SummaryStatsVariance<float>>(false, {0});
+    NDArray<float>* mean = input->template reduceAlongDimension<simdOps::Mean<float>>({0});
+    NDArray<float>* var  = input->template varianceAlongDimension<simdOps::SummaryStatsVariance<float>>(false, {0});
     var->template applyScalar<simdOps::Add<float>>(eps, nullptr);
     NDArray<float>* std = new NDArray<float>(var->getShapeInfo());
     var->template applyTransform<simdOps::Sqrt<float>>(std, nullptr);            
-    input.subRowVector(mean, &xHat);    
+    input->subRowVector(mean, &xHat);
     xHat.divRowVector(std, &xHat);    
-    xHat.mulRowVector(&gamma, &outExpected);
-    outExpected.addRowVector(&beta, &outExpected);
+    xHat.mulRowVector(gamma, &outExpected);
+    outExpected.addRowVector(beta, &outExpected);
 
     nd4j::ops::batchnorm<float> batchnorm;
     Nd4jStatus status = batchnorm.execute(block);
@@ -2204,6 +2262,9 @@ TEST_F(DeclarableOpsTests, BatchNorm2D) {
     delete mean;
     delete var;
     delete std;
+
+    delete variableSpace;
+    delete block;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -2220,25 +2281,25 @@ TEST_F(DeclarableOpsTests, BatchNorm4D) {
     const float g = 2.;
     const float b = 3.;
     const float decay = 1.;
-    NDArray<float> input('c', {bS, iD, iH, iW});
-    NDArray<float> gamma('c', {1, iD});
-    NDArray<float> beta ('c', {1, iD});
-    gamma.assign(1.);
-    nd4j::NDArrayFactory<float>::linspace(1.,input);   
+    auto input = new NDArray<float>('c', {bS, iD, iH, iW});
+    auto gamma = new NDArray<float>('c', {1, iD});
+    auto beta = new NDArray<float>('c', {1, iD});
+    gamma->assign(1.);
+    nd4j::NDArrayFactory<float>::linspace(1., *input);
 
-    NDArray<float> xHat ('c', {bS, iD, iH, iW});    
-    NDArray<float> globalMeanView('c', {1, iD});
-    NDArray<float> globalVarView('c', {1, iD});
-    NDArray<float> output('c', {bS, iD, iH, iW});
+    NDArray<float> xHat ('c', {bS, iD, iH, iW});
+    auto globalMeanView = new NDArray<float>('c', {1, iD});
+    auto globalVarView = new NDArray<float>('c', {1, iD});
+    auto output = new NDArray<float>('c', {bS, iD, iH, iW});
     NDArray<float> outExpected('c', {bS, iD, iH, iW});    
 
     VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &input);
-    variableSpace->putVariable(-2, &globalMeanView);
-    variableSpace->putVariable(-3, &globalVarView);
-    variableSpace->putVariable(-4, &gamma);
-    variableSpace->putVariable(-5, &beta);
-    variableSpace->putVariable(1, &output);    
+    variableSpace->putVariable(-1, input);
+    variableSpace->putVariable(-2, globalMeanView);
+    variableSpace->putVariable(-3, globalVarView);
+    variableSpace->putVariable(-4, gamma);
+    variableSpace->putVariable(-5, beta);
+    variableSpace->putVariable(1, output);
 
     Context<float>* block = new Context<float>(1, variableSpace, false);
     block->fillInputs({-1,-2,-3,-4,-5});    
@@ -2247,14 +2308,14 @@ TEST_F(DeclarableOpsTests, BatchNorm4D) {
     *argI = {training, isLockGammaBeta, isMinibatch};  
     *argT = {eps, g, b, decay};  
     
-    NDArray<float>* mean = input.template reduceAlongDimension<simdOps::Mean<float>>({0,2,3});        
-    NDArray<float>* var  = input.template varianceAlongDimension<simdOps::SummaryStatsVariance<float>>(false, {0,2,3});
+    NDArray<float>* mean = input->template reduceAlongDimension<simdOps::Mean<float>>({0,2,3});
+    NDArray<float>* var  = input->template varianceAlongDimension<simdOps::SummaryStatsVariance<float>>(false, {0,2,3});
     var->template applyScalar<simdOps::Add<float>>(eps, nullptr);
     var->template applyTransform<simdOps::Sqrt<float>>(var, nullptr);            
-    input.template applyBroadcast<simdOps::Subtract<float>>({1}, mean, &xHat, nullptr);
+    input->template applyBroadcast<simdOps::Subtract<float>>({1}, mean, &xHat, nullptr);
     xHat.template applyBroadcast<simdOps::Divide<float>>({1}, var, &xHat, nullptr);
-    xHat.template applyBroadcast<simdOps::Multiply<float>>({1}, &gamma, &outExpected, nullptr);                
-    outExpected.template applyBroadcast<simdOps::Add<float>>({1}, &beta, &outExpected, nullptr);
+    xHat.template applyBroadcast<simdOps::Multiply<float>>({1}, gamma, &outExpected, nullptr);
+    outExpected.template applyBroadcast<simdOps::Add<float>>({1}, beta, &outExpected, nullptr);
 
     nd4j::ops::batchnorm<float> batchnorm;
     Nd4jStatus status = batchnorm.execute(block);
@@ -2265,6 +2326,9 @@ TEST_F(DeclarableOpsTests, BatchNorm4D) {
 
     delete mean;
     delete var;
+
+    delete variableSpace;
+    delete block;
 }
 
     
@@ -2366,6 +2430,9 @@ TEST_F(DeclarableOpsTests, BatchNorm2D_BP) {
     delete dldinExp;
     delete xHat;
     delete std;
+
+    delete variableSpace;
+    delete block;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -2473,6 +2540,8 @@ TEST_F(DeclarableOpsTests, BatchNorm4D_BP) {
     delete xHat;
     delete std;
     delete block;
+
+    delete variableSpace;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -2788,6 +2857,8 @@ TEST_F(DeclarableOpsTests, Maxpool2d_bp2) {
 
     ASSERT_TRUE(expected.isSameShape(output));
     ASSERT_TRUE(expected.equalsTo(output));
+
+    delete results;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -2817,6 +2888,8 @@ TEST_F(DeclarableOpsTests, Avgpool2d_bp2) {
 
     ASSERT_TRUE(expected.isSameShape(output));
     ASSERT_TRUE(expected.equalsTo(output));
+
+    delete results;
 }
 
 TEST_F(DeclarableOpsTests, ArgMax1) {
@@ -2997,6 +3070,8 @@ TEST_F(DeclarableOpsTests, Stack_1) {
     ASSERT_TRUE(expected.isSameShapeStrict(output));
     ASSERT_TRUE(expected.equalsTo(output));
 
+    delete results;
+
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -3020,6 +3095,7 @@ TEST_F(DeclarableOpsTests, Stack_2) {
     ASSERT_TRUE(expected.isSameShapeStrict(output));
     ASSERT_TRUE(expected.equalsTo(output));
 
+    delete results;
 }
 
 
@@ -3044,6 +3120,7 @@ TEST_F(DeclarableOpsTests, Stack_3) {
     ASSERT_TRUE(expected.isSameShapeStrict(output));
     ASSERT_TRUE(expected.equalsTo(output));
 
+    delete results;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -3067,6 +3144,7 @@ TEST_F(DeclarableOpsTests, Stack_4) {
     ASSERT_TRUE(expected.isSameShapeStrict(output));
     ASSERT_TRUE(expected.equalsTo(output));
 
+    delete results;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -3090,6 +3168,7 @@ TEST_F(DeclarableOpsTests, Stack_5) {
     ASSERT_TRUE(expected.isSameShapeStrict(output));
     ASSERT_TRUE(expected.equalsTo(output));
 
+    delete results;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -3113,6 +3192,7 @@ TEST_F(DeclarableOpsTests, Stack_6) {
     ASSERT_TRUE(expected.isSameShapeStrict(output));
     ASSERT_TRUE(expected.equalsTo(output));
 
+    delete results;
 }
 
 TEST_F(DeclarableOpsTests, Test_Range_Integer_1) {

@@ -19,6 +19,7 @@ namespace  nd4j {
     private:
         std::vector<nd4j::NDArray<T> *> _content;
         Nd4jStatus _status = ND4J_STATUS_OK;
+        bool _removable = true;
 
     public:
         // default constructor
@@ -32,6 +33,7 @@ namespace  nd4j {
         Nd4jStatus status();
         void setStatus(Nd4jStatus status);
         void purge();
+        void setNonRemovable();
     };
 }
 
