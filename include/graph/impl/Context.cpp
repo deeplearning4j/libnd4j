@@ -252,7 +252,38 @@ namespace nd4j {
 
         template <typename T>
         void Context<T>::pushNDArrayToVariableSpace(std::pair<int, int> &pair, NDArray<T> *array) {
+            if (!_variableSpace->hasVariable(pair)) {
+                auto var = new Variable<T>(array, nullptr, pair.first, pair.second);
+                _variableSpace->putVariable(pair, var);
+                var->markRemovable(true);
+            } else {
+                auto var = _variableSpace->getVariable(pair);
+                if (var->isRemovable() && var->getNDArray() != nullptr)
+                    delete var->getNDArray();
 
+                var->setNDArray(array);
+                var->markRemovable(true);
+            }
+        }
+
+        template <typename T>
+        void Context<T>::pushNDArrayListToVariableSpace(int nodeId, int index, NDArrayList<T>* list) {
+            std::pair<int,int> pair(nodeId, index);
+            pushNDArrayListToVariableSpace(pair, list);
+        }
+        
+        template <typename T>
+        void Context<T>::pushNDArrayListToVariableSpace(std::pair<int, int>& pair, NDArrayList<T>* list) {
+            if (!_variableSpace->hasVariable(pair)) {
+                auto var = new Variable<T>(nullptr, nullptr, pair.first, pair.second);
+                var->setNDArrayList(list);
+                _variableSpace->putVariable(pair, var);
+            } else {
+                auto var = _variableSpace->getVariable(pair);
+                var->setNDArrayList(list);
+            }
+
+            _variableSpace->trackList(list);
         }
 
 

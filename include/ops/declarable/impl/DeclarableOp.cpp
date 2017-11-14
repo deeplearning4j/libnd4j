@@ -302,6 +302,8 @@ namespace nd4j {
 
         template <typename T>
         void DeclarableOp<T>::overwriteResult(Context<T> &block, int outputIdx, NDArray<T> *array) {
+            block.pushNDArrayToVariableSpace(block.nodeId(), outputIdx, array);
+            /*
             auto varSpace = block.getVariableSpace();
             if (varSpace->hasVariable(block.getNodeId(), outputIdx)) {
                 auto var = varSpace->getVariable(block.getNodeId(), outputIdx);
@@ -314,10 +316,13 @@ namespace nd4j {
                 auto var = new Variable<T>(array, nullptr, block.getNodeId(), outputIdx);
                 varSpace->putVariable(block.getNodeId(), outputIdx, var);
             }
+            */
         }
 
         template <typename T>
         void DeclarableOp<T>::overwriteResult(Context<T> &block, int outputIdx, NDArrayList<T> *list) {
+            block.pushNDArrayListToVariableSpace(block.nodeId(), outputIdx, list);
+            /*
             auto varSpace = block.getVariableSpace();
             if (varSpace->hasVariable(block.getNodeId(), outputIdx)) {
                 auto var = varSpace->getVariable(block.getNodeId(), outputIdx);
@@ -327,6 +332,7 @@ namespace nd4j {
                 var->setNDArrayList(list);
                 varSpace->putVariable(block.getNodeId(), outputIdx, var);
             }
+            */
         }
 
         template <typename T>

@@ -144,6 +144,9 @@ namespace nd4j {
 
             void pushNDArrayToVariableSpace(int nodeId, int index, NDArray<T>* array);
             void pushNDArrayToVariableSpace(std::pair<int, int>& pair, NDArray<T>* array);
+
+            void pushNDArrayListToVariableSpace(int nodeId, int index, NDArrayList<T>* list);
+            void pushNDArrayListToVariableSpace(std::pair<int, int>& pair, NDArrayList<T>* list);
         };
     }
 }
