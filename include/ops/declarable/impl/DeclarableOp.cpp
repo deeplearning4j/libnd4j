@@ -75,15 +75,15 @@ namespace nd4j {
 
 
         template <typename T>
-        nd4j::NDArray<T>* nd4j::ops::DeclarableOp<T>::getZ(Context<T>& block, int inputId) {
+        nd4j::NDArray<T>* nd4j::ops::DeclarableOp<T>::getZ(Context<T>& ctx, int inputId) {
             NDArray<T>* z = nullptr;
 
-            if (block.isInplace()) {
-                z = block.variable(inputId)->getNDArray();
-            } else if (!block.isInplace()) {
-                std::pair<int, int> pair(block.getNodeId(), inputId);
+            if (ctx.isInplace()) {
+                z = ctx.variable(inputId)->getNDArray();
+            } else if (!ctx.isInplace()) {
+                std::pair<int, int> pair(ctx.nodeId(), inputId);
 
-                auto var = block.variable(pair);
+                auto var = ctx.variable(pair);
                 if (var->getNDArray() != nullptr && var->getNDArray()->nonNull()) {
                     z = var->getNDArray();
                 } else {
@@ -131,9 +131,13 @@ namespace nd4j {
                     // we need to check, if Z is really needed
                     std::pair<int, int> pair(ctx.nodeId(), cnt++);
 
-                    auto outArr = new NDArray<T>(out, workspace);
+                    if (!ctx.isValueAvailable(pair.second)) {
+                        auto outArr = new NDArray<T>(out, workspace);
 
-                    ctx.pushNDArrayToVariableSpace(pair, outArr);
+                        ctx.pushNDArrayToVariableSpace(pair, outArr);
+                    } else {
+                        // TODO: validate/compare shapes here. existent vs provided in outSha
+                    }
                 }
 
                 outSha->destroy();
@@ -158,7 +162,7 @@ namespace nd4j {
                 nd4j_debug("node_%i:%i result length: [%i]; mean [%f]\n", ctx.nodeId(), outputNumber, (int) array.lengthOf(), (float) mean);
             }
 
-            ctx.pushNDArrayToVariableSpace(ctx.nodeId(), outputNumber, &array);
+            ctx.pushNDArrayToVariableSpace(ctx.nodeId(), outputNumber, &array, !ctx.isInplace());
         }
 
 

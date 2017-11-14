@@ -1359,6 +1359,15 @@ TEST_F(DeclarableOpsTests, TestLegacyExecution1) {
 	ASSERT_NEAR(2.0, y->meanNumber(), 1e-5);
 	ASSERT_NEAR(1.0, x->meanNumber(), 1e-5);
 	ASSERT_NEAR(3.0, z->meanNumber(), 1e-5);
+
+    delete x;
+    delete y;
+    delete z;
+    delete exp;
+    delete[] inputBuffers;
+    delete[] inputShapes;
+    delete[] outputBuffers;
+    delete[] outputShapes;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -1396,6 +1405,16 @@ TEST_F(DeclarableOpsTests, TestLegacyExecution2) {
 
     ASSERT_NEAR(2.0, y->meanNumber(), 1e-5);
     ASSERT_NEAR(3.0, x->meanNumber(), 1e-5);
+
+
+    delete x;
+    delete y;
+    delete z;
+    delete exp;
+    delete[] inputBuffers;
+    delete[] inputShapes;
+    delete[] outputBuffers;
+    delete[] outputShapes;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -1843,13 +1862,13 @@ TEST_F(DeclarableOpsTests, Sum1) {
 
 	const std::vector<int> dimensions = {1,0};
 
-	NDArray<float> x(xBuff, xShape);
-	NDArray<float> z(1, 2);
+	auto x = new NDArray<float>(xBuff, xShape);
+	auto z = new NDArray<float>(1, 2, 'c');
 	NDArray<float> exp(expBuff, expShape);
 
 	VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &x);
-	variableSpace->putVariable(1, &z);
+    variableSpace->putVariable(-1, x);
+	variableSpace->putVariable(1, z);
 
 	Context<float>* block = new Context<float>(1, variableSpace, false);  // not-in-place
     block->fillInputs({-1});
@@ -1858,9 +1877,14 @@ TEST_F(DeclarableOpsTests, Sum1) {
 
 	nd4j::ops::sum<float> sum;
 	Nd4jStatus status = sum.execute(block);
+
 	NDArray<float>* result = variableSpace->getVariable(block->getNodeId())->getNDArray();
+
 	ASSERT_EQ(ND4J_STATUS_OK, status);
 	ASSERT_TRUE(result->equalsTo(&exp));
+
+    delete block;
+    delete variableSpace;
 }
 
 //////////////////////////////////////////////////////////////////////

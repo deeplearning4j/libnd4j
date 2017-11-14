@@ -273,24 +273,24 @@ namespace nd4j {
 
 
         template <typename T>
-        void Context<T>::pushNDArrayToVariableSpace(int nodeId, int index, NDArray<T> *array) {
+        void Context<T>::pushNDArrayToVariableSpace(int nodeId, int index, NDArray<T> *array, bool removable) {
             std::pair<int,int> pair(nodeId, index);
-            pushNDArrayToVariableSpace(pair, array);
+            pushNDArrayToVariableSpace(pair, array, removable);
         }
 
         template <typename T>
-        void Context<T>::pushNDArrayToVariableSpace(std::pair<int, int> &pair, NDArray<T> *array) {
+        void Context<T>::pushNDArrayToVariableSpace(std::pair<int, int> &pair, NDArray<T> *array, bool removable) {
             if (!_variableSpace->hasVariable(pair)) {
                 auto var = new Variable<T>(array, nullptr, pair.first, pair.second);
                 _variableSpace->putVariable(pair, var);
-                var->markRemovable(true);
+                var->markRemovable(removable);
             } else {
                 auto var = _variableSpace->getVariable(pair);
                 if (var->isRemovable() && var->getNDArray() != nullptr && var->getNDArray() != array)
                     delete var->getNDArray();
 
                 var->setNDArray(array);
-                var->markRemovable(true);
+                var->markRemovable(removable);
             }
         }
 
@@ -324,6 +324,19 @@ namespace nd4j {
             } else {
                 return _variableSpace->getVariable(pair);
             }
+        }
+
+        template <typename T>
+        bool Context<T>::isValueAvailable(int idx) {
+            auto var = ensureVariable(idx);
+
+            if (var->variableType() == VariableType::NDARRAY) {
+                return var->getNDArray() != nullptr;
+            } else if (var->variableType() == VariableType::ARRAY_LIST) {
+                return var->getNDArrayList() != nullptr;
+            }
+
+            return false;
         }
 
 

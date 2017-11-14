@@ -641,8 +641,10 @@ template <typename T>
         std::vector<int> copy(dimensions);
 
         int* newShape = ShapeUtils<T>::evalReduceShapeInfo('c', copy, *this);
-        if(!shape::shapeEquals(newShape, target->getShapeInfo()))
-            throw "NDArray::reduceAlongDimension method: wrong target shape !";
+        if(!shape::shapeEquals(newShape, target->getShapeInfo())) {
+            nd4j_printf("NDArray::reduceAlongDimension method: wrong target shape!\n", "");
+            throw "NDArray::reduceAlongDimension method: wrong target shape!";
+        }
         RELEASE(newShape, _workspace);
 
         if(rankOf() == copy.size())

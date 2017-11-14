@@ -23,7 +23,7 @@ endif()
 
 # -fsanitize=address
 # -fsanitize=leak
-set(CMAKE_CXX_FLAGS  " -fPIC -std=c++11 -fassociative-math -funsafe-math-optimizations -fmax-errors=2 -fsanitize=leak")
+set(CMAKE_CXX_FLAGS  " -fPIC -std=c++11 -fassociative-math -funsafe-math-optimizations -fmax-errors=2 -fsanitize=address")
 
 
 if (APPLE)

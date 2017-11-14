@@ -31,6 +31,7 @@ namespace  nd4j {
 
         Nd4jStatus status();
         void setStatus(Nd4jStatus status);
+        void purge();
     };
 }
 

@@ -184,3 +184,37 @@ TEST_F(ContextTests, Basic_Test_7) {
     ASSERT_TRUE(v0 == z0);
     ASSERT_TRUE(v1 == z1);
 }
+
+TEST_F(ContextTests, Basic_Test_8) {
+    VariableSpace<float> variableSpace;
+
+    Context<float> ctx(1, &variableSpace);
+
+    auto _10 = new NDArray<float>('c', {2, 2});
+    NDArrayFactory<float>::linspace(1, *_10);
+
+    auto _11 = new NDArray<float>('c', {2, 2});
+    NDArrayFactory<float>::linspace(10, *_11);
+
+    ctx.pushNDArrayToVariableSpace(1, 0, _10);
+    ctx.pushNDArrayToVariableSpace(1, 1, _11);
+
+    auto z0 = variableSpace.getVariable(1, 0);
+    auto z1 = variableSpace.getVariable(1, 1);
+
+    auto v0 = ctx.ensureVariable();
+    auto v1 = ctx.ensureVariable(1);
+
+    ASSERT_TRUE(v0 == z0);
+    ASSERT_TRUE(v1 == z1);
+}
+
+
+TEST_F(ContextTests, Basic_Test_9) {
+    VariableSpace<float> variableSpace;
+
+    NDArray<float> in('c', {5, 5});
+
+    Context<float> ctx(1, &variableSpace, true);
+    ctx.pushNDArrayToVariableSpace(1, 1, &in, false);
+}

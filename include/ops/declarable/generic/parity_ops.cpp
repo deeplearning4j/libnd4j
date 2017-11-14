@@ -807,23 +807,19 @@ namespace nd4j {
         }
 
 		//////////////////////////////////////////////////////////////////////////
-		CONFIGURABLE_OP_IMPL(sum, 1, 1, false, 0, -1) {
+		REDUCTION_OP_IMPL(sum, 1, 1, false, 0, -1) {
 
 			std::vector<int> argI = *(block.getIArguments());
 			std::vector<int> argItrunc(argI.size()-1);
 			for(int i=0; i< (int) argItrunc.size(); ++i)
-				argItrunc[i] = argI[i+1];	
-			NDArray<T>* x = INPUT_VARIABLE(0);
-			NDArray<T> *z = this->getZ(block);
+				argItrunc[i] = argI[i+1];
 
-			if((argItrunc.size()==1 && argItrunc[0]==INT_MAX) || argItrunc.size()==0) {
-				z->putScalar(0, 0, x->template reduceNumber<simdOps::Sum<T>>(nullptr));
-				STORE_RESULT(*z);
-			}
-			else {
-				z = x->template reduceAlongDimension<simdOps::Sum<T>>(argItrunc);
-				STORE_RESULT(*z);
-			}
+			auto x = INPUT_VARIABLE(0);
+			auto z = OUTPUT_VARIABLE(0);
+
+            nd4j_printv("argi", argItrunc);
+
+            x->template reduceAlongDimension<simdOps::Sum<T>>(z, argItrunc);
 
 			return ND4J_STATUS_OK;
 		}

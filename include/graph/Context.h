@@ -155,12 +155,13 @@ namespace nd4j {
             void setOpNum(int opNum);
 
 
-            void pushNDArrayToVariableSpace(int nodeId, int index, NDArray<T>* array);
-            void pushNDArrayToVariableSpace(std::pair<int, int>& pair, NDArray<T>* array);
+            void pushNDArrayToVariableSpace(int nodeId, int index, NDArray<T>* array, bool removable = true);
+            void pushNDArrayToVariableSpace(std::pair<int, int>& pair, NDArray<T>* array, bool removable = true);
 
             void pushNDArrayListToVariableSpace(int nodeId, int index, NDArrayList<T>* list);
             void pushNDArrayListToVariableSpace(std::pair<int, int>& pair, NDArrayList<T>* list);
 
+            bool isValueAvailable(int idx = 0);
 
             Variable<T>* ensureVariable(int idx = 0);
         };

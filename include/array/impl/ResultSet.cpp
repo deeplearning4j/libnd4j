@@ -63,6 +63,11 @@ namespace nd4j {
         _status = status;
     }
 
+    template <typename T>
+    void ResultSet<T>::purge() {
+        _content.clear();
+    }
+
     template class ND4J_EXPORT ResultSet<float>;
     template class ND4J_EXPORT ResultSet<float16>;
     template class ND4J_EXPORT ResultSet<double>;
