@@ -481,6 +481,15 @@ namespace nd4j {
         // multiplication operator array*scalar
         void operator*=(const T scalar);
 
+        // division operator array1/array2
+        NDArray<T> operator/(const NDArray<T>& other) const;        
+
+        // division operator array1 /= array2
+        void operator/=(const NDArray<T>& other);
+
+        // division operator array*scalar
+        void operator/=(const T scalar);
+
         // mathematical multiplication of two arrays
         friend NDArray<T> mmul<>(const NDArray<T>& left, const NDArray<T>& right);
 

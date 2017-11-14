@@ -661,6 +661,24 @@ TEST_F(NDArrayTest, TestTile5) {
 }
 
 //////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest, TestTile6)
+{
+    double expBuff[] = {10.,11., 10.,11., 10.,11., 10.,11., 12.,13., 12.,13., 12.,13., 12.,13., 14.,15., 14.,15., 14.,15., 14.,15.};
+
+    NDArray<double> x('c', {3, 1, 2});    
+    NDArray<double> expected(expBuff, 'c', {3, 4, 2});
+
+    NDArrayFactory<double>::linspace(10, x);    
+
+    NDArray<double> result = x.tile({1,4,1});
+    result.printBuffer();
+
+    ASSERT_TRUE(expected.isSameShape(&result));
+    ASSERT_TRUE(expected.equalsTo(&result));
+}
+
+
+//////////////////////////////////////////////////////////////////////
 TEST_F(NDArrayTest, TestMmulHelper1) {
     auto xBuffer = new float[3]{1.f, 2.f, 3.f};
     auto xShape = new int[8] {2, 1, 3, 1, 1, 0, 1, 99};
@@ -1672,7 +1690,7 @@ TEST_F(NDArrayTest, TestMatmMul_Again_2) {
 }
 
 //////////////////////////////////////////////////////////////////////
-TEST_F(NDArrayTest, Oerator_Plus_Test_1)
+TEST_F(NDArrayTest, Operator_Plus_Test_1)
 {
     double expBuff[] = {2., 3, 3., 4., 4., 5, 5., 6., 6., 7, 7., 8.};
 
@@ -1691,7 +1709,7 @@ TEST_F(NDArrayTest, Oerator_Plus_Test_1)
 
 
 //////////////////////////////////////////////////////////////////////
-TEST_F(NDArrayTest, Oerator_Plus_Test_2)
+TEST_F(NDArrayTest, Operator_Plus_Test_2)
 {
     double expBuff[] = {2., 3, 3., 4., 4., 5, 5., 6., 6., 7, 7., 8.};
 
@@ -1711,7 +1729,7 @@ TEST_F(NDArrayTest, Oerator_Plus_Test_2)
 
 
 //////////////////////////////////////////////////////////////////////
-TEST_F(NDArrayTest, Oerator_Plus_Test_3)
+TEST_F(NDArrayTest, Operator_Plus_Test_3)
 {
     double expBuff[] = {2., 3, 3., 4., 4., 5, 5., 6., 6., 7, 7., 8.};
 
@@ -1728,4 +1746,381 @@ TEST_F(NDArrayTest, Oerator_Plus_Test_3)
     ASSERT_TRUE(expected.equalsTo(&result));
 }
 
+//////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest, Operator_Plus_Test_4)
+{
+    double expBuff[] = {11.,12., 12.,13., 13.,14., 14.,15., 13.,14., 14.,15., 15.,16., 16.,17., 15.,16., 16.,17., 17.,18., 18.,19.};
+
+    NDArray<double> x('c', {3, 1, 2});
+    NDArray<double> y('c',    {4, 1});
+    NDArray<double> expected(expBuff, 'c', {3, 4, 2});
+
+    NDArrayFactory<double>::linspace(10, x);
+    NDArrayFactory<double>::linspace(1, y);
+
+    NDArray<double> result = x + y;
+    
+    ASSERT_TRUE(expected.isSameShape(&result));
+    ASSERT_TRUE(expected.equalsTo(&result));
+}
  
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest, Operator_Minus_Test_1)
+{
+    double expBuff[] = {9. ,10., 10.,11., 11.,12., 12.,13., 17.,18., 18.,19., 19.,20., 20.,21., 25.,26., 26.,27., 27.,28., 28.,29.};
+
+    NDArray<double> x('c', {3, 4, 2});
+    NDArray<double> y('c',    {4, 1});
+    NDArray<double> expected(expBuff, 'c', {3, 4, 2});
+
+    NDArrayFactory<double>::linspace(10, x);
+    NDArrayFactory<double>::linspace(1, y);
+
+    NDArray<double> result = x - y;
+
+    ASSERT_TRUE(expected.isSameShape(&result));
+    ASSERT_TRUE(expected.equalsTo(&result));
+}
+
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest, Operator_Minus_Test_2)
+{
+    double expBuff[] = {9., 8., 7., 6., 6., 5., 4., 3., 11.,10., 9., 8., 8., 7., 6., 5., 13.,12.,11.,10., 10., 9., 8., 7.};
+
+    NDArray<double> x('c', {3, 2, 1});
+    NDArray<double> y('c', {1, 2, 4});
+    NDArray<double> expected(expBuff, 'c', {3, 2, 4});
+
+    NDArrayFactory<double>::linspace(10, x);
+    NDArrayFactory<double>::linspace(1, y);
+
+    NDArray<double> result = x - y;
+    
+    ASSERT_TRUE(expected.isSameShape(&result));
+    ASSERT_TRUE(expected.equalsTo(&result));
+}
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest, Operator_Minus_Test_3)
+{
+    double expBuff[] = {9., 8., 7., 6., 6., 5., 4., 3., 11.,10., 9., 8., 8., 7., 6., 5., 13.,12.,11.,10., 10., 9., 8., 7.};
+
+    NDArray<double> x('c', {3, 2, 1});
+    NDArray<double> y('c', {2, 4});
+    NDArray<double> expected(expBuff, 'c', {3, 2, 4});
+
+    NDArrayFactory<double>::linspace(10, x);
+    NDArrayFactory<double>::linspace(1, y);
+
+    NDArray<double> result = x - y;
+    
+    ASSERT_TRUE(expected.isSameShape(&result));
+    ASSERT_TRUE(expected.equalsTo(&result));
+}
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest, Operator_Minus_Test_4)
+{
+    double expBuff[] = {9.,10., 8., 9., 11.,12.,10.,11., 13.,14.,12.,13.};
+
+    NDArray<double> x('c', {3, 1, 2});
+    NDArray<double> y('c',    {2, 1});
+    NDArray<double> expected(expBuff, 'c', {3, 2, 2});
+
+    NDArrayFactory<double>::linspace(10, x);
+    NDArrayFactory<double>::linspace(1, y);
+
+    NDArray<double> result = x - y;
+    
+    ASSERT_TRUE(expected.isSameShape(&result));
+    ASSERT_TRUE(expected.equalsTo(&result));
+}
+
+ 
+//////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest, Operator_Minus_Test_5)
+{
+    double expBuff[] = {9. ,8 ,10., 9., 11.,10, 12.,11., 13.,12, 14.,13.};
+
+    NDArray<double> x('c', {3, 2, 1});
+    NDArray<double> y('c',    {1, 2});
+    NDArray<double> expected(expBuff, 'c', {3, 2, 2});
+
+    NDArrayFactory<double>::linspace(10, x);
+    NDArrayFactory<double>::linspace(1, y);
+
+    NDArray<double> result = x - y;    
+
+    ASSERT_TRUE(expected.isSameShape(&result));
+    ASSERT_TRUE(expected.equalsTo(&result));
+}
+
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest, Operator_Minus_Test_6)
+{
+    double expBuff[] = {9., 8, 10., 9, 11.,10, 12.,11., 13.,12, 14.,13, 15.,14, 16.,15., 17.,16, 18.,17, 19.,18, 20.,19.};
+
+    NDArray<double> x('c', {3, 4, 1});
+    NDArray<double> y('c', {1, 1, 2});
+    NDArray<double> expected(expBuff, 'c', {3, 4, 2});
+
+    NDArrayFactory<double>::linspace(10, x);
+    NDArrayFactory<double>::linspace(1, y);
+
+    NDArray<double> result = x - y;    
+
+    ASSERT_TRUE(expected.isSameShape(&result));
+    ASSERT_TRUE(expected.equalsTo(&result));
+}
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest, Operator_Multiply_Test_1)
+{
+    double expBuff[] = {10., 11., 24., 26., 42., 45., 64., 68., 18., 19., 40., 42., 66., 69., 96.,100., 26., 27., 56., 58., 90., 93., 128.,132.};
+
+    NDArray<double> x('c', {3, 4, 2});
+    NDArray<double> y('c',    {4, 1});
+    NDArray<double> expected(expBuff, 'c', {3, 4, 2});
+
+    NDArrayFactory<double>::linspace(10, x);
+    NDArrayFactory<double>::linspace(1, y);
+
+    NDArray<double> result = x * y;
+
+    ASSERT_TRUE(expected.isSameShape(&result));
+    ASSERT_TRUE(expected.equalsTo(&result));
+}
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest, Operator_Multiply_Test_2)
+{
+    double expBuff[] = {10.,20., 30., 40., 55.,66., 77., 88., 12.,24., 36., 48., 65.,78., 91.,104., 14.,28., 42., 56., 75.,90.,105.,120.};
+
+    NDArray<double> x('c', {3, 2, 1});
+    NDArray<double> y('c', {1, 2, 4});
+    NDArray<double> expected(expBuff, 'c', {3, 2, 4});
+
+    NDArrayFactory<double>::linspace(10, x);
+    NDArrayFactory<double>::linspace(1, y);
+
+    NDArray<double> result = x * y;
+    
+    ASSERT_TRUE(expected.isSameShape(&result));
+    ASSERT_TRUE(expected.equalsTo(&result));
+}
+
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest, Operator_Multiply_Test_3)
+{
+    double expBuff[] = {10.,20., 30., 40.,55.,66., 77., 88., 12.,24., 36., 48.,65.,78., 91.,104., 14.,28., 42., 56.,75.,90.,105.,120.};
+
+    NDArray<double> x('c', {3, 2, 1});
+    NDArray<double> y('c', {2, 4});
+    NDArray<double> expected(expBuff, 'c', {3, 2, 4});
+
+    NDArrayFactory<double>::linspace(10, x);
+    NDArrayFactory<double>::linspace(1, y);
+
+    NDArray<double> result = x * y;
+    
+    ASSERT_TRUE(expected.isSameShape(&result));
+    ASSERT_TRUE(expected.equalsTo(&result));
+}
+
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest, Operator_Multiply_Test_4)
+{
+    double expBuff[] = {10.,11.,20.,22., 12.,13.,24.,26., 14.,15.,28.,30.};
+
+    NDArray<double> x('c', {3, 1, 2});
+    NDArray<double> y('c',    {2, 1});
+    NDArray<double> expected(expBuff, 'c', {3, 2, 2});
+
+    NDArrayFactory<double>::linspace(10, x);
+    NDArrayFactory<double>::linspace(1, y);
+
+    NDArray<double> result = x * y;
+    
+    ASSERT_TRUE(expected.isSameShape(&result));
+    ASSERT_TRUE(expected.equalsTo(&result));
+}
+
+
+ 
+//////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest, Operator_Multiply_Test_5)
+{
+    double expBuff[] = {10.,20.,11.,22., 12.,24.,13.,26., 14.,28.,15.,30.};
+
+    NDArray<double> x('c', {3, 2, 1});
+    NDArray<double> y('c',    {1, 2});
+    NDArray<double> expected(expBuff, 'c', {3, 2, 2});
+
+    NDArrayFactory<double>::linspace(10, x);
+    NDArrayFactory<double>::linspace(1, y);
+
+    NDArray<double> result = x * y;    
+
+    ASSERT_TRUE(expected.isSameShape(&result));
+    ASSERT_TRUE(expected.equalsTo(&result));
+}
+
+
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest, Operator_Multiply_Test_6)
+{
+    double expBuff[] = {10,11.,12.,13.,28.,30.,32.,34.,54.,57.,60.,63.};
+
+    NDArray<double> x('c', {3, 4, 1});
+    NDArray<double> y('c', {3, 1, 1});
+    NDArray<double> expected(expBuff, 'c', {3, 4, 1});
+
+    NDArrayFactory<double>::linspace(10, x);
+    NDArrayFactory<double>::linspace(1, y);
+
+    NDArray<double> result = x * y;    
+
+    ASSERT_TRUE(expected.isSameShape(&result));
+    ASSERT_TRUE(expected.equalsTo(&result));
+}
+
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest, Operator_Divide_Test_1)
+{
+    double expBuff[] = {10.    ,11.    , 6.    , 6.5   , 4.6666, 5.    , 4.    , 4.25  , 18.    ,19.    , 10.    ,10.5   , 7.3333, 7.6666, 6.    , 6.25  , 26.    ,27.    , 14.    ,14.5   , 10.    ,10.3333, 8.    , 8.25};
+
+    NDArray<double> x('c', {3, 4, 2});
+    NDArray<double> y('c',    {4, 1});
+    NDArray<double> expected(expBuff, 'c', {3, 4, 2});
+
+    NDArrayFactory<double>::linspace(10, x);
+    NDArrayFactory<double>::linspace(1, y);
+
+    NDArray<double> result = x / y;
+
+    ASSERT_TRUE(expected.isSameShape(&result));
+    ASSERT_TRUE(expected.equalsTo(&result));
+}
+
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest, Operator_Divide_Test_2)
+{
+    double expBuff[] = {10. ,5.     ,3.333333,2.5  , 2.2,1.83333,1.571428,1.375, 12. ,6.     ,4.      ,3.   , 2.6,2.16666,1.857142,1.625, 14. ,7.     ,4.666666,3.5  , 3. ,2.5    ,2.142857,1.875};
+
+    NDArray<double> x('c', {3, 2, 1});
+    NDArray<double> y('c', {1, 2, 4});
+    NDArray<double> expected(expBuff, 'c', {3, 2, 4});
+
+    NDArrayFactory<double>::linspace(10, x);
+    NDArrayFactory<double>::linspace(1, y);
+
+    NDArray<double> result = x / y;
+    
+    ASSERT_TRUE(expected.isSameShape(&result));
+    ASSERT_TRUE(expected.equalsTo(&result));
+}
+
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest, Operator_Divide_Test_3)
+{
+    double expBuff[] = {10. ,5.      ,3.333333,2.5  , 2.2,1.833333,1.571428,1.375, 12. ,6.      ,4.      ,3.   , 2.6,2.166666,1.857142,1.625, 14. ,7.      ,4.666666,3.5  , 3. ,2.5     ,2.142857,1.875};
+
+    NDArray<double> x('c', {3, 2, 1});
+    NDArray<double> y('c', {2, 4});
+    NDArray<double> expected(expBuff, 'c', {3, 2, 4});
+
+    NDArrayFactory<double>::linspace(10, x);
+    NDArrayFactory<double>::linspace(1, y);
+
+    NDArray<double> result = x / y;
+    
+    ASSERT_TRUE(expected.isSameShape(&result));
+    ASSERT_TRUE(expected.equalsTo(&result));
+}
+
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest, Operator_Divide_Test_4)
+{
+    double expBuff[] = {10.,11., 5., 5.5, 12.,13., 6., 6.5, 14.,15., 7., 7.5};
+
+    NDArray<double> x('c', {3, 1, 2});
+    NDArray<double> y('c',    {2, 1});
+    NDArray<double> expected(expBuff, 'c', {3, 2, 2});
+
+    NDArrayFactory<double>::linspace(10, x);
+    NDArrayFactory<double>::linspace(1, y);
+
+    NDArray<double> result = x / y;
+    
+    ASSERT_TRUE(expected.isSameShape(&result));
+    ASSERT_TRUE(expected.equalsTo(&result));
+}
+
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest, Operator_Divide_Test_5)
+{
+    double expBuff[] = {10.,5., 11.,5.5, 12.,6., 13.,6.5, 14.,7., 15.,7.5};
+
+    NDArray<double> x('c', {3, 2, 1});
+    NDArray<double> y('c',    {1, 2});
+    NDArray<double> expected(expBuff, 'c', {3, 2, 2});
+
+    NDArrayFactory<double>::linspace(10, x);
+    NDArrayFactory<double>::linspace(1, y);
+
+    NDArray<double> result = x / y;    
+
+    ASSERT_TRUE(expected.isSameShape(&result));
+    ASSERT_TRUE(expected.equalsTo(&result));
+}
+
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest, Operator_Divide_Test_6)
+{
+    double expBuff[] = {10.      , 5.5     , 4.      , 3.25    ,14.      , 7.5     , 5.333333, 4.25    ,18.      , 9.5     , 6.666666, 5.25};
+
+    NDArray<double> x('c', {3, 4, 1});
+    NDArray<double> y('c', {1, 4, 1});
+    NDArray<double> expected(expBuff, 'c', {3, 4, 1});
+
+    NDArrayFactory<double>::linspace(10, x);
+    NDArrayFactory<double>::linspace(1, y);
+
+    NDArray<double> result = x / y;    
+
+    ASSERT_TRUE(expected.isSameShape(&result));
+    ASSERT_TRUE(expected.equalsTo(&result));
+}
+
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest, Operator_Divide_Test_7)
+{
+    double expBuff[] = {10., 5. ,3.333333,2.5 ,11., 5.5,3.666666,2.75,12., 6. ,4.      ,3.  ,13., 6.5,4.333333,3.25, 14., 7. ,4.666666,3.5 ,15., 7.5,5.      ,3.75,16., 8. ,5.333333,4.  ,17., 8.5,5.666666,4.25, 18., 9. ,6.      ,4.5 ,19., 9.5,6.333333,4.75,20.,10. ,6.666666,5.  ,21.,10.5,7.      ,5.25};
+
+    NDArray<double> x('c', {3, 4, 1});
+    NDArray<double> y('c', {1, 1, 4});
+    NDArray<double> expected(expBuff, 'c', {3, 4, 4});
+
+    NDArrayFactory<double>::linspace(10, x);
+    NDArrayFactory<double>::linspace(1, y);
+
+    NDArray<double> result = x / y;    
+
+    ASSERT_TRUE(expected.isSameShape(&result));
+    ASSERT_TRUE(expected.equalsTo(&result));
+}
+
+

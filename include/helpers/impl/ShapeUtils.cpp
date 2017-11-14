@@ -316,24 +316,12 @@ int ShapeUtils<T>::getSubArrayIndex(const int* maxShapeInfo, const int* minShape
         throw "ShapeUtils::getSubArrayIndex: rank of max-array must greater or equal to min-array rank !";
     bool isConsistent = true;
     for(int i = 0; i < minShapeInfo[0]; ++i)
-        if(maxShapeInfo[maxShapeInfo[0] - i] < minShapeInfo[minShapeInfo[0] - i] || maxShapeInfo[maxShapeInfo[0] - i] % minShapeInfo[minShapeInfo[0] - i] != 0)
+        if(maxShapeInfo[maxShapeInfo[0] - i] < minShapeInfo[minShapeInfo[0] - i])
             isConsistent = false;
     if(!isConsistent)
         throw "ShapeUtils::getSubArrayIndex: some of dimension shape of max-array is smaller than those of min-array or the max shape is not multiple of min shape !";
 
-    int idxPerRank[maxShapeInfo[0]];
-    shape::ind2subC(maxShapeInfo[0], const_cast<int*>(maxShapeInfo)+1, const_cast<int&>(maxIdx), idxPerRank);    
-
-    int minIdx = 0;
-    for(int i = 0; i < minShapeInfo[0]; ++i) {
-        if(minShapeInfo[minShapeInfo[0] - i] == 1 || idxPerRank[maxShapeInfo[0] - i - 1] == 0)
-            continue;
-        if(idxPerRank[maxShapeInfo[0] - i - 1] >= minShapeInfo[minShapeInfo[0] - i])
-            idxPerRank[maxShapeInfo[0] - i - 1] %= minShapeInfo[minShapeInfo[0] - i];
-        minIdx += idxPerRank[maxShapeInfo[0] - i - 1] * shape::stride(const_cast<int*>(minShapeInfo))[minShapeInfo[0] - i - 1];
-    }
-    
-    return minIdx;
+    return shape::subArrayIndex(maxShapeInfo, minShapeInfo, maxIdx);
 }
 
 //////////////////////////////////////////////////////////////////////////

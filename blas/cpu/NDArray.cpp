@@ -1439,23 +1439,24 @@ void NDArray<T>::tilei(const std::vector<int>& reps) {
 template <typename T>
 NDArray<T> NDArray<T>::tile(const std::vector<int>& reps) const {
     
-    // int dim = reps.size();  
-    // int product = 1;
-    // for(const auto& item : reps)
-    //     product *= item;
-    // if(product == 0)
-    //     throw "NDArray::tile method: one of the elements in reps array is zero !";
-    // int rankOld = rankOf();
-    // int diff = rankOld - dim;
-    // if(product==1) {        // in this case 2 possibilities are present: just reshape or nothing to do
-    //     NDArray<T> result(*this);
-    //     if(diff < 0) {      // reshape to higher dimension          
-    //         std::vector<int> shapeNew = reps;               // need to have unities at first "diff" positions of new shape
-    //         memcpy(&shapeNew[-diff], result._shapeInfo+1, rankOld*sizeof(int));   // put old shape numbers at rest of positions
-    //         result.reshapei(ordering(), shapeNew);
-    //     }       
-    //     return result;             // nothing to do, if diff >= 0 -> identity tile 
-    // }   
+    int dim = reps.size();  
+    int product = 1;
+    for(const auto& item : reps)
+        product *= item;
+    if(product == 0)
+        throw "NDArray::tile method: one of the elements in reps array is zero !";
+
+    int rankOld = rankOf();
+    int diff = rankOld - dim;
+    if(product==1) {        // in this case 2 possibilities are present: just reshape or nothing to do
+        NDArray<T> result(*this);
+        if(diff < 0) {      // reshape to higher dimension          
+            std::vector<int> shapeNew = reps;               // need to have unities at first "diff" positions of new shape
+            memcpy(&shapeNew[-diff], result._shapeInfo+1, rankOld*sizeof(int));   // put old shape numbers at rest of positions
+            result.reshapei(ordering(), shapeNew);
+        }       
+        return result;             // nothing to do, if diff >= 0 -> identity tile 
+    }   
     
     // evaluate shapeInfo for resulting array
     int* newShapeInfo = ShapeUtils<T>::evalTileShapeInfo(*this, reps);    
@@ -1470,7 +1471,9 @@ NDArray<T> NDArray<T>::tile(const std::vector<int>& reps) const {
     // fill newBuff, loop through all elements of newBuff 
     // looping through _buffer goes automatically by means of getSubArrayIndex applying
     for(int i=0;  i<result.lengthOf(); ++i)        
-        result.putIndexedScalar(i, this->getIndexedScalar(ShapeUtils<T>::getSubArrayIndex(result._shapeInfo, _shapeInfo, i)));
+        result.putIndexedScalar(i, this->getIndexedScalar(shape::subArrayIndex(result._shapeInfo, _shapeInfo, i)));
+        // result(i) = this->getIndexedScalar(shape::subArrayIndex(result._shapeInfo, _shapeInfo, i));
+        // result(i) = (*this)(shape::subArrayIndex(result._shapeInfo, _shapeInfo, i));
               
     return result;
     
@@ -1704,23 +1707,37 @@ NDArray<T> NDArray<T>::applyTrueBroadcast(const NDArray<T>& other, T *extraArgs)
         min = this;
     }
 
-    int* newShapeInfo = ShapeUtils<T>::evalBroadcastShapeInfo(max, min);          // the rank of new array = this->rankOf)()
+    int* newShapeInfo = ShapeUtils<T>::evalBroadcastShapeInfo(max, min);          // the rank of new array = max->rankOf)()
     NDArray<T> result(newShapeInfo, _workspace);
-    delete newShapeInfo;
-
-    std::vector<int> sameDims = ShapeUtils<T>::getDimsWithSameShape(max, min);
-        
-    if(!sameDims.empty())            
-        const_cast<NDArray<T>*>(max)->template applyBroadcast<OpName>(sameDims, min, &result, extraArgs);
-    else{
+    delete newShapeInfo;    
+    
+    // check whether min array have to be tiled        
+    if(!max->isSameShape(&result)) {            
         // evaluate repeating dimensions for tile operation
-        std::vector<int> repeat(max->rankOf());
+        std::vector<int> repeatMax(max->rankOf());
         for(int i = 1; i <= max->rankOf(); ++i)
-            repeat[i-1] = (result._shapeInfo[i] / max->_shapeInfo[i]);
-        this->tile(repeat, result);
+            repeatMax[i-1] = (result._shapeInfo[i] / max->_shapeInfo[i]);
+        max->tile(repeatMax, result);
+    }
+    else 
+        result.assign(max);
 
-        sameDims = ShapeUtils<T>::getDimsWithSameShape(&result, min);
-        result.template applyBroadcast<OpName>(sameDims, min, nullptr, extraArgs);        
+    // check whether min array have to be tiled
+    std::vector<int> repeatMin(min->rankOf());
+    int product = 1;
+    for(int i = min->rankOf(); i >=1 ; --i) {        
+        repeatMin[i-1] = (result._shapeInfo[result.rankOf() - min->rankOf() + i] / min->_shapeInfo[i]);
+        product *= repeatMin[i-1];        
+    }
+    
+    if(product != 1 ) {                    
+        NDArray<T> tiledMin = min->tile(repeatMin);        
+        std::vector<int> sameDims = ShapeUtils<T>::getDimsWithSameShape(&result, &tiledMin);
+        result.template applyBroadcast<OpName>(sameDims, &tiledMin, nullptr, extraArgs);
+    }
+    else {                    
+        std::vector<int> sameDims = ShapeUtils<T>::getDimsWithSameShape(&result, min);
+        result.template applyBroadcast<OpName>(sameDims, min, nullptr, extraArgs);
     }
 
     return result;
@@ -2453,13 +2470,14 @@ NDArray<T> NDArray<T>::operator+(const NDArray<T>& other) const {
     // subtraction operator array - array
     template<typename T>
     NDArray<T> NDArray<T>::operator-(const NDArray<T>& other) const {
-        if (other.lengthOf() != lengthOf())
-            throw std::invalid_argument("NDArray::operator- : lengths of arrays are mismatched !");
+        
+        if (other.lengthOf() == lengthOf()) {
+            NDArray<T> result(this->_shapeInfo, this->_workspace);
+            functions::pairwise_transforms::PairWiseTransform<T>::template exec<simdOps::Subtract<T>>(this->_buffer, this->_shapeInfo, other._buffer, other._shapeInfo, result._buffer, result._shapeInfo, nullptr);
+            return result;
+        }
 
-        NDArray<T> result(this->_shapeInfo, this->_workspace);
-        functions::pairwise_transforms::PairWiseTransform<T>::template exec<simdOps::Subtract<T>>(this->_buffer, this->_shapeInfo, other._buffer, other._shapeInfo, result._buffer, result._shapeInfo, nullptr);
-
-        return result;
+        return this->template applyTrueBroadcast<simdOps::Subtract<T>>(other);
     }
 
     ////////////////////////////////////////////////////////////////////////
@@ -2526,23 +2544,25 @@ NDArray<T> NDArray<T>::operator+(const NDArray<T>& other) const {
     // multiplication operator array*array
     template<typename T>
     NDArray<T> NDArray<T>::operator*(const NDArray<T>& other) const {
-        if (other.lengthOf() != lengthOf())
-            throw std::invalid_argument("NDArray::operator * method: lengths of arrays are mismatched !");
+        
+        if (other.lengthOf() == lengthOf()) {
+            NDArray<T> result(this->_shapeInfo, this->_workspace);
+            functions::pairwise_transforms::PairWiseTransform<T>::template exec<simdOps::Multiply<T>>(this->_buffer, this->_shapeInfo, other._buffer, other._shapeInfo, result._buffer, result._shapeInfo, nullptr);
+            return result;
+        }
 
-        NDArray<T> result(this->_shapeInfo, this->_workspace);
-        functions::pairwise_transforms::PairWiseTransform<T>::template exec<simdOps::Multiply<T>>(this->_buffer, this->_shapeInfo, other._buffer, other._shapeInfo, result._buffer, result._shapeInfo, nullptr);
-
-        return result;
+        return this->template applyTrueBroadcast<simdOps::Multiply<T>>(other);
     }
 
     ////////////////////////////////////////////////////////////////////////
     // multiplication operator array1 *= array2
     template<typename T>
     void NDArray<T>::operator*=(const NDArray<T>& other) {    
-        if (other.lengthOf() != lengthOf())
-            throw std::invalid_argument("NDArray::operator *= method: lengths of arrays are mismatched !");
-        
-        functions::pairwise_transforms::PairWiseTransform<T>::template exec<simdOps::Multiply<T>>(this->_buffer, this->_shapeInfo, other._buffer, other._shapeInfo, this->_buffer, this->_shapeInfo, nullptr);
+
+        if (other.lengthOf() == lengthOf())
+            functions::pairwise_transforms::PairWiseTransform<T>::template exec<simdOps::Multiply<T>>(this->_buffer, this->_shapeInfo, other._buffer, other._shapeInfo, this->_buffer, this->_shapeInfo, nullptr);
+        else
+            *this = this->template applyTrueBroadcast<simdOps::Multiply<T>>(other);
     }
 
     ////////////////////////////////////////////////////////////////////////
@@ -2551,6 +2571,40 @@ NDArray<T> NDArray<T>::operator+(const NDArray<T>& other) const {
     void NDArray<T>::operator*=(const T scalar) {
         
         functions::scalar::ScalarTransform<T>::template transform<simdOps::Multiply<T>>(this->_buffer, this->_shapeInfo, this->_buffer, this->_shapeInfo, scalar, nullptr);
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////
+    // division operator array/array
+    template<typename T>
+    NDArray<T> NDArray<T>::operator/(const NDArray<T>& other) const {
+        
+        if (other.lengthOf() == lengthOf()) {
+            NDArray<T> result(this->_shapeInfo, this->_workspace);
+            functions::pairwise_transforms::PairWiseTransform<T>::template exec<simdOps::Divide<T>>(this->_buffer, this->_shapeInfo, other._buffer, other._shapeInfo, result._buffer, result._shapeInfo, nullptr);
+            return result;
+        }
+
+        return this->template applyTrueBroadcast<simdOps::Divide<T>>(other);
+    }
+
+    ////////////////////////////////////////////////////////////////////////
+    // division operator array1 /= array2
+    template<typename T>
+    void NDArray<T>::operator/=(const NDArray<T>& other) {    
+
+        if (other.lengthOf() == lengthOf())
+            functions::pairwise_transforms::PairWiseTransform<T>::template exec<simdOps::Divide<T>>(this->_buffer, this->_shapeInfo, other._buffer, other._shapeInfo, this->_buffer, this->_shapeInfo, nullptr);
+        else
+            *this = this->template applyTrueBroadcast<simdOps::Divide<T>>(other);
+    }
+
+    ////////////////////////////////////////////////////////////////////////
+    // division operator array/scalar
+    template<typename T>
+    void NDArray<T>::operator/=(const T scalar) {
+        
+        functions::scalar::ScalarTransform<T>::template transform<simdOps::Divide<T>>(this->_buffer, this->_shapeInfo, this->_buffer, this->_shapeInfo, scalar, nullptr);
     }
 
     ////////////////////////////////////////////////////////////////////////
