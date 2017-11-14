@@ -3,7 +3,7 @@
 //
 
 #include "testlayers.h"
-#include <Block.h>
+#include <Context.h>
 #include <iomanip>
 #include <Variable.h>
 #include <VariableSpace.h>
@@ -69,7 +69,7 @@ TEST_F(DeclarableOpsTests, BasicInitialization1) {
 
     variableSpace->putVariable(1, nodeVar);
 
-    Block<float> block(1, variableSpace);
+    Context<float> block(1, variableSpace);
     block.getIArguments()->push_back(1);
     block.fillInputs({-1, -2, -3, -4, -5});
 
@@ -144,7 +144,7 @@ TEST_F(DeclarableOpsTests, TestTensorMmul1) {
     variableSpace->putVariable(-1, &x);
     variableSpace->putVariable(-2, &y);
     variableSpace->putVariable(1, new Variable<float>());
-    Block<float>* block = new Block<float>(1, variableSpace, false);
+    Context<float>* block = new Context<float>(1, variableSpace, false);
     block->fillInputs({-1, -2}); 
     block->getIArguments()->push_back(2);
     block->getIArguments()->push_back(1);
@@ -183,7 +183,7 @@ TEST_F(DeclarableOpsTests, TestTensorDot2) {
     variableSpace->putVariable(-1, &x);
     variableSpace->putVariable(-2, &y);
     variableSpace->putVariable(1, new Variable<float>());
-    Block<float>* block = new Block<float>(1, variableSpace, false);
+    Context<float>* block = new Context<float>(1, variableSpace, false);
     block->fillInputs({-1, -2});
     block->getIArguments()->push_back(2);
     block->getIArguments()->push_back(1);
@@ -222,7 +222,7 @@ TEST_F(DeclarableOpsTests, TestTensorDot3) {
     variableSpace->putVariable(-1, &x);
     variableSpace->putVariable(-2, &y);
     variableSpace->putVariable(1, new Variable<float>());
-    Block<float>* block = new Block<float>(1, variableSpace, false);
+    Context<float>* block = new Context<float>(1, variableSpace, false);
     block->fillInputs({-1, -2});
     block->getIArguments()->push_back(2);
     block->getIArguments()->push_back(1);
@@ -261,7 +261,7 @@ TEST_F(DeclarableOpsTests, TestTensorDot4) {
     variableSpace->putVariable(-1, &x);
     variableSpace->putVariable(-2, &y);
     variableSpace->putVariable(1, new Variable<float>());
-    Block<float>* block = new Block<float>(1, variableSpace, false);
+    Context<float>* block = new Context<float>(1, variableSpace, false);
     block->fillInputs({-1, -2});
     block->getIArguments()->push_back(2);
     block->getIArguments()->push_back(1);
@@ -305,7 +305,7 @@ TEST_F(DeclarableOpsTests, AddMatrices1) {
 	VariableSpace<float>* variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, &x);
     variableSpace->putVariable(-2, &y);
-	Block<float>* block = new Block<float>(1, variableSpace, true);
+	Context<float>* block = new Context<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
 	nd4j::ops::add<float> addOp;
@@ -329,7 +329,7 @@ TEST_F(DeclarableOpsTests, AddMatrixVector1) {
 	VariableSpace<float>* variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, &x);
     variableSpace->putVariable(-2, &y);
-	Block<float>* block = new Block<float>(1, variableSpace, true);
+	Context<float>* block = new Context<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
 	nd4j::ops::add<float> addOp;
@@ -352,7 +352,7 @@ TEST_F(DeclarableOpsTests, AddVectorVector1) {
 	VariableSpace<float>* variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, &x);
     variableSpace->putVariable(-2, &y);
-	Block<float>* block = new Block<float>(1, variableSpace, true);
+	Context<float>* block = new Context<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
 	nd4j::ops::add<float> addOp;
@@ -375,7 +375,7 @@ TEST_F(DeclarableOpsTests, AddMatrixScalar1) {
 	VariableSpace<float>* variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, &x);
     variableSpace->putVariable(-2, &y);
-	Block<float>* block = new Block<float>(1, variableSpace, true);
+	Context<float>* block = new Context<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
 	nd4j::ops::add<float> addOp;
@@ -398,7 +398,7 @@ TEST_F(DeclarableOpsTests, AddScalarScalar1) {
 	VariableSpace<float>* variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, &x);
     variableSpace->putVariable(-2, &y);
-	Block<float>* block = new Block<float>(1, variableSpace, true);
+	Context<float>* block = new Context<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
 	nd4j::ops::add<float> addOp;
@@ -421,7 +421,7 @@ TEST_F(DeclarableOpsTests, SubtractMatrices1) {
 	VariableSpace<float>* variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, &x);
     variableSpace->putVariable(-2, &y);
-	Block<float>* block = new Block<float>(1, variableSpace, true);
+	Context<float>* block = new Context<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
 	nd4j::ops::subtract<float> subOp;
@@ -445,7 +445,7 @@ TEST_F(DeclarableOpsTests, TestRng1) {
     NDArray<float> x(5, 3, 'c');
     VariableSpace<float>* variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, &x);
-    Block<float>* block = new Block<float>(1, variableSpace, true);
+    Context<float>* block = new Context<float>(1, variableSpace, true);
     block->fillInputs({-1});
     block->setRNG(rng);
     block->getTArguments()->push_back(0.0f);
@@ -476,7 +476,7 @@ TEST_F(DeclarableOpsTests, SubtractMatrixVector1) {
 	VariableSpace<float>* variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, &x);
     variableSpace->putVariable(-2, &y);
-	Block<float>* block = new Block<float>(1, variableSpace, true);
+	Context<float>* block = new Context<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
 	nd4j::ops::subtract<float> subOp;
@@ -505,7 +505,7 @@ TEST_F(DeclarableOpsTests, MergeSumTest1) {
     variableSpace->putVariable(-2, &y);
     variableSpace->putVariable(-3, &z);
     variableSpace->putVariable(1, new Variable<float>(new NDArray<float>(5,5,'c')));
-    Block<float>* block = new Block<float>(1, variableSpace, false);
+    Context<float>* block = new Context<float>(1, variableSpace, false);
     block->fillInputs({-1, -2, -3});
 
     nd4j::ops::mergeadd<float> merge;
@@ -535,7 +535,7 @@ TEST_F(DeclarableOpsTests, ClipByValue1) {
     VariableSpace<float>* variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, &x);
     variableSpace->putVariable(1, new Variable<float>());
-    Block<float>* block = new Block<float>(1, variableSpace, true);
+    Context<float>* block = new Context<float>(1, variableSpace, true);
     block->getTArguments()->push_back(0.0f);
     block->getTArguments()->push_back(3.0f);
     block->fillInputs({-1});
@@ -568,7 +568,7 @@ TEST_F(DeclarableOpsTests, MergeMaxTest1) {
     variableSpace->putVariable(-2, &y);
     variableSpace->putVariable(-3, &z);
     variableSpace->putVariable(1, new Variable<float>(new NDArray<float>(5,5,'c')));
-    Block<float>* block = new Block<float>(1, variableSpace, false);
+    Context<float>* block = new Context<float>(1, variableSpace, false);
     block->fillInputs({-1, -2, -3});
 
     nd4j::ops::mergemax<float> merge;
@@ -596,7 +596,7 @@ TEST_F(DeclarableOpsTests, SubtractVectorVector1) {
 	VariableSpace<float>* variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, &x);
     variableSpace->putVariable(-2, &y);
-	Block<float>* block = new Block<float>(1, variableSpace, true);
+	Context<float>* block = new Context<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
 	nd4j::ops::subtract<float> subOp;
@@ -621,7 +621,7 @@ TEST_F(DeclarableOpsTests, SubtractMatrixScalar1) {
 	VariableSpace<float>* variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, &x);
     variableSpace->putVariable(-2, &y);
-	Block<float>* block = new Block<float>(1, variableSpace, true);
+	Context<float>* block = new Context<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
 	nd4j::ops::subtract<float> subOp;
@@ -645,7 +645,7 @@ TEST_F(DeclarableOpsTests, SubtractScalarScalar1) {
 	auto variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, &x);
     variableSpace->putVariable(-2, &y);
-	auto block = new Block<float>(1, variableSpace, true);
+	auto block = new Context<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
 	nd4j::ops::subtract<float> subOp;
@@ -668,7 +668,7 @@ TEST_F(DeclarableOpsTests, ReverseSubtractMatrices1) {
 	auto variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, x);
     variableSpace->putVariable(-2, y);
-	auto block = new Block<float>(1, variableSpace, true);
+	auto block = new Context<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
 	nd4j::ops::reversesubtract<float> subOp;
@@ -694,7 +694,7 @@ TEST_F(DeclarableOpsTests, ReverseSubtractMatrixVector1) {
 	auto variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, x);
     variableSpace->putVariable(-2, y);
-	auto block = new Block<float>(1, variableSpace, true);
+	auto block = new Context<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
 	nd4j::ops::reversesubtract<float> subOp;
@@ -721,7 +721,7 @@ TEST_F(DeclarableOpsTests, ReverseSubtractVectorVector1) {
 	auto variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, x);
     variableSpace->putVariable(-2, y);
-	auto block = new Block<float>(1, variableSpace, true);
+	auto block = new Context<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
 	nd4j::ops::reversesubtract<float> subOp;
@@ -749,7 +749,7 @@ TEST_F(DeclarableOpsTests, ReverseSubtractMatrixScalar1) {
 	auto variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, x);
     variableSpace->putVariable(-2, y);
-    auto block = new Block<float>(1, variableSpace, true);
+    auto block = new Context<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
 	nd4j::ops::reversesubtract<float> subOp;
@@ -777,7 +777,7 @@ TEST_F(DeclarableOpsTests, ReverseSubtractScalarScalar1) {
 	auto variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, x);
     variableSpace->putVariable(-2, y);
-	auto block = new Block<float>(1, variableSpace, true);
+	auto block = new Context<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
 	nd4j::ops::reversesubtract<float> subOp;
@@ -804,7 +804,7 @@ TEST_F(DeclarableOpsTests, MultiplyMatrices1) {
 	auto variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, x);
     variableSpace->putVariable(-2, y);
-    auto block = new Block<float>(1, variableSpace, true);
+    auto block = new Context<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
 	nd4j::ops::multiply<float> mul;
@@ -831,7 +831,7 @@ TEST_F(DeclarableOpsTests, MultiplyMatrixVector1) {
 	auto variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, x);
     variableSpace->putVariable(-2, y);
-	auto block = new Block<float>(1, variableSpace, true);
+	auto block = new Context<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
 	nd4j::ops::multiply<float> mul;
@@ -858,7 +858,7 @@ TEST_F(DeclarableOpsTests, MultiplyVectorVector1) {
 	auto variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, x);
     variableSpace->putVariable(-2, y);
-	auto block = new Block<float>(1, variableSpace, true);
+	auto block = new Context<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
 	nd4j::ops::multiply<float> mul;
@@ -885,7 +885,7 @@ TEST_F(DeclarableOpsTests, MultiplyMatrixScalar) {
 	auto variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, x);
     variableSpace->putVariable(-2, y);
-	auto block = new Block<float>(1, variableSpace, true);
+	auto block = new Context<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
 	nd4j::ops::multiply<float> mul;
@@ -912,7 +912,7 @@ TEST_F(DeclarableOpsTests, MultiplyScalarScalar1) {
 	auto variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, x);
     variableSpace->putVariable(-2, y);
-	auto block = new Block<float>(1, variableSpace, true);
+	auto block = new Context<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
 	nd4j::ops::multiply<float> mul;
@@ -947,7 +947,7 @@ TEST_F(DeclarableOpsTests, TestMatMul1) {
     variableSpace->putVariable(-2, y);
     variableSpace->putVariable(1, new Variable<float>());
 
-    auto block = new Block<float>(1, variableSpace, false);
+    auto block = new Context<float>(1, variableSpace, false);
     block->fillInputs({-1, -2});
 
     nd4j::ops::matmul<float> op;
@@ -994,7 +994,7 @@ TEST_F(DeclarableOpsTests, TestSoftMax_bp_1) {
     variableSpace->putVariable(1, output);
     //variableSpace->putVariable(42, exp);
 
-    auto block = new Block<double>(1, variableSpace, false);
+    auto block = new Context<double>(1, variableSpace, false);
     block->fillInputs({-1, -2});
 
     nd4j::ops::softmax_bp<double> op;
@@ -1023,7 +1023,7 @@ TEST_F(DeclarableOpsTests, DivideMatrices1) {
 	VariableSpace<float>* variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, x);
     variableSpace->putVariable(-2, y);
-	Block<float>* block = new Block<float>(1, variableSpace, true);
+	Context<float>* block = new Context<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
 	nd4j::ops::divide<float> div;
@@ -1050,7 +1050,7 @@ TEST_F(DeclarableOpsTests, DivideMatrixVector1) {
 	VariableSpace<float>* variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, x);
     variableSpace->putVariable(-2, y);
-	Block<float>* block = new Block<float>(1, variableSpace, true);
+	Context<float>* block = new Context<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
 	nd4j::ops::divide<float> div;
@@ -1076,7 +1076,7 @@ TEST_F(DeclarableOpsTests, DivideVectorVector1) {
 	VariableSpace<float>* variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, x);
     variableSpace->putVariable(-2, y);
-	Block<float>* block = new Block<float>(1, variableSpace, true);
+	Context<float>* block = new Context<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
 	nd4j::ops::divide<float> div;
@@ -1102,7 +1102,7 @@ TEST_F(DeclarableOpsTests, DivideMatrixScalar1) {
 	VariableSpace<float>* variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, &x);
     variableSpace->putVariable(-2, &y);
-	Block<float>* block = new Block<float>(1, variableSpace, true);
+	Context<float>* block = new Context<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
 	nd4j::ops::divide<float> div;
@@ -1126,7 +1126,7 @@ TEST_F(DeclarableOpsTests, DivideScalarScalar1) {
 	auto variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, x);
     variableSpace->putVariable(-2, y);
-	auto block = new Block<float>(1, variableSpace, true);
+	auto block = new Context<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
 	nd4j::ops::divide<float> div;
@@ -1153,7 +1153,7 @@ TEST_F(DeclarableOpsTests, ReverseDivideMatrices1) {
 	auto variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, x);
     variableSpace->putVariable(-2, y);
-	auto block = new Block<float>(1, variableSpace, true);
+	auto block = new Context<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
 	nd4j::ops::reversedivide<float> div;
@@ -1179,7 +1179,7 @@ TEST_F(DeclarableOpsTests, ReverseDivideMatrixVector1) {
 	auto variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, x);
     variableSpace->putVariable(-2, y);
-	auto block = new Block<float>(1, variableSpace, true);
+	auto block = new Context<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
 	nd4j::ops::reversedivide<float> div;
@@ -1205,7 +1205,7 @@ TEST_F(DeclarableOpsTests, ReverseDivideVectorVector1) {
 	auto variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, x);
     variableSpace->putVariable(-2, y);
-	auto block = new Block<float>(1, variableSpace, true);
+	auto block = new Context<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
 	nd4j::ops::reversedivide<float> div;
@@ -1231,7 +1231,7 @@ TEST_F(DeclarableOpsTests, ReverseDivideMatrixScalar1) {
 	auto variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, x);
     variableSpace->putVariable(-2, y);
-	auto block = new Block<float>(1, variableSpace, true);
+	auto block = new Context<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
 	nd4j::ops::reversedivide<float> div;
@@ -1257,7 +1257,7 @@ TEST_F(DeclarableOpsTests, ReverseDivideScalarScalar1) {
     auto variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, x);
     variableSpace->putVariable(-2, y);
-	auto block = new Block<float>(1, variableSpace, true);
+	auto block = new Context<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
 	nd4j::ops::reversedivide<float> div;
@@ -1282,7 +1282,7 @@ TEST_F(DeclarableOpsTests, Reshapeas1) {
     auto variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, x);
     variableSpace->putVariable(-2, y);
-    auto block = new Block<float>(1, variableSpace, true);
+    auto block = new Context<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
 	nd4j::ops::reshapeas<float> reshape;
@@ -1431,7 +1431,7 @@ TEST_F(DeclarableOpsTests, Reshape1) {
 	VariableSpace<float>* variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, &x);
     
-	Block<float>* block = new Block<float>(1, variableSpace, true);
+	Context<float>* block = new Context<float>(1, variableSpace, true);
     block->fillInputs({-1});	
 	std::vector<int>* arguments = block->getIArguments();
 	arguments->push_back(y.ordering());
@@ -1458,7 +1458,7 @@ TEST_F(DeclarableOpsTests, Reshape2) {
     variableSpace->putVariable(-1, &x);
 	variableSpace->putVariable(1, new Variable<float>());
     
-	Block<float>* block = new Block<float>(1, variableSpace, false);
+	Context<float>* block = new Context<float>(1, variableSpace, false);
     block->fillInputs({-1});	
 	std::vector<int>* arguments = block->getIArguments();
 	arguments->push_back(y.ordering());
@@ -1489,7 +1489,7 @@ TEST_F(DeclarableOpsTests, TestScatterUpdate1) {
     variableSpace->putVariable(-2, &updates);
     variableSpace->putVariable(1, new Variable<float>(&matrix));
 
-    Block<float>* block = new Block<float>(1, variableSpace, false);
+    Context<float>* block = new Context<float>(1, variableSpace, false);
     block->fillInputs({-1, -2});
 
     std::vector<int>* arguments = block->getIArguments();
@@ -1524,7 +1524,7 @@ TEST_F(DeclarableOpsTests, Repeat1) {
     variableSpace->putVariable(-1, &x);
 	variableSpace->putVariable(1, new Variable<float>());
 
-	Block<float>* block = new Block<float>(1, variableSpace, false);
+	Context<float>* block = new Context<float>(1, variableSpace, false);
     block->fillInputs({-1});	
 	std::vector<int>* arguments = block->getIArguments();	
 	*arguments = {2};			// set repeats
@@ -1548,7 +1548,7 @@ TEST_F(DeclarableOpsTests, Transpose1) {
 	VariableSpace<float>* variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, &x);
 
-	Block<float>* block = new Block<float>(1, variableSpace, true);  // in-place
+	Context<float>* block = new Context<float>(1, variableSpace, true);  // in-place
     block->fillInputs({-1});
 	nd4j::ops::transpose<float> transpose;
 
@@ -1573,7 +1573,7 @@ TEST_F(DeclarableOpsTests, Transpose2) {
     variableSpace->putVariable(-1, &x);
 	variableSpace->putVariable(1, new Variable<float>());
 
-	Block<float>* block = new Block<float>(1, variableSpace, false);  // not-in-place
+	Context<float>* block = new Context<float>(1, variableSpace, false);  // not-in-place
     block->fillInputs({-1});
 	nd4j::ops::transpose<float> transpose;
 
@@ -1603,7 +1603,7 @@ TEST_F(DeclarableOpsTests, Permute1) {
 	VariableSpace<float>* variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, &x);
 
-	Block<float>* block = new Block<float>(1, variableSpace, true);  // in-place
+	Context<float>* block = new Context<float>(1, variableSpace, true);  // in-place
     block->fillInputs({-1});
 	std::vector<int>* arguments = block->getIArguments();	
 	*arguments = perm;		// set dimensions to be permuted
@@ -1629,7 +1629,7 @@ TEST_F(DeclarableOpsTests, Permute2) {
     variableSpace->putVariable(-1, &x);
 	variableSpace->putVariable(1, new Variable<float>());
 
-	Block<float>* block = new Block<float>(1, variableSpace, false);  // not-in-place
+	Context<float>* block = new Context<float>(1, variableSpace, false);  // not-in-place
     block->fillInputs({-1});
 	std::vector<int>* arguments = block->getIArguments();	
 	*arguments = perm;		// set dimensions to be permuted
@@ -1654,7 +1654,7 @@ TEST_F(DeclarableOpsTests, TestArgumentsValidation1) {
     variableSpace->putVariable(-1, &x);
     variableSpace->putVariable(1, new Variable<float>());
 
-    Block<float>* block = new Block<float>(1, variableSpace, false);  // not-in-place
+    Context<float>* block = new Context<float>(1, variableSpace, false);  // not-in-place
     block->fillInputs({-1});
 
     nd4j::ops::permute<float> permute;
@@ -1682,7 +1682,7 @@ TEST_F(DeclarableOpsTests, Conv3D_ff_Test1) {
     variableSpace->putVariable(-3, &bias);
 
     variableSpace->putVariable(1, &output);
-    Block<float>* block = new Block<float>(1, variableSpace, false);  // not-in-place
+    Context<float>* block = new Context<float>(1, variableSpace, false);  // not-in-place
     block->fillInputs({-1, -2, -3});
 
     block->getIArguments()->push_back(1);
@@ -1709,7 +1709,7 @@ TEST_F(DeclarableOpsTests, TestReductionShape1) {
     VariableSpace<float>* variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, &input);
 
-    Block<float>* block = new Block<float>(1, variableSpace, false);  // not-in-place
+    Context<float>* block = new Context<float>(1, variableSpace, false);  // not-in-place
     block->fillInputs({-1});
 
     // kernel params
@@ -1731,7 +1731,7 @@ TEST_F(DeclarableOpsTests, TestReductionShape2) {
     VariableSpace<float>* variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, &input);
 
-    Block<float>* block = new Block<float>(1, variableSpace, false);  // not-in-place
+    Context<float>* block = new Context<float>(1, variableSpace, false);  // not-in-place
     block->fillInputs({-1});
 
     // kernel params
@@ -1757,7 +1757,7 @@ TEST_F(DeclarableOpsTests, TestCustomShape1) {
     VariableSpace<float>* variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, &input);
 
-    Block<float>* block = new Block<float>(1, variableSpace, false);  // not-in-place
+    Context<float>* block = new Context<float>(1, variableSpace, false);  // not-in-place
     block->fillInputs({-1});
 
     nd4j::ops::testcustom<float> test;
@@ -1793,7 +1793,7 @@ TEST_F(DeclarableOpsTests, DilatedMaxPool3D_ff_Test1) {
     variableSpace->putVariable(pair0, &output);
     variableSpace->putVariable(pair1, &indices);
 
-    Block<float>* block = new Block<float>(1, variableSpace, false);  // not-in-place
+    Context<float>* block = new Context<float>(1, variableSpace, false);  // not-in-place
     block->fillInputs({-1});
 
     // kernel params
@@ -1851,7 +1851,7 @@ TEST_F(DeclarableOpsTests, Sum1) {
     variableSpace->putVariable(-1, &x);
 	variableSpace->putVariable(1, &z);
 
-	Block<float>* block = new Block<float>(1, variableSpace, false);  // not-in-place
+	Context<float>* block = new Context<float>(1, variableSpace, false);  // not-in-place
     block->fillInputs({-1});
 	std::vector<int>* arguments = block->getIArguments();
 	*arguments = dimensions;
@@ -1874,7 +1874,7 @@ TEST_F(DeclarableOpsTests, Maxpool2d1) {
     variableSpace->putVariable(-1, &x);
 	// variableSpace->putVariable(1, &z);
 
-	Block<float>* block = new Block<float>(1, variableSpace, false);
+	Context<float>* block = new Context<float>(1, variableSpace, false);
     block->fillInputs({-1});
 	std::vector<int>* argI = block->getIArguments();
 	*argI = { kH,kW, sH,sW, pH,pW, dW,dH, 0};  // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8 - same mode;
@@ -1899,7 +1899,7 @@ TEST_F(DeclarableOpsTests, Avgpool2d1) {
     variableSpace->putVariable(-1, &x);
 	// variableSpace->putVariable(1, &z);
 
-	Block<float>* block = new Block<float>(1, variableSpace, false);
+	Context<float>* block = new Context<float>(1, variableSpace, false);
     block->fillInputs({-1});
 	std::vector<int>* argI = block->getIArguments();
 	*argI = {kH,kW, sH,sW, pH,pW, dW,dH, 0};  // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8 - same mode;
@@ -1924,7 +1924,7 @@ TEST_F(DeclarableOpsTests, Pnormpool2d1) {
     variableSpace->putVariable(-1, &x);
 	// variableSpace->putVariable(1, &z);
 
-	Block<float>* block = new Block<float>(1, variableSpace, false);
+	Context<float>* block = new Context<float>(1, variableSpace, false);
     block->fillInputs({-1});
 	std::vector<int>* argI = block->getIArguments();
 	*argI = {kH,kW, sH,sW, pH,pW, dW,dH, 0, 1};  // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8 - same mode; 9 - extraParam0 for pnorm case;
@@ -1950,7 +1950,7 @@ TEST_F(DeclarableOpsTests, IsMax1) {
 	VariableSpace<float>* variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, &x);
 
-	Block<float>* block = new Block<float>(1, variableSpace, false);
+	Context<float>* block = new Context<float>(1, variableSpace, false);
     block->fillInputs({-1});
 	std::vector<int>* argI = block->getIArguments();
 	*argI = {1};										// dimensions
@@ -1974,7 +1974,7 @@ TEST_F(DeclarableOpsTests, Pooling2d1) {
     variableSpace->putVariable(-1, &x);
 	// variableSpace->putVariable(1, &z);
 
-	Block<float>* block = new Block<float>(1, variableSpace, false);
+	Context<float>* block = new Context<float>(1, variableSpace, false);
     block->fillInputs({-1});
 	std::vector<int>* argI = block->getIArguments();
 		
@@ -2000,7 +2000,7 @@ TEST_F(DeclarableOpsTests, MaxPool2d_bp1) {
 	variableSpace->putVariable(-2, &epsilon);
 	// variableSpace->putVariable(1, &z);
 
-	Block<float>* block = new Block<float>(1, variableSpace, false);
+	Context<float>* block = new Context<float>(1, variableSpace, false);
     block->fillInputs({-1});
 	block->fillInputs({-2});
 	std::vector<int>* argI = block->getIArguments();
@@ -2027,7 +2027,7 @@ TEST_F(DeclarableOpsTests, AvgPool2dBP) {
 	variableSpace->putVariable(-2, &epsilon);
 	// variableSpace->putVariable(1, &z);
 
-	Block<float>* block = new Block<float>(1, variableSpace, false);
+	Context<float>* block = new Context<float>(1, variableSpace, false);
     block->fillInputs({-1});
 	block->fillInputs({-2});
 	std::vector<int>* argI = block->getIArguments();
@@ -2054,7 +2054,7 @@ TEST_F(DeclarableOpsTests, PnormPool2dBP) {
 	variableSpace->putVariable(-2, &epsilon);
 	// variableSpace->putVariable(1, &z);
 
-	Block<float>* block = new Block<float>(1, variableSpace, false);
+	Context<float>* block = new Context<float>(1, variableSpace, false);
     block->fillInputs({-1});
 	block->fillInputs({-2});
 	std::vector<int>* argI = block->getIArguments();
@@ -2153,7 +2153,7 @@ TEST_F(DeclarableOpsTests, BatchNorm2D) {
     variableSpace->putVariable(1, &output);
     
 
-    Block<float>* block = new Block<float>(1, variableSpace, false);
+    Context<float>* block = new Context<float>(1, variableSpace, false);
     block->fillInputs({-1,-2,-3,-4,-5});    
     std::vector<int>* argI = block->getIArguments();
     std::vector<float>* argT = block->getTArguments();
@@ -2216,7 +2216,7 @@ TEST_F(DeclarableOpsTests, BatchNorm4D) {
     variableSpace->putVariable(-5, &beta);
     variableSpace->putVariable(1, &output);    
 
-    Block<float>* block = new Block<float>(1, variableSpace, false);
+    Context<float>* block = new Context<float>(1, variableSpace, false);
     block->fillInputs({-1,-2,-3,-4,-5});    
     std::vector<int>* argI = block->getIArguments();
     std::vector<float>* argT = block->getTArguments();
@@ -2267,7 +2267,7 @@ TEST_F(DeclarableOpsTests, BatchNorm2D_BP) {
     variableSpace->putVariable(-4, dGlobalMeanView);
     variableSpace->putVariable(-5, dGlobalVarView);
     variableSpace->putVariable(1, outEpsilon);
-    Block<double>* block = new Block<double>(1, variableSpace, false);
+    Context<double>* block = new Context<double>(1, variableSpace, false);
     block->fillInputs({-1,-2,-3,-4,-5});    
     std::vector<int>* argI = block->getIArguments();    
     *argI = {isLockGammaBeta};       
@@ -2370,7 +2370,7 @@ TEST_F(DeclarableOpsTests, BatchNorm4D_BP) {
     variableSpace->putVariable(-4, dGlobalMeanView);
     variableSpace->putVariable(-5, dGlobalVarView);
     variableSpace->putVariable(1, outEpsilon);
-    Block<double>* block = new Block<double>(1, variableSpace, false);
+    Context<double>* block = new Context<double>(1, variableSpace, false);
     block->fillInputs({-1,-2,-3,-4,-5});    
     std::vector<int>* argI = block->getIArguments();    
     *argI = {isLockGammaBeta};       
@@ -3758,7 +3758,7 @@ TEST_F(DeclarableOpsTests, Test_Expose_2) {
     VariableSpace<float> variableSpace;
     variableSpace.putVariable(-1, var);
 
-    Block<float> block(1, &variableSpace);
+    Context<float> block(1, &variableSpace);
     block.pickInput(-1);
 
     nd4j::ops::expose<float> op;

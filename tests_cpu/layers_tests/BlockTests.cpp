@@ -27,7 +27,7 @@ TEST_F(BlockTests, Basic_Test_1) {
     variableSpace.putVariable(2, 0, _20);
     variableSpace.putVariable(2, 1, _21);
 
-    Block<float> block(1, &variableSpace);
+    Context<float> block(1, &variableSpace);
 
     block.pickInput(2, 0);
     block.pickInput(2, 1);
@@ -55,7 +55,7 @@ TEST_F(BlockTests, Basic_Test_2) {
     variableSpace.putVariable(-1, _20);
     variableSpace.putVariable(-2, _21);
 
-    Block<float> block(1, &variableSpace);
+    Context<float> block(1, &variableSpace);
 
     block.pickInput(-1);
     block.pickInput(-2);

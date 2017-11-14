@@ -27,7 +27,7 @@ namespace nd4j {
          * This class defines input desired for any given node/operation within graph
          */
         template <typename T>
-        class Block {
+        class Context {
         protected:
             nd4j::memory::Workspace* _workspace;
 
@@ -60,11 +60,11 @@ namespace nd4j {
             cudaStream_t* _stream;
 #endif
 
-            Block(int nodeId, VariableSpace<T> *variableSpace = nullptr);
-            Block(int nodeId, VariableSpace<T> *variableSpace, bool isInplace);
+            Context(int nodeId, VariableSpace<T> *variableSpace = nullptr);
+            Context(int nodeId, VariableSpace<T> *variableSpace, bool isInplace);
 
             // default destructor
-            ~Block();
+            ~Context();
 
             // these methods are for execution timing
             void setOuterTime(Nd4jIndex time);

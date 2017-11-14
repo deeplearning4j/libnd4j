@@ -35,7 +35,7 @@
 #include <loops/aggregates.h>
 #include <helpers/threshold.h>
 #include <ShapeList.h>
-#include <Block.h>
+#include <Context.h>
 #include <ops/specials_cuda.h>
 
 // FIXME: we need cuda-specific implementations

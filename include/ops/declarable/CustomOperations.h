@@ -10,7 +10,7 @@
 #include <types/float16.h>
 #include <NDArray.h>
 #include <NDArrayFactory.h>
-#include <Block.h>
+#include <Context.h>
 #include <ops/declarable/DeclarableOp.h>
 #include <ops/declarable/BooleanOp.h>
 #include <ops/declarable/LogicOp.h>

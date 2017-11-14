@@ -37,7 +37,7 @@ namespace nd4j {
             int pX = INT_ARG(5);
             int dY = INT_ARG(6);
             int dX = INT_ARG(7);
-            const bool isSameMode = block.getIArguments()->at(8) != 0;
+            const bool isSameMode = INT_ARG(8) != 0;
 
             NDArray<T> *z = OUTPUT_VARIABLE(0);
 
@@ -84,7 +84,7 @@ namespace nd4j {
             int pX = INT_ARG(5);
             int dY = INT_ARG(6);
             int dX = INT_ARG(7);
-            const bool isSameMode = block.getIArguments()->at(8) != 0;
+            const bool isSameMode = INT_ARG(8) != 0;
 
             int oY, oX;
 
@@ -145,7 +145,7 @@ namespace nd4j {
             int pX = INT_ARG(5);
             int dY = INT_ARG(6);
             int dX = INT_ARG(7);
-            const bool isSameMode = block.getIArguments()->at(8) != 0;
+            const bool isSameMode = INT_ARG(8) != 0;
 
             NDArray<T>* epsilon = OUTPUT_VARIABLE(0);
             NDArray<T>* gradW = OUTPUT_VARIABLE(1);
@@ -157,7 +157,7 @@ namespace nd4j {
             // epsilon for deconv2d is FF conv pass
 
             nd4j::ops::conv2d<T> op;
-            Nd4jStatus r1 = op.execute({epsilonNext, weights}, {epsilon}, {}, {kY, kX, sY, sX, pY, pX, dY, dX, block.getIArguments()->at(8)});
+            Nd4jStatus r1 = op.execute({epsilonNext, weights}, {epsilon}, {}, {kY, kX, sY, sX, pY, pX, dY, dX, INT_ARG(8)});
             if (r1 != ND4J_STATUS_OK)
                 return r1;
 

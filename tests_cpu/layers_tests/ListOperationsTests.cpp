@@ -269,7 +269,7 @@ TEST_F(ListOperationsTests, BasicTest_Clone_1) {
     variableSpace.putVariable(-1, var);
     variableSpace.trackList(list);
 
-    Block<double> block(1, &variableSpace);
+    Context<double> block(1, &variableSpace);
     block.pickInput(-1);
 
     nd4j::ops::clone_list<double> op;

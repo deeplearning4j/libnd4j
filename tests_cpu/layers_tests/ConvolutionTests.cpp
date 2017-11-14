@@ -7,7 +7,7 @@
 
 #include "testlayers.h"
 #include <NDArray.h>
-#include <Block.h>
+#include <Context.h>
 #include <Node.h>
 #include <graph/Variable.h>
 #include <graph/VariableSpace.h>
@@ -42,7 +42,7 @@ TEST_F(ConvolutionTests, TestConv2D_1) {
     variableSpace->putVariable(-1, input);
     variableSpace->putVariable(-2, weights);
 
-    auto block = new Block<double>(1, variableSpace, false);  // not-in-place
+    auto block = new Context<double>(1, variableSpace, false);  // not-in-place
     block->fillInputs({-1, -2});
 
     // 5,5 kernel
@@ -111,7 +111,7 @@ TEST_F(ConvolutionTests, TestAvgFF1) {
 
     variableSpace->putVariable(pair0, &output);
 
-    Block<float>* block = new Block<float>(1, variableSpace, false);  // not-in-place
+    Context<float>* block = new Context<float>(1, variableSpace, false);  // not-in-place
     block->fillInputs({-1});
 
     // kernel params
@@ -167,7 +167,7 @@ TEST_F(ConvolutionTests, TestFullConv3D_1) {
     variableSpace->putVariable(-3, &bias);
 
     variableSpace->putVariable(1, &output);
-    Block<float>* block = new Block<float>(1, variableSpace, false);  // not-in-place
+    Context<float>* block = new Context<float>(1, variableSpace, false);  // not-in-place
     block->fillInputs({-1, -2, -3});
 
     block->getIArguments()->push_back(1);
@@ -212,7 +212,7 @@ TEST_F(ConvolutionTests, SeparableConv2D_FF_NoBias_1) {
     variableSpace->putVariable(-1, input);
     variableSpace->putVariable(-2, weights);
 
-    auto block = new Block<float>(1, variableSpace, false);
+    auto block = new Context<float>(1, variableSpace, false);
     block->fillInputs({-1, -2});
 
     block->getIArguments()->push_back(kY);
@@ -297,7 +297,7 @@ TEST_F(ConvolutionTests, SeparableConv2D_BP_NoBias_1) {
     variableSpace->putVariable(-3, weights);
     variableSpace->putVariable(-2, epsilonNext);
 
-    auto block = new Block<double>(1, variableSpace, false);
+    auto block = new Context<double>(1, variableSpace, false);
     block->fillInputs({-1, -2, -3});
 
     block->getIArguments()->push_back(kY);
@@ -365,7 +365,7 @@ TEST_F(ConvolutionTests, deconv2D_FF_NoBias_1) {
     variableSpace->putVariable(-1, input);
     variableSpace->putVariable(-2, weights);
 
-    auto block = new Block<double>(1, variableSpace, false);
+    auto block = new Context<double>(1, variableSpace, false);
     block->fillInputs({-1, -2});
 
     block->getIArguments()->push_back(5);

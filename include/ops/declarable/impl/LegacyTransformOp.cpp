@@ -20,7 +20,7 @@ namespace nd4j {
         }
 
         template <typename T>
-        Nd4jStatus LegacyTransformOp<T>::validateAndExecute(Block<T> &block) {
+        Nd4jStatus LegacyTransformOp<T>::validateAndExecute(Context<T> &block) {
             auto input = INPUT_VARIABLE(0);
             auto z = OUTPUT_VARIABLE(0);
 
@@ -39,7 +39,7 @@ namespace nd4j {
         *
         */
         template <typename T>
-        ShapeList *LegacyTransformOp<T>::calculateOutputShape(ShapeList *inputShape, nd4j::graph::Block<T> &block) {
+        ShapeList *LegacyTransformOp<T>::calculateOutputShape(ShapeList *inputShape, nd4j::graph::Context<T> &block) {
             auto inShape = inputShape->at(0);
 
             int *newShape;

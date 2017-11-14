@@ -22,7 +22,7 @@ namespace nd4j {
         * Output shape of any BooleanOp is ALWAYS scalar
         */
         template <typename T>
-        ShapeList *BooleanOp<T>::calculateOutputShape(ShapeList *inputShape, nd4j::graph::Block<T> &block) {
+        ShapeList *BooleanOp<T>::calculateOutputShape(ShapeList *inputShape, nd4j::graph::Context<T> &block) {
             int *shapeNew;
             ALLOCATE(shapeNew, block.getWorkspace(), shape::shapeInfoLength(2), int);
             shapeNew[0] = 2;
@@ -38,7 +38,7 @@ namespace nd4j {
         }
 
         template <typename T>
-        bool BooleanOp<T>::evaluate(nd4j::graph::Block<T> &block) {
+        bool BooleanOp<T>::evaluate(nd4j::graph::Context<T> &block) {
             // check if scalar or not
 
             // validation?
@@ -67,7 +67,7 @@ namespace nd4j {
         }
 
         template <typename T>
-        bool BooleanOp<T>::prepareOutputs(Block<T>& block) {
+        bool BooleanOp<T>::prepareOutputs(Context<T>& block) {
 
             auto variableSpace = block.getVariableSpace();
             for (int e = 0; e < this->getOpDescriptor()->getNumberOfOutputs(); e++) {
@@ -93,7 +93,7 @@ namespace nd4j {
         }
 
         template <typename T>
-        Nd4jStatus nd4j::ops::BooleanOp<T>::execute(Block<T>* block)  {
+        Nd4jStatus nd4j::ops::BooleanOp<T>::execute(Context<T>* block)  {
             if (block != nullptr)
                 this->_block = block;
             else
@@ -142,7 +142,7 @@ namespace nd4j {
                 variableSpace.putVariable(cnt--, var);
             }
 
-            Block<T> block(1, &variableSpace, false);
+            Context<T> block(1, &variableSpace, false);
             block.fillInputs(in);
 
             return this->evaluate(block);

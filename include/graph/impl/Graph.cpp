@@ -321,10 +321,10 @@ namespace nd4j {
                 // custom ops require Block inside. but we'll set it inside buildGraph
 
                 // TODO: we want to change this, to make blocks thread-local/session-local
-                Block<T>* block = nullptr;
+                Context<T>* block = nullptr;
 
                 if (!node->hasBlockAttached()) {
-                    block = new Block<T>(node->id(), _variableSpace);
+                    block = new Context<T>(node->id(), _variableSpace);
                     node->setBlock(block);
                 } else
                     block = node->getBlock();
@@ -520,10 +520,10 @@ namespace nd4j {
                             this->injectNode(node);
 
                             if (node->hasCustomOp()) {
-                                Block<T>* block = nullptr;
+                                Context<T>* block = nullptr;
 
                                 if (!node->hasBlockAttached()) {
-                                    block = new Block<T>(node->id(), _variableSpace);
+                                    block = new Context<T>(node->id(), _variableSpace);
                                     node->setBlock(block);
                                 } else
                                     block = node->getBlock();
@@ -551,10 +551,10 @@ namespace nd4j {
                             this->injectNode(node);
 
                             if (node->hasCustomOp()) {
-                                Block<T>* block = nullptr;
+                                Context<T>* block = nullptr;
 
                                 if (!node->hasBlockAttached()) {
-                                    block = new Block<T>(node->id(), _variableSpace);
+                                    block = new Context<T>(node->id(), _variableSpace);
                                     node->setBlock(block);
                                 } else
                                     block = node->getBlock();
@@ -614,10 +614,10 @@ namespace nd4j {
                         injectNode(node);
 
                         if (node->hasCustomOp()) {
-                            Block<T>* block = nullptr;
+                            Context<T>* block = nullptr;
 
                             if (!node->hasBlockAttached()) {
-                                block = new Block<T>(node->id(), _variableSpace);
+                                block = new Context<T>(node->id(), _variableSpace);
                                 node->setBlock(block);
                             } else
                                 block = node->getBlock();

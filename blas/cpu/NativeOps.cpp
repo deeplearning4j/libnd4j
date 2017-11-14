@@ -46,7 +46,7 @@ bool experimentalSupport = false;
 #include "../Environment.h"
 #include <TAD.h>
 #include <ops/declarable/OpRegistrator.h>
-#include <Block.h>
+#include <Context.h>
 
 
 void NativeOps::setElementThreshold(int num) {
@@ -3099,7 +3099,7 @@ const char* NativeOps::getAllCustomOps() {
 
 template<typename T>
 Nd4jPointer* _calculateOutputShapes(Nd4jPointer* extraPointers, nd4j::ops::DeclarableOp<T>* op, Nd4jPointer* inputShapes, int numInputShapes, T* tArgs, int numTArgs, int *iArgs, int numIArgs) {
-    Block<T> block(1);
+    Context<T> block(1);
     ShapeList inShapes;
 
     for (int e = 0; e < numIArgs; e++)

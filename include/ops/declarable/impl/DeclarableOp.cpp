@@ -75,7 +75,7 @@ namespace nd4j {
 
 
         template <typename T>
-        nd4j::NDArray<T>* nd4j::ops::DeclarableOp<T>::getZ(Block<T>& block, int inputId) {
+        nd4j::NDArray<T>* nd4j::ops::DeclarableOp<T>::getZ(Context<T>& block, int inputId) {
             NDArray<T>* z = nullptr;
 
             if (block.isInplace()) {
@@ -107,7 +107,7 @@ namespace nd4j {
 
 
         template <typename T>
-        bool nd4j::ops::DeclarableOp<T>::prepareOutputs(Block<T> &block) {
+        bool nd4j::ops::DeclarableOp<T>::prepareOutputs(Context<T> &block) {
             auto workspace = block.getWorkspace();
 
             if (block.isInplace()) {
@@ -169,12 +169,12 @@ namespace nd4j {
         }
 
         template <typename T>
-        void nd4j::ops::DeclarableOp<T>::storeResult(Block<T> &block, int outputNumber, NDArray<T>* array) {
+        void nd4j::ops::DeclarableOp<T>::storeResult(Context<T> &block, int outputNumber, NDArray<T>* array) {
             this->storeResult(block, outputNumber, *array);
         }
 
         template <typename T>
-        void nd4j::ops::DeclarableOp<T>::storeResult(nd4j::graph::Block<T> &block, int outputNumber, NDArray<T>& array) {
+        void nd4j::ops::DeclarableOp<T>::storeResult(nd4j::graph::Context<T> &block, int outputNumber, NDArray<T>& array) {
 
             if (nd4j::Environment::getInstance()->isDebug()) {
                 T mean = array.meanNumber();
@@ -218,7 +218,7 @@ namespace nd4j {
 
 
         template <typename T>
-        bool nd4j::ops::DeclarableOp<T>::allocateResult(Block<T>& block, int* shape) {
+        bool nd4j::ops::DeclarableOp<T>::allocateResult(Context<T>& block, int* shape) {
             auto var = block.getVariableSpace()->getVariable(block.getNodeId());
 
             auto workspace = block.getWorkspace();
@@ -252,7 +252,7 @@ namespace nd4j {
 
 
         template <typename T>
-        bool nd4j::ops::DeclarableOp<T>::allocateResult(Block<T>& block, std::initializer_list<int>& shape, char order) {
+        bool nd4j::ops::DeclarableOp<T>::allocateResult(Context<T>& block, std::initializer_list<int>& shape, char order) {
             auto var = block.getVariableSpace()->getVariable(block.getNodeId());
             auto workspace = block.getWorkspace();
 
@@ -272,7 +272,7 @@ namespace nd4j {
         }
 
         template <typename T>
-        Nd4jStatus nd4j::ops::DeclarableOp<T>::execute(Block<T>* block) {
+        Nd4jStatus nd4j::ops::DeclarableOp<T>::execute(Context<T>* block) {
             if (block != nullptr)
                 _block = block;
             else
@@ -301,7 +301,7 @@ namespace nd4j {
         }
 
         template <typename T>
-        void DeclarableOp<T>::overwriteResult(Block<T> &block, int outputIdx, NDArray<T> *array) {
+        void DeclarableOp<T>::overwriteResult(Context<T> &block, int outputIdx, NDArray<T> *array) {
             auto varSpace = block.getVariableSpace();
             if (varSpace->hasVariable(block.getNodeId(), outputIdx)) {
                 auto var = varSpace->getVariable(block.getNodeId(), outputIdx);
@@ -317,7 +317,7 @@ namespace nd4j {
         }
 
         template <typename T>
-        void DeclarableOp<T>::overwriteResult(Block<T> &block, int outputIdx, NDArrayList<T> *list) {
+        void DeclarableOp<T>::overwriteResult(Context<T> &block, int outputIdx, NDArrayList<T> *list) {
             auto varSpace = block.getVariableSpace();
             if (varSpace->hasVariable(block.getNodeId(), outputIdx)) {
                 auto var = varSpace->getVariable(block.getNodeId(), outputIdx);
@@ -330,7 +330,7 @@ namespace nd4j {
         }
 
         template <typename T>
-        Nd4jStatus nd4j::ops::DeclarableOp<T>::validateArguments(Block<T>& block) {
+        Nd4jStatus nd4j::ops::DeclarableOp<T>::validateArguments(Context<T>& block) {
             /*
              * We're checking number of T and I arguments. If number of args is finite number - we check strict equality
              * If number of args is variable (-1), but variables MUST be present - we check for non-zero number of arguments
@@ -364,7 +364,7 @@ namespace nd4j {
         }
 
         template <typename T>
-        Nd4jStatus nd4j::ops::DeclarableOp<T>::validateInputDimensions(Block<T>& block, int rank) {
+        Nd4jStatus nd4j::ops::DeclarableOp<T>::validateInputDimensions(Context<T>& block, int rank) {
             if (block.width() == 0)
                 return ND4J_STATUS_OK;
 
@@ -383,22 +383,22 @@ namespace nd4j {
         }
 
         template <typename T>
-        Nd4jStatus nd4j::ops::DeclarableOp<T>::validateInput2D(Block<T>& block) {
+        Nd4jStatus nd4j::ops::DeclarableOp<T>::validateInput2D(Context<T>& block) {
             return validateInputDimensions(block, 2);
         }
 
         template <typename T>
-        Nd4jStatus nd4j::ops::DeclarableOp<T>::validateInput3D(Block<T>& block) {
+        Nd4jStatus nd4j::ops::DeclarableOp<T>::validateInput3D(Context<T>& block) {
             return validateInputDimensions(block, 3);
         }
 
         template <typename T>
-        Nd4jStatus nd4j::ops::DeclarableOp<T>::validateInput4D(Block<T>& block) {
+        Nd4jStatus nd4j::ops::DeclarableOp<T>::validateInput4D(Context<T>& block) {
             return validateInputDimensions(block, 4);
         }
 
         template <typename T>
-        Nd4jStatus nd4j::ops::DeclarableOp<T>::validateNonEmptyInput(Block<T>& block) {
+        Nd4jStatus nd4j::ops::DeclarableOp<T>::validateNonEmptyInput(Context<T>& block) {
             if (this->getOpDescriptor()->getNumberOfInputs() == -2)
                 return ND4J_STATUS_OK;
 
@@ -432,7 +432,7 @@ namespace nd4j {
         }
 
         template <typename T>
-        Nd4jStatus nd4j::ops::DeclarableOp<T>::validateOrdersMatch(Block<T>& block) {
+        Nd4jStatus nd4j::ops::DeclarableOp<T>::validateOrdersMatch(Context<T>& block) {
             if (block.width() == 0)
                 return ND4J_STATUS_OK;
 
@@ -485,7 +485,7 @@ namespace nd4j {
                 variableSpace.putVariable(pair, var);
             }
 
-            Block<T> block(1, &variableSpace, false);
+            Context<T> block(1, &variableSpace, false);
             block.fillInputs(in);
             block.markInplace(isInplace);
 
@@ -516,7 +516,7 @@ namespace nd4j {
                 variableSpace.putVariable(cnt--, var);
             }
 
-            Block<T> block(1, &variableSpace, false);
+            Context<T> block(1, &variableSpace, false);
             block.fillInputs(in);
             block.markInplace(isInplace);
 
@@ -547,7 +547,7 @@ namespace nd4j {
         }
 
         template <typename T>
-        Nd4jStatus nd4j::ops::DeclarableOp<T>::validateInputDimensionsMatch(Block<T>& block) {
+        Nd4jStatus nd4j::ops::DeclarableOp<T>::validateInputDimensionsMatch(Context<T>& block) {
             if (block.width() == 0)
                 return ND4J_STATUS_OK;
 
@@ -564,7 +564,7 @@ namespace nd4j {
         }
 
         template <typename T>
-        Nd4jStatus nd4j::ops::DeclarableOp<T>::validateInputLengthMatch(Block<T>& block) {
+        Nd4jStatus nd4j::ops::DeclarableOp<T>::validateInputLengthMatch(Context<T>& block) {
             if (block.width() == 0)
                 return ND4J_STATUS_OK;
 
