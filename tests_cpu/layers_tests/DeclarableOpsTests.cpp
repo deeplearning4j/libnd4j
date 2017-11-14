@@ -1470,7 +1470,7 @@ TEST_F(DeclarableOpsTests, Reshape2) {
 	
 	Nd4jStatus status = reshape.execute(block);
 	ASSERT_EQ(ND4J_STATUS_OK, status);
-	NDArray<float>* result = block->getVariableSpace()->getVariable(block->getNodeId())->getNDArray();
+	NDArray<float>* result = variableSpace->getVariable(block->getNodeId())->getNDArray();
 
 	result->printShapeInfo();
 	y.printShapeInfo();
@@ -1534,7 +1534,7 @@ TEST_F(DeclarableOpsTests, Repeat1) {
 
 	Nd4jStatus status = repeat.execute(block);
 	ASSERT_EQ(ND4J_STATUS_OK, status);
-	NDArray<float>* result = block->getVariableSpace()->getVariable(block->getNodeId())->getNDArray();
+	NDArray<float>* result = variableSpace->getVariable(block->getNodeId())->getNDArray();
 
     ASSERT_TRUE(exp.equalsTo(result));
 }
@@ -1580,7 +1580,7 @@ TEST_F(DeclarableOpsTests, Transpose2) {
 	Nd4jStatus  status = transpose.execute(block);
     ASSERT_EQ(ND4J_STATUS_OK, status);
 
-	NDArray<float>* result = block->getVariableSpace()->getVariable(block->getNodeId())->getNDArray();
+	NDArray<float>* result = variableSpace->getVariable(block->getNodeId())->getNDArray();
 	// ASSERT_TRUE(result->isSameShapeStrict(&exp));
 	for (int e = 0; e < result->rankOf() * 2 + 2; e++) {
         ASSERT_EQ(result->getShapeInfo()[e], exp.getShapeInfo()[e]);
@@ -1636,7 +1636,7 @@ TEST_F(DeclarableOpsTests, Permute2) {
 	
 	nd4j::ops::permute<float> permute;
 	Nd4jStatus status = permute.execute(block);
-	NDArray<float>* result = block->getVariableSpace()->getVariable(block->getNodeId())->getNDArray();	
+	NDArray<float>* result = variableSpace->getVariable(block->getNodeId())->getNDArray();	
 	
 	ASSERT_EQ(ND4J_STATUS_OK, status);	
 	ASSERT_TRUE(result->isSameShapeStrict(&exp));	
@@ -1858,7 +1858,7 @@ TEST_F(DeclarableOpsTests, Sum1) {
 
 	nd4j::ops::sum<float> sum;
 	Nd4jStatus status = sum.execute(block);
-	NDArray<float>* result = block->getVariableSpace()->getVariable(block->getNodeId())->getNDArray();
+	NDArray<float>* result = variableSpace->getVariable(block->getNodeId())->getNDArray();
 	ASSERT_EQ(ND4J_STATUS_OK, status);
 	ASSERT_TRUE(result->equalsTo(&exp));
 }
@@ -1883,7 +1883,7 @@ TEST_F(DeclarableOpsTests, Maxpool2d1) {
 	Nd4jStatus status = pooling.execute(block);
     ASSERT_EQ(ND4J_STATUS_OK, status);
 	
-	NDArray<float>* result = block->getVariableSpace()->getVariable(block->getNodeId())->getNDArray();
+	NDArray<float>* result = variableSpace->getVariable(block->getNodeId())->getNDArray();
     ASSERT_TRUE(exp.isSameShape(result));
 }
 
@@ -1908,7 +1908,7 @@ TEST_F(DeclarableOpsTests, Avgpool2d1) {
 	Nd4jStatus status = pooling.execute(block);
     ASSERT_EQ(ND4J_STATUS_OK, status);
 	
-	NDArray<float>* result = block->getVariableSpace()->getVariable(block->getNodeId())->getNDArray();
+	NDArray<float>* result = variableSpace->getVariable(block->getNodeId())->getNDArray();
     ASSERT_TRUE(exp.isSameShape(result));
 }
 
@@ -1933,7 +1933,7 @@ TEST_F(DeclarableOpsTests, Pnormpool2d1) {
 	Nd4jStatus status = pooling.execute(block);
     ASSERT_EQ(ND4J_STATUS_OK, status);
 	
-	NDArray<float>* result = block->getVariableSpace()->getVariable(block->getNodeId())->getNDArray();
+	NDArray<float>* result = variableSpace->getVariable(block->getNodeId())->getNDArray();
     ASSERT_TRUE(exp.isSameShape(result));
 }
 
@@ -1959,7 +1959,7 @@ TEST_F(DeclarableOpsTests, IsMax1) {
 	Nd4jStatus status = ismax.execute(block);
     ASSERT_EQ(ND4J_STATUS_OK, status);
 	
-	NDArray<float>* result = block->getVariableSpace()->getVariable(block->getNodeId())->getNDArray();	
+	NDArray<float>* result = variableSpace->getVariable(block->getNodeId())->getNDArray();	
     ASSERT_TRUE(exp.equalsTo(result));
 }
 
@@ -1984,7 +1984,7 @@ TEST_F(DeclarableOpsTests, Pooling2d1) {
 	Nd4jStatus status = pooling.execute(block);
     ASSERT_EQ(ND4J_STATUS_OK, status);
 	
-	NDArray<float>* result = block->getVariableSpace()->getVariable(block->getNodeId())->getNDArray();
+	NDArray<float>* result = variableSpace->getVariable(block->getNodeId())->getNDArray();
     ASSERT_TRUE(exp.isSameShape(result));
 }
 
@@ -2010,7 +2010,7 @@ TEST_F(DeclarableOpsTests, MaxPool2d_bp1) {
 	Nd4jStatus status = bp.execute(block);
     ASSERT_EQ(ND4J_STATUS_OK, status);
 	
-	NDArray<float>* result = block->getVariableSpace()->getVariable(block->getNodeId())->getNDArray();
+	NDArray<float>* result = variableSpace->getVariable(block->getNodeId())->getNDArray();
     ASSERT_TRUE(exp.isSameShape(result));
 
 }
@@ -2037,7 +2037,7 @@ TEST_F(DeclarableOpsTests, AvgPool2dBP) {
 	Nd4jStatus status = bp.execute(block);
     ASSERT_EQ(ND4J_STATUS_OK, status);
 	
-	NDArray<float>* result = block->getVariableSpace()->getVariable(block->getNodeId())->getNDArray();
+	NDArray<float>* result = variableSpace->getVariable(block->getNodeId())->getNDArray();
     ASSERT_TRUE(exp.isSameShape(result));
 
 }
@@ -2066,7 +2066,7 @@ TEST_F(DeclarableOpsTests, PnormPool2dBP) {
 	Nd4jStatus status = bp.execute(block);
     ASSERT_EQ(ND4J_STATUS_OK, status);
 	
-	NDArray<float>* result = block->getVariableSpace()->getVariable(block->getNodeId())->getNDArray();
+	NDArray<float>* result = variableSpace->getVariable(block->getNodeId())->getNDArray();
     ASSERT_TRUE(exp.isSameShape(result));
 
 }
@@ -2174,7 +2174,7 @@ TEST_F(DeclarableOpsTests, BatchNorm2D) {
     Nd4jStatus status = batchnorm.execute(block);
     ASSERT_EQ(ND4J_STATUS_OK, status);
     
-    NDArray<float>* result = block->getVariableSpace()->getVariable(block->getNodeId())->getNDArray();
+    NDArray<float>* result = variableSpace->getVariable(block->getNodeId())->getNDArray();
     ASSERT_TRUE(outExpected.equalsTo(result));
 
     delete mean;
@@ -2236,7 +2236,7 @@ TEST_F(DeclarableOpsTests, BatchNorm4D) {
     Nd4jStatus status = batchnorm.execute(block);
     ASSERT_EQ(ND4J_STATUS_OK, status);
     
-    NDArray<float>* result = block->getVariableSpace()->getVariable(block->getNodeId())->getNDArray();
+    NDArray<float>* result = variableSpace->getVariable(block->getNodeId())->getNDArray();
     ASSERT_TRUE(outExpected.equalsTo(result));
 
     delete mean;
@@ -2326,7 +2326,7 @@ TEST_F(DeclarableOpsTests, BatchNorm2D_BP) {
     Nd4jStatus status = batchnorm_bp.execute(block);
     ASSERT_EQ(ND4J_STATUS_OK, status);
     
-    NDArray<double>* result = block->getVariableSpace()->getVariable(block->getNodeId())->getNDArray();
+    NDArray<double>* result = variableSpace->getVariable(block->getNodeId())->getNDArray();
     ASSERT_TRUE(dldinExp->equalsTo(result));
     
     delete temp1;
@@ -2430,7 +2430,7 @@ TEST_F(DeclarableOpsTests, BatchNorm4D_BP) {
     Nd4jStatus status = batchnorm_bp.execute(block);
     ASSERT_EQ(ND4J_STATUS_OK, status);
     
-    NDArray<double>* result = block->getVariableSpace()->getVariable(block->getNodeId())->getNDArray();
+    NDArray<double>* result = variableSpace->getVariable(block->getNodeId())->getNDArray();
     // dldinExp->printBuffer();    
     // result->printBuffer();
     ASSERT_TRUE(dldinExp->equalsTo(result));

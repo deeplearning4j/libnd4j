@@ -11,7 +11,7 @@ namespace nd4j {
 
             auto newList = list->clone();
 
-            block.getVariableSpace()->trackList(newList);
+            block.trackList(newList);
 
             OVERWRITE_RESULT(newList);
 

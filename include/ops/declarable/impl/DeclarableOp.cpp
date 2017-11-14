@@ -80,25 +80,19 @@ namespace nd4j {
 
             if (block.isInplace()) {
                 z = block.variable(inputId)->getNDArray();
-            } else if (!block.isInplace() && block.getVariableSpace()->hasVariable(block.getNodeId())) {
+            } else if (!block.isInplace()) {
                 std::pair<int, int> pair(block.getNodeId(), inputId);
 
-                auto var = block.getVariableSpace()->getVariable(pair);
+                auto var = block.variable(pair);
                 if (var->getNDArray() != nullptr && var->getNDArray()->nonNull()) {
                     z = var->getNDArray();
                 } else {
-/*
-            auto shapeList = new ShapeList();
-            for (auto v: block.getVariables()) {
-                shapeList->push_back(v->getNDArray()->getShapeInfo());
-            }
 
-            auto shapes = this->calculateOutputShape(shapeList, block);
-            int *shape = shapes->at(inputId);
-            z = new NDArray<T>();
-*/
                     nd4j_printf("Can't get Z variable!\n","");
                 }
+            } else {
+                nd4j_printf("BOOM!\n","");
+                throw "Boom!";
             }
 
             return z;
@@ -107,10 +101,10 @@ namespace nd4j {
 
 
         template <typename T>
-        bool nd4j::ops::DeclarableOp<T>::prepareOutputs(Context<T> &block) {
-            auto workspace = block.getWorkspace();
+        bool nd4j::ops::DeclarableOp<T>::prepareOutputs(Context<T> &ctx) {
+            auto workspace = ctx.getWorkspace();
 
-            if (block.isInplace()) {
+            if (ctx.isInplace()) {
                 // do nothing, getZ result will do the trick
             } else {
                 // if op is not inplace - we should pre-allocate arrays
@@ -118,8 +112,8 @@ namespace nd4j {
                 ShapeList inSha;
 
                 int cntIn = 0;
-                for (auto p: *block.inputs()) {
-                    auto var = block.getVariableSpace()->getVariable(p);
+                for (auto p: *ctx.inputs()) {
+                    auto var = ctx.variable(p);
                     if (var->variableType() == VariableType::NDARRAY) {
                         NDArray<T> *array = var->getNDArray();
                         inSha.push_back(array->getShapeInfo());
@@ -130,35 +124,16 @@ namespace nd4j {
                 }
                 //nd4j_printf("Input shapes: %i\n", cntIn);
 
-                auto outSha = this->calculateOutputShape(&inSha, block);
+                auto outSha = this->calculateOutputShape(&inSha, ctx);
                 int cnt = 0;
                 //nd4j_printf("Output shapes: %i; Rank_0: %i\n", outSha->size(), outSha->at(0)[0]);
                 for (auto out: *outSha->asVector()) {
                     // we need to check, if Z is really needed
-                    std::pair<int, int> pair(block.getNodeId(), cnt++);
-                    if (block.getVariableSpace()->hasVariable(pair)) {
-                        auto var = block.getVariableSpace()->getVariable(pair);
-                        if (var->getNDArray() != nullptr && var->getNDArray()->nonNull())
-                            continue;
-                    }
+                    std::pair<int, int> pair(ctx.nodeId(), cnt++);
 
                     auto outArr = new NDArray<T>(out, workspace);
 
-                    auto var = block.getVariableSpace()->getVariable(pair);
-                    if (var == nullptr) {
-                        var = new Variable<T>(outArr, nullptr, pair.first, pair.second);
-                        block.getVariableSpace()->putVariable(pair, var);
-                    } else {
-                        //block.getVariableSpace()->putVariable(pair, outArr);
-                        if (var->hasNDArray()) {
-                            nd4j_printf("Leaked array 318!\n","");
-                        }
-
-                        var->setNDArray(outArr);
-
-                        // FIXME: this one should be removable
-                        var->markRemovable(true);
-                    }
+                    ctx.pushNDArrayToVariableSpace(pair, outArr);
                 }
 
                 outSha->destroy();
@@ -174,52 +149,22 @@ namespace nd4j {
         }
 
         template <typename T>
-        void nd4j::ops::DeclarableOp<T>::storeResult(nd4j::graph::Context<T> &block, int outputNumber, NDArray<T>& array) {
+        void nd4j::ops::DeclarableOp<T>::storeResult(nd4j::graph::Context<T> &ctx, int outputNumber, NDArray<T>& array) {
 
             if (nd4j::Environment::getInstance()->isDebug()) {
                 T mean = array.meanNumber();
                 //if (mean == (T) 0.0f || (mean < (T) 1e-5f && mean > (T) -1e-5f))
                 //    nd4j_debug("node_%i:%i result has 0.0 as mean\n", block.getNodeId(), outputNumber);
-                nd4j_debug("node_%i:%i result length: [%i]; mean [%f]\n", block.getNodeId(), outputNumber, (int) array.lengthOf(), (float) mean);
+                nd4j_debug("node_%i:%i result length: [%i]; mean [%f]\n", ctx.nodeId(), outputNumber, (int) array.lengthOf(), (float) mean);
             }
 
-            // if that's the only output - treat it as singular variable
-            if (outputNumber == 0 && this->getOpDescriptor()->getNumberOfOutputs() == 1) {
-                // we're adding this check, to avoid saving in legacy execution mechanism
-                if (!block.getVariableSpace()->hasVariable(block.getNodeId())) {
-                    //nd4j_debug("Skipping storeResult for node_%i:%i\n", block.getNodeId(), outputNumber);
-                    std::pair<int,int> pair(block.getNodeId(), outputNumber);
-                    auto var = new nd4j::graph::Variable<T>(nullptr, nullptr, block.getNodeId(), outputNumber);
-                    if (block.isInplace()) {
-                        auto arr = new NDArray<T>(array.buffer(), array.shapeInfo(), array.getWorkspace());
-                        arr->triggerAllocationFlag(false, false);
-                        var->setNDArray(arr);
-                    } else {
-                        var->setNDArray(&array);
-                    }
-
-                    block.getVariableSpace()->putVariable(pair, var);
-                    return;
-                }
-
-                auto variable = block.getVariableSpace()->getVariable(block.getNodeId());
-                variable->setNDArray(&array);
-            } else {
-                // otherwise - reference it as pair key
-                std::pair<int, int> pair((int) block.getNodeId(), outputNumber);
-                if (block.getVariableSpace()->hasVariable(pair)) {
-                    auto variable = block.getVariableSpace()->getVariable(pair);
-                    variable->setNDArray(&array);
-                } else {
-                    block.getVariableSpace()->putVariable(pair, &array);
-                }
-            }
+            ctx.pushNDArrayToVariableSpace(ctx.nodeId(), outputNumber, &array);
         }
 
 
         template <typename T>
         bool nd4j::ops::DeclarableOp<T>::allocateResult(Context<T>& block, int* shape) {
-            auto var = block.getVariableSpace()->getVariable(block.getNodeId());
+            auto var = block.variable(block.getNodeId(), 0);
 
             auto workspace = block.getWorkspace();
 
@@ -253,7 +198,7 @@ namespace nd4j {
 
         template <typename T>
         bool nd4j::ops::DeclarableOp<T>::allocateResult(Context<T>& block, std::initializer_list<int>& shape, char order) {
-            auto var = block.getVariableSpace()->getVariable(block.getNodeId());
+            auto var = block.variable(block.getNodeId(), 0);
             auto workspace = block.getWorkspace();
 
             Nd4jIndex len = shape::length(shape);
@@ -273,11 +218,6 @@ namespace nd4j {
 
         template <typename T>
         Nd4jStatus nd4j::ops::DeclarableOp<T>::execute(Context<T>* block) {
-            if (block != nullptr)
-                _block = block;
-            else
-                throw std::invalid_argument("Block is NULL");
-
             nd4j_debug("Executing op: [%s]\n", this->getOpName()->c_str());
 
             // basic validation: ensure inputs are set
@@ -414,7 +354,7 @@ namespace nd4j {
 
             int cnt = 0;
             for (auto p: *block.inputs()) {
-                auto v = block.getVariableSpace()->getVariable(p);
+                auto v = block.variable(p);
                 if (v == nullptr) {
                     if (this->getOpName() != nullptr) {
                         nd4j_printf("Node [%i:<%s>]: Variable [%i] (%i:%i) is NULL\n", block.getNodeId(), this->getOpName()->c_str(), cnt, 0, 0);

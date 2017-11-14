@@ -47,7 +47,6 @@ namespace nd4j {
         template <typename T>
         class DeclarableOp {
         protected:
-            Context<T> *_block;
             OpDescriptor *_descriptor;
 
             /**

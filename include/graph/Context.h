@@ -119,7 +119,18 @@ namespace nd4j {
             * This method returns variableSpace used in this block
             * @return
             */
-            VariableSpace<T>* getVariableSpace();
+            //VariableSpace<T>* getVariableSpace();
+
+            /**
+             *
+             * @return
+             */
+            Stash<T>* getStash();
+
+            /**
+             *
+             */
+            void trackList(NDArrayList<T>* list);
 
 
             /**
@@ -136,7 +147,9 @@ namespace nd4j {
              * @param p
              * @return
              */
+            Variable<T>* variable(int node, int index);
             Variable<T>* variable(std::pair<int,int>& p);
+            Variable<T>* variable(std::initializer_list<int> p);
 
             int opNum();
             void setOpNum(int opNum);
@@ -147,6 +160,9 @@ namespace nd4j {
 
             void pushNDArrayListToVariableSpace(int nodeId, int index, NDArrayList<T>* list);
             void pushNDArrayListToVariableSpace(std::pair<int, int>& pair, NDArrayList<T>* list);
+
+
+            Variable<T>* ensureVariable(int idx = 0);
         };
     }
 }

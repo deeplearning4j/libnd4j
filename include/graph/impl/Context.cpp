@@ -99,9 +99,20 @@ namespace nd4j {
          * This method returns variableSpace used in this block
          * @return
          */
-        template <typename T>
+    /*    template <typename T>
         VariableSpace<T>* Context<T>::getVariableSpace() {
             return _variableSpace;
+        }
+*/
+
+        template <typename T>
+        Stash<T>* Context<T>::getStash() {
+            return _variableSpace->getStash();
+        }
+
+        template <typename T>
+        void Context<T>::trackList(NDArrayList<T>* list) {
+            _variableSpace->trackList(list);
         }
 
         template <typename T>
@@ -223,6 +234,23 @@ namespace nd4j {
         }
 
         template <typename T>
+        Variable<T>* Context<T>::variable(std::initializer_list<int> p) {
+            if (p.size() != 2)
+                throw "Variable address should have size of 2";
+
+            // FIXME: lol
+            std::vector<int> vec(p);
+            std::pair<int, int> pair(vec[0], vec[1]);
+            return variable(pair);
+        }
+
+        template <typename T>
+        Variable<T>* Context<T>::variable(int node, int idx) {
+            std::pair<int, int> pair(node, idx);
+            return variable(pair);
+        }
+
+        template <typename T>
         Variable<T>* Context<T>::variable(std::pair<int,int>& p) {
             if (!_variableSpace->hasVariable(p)) {
                 nd4j_printf("Node %i; Non-existent variable requested: [%i:%i]\n", _nodeId, p.first, p.second);
@@ -284,6 +312,18 @@ namespace nd4j {
             }
 
             _variableSpace->trackList(list);
+        }
+
+        template <typename T>
+        Variable<T>* Context<T>::ensureVariable(int idx) {
+            std::pair<int, int> pair(nodeId(), idx);
+            if (!_variableSpace->hasVariable(pair)) {
+                auto var = new Variable<T>(nullptr, nullptr, nodeId(), idx);
+                _variableSpace->putVariable(pair, var);
+                return var;
+            } else {
+                return _variableSpace->getVariable(pair);
+            }
         }
 
 
