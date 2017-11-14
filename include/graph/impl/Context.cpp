@@ -286,7 +286,7 @@ namespace nd4j {
                 var->markRemovable(true);
             } else {
                 auto var = _variableSpace->getVariable(pair);
-                if (var->isRemovable() && var->getNDArray() != nullptr)
+                if (var->isRemovable() && var->getNDArray() != nullptr && var->getNDArray() != array)
                     delete var->getNDArray();
 
                 var->setNDArray(array);
