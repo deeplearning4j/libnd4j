@@ -1182,7 +1182,7 @@ struct __registratorSynonymDouble_##NAME {\
                                                                 for (int e = 0; e < inputShape->size(); e++) { \
                                                                     int* newshape; \
                                                                     ALLOCATE(newshape, block.getWorkspace(), shape::shapeInfoLength(inputShape->at(e)), int); \
-                                                                    memcpy(newshape, inputShape->at(0), shape::shapeInfoByteLength(inputShape->at(e))); \
+                                                                    memcpy(newshape, inputShape->at(e), shape::shapeInfoByteLength(inputShape->at(e))); \
                                                                     shapeList->push_back(newshape); \
                                                                 } \
                                                                 return shapeList; \
@@ -1234,7 +1234,7 @@ struct __registratorDouble_##NAME {\
                                                                                     for (int e = 0; e < inputShape->size(); e++) { \
                                                                                         int* newshape; \
                                                                                         ALLOCATE(newshape, block.getWorkspace(), shape::shapeInfoLength(inputShape->at(e)), int); \
-                                                                                        memcpy(newshape, inputShape->at(0), shape::shapeInfoByteLength(inputShape->at(e))); \
+                                                                                        memcpy(newshape, inputShape->at(e), shape::shapeInfoByteLength(inputShape->at(e))); \
                                                                                         shapeList->push_back(newshape); \
                                                                                     } \
                                                                                     return shapeList; \

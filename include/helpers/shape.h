@@ -3996,8 +3996,9 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
         for (int i = 0; i < lim; i++) {
             printf("%i", shapeInfo[i]);
 
-            if (i < lim - 1)
+            if (i < lim - 1) {
                 printf(", ");
+            }
         }
         printf("]\n");
 #ifndef __CUDACC__
