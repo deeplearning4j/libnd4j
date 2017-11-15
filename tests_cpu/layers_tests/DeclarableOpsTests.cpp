@@ -2288,10 +2288,13 @@ TEST_F(DeclarableOpsTests, BatchNorm4D) {
     nd4j::NDArrayFactory<float>::linspace(1., *input);
 
     NDArray<float> xHat ('c', {bS, iD, iH, iW});
+    NDArray<float> outExpected('c', {bS, iD, iH, iW});
+
+
     auto globalMeanView = new NDArray<float>('c', {1, iD});
     auto globalVarView = new NDArray<float>('c', {1, iD});
     auto output = new NDArray<float>('c', {bS, iD, iH, iW});
-    NDArray<float> outExpected('c', {bS, iD, iH, iW});    
+
 
     VariableSpace<float>* variableSpace = new VariableSpace<float>();
     variableSpace->putVariable(-1, input);
