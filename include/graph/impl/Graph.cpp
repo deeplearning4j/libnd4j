@@ -70,7 +70,6 @@ namespace nd4j {
                                 inputShapes.push_back(_variableSpace->getVariable(v.first)->getNDArray()->getShapeInfo());
                             } else {
                                 inputShapes.push_back(shapesMap.at(v));
-                                shape::printShapeInfoLinear(shapesMap.at(v));
                             }
                         }
 
@@ -86,8 +85,6 @@ namespace nd4j {
 
                             if (!block->isInplace() && !node->isInplace())
                                 result += shape::length(newShape) * sizeof(T);
-
-                            shape::printShapeInfoLinear(newShape);
 
                             shapes.push_back(newShape);
                         }

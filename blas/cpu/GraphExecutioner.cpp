@@ -97,6 +97,7 @@ template <typename T>
         }
 
         // we need to propagate required variables to the embedded graph
+        ResultSet<T> deletables;
         int cnt = 0;
         for (Variable<T>* v: *embedded->getPlaceholders()) {
             if (v->getName() != nullptr && v->getName()->size() > 0) {
@@ -105,7 +106,9 @@ template <typename T>
                 if (variableSpace->hasVariable(v->getName())) {
                     // symbolic feeder
                     auto array = variableSpace->getVariable(v->getName())->getNDArray();
-                    v->setNDArray(array->dup(array->ordering()));
+                    auto vr = array->dup();
+//                    deletables.push_back(vr);
+                    v->setNDArray(vr);
                 } else {
                     nd4j_debug("Can't find variable [%s] in parent graph...", v->getName()->c_str());
                     return ND4J_STATUS_BAD_INPUT;
@@ -115,7 +118,9 @@ template <typename T>
                 // if we're not using symbolic lookup - we'll use sequential approach then
                 auto p = node->input()->at(cnt);
                 auto array = variableSpace->getVariable(p)->getNDArray();
-                v->setNDArray(array->dup(array->ordering()));
+                auto vr = array->dup();
+                //deletables.push_back(vr);
+                v->setNDArray(vr);
             }
 
             cnt++;
@@ -128,16 +133,22 @@ template <typename T>
 
         //  now we should migrate its results to this node, as its own outputs
         cnt = 0;
-        for (auto v: *embedded->fetchOutputs()){
+        auto  outputs = embedded->fetchOutputs();
+
+        for (auto v: *outputs){
             NDArray<T> *array = v->getNDArray();
             v->setNDArray(nullptr);
 
-            if (cnt == 0)
-                variableSpace->getVariable(node->id())->setNDArray(array);
-
             std::pair<int,int> pair(node->id(), cnt++);
-            variableSpace->getVariable(pair)->setNDArray(array);
+
+            auto var = variableSpace->getVariable(pair);
+
+            //nd4j_printf("HasArray: [%i]; Removable: [%i]\n", var->hasNDArray(), var->isRemovable());
+            var->setNDArray(array);
+            var->markRemovable(true);
         }
+        deletables.size();
+        delete outputs;
         nd4j_debug("Embedded graph execution finished. %i variable(s) migrated\n", cnt);
 
     } else if (node->hasCustomOp()) {
