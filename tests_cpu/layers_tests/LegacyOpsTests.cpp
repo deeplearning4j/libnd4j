@@ -118,6 +118,8 @@ TEST_F(LegacyOpsTests, Scalar_Test_2) {
 
     auto z = result->at(0);
     ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
 }
 
 

@@ -12,7 +12,7 @@
 #include <Context.h>
 #include "OpDescriptor.h"
 #include <helpers/helper_hash.h>
-#include <graph/ShapeList.h>
+#include <array/ShapeList.h>
 #include <array/ResultSet.h>
 //#include <ops/declarable/declarable_ops.h>
 

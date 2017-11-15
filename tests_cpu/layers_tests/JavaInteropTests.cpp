@@ -40,6 +40,10 @@ TEST_F(JavaInteropTests, TestShapeExposure1) {
     ASSERT_EQ(exp.sizeAt(1), shape::shapeOf((int *)shapeList[0])[1]);
     ASSERT_EQ(exp.sizeAt(2), shape::shapeOf((int *)shapeList[0])[2]);
     ASSERT_EQ(exp.sizeAt(3), shape::shapeOf((int *)shapeList[0])[3]);
+
+    int *ptr = (int *) shapeList[0];
+    delete[] ptr;
+    delete[] shapeList;
 }
 
 
