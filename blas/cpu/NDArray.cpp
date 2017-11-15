@@ -1919,14 +1919,19 @@ bool NDArray<T>::isIdentityMatrix() {
 template<typename T>
 bool NDArray<T>::isUnitary() {
 
-	if(rankOf() !=2 || rows() != columns())
-		throw "isUnitary method: matrix must be square and have rank = 2 !";
+    if(rankOf() !=2 || rows() != columns())
+        throw "isUnitary method: matrix must be square and have rank = 2 !";
 
-	NDArray<T> tr = *(this->transpose());
-	tr = *nd4j::NDArrayFactory<T>::mmulHelper(this, &tr, &tr, 1.f, 0.f);
+    NDArray<T>* tr = this->transpose();
+    NDArray<T>* trMul = nd4j::NDArrayFactory<T>::mmulHelper(this, tr, nullptr, 1.f, 0.f);
 
-	return tr.isIdentityMatrix();
+    bool result = trMul->isIdentityMatrix();
+    delete tr;
+    delete trMul;
+    
+    return result;
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 // Singular value decomposition program from "Numerical Recipes, The Art of Scientific Computing, 3d edition"

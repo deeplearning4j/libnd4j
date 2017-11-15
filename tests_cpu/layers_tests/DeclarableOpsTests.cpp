@@ -1704,23 +1704,23 @@ TEST_F(DeclarableOpsTests, TestArgumentsValidation1) {
 }
 
 TEST_F(DeclarableOpsTests, Conv3D_ff_Test1) {
-    NDArray<float> input('c', {4, 3, 3, 56, 56});
-    NDArray<float> weights('f', {2, 3, 3, 5, 5});
-    NDArray<float> bias('c', {1, 2});
+    NDArray<float>* input = new NDArray<float>('c', {4, 3, 3, 56, 56});
+    NDArray<float>* weights = new NDArray<float>('f', {2, 3, 3, 5, 5});
+    NDArray<float>* bias = new NDArray<float>('c', {1, 2});
 
-    input.assign(1.0);
-    weights.assign(2.0);
-    bias.putScalar(0, 1.0f);
-    bias.putScalar(1, 1.0f);
+    input->assign(1.0);
+    weights->assign(2.0);
+    bias->putScalar(0, 1.0f);
+    bias->putScalar(1, 1.0f);
 
-    NDArray<float> output('c', {4, 2, 1, 11, 11});
+    NDArray<float>* output = new NDArray<float>('c', {4, 2, 1, 11, 11});
 
     VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &input);
-    variableSpace->putVariable(-2, &weights);
-    variableSpace->putVariable(-3, &bias);
+    variableSpace->putVariable(-1, input);
+    variableSpace->putVariable(-2, weights);
+    variableSpace->putVariable(-3, bias);
+    variableSpace->putVariable(1, output);
 
-    variableSpace->putVariable(1, &output);
     Context<float>* block = new Context<float>(1, variableSpace, false);  // not-in-place
     block->fillInputs({-1, -2, -3});
 
@@ -1739,7 +1739,10 @@ TEST_F(DeclarableOpsTests, Conv3D_ff_Test1) {
 
     //output.printBuffer("Result");
 
-    ASSERT_NEAR(451.0f, output.template reduceNumber<simdOps::Mean<float>>(), 1e-5);
+    ASSERT_NEAR(451.0f, output->template reduceNumber<simdOps::Mean<float>>(), 1e-5);
+
+    delete block;
+    delete variableSpace;
 }
 
 TEST_F(DeclarableOpsTests, TestReductionShape1) {
