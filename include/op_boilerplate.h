@@ -1080,10 +1080,13 @@ struct __registratorDouble_##NAME {\
                                                 NAME<T>::NAME() : nd4j::ops::DeclarableOp<T>(NIN, NOUT, #NAME, INPLACEABLE) { }; \
                                                 template <typename T>\
                                                 nd4j::ShapeList* nd4j::ops::NAME<T>::calculateOutputShape(nd4j::ShapeList* inputShape, nd4j::graph::Context<T>& block) { \
-                                                    int* newshape; \
-                                                    ALLOCATE(newshape, block.getWorkspace(), shape::shapeInfoLength(inputShape->at(0)), int); \
-                                                    memcpy(newshape, inputShape->at(0), shape::shapeInfoByteLength(inputShape->at(0))); \
-                                                    auto shapeList = new nd4j::ShapeList(newshape); \
+                                                    auto shapeList = new nd4j::ShapeList(); \
+                                                    for (int e = 0; e < inputShape->size(); e++) { \
+                                                        int* newshape; \
+                                                        ALLOCATE(newshape, block.getWorkspace(), shape::shapeInfoLength(inputShape->at(e)), int); \
+                                                        memcpy(newshape, inputShape->at(0), shape::shapeInfoByteLength(inputShape->at(e))); \
+                                                        shapeList->push_back(newshape); \
+                                                    } \
                                                     return shapeList; \
                                                 } \
 										template class ND4J_EXPORT NAME<float>;\
@@ -1175,10 +1178,13 @@ struct __registratorSynonymDouble_##NAME {\
                                                             NAME<T>::NAME() : nd4j::ops::DeclarableOp<T>(NIN, NOUT, #NAME, INPLACEABLE, true) { }; \
                                                             template <typename T>\
                                                             nd4j::ShapeList* nd4j::ops::NAME<T>::calculateOutputShape(nd4j::ShapeList* inputShape, nd4j::graph::Context<T>& block) { \
-                                                                int* newshape; \
-                                                                ALLOCATE(newshape, block.getWorkspace(), shape::shapeInfoLength(inputShape->at(0)), int); \
-                                                                memcpy(newshape, inputShape->at(0), shape::shapeInfoByteLength(inputShape->at(0))); \
-                                                                auto shapeList = new nd4j::ShapeList(newshape); \
+                                                                auto shapeList = new nd4j::ShapeList(); \
+                                                                for (int e = 0; e < inputShape->size(); e++) { \
+                                                                    int* newshape; \
+                                                                    ALLOCATE(newshape, block.getWorkspace(), shape::shapeInfoLength(inputShape->at(e)), int); \
+                                                                    memcpy(newshape, inputShape->at(0), shape::shapeInfoByteLength(inputShape->at(e))); \
+                                                                    shapeList->push_back(newshape); \
+                                                                } \
                                                                 return shapeList; \
                                                             } \
 										template class ND4J_EXPORT NAME<float>;\
@@ -1224,10 +1230,13 @@ struct __registratorDouble_##NAME {\
                                                                                 NAME<T>::NAME() : nd4j::ops::DeclarableOp<T>(NIN, NOUT, #NAME, INPLACEABLE, TARGS, IARGS) { }; \
                                                                                 template <typename T>\
                                                                                 nd4j::ShapeList* nd4j::ops::NAME<T>::calculateOutputShape(nd4j::ShapeList* inputShape, nd4j::graph::Context<T>& block) { \
-                                                                                    int* newshape; \
-                                                                                    ALLOCATE(newshape, block.getWorkspace(), shape::shapeInfoLength(inputShape->at(0)), int); \
-                                                                                    memcpy(newshape, inputShape->at(0), shape::shapeInfoByteLength(inputShape->at(0))); \
-                                                                                    auto shapeList = new nd4j::ShapeList(newshape); \
+                                                                                    auto shapeList = new nd4j::ShapeList(); \
+                                                                                    for (int e = 0; e < inputShape->size(); e++) { \
+                                                                                        int* newshape; \
+                                                                                        ALLOCATE(newshape, block.getWorkspace(), shape::shapeInfoLength(inputShape->at(e)), int); \
+                                                                                        memcpy(newshape, inputShape->at(0), shape::shapeInfoByteLength(inputShape->at(e))); \
+                                                                                        shapeList->push_back(newshape); \
+                                                                                    } \
                                                                                     return shapeList; \
                                                                                 } \
 										template class ND4J_EXPORT NAME<float>;\

@@ -914,7 +914,9 @@ TEST_F(GraphTests, TestMultiOutput1) {
     ASSERT_TRUE(graph->getVariableSpace()->hasVariable(pair0));
     ASSERT_TRUE(graph->getVariableSpace()->hasVariable(pair1));
 
-    GraphExecutioner<float>::execute(graph);
+    Nd4jStatus status = GraphExecutioner<float>::execute(graph);
+
+    ASSERT_EQ(ND4J_STATUS_OK, status);
 
     ASSERT_NEAR(-2.0f, graph->getVariableSpace()->getVariable(21)->getNDArray()->meanNumber(), 1e-5);
     ASSERT_NEAR(-4.0f, graph->getVariableSpace()->getVariable(31)->getNDArray()->meanNumber(), 1e-5);
@@ -929,6 +931,8 @@ TEST_F(GraphTests, TestDivergentNode1) {
 
     ASSERT_TRUE(nodeY->isDivergencePoint());
     ASSERT_TRUE(nodeY->isActive());
+
+    delete nodeY;
 }
 
 

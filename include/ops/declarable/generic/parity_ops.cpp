@@ -313,13 +313,16 @@ namespace nd4j {
         // test op, non-divergent
         OP_IMPL(testop2i2o, 2, 2, true) {
             nd4j_printf("CPU op used!\n","");
-            NDArray<T> *x = INPUT_VARIABLE(0);
-            NDArray<T> *y = INPUT_VARIABLE(1);
+            auto x = INPUT_VARIABLE(0);
+            auto y = INPUT_VARIABLE(1);
 
-            x->template applyScalar<simdOps::Add<T>>(1.0);
-            y->template applyScalar<simdOps::Add<T>>(2.0);
+            auto xO = OUTPUT_VARIABLE(0);
+            auto yO = OUTPUT_VARIABLE(1);
 
-            STORE_2_RESULTS(*x, *y);
+            x->template applyScalar<simdOps::Add<T>>(1.0, xO, nullptr);
+            y->template applyScalar<simdOps::Add<T>>(2.0, yO, nullptr);
+
+            STORE_2_RESULTS(*xO, *yO);
 
             return ND4J_STATUS_OK;
         }
