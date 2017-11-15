@@ -820,7 +820,7 @@ namespace nd4j {
 			auto x = INPUT_VARIABLE(0);
 			auto z = OUTPUT_VARIABLE(0);
 
-            nd4j_printv("argi", argItrunc);
+            //nd4j_printv("argi", argItrunc);
 
             x->template reduceAlongDimension<simdOps::Sum<T>>(z, argItrunc);
 

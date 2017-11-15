@@ -37,6 +37,10 @@ public:
     const int dW = 2;       // dilation width
     const int oH = (iH - kH - (kH-1)*(dH-1) + 2*pH)/sH + 1;     // output height
     const int oW = (iW - kW - (kW-1)*(dW-1) + 2*pW)/sW + 1;     // output width
+
+    DeclarableOpsTests() {
+        printf("\n");
+    }
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -159,7 +163,7 @@ TEST_F(DeclarableOpsTests, TestTensorMmul1) {
 
     auto z = variableSpace->getVariable(1)->getNDArray();
 
-    z->printBuffer("Result: ");
+    //z->printBuffer("Result: ");
 
     ASSERT_TRUE(exp.equalsTo(z));
 
@@ -201,7 +205,7 @@ TEST_F(DeclarableOpsTests, TestTensorDot2) {
 
     auto z = variableSpace->getVariable(1)->getNDArray();
 
-    z->printBuffer("Result: ");
+    //z->printBuffer("Result: ");
 
     ASSERT_TRUE(exp.equalsTo(z));
 
@@ -243,7 +247,7 @@ TEST_F(DeclarableOpsTests, TestTensorDot3) {
 
     auto z = variableSpace->getVariable(1)->getNDArray();
 
-    z->printBuffer("Result: ");
+    //z->printBuffer("Result: ");
 
     ASSERT_TRUE(exp->equalsTo(z));
 
@@ -286,7 +290,7 @@ TEST_F(DeclarableOpsTests, TestTensorDot4) {
 
     auto z = variableSpace->getVariable(1)->getNDArray();
 
-    z->printBuffer("Result: ");
+    //z->printBuffer("Result: ");
 
     ASSERT_TRUE(exp->equalsTo(z));
 
@@ -1191,7 +1195,7 @@ TEST_F(DeclarableOpsTests, DivideScalarScalar1) {
  
     div.execute(block);
 
-    x->printBuffer("x");
+    //x->printBuffer("x");
     ASSERT_TRUE(x->equalsTo(&exp));
 
     delete variableSpace;
@@ -1494,7 +1498,7 @@ TEST_F(DeclarableOpsTests, TestGemv1) {
 
     nd4j::blas::GEMV<float>::op('f',  x->rows(), x->columns(), 1.0f, x->getBuffer(), y->rows(), y->getBuffer(), 1, 0.0, z->getBuffer(), 1);
 
-    z->printBuffer();
+    //z->printBuffer();
 
     ASSERT_TRUE(z->equalsTo(exp));
 
@@ -3460,7 +3464,7 @@ TEST_F(DeclarableOpsTests, Test_Stack_Edge_3) {
 
     auto z = result->at(0);
 
-    z->printShapeInfo();
+    //z->printShapeInfo();
 
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
