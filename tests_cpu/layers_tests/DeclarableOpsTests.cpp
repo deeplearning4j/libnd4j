@@ -3964,6 +3964,7 @@ TEST_F(DeclarableOpsTests, Test_Expose_2) {
 
     VariableSpace<float> variableSpace;
     variableSpace.putVariable(-1, var);
+    variableSpace.trackList(list);
 
     Context<float> block(1, &variableSpace);
     block.pickInput(-1);
@@ -3981,4 +3982,5 @@ TEST_F(DeclarableOpsTests, Test_Expose_2) {
     auto list1 = var1->getNDArrayList();
 
     ASSERT_TRUE(list == list1);
+
 }
