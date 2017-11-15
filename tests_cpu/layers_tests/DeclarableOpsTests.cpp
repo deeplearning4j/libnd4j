@@ -126,12 +126,12 @@ TEST_F(DeclarableOpsTests, SynonymInitialization2) {
 
 
 TEST_F(DeclarableOpsTests, TestTensorMmul1) {
-    NDArray<float> x('c', {2, 3, 4});
-    NDArray<float> y('c', {2, 3, 4});
+    NDArray<float>* x = new NDArray<float>('c', {2, 3, 4});
+    NDArray<float>* y = new NDArray<float>('c', {2, 3, 4});
 
-    for (int i = 0; i < x.lengthOf(); i++) {
-        x.putScalar(i, i + 1);
-        y.putScalar(i, i + 1);
+    for (int i = 0; i < x->lengthOf(); i++) {
+        x->putScalar(i, i + 1);
+        y->putScalar(i, i + 1);
     }
 
     NDArray<float> exp(2, 2, 'c');
@@ -141,8 +141,8 @@ TEST_F(DeclarableOpsTests, TestTensorMmul1) {
     exp.putScalar(3, 4250.0);
 
     VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &x);
-    variableSpace->putVariable(-2, &y);
+    variableSpace->putVariable(-1, x);
+    variableSpace->putVariable(-2, y);
     variableSpace->putVariable(1, new Variable<float>());
     Context<float>* block = new Context<float>(1, variableSpace, false);
     block->fillInputs({-1, -2}); 
@@ -162,15 +162,18 @@ TEST_F(DeclarableOpsTests, TestTensorMmul1) {
     z->printBuffer("Result: ");
 
     ASSERT_TRUE(exp.equalsTo(z));
+
+    delete block;
+    delete variableSpace;
 }
 
 TEST_F(DeclarableOpsTests, TestTensorDot2) {
-    NDArray<float> x('f', {2, 3, 4});
-    NDArray<float> y('f', {2, 3, 4});
+    NDArray<float>* x = new NDArray<float>('f', {2, 3, 4});
+    NDArray<float>* y = new NDArray<float>('f', {2, 3, 4});
 
-    for (int i = 0; i < x.lengthOf(); i++) {
-        x.putScalar(i, i + 1);
-        y.putScalar(i, i + 1);
+    for (int i = 0; i < x->lengthOf(); i++) {
+        x->putScalar(i, i + 1);
+        y->putScalar(i, i + 1);
     }
 
     NDArray<float> exp(2, 2, 'c');
@@ -180,8 +183,8 @@ TEST_F(DeclarableOpsTests, TestTensorDot2) {
     exp.putScalar(3, 2600.0);
 
     VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &x);
-    variableSpace->putVariable(-2, &y);
+    variableSpace->putVariable(-1, x);
+    variableSpace->putVariable(-2, y);
     variableSpace->putVariable(1, new Variable<float>());
     Context<float>* block = new Context<float>(1, variableSpace, false);
     block->fillInputs({-1, -2});
@@ -201,26 +204,29 @@ TEST_F(DeclarableOpsTests, TestTensorDot2) {
     z->printBuffer("Result: ");
 
     ASSERT_TRUE(exp.equalsTo(z));
+
+    delete block;
+    delete variableSpace;
 }
 
 TEST_F(DeclarableOpsTests, TestTensorDot3) {
-    NDArray<float> x('c', {2, 3, 4});
-    NDArray<float> y('f', {2, 3, 4});
+    NDArray<float>* x = new NDArray<float>('c', {2, 3, 4});
+    NDArray<float>* y = new NDArray<float>('f', {2, 3, 4});
 
-    for (int i = 0; i < x.lengthOf(); i++) {
-        x.putScalar(i, i + 1);
-        y.putScalar(i, i + 1);
+    for (int i = 0; i < x->lengthOf(); i++) {
+        x->putScalar(i, i + 1);
+        y->putScalar(i, i + 1);
     }
 
-    NDArray<float> exp(2, 2, 'f');
-    exp.putScalar(0, 1090.0);
-    exp.putScalar(1, 2818.0);
-    exp.putScalar(2, 1168.0);
-    exp.putScalar(3, 3040.0);
+    NDArray<float>* exp = new NDArray<float>(2, 2, 'f');
+    exp->putScalar(0, 1090.0);
+    exp->putScalar(1, 2818.0);
+    exp->putScalar(2, 1168.0);
+    exp->putScalar(3, 3040.0);
 
     VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &x);
-    variableSpace->putVariable(-2, &y);
+    variableSpace->putVariable(-1, x);
+    variableSpace->putVariable(-2, y);
     variableSpace->putVariable(1, new Variable<float>());
     Context<float>* block = new Context<float>(1, variableSpace, false);
     block->fillInputs({-1, -2});
@@ -239,27 +245,31 @@ TEST_F(DeclarableOpsTests, TestTensorDot3) {
 
     z->printBuffer("Result: ");
 
-    ASSERT_TRUE(exp.equalsTo(z));
+    ASSERT_TRUE(exp->equalsTo(z));
+
+    delete exp;
+    delete block;
+    delete variableSpace;
 }
 
 TEST_F(DeclarableOpsTests, TestTensorDot4) {
-    NDArray<float> x('f', {2, 3, 4});
-    NDArray<float> y('c', {2, 3, 4});
+    NDArray<float>* x =  new NDArray<float>('f', {2, 3, 4});
+    NDArray<float>* y =  new NDArray<float>('c', {2, 3, 4});
 
-    for (int i = 0; i < x.lengthOf(); i++) {
-        x.putScalar(i, i + 1);
-        y.putScalar(i, i + 1);
+    for (int i = 0; i < x->lengthOf(); i++) {
+        x->putScalar(i, i + 1);
+        y->putScalar(i, i + 1);
     }
 
-    NDArray<float> exp(2, 2, 'f');
-    exp.putScalar(0, 1090.0);
-    exp.putScalar(1, 1168.0);
-    exp.putScalar(2, 2818.0);
-    exp.putScalar(3, 3040.0);
+    NDArray<float>* exp = new NDArray<float>(2, 2, 'f');
+    exp->putScalar(0, 1090.0);
+    exp->putScalar(1, 1168.0);
+    exp->putScalar(2, 2818.0);
+    exp->putScalar(3, 3040.0);
 
     VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &x);
-    variableSpace->putVariable(-2, &y);
+    variableSpace->putVariable(-1, x);
+    variableSpace->putVariable(-2, y);
     variableSpace->putVariable(1, new Variable<float>());
     Context<float>* block = new Context<float>(1, variableSpace, false);
     block->fillInputs({-1, -2});
@@ -278,7 +288,11 @@ TEST_F(DeclarableOpsTests, TestTensorDot4) {
 
     z->printBuffer("Result: ");
 
-    ASSERT_TRUE(exp.equalsTo(z));
+    ASSERT_TRUE(exp->equalsTo(z));
+
+    delete exp;
+    delete block;
+    delete variableSpace;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -295,16 +309,16 @@ TEST_F(DeclarableOpsTests, DivergentCheck1) {
 //////////////////////////////////////////////////////////////////////
 TEST_F(DeclarableOpsTests, AddMatrices1) {
 	
-	NDArray<float> x(5, 3, 'c');
-	NDArray<float> y(5, 3, 'c');
-	NDArray<float> exp(5, 3, 'c'); 
-	x.assign(2);
-	y.assign(1);
-	exp.assign(3);
+	NDArray<float>* x = new NDArray<float>(5, 3, 'c');
+	NDArray<float>* y = new NDArray<float>(5, 3, 'c');
+	NDArray<float>* exp = new NDArray<float>(5, 3, 'c'); 
+	x->assign(2);
+	y->assign(1);
+	exp->assign(3);
 
 	VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &x);
-    variableSpace->putVariable(-2, &y);
+    variableSpace->putVariable(-1, x);
+    variableSpace->putVariable(-2, y);
 	Context<float>* block = new Context<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
@@ -312,23 +326,27 @@ TEST_F(DeclarableOpsTests, AddMatrices1) {
  
 	addOp.execute(block);
 
-    ASSERT_TRUE(x.equalsTo(&exp));	
+    ASSERT_TRUE(x->equalsTo(exp));	
+
+    delete exp;
+    delete block;
+    delete variableSpace;
 
 }
 
 //////////////////////////////////////////////////////////////////////
 TEST_F(DeclarableOpsTests, AddMatrixVector1) {
 	
-	NDArray<float> x(5, 3, 'c');
-	NDArray<float> y(1, 15, 'c');
-	NDArray<float> exp(5, 3, 'c'); 
-	x.assign(2);
-	y.assign(1);
-	exp.assign(3);
+	NDArray<float>* x = new NDArray<float>(5, 3, 'c');
+	NDArray<float>* y = new NDArray<float>(1, 15, 'c');
+	NDArray<float>* exp = new NDArray<float>(5, 3, 'c'); 
+	x->assign(2);
+	y->assign(1);
+	exp->assign(3);
 
 	VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &x);
-    variableSpace->putVariable(-2, &y);
+    variableSpace->putVariable(-1, x);
+    variableSpace->putVariable(-2, y);
 	Context<float>* block = new Context<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
@@ -336,22 +354,26 @@ TEST_F(DeclarableOpsTests, AddMatrixVector1) {
  
 	addOp.execute(block);
 
-    ASSERT_TRUE(x.equalsTo(&exp));	
+    ASSERT_TRUE(x->equalsTo(exp));	
+
+    delete exp;
+    delete block;
+    delete variableSpace;
 }
 
 //////////////////////////////////////////////////////////////////////
 TEST_F(DeclarableOpsTests, AddVectorVector1) {
 	
-	NDArray<float> x(1, 15, 'c');
-	NDArray<float> y(1, 15, 'c');
-	NDArray<float> exp(1, 15, 'c'); 
-	x.assign(2);
-	y.assign(1);
-	exp.assign(3);
+	NDArray<float>* x = new NDArray<float>(1, 15, 'c');
+	NDArray<float>* y = new NDArray<float>(1, 15, 'c');
+	NDArray<float>* exp = new NDArray<float>(1, 15, 'c'); 
+	x->assign(2);
+	y->assign(1);
+	exp->assign(3);
 
 	VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &x);
-    variableSpace->putVariable(-2, &y);
+    variableSpace->putVariable(-1, x);
+    variableSpace->putVariable(-2, y);
 	Context<float>* block = new Context<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
@@ -359,7 +381,11 @@ TEST_F(DeclarableOpsTests, AddVectorVector1) {
  
 	addOp.execute(block);
 
-    ASSERT_TRUE(x.equalsTo(&exp));	
+    ASSERT_TRUE(x->equalsTo(exp));	
+
+    delete exp;
+    delete block;
+    delete variableSpace;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -570,21 +596,21 @@ TEST_F(DeclarableOpsTests, ClipByValue1) {
 //////////////////////////////////////////////////////////////////////
 TEST_F(DeclarableOpsTests, MergeMaxTest1) {
 
-    NDArray<float> x(5, 5, 'c');
-    NDArray<float> y(5, 5, 'c');
-    NDArray<float> z(5, 5, 'c');
+    NDArray<float>* x = new NDArray<float>(5, 5, 'c');
+    NDArray<float>* y = new NDArray<float>(5, 5, 'c');
+    NDArray<float>* z = new NDArray<float>(5, 5, 'c');
     NDArray<float> exp(5, 5, 'c');
-    x.assign(3);
-    y.assign(1);
-    z.assign(2);
+    x->assign(3);
+    y->assign(1);
+    z->assign(2);
     exp.assign(3);
 
     NDArray<float> zu(5, 5, 'c');
 
     VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &x);
-    variableSpace->putVariable(-2, &y);
-    variableSpace->putVariable(-3, &z);
+    variableSpace->putVariable(-1, x);
+    variableSpace->putVariable(-2, y);
+    variableSpace->putVariable(-3, z);
     variableSpace->putVariable(1, new Variable<float>(new NDArray<float>(5,5,'c')));
     Context<float>* block = new Context<float>(1, variableSpace, false);
     block->fillInputs({-1, -2, -3});
@@ -594,9 +620,11 @@ TEST_F(DeclarableOpsTests, MergeMaxTest1) {
     merge.execute(block);
 
     auto res = variableSpace->getVariable(1)->getNDArray();
-
-    res->printBuffer("Result");
+    
     ASSERT_TRUE(res->equalsTo(&exp));
+
+    delete block;
+    delete variableSpace;
 
 }
 
@@ -604,16 +632,16 @@ TEST_F(DeclarableOpsTests, MergeMaxTest1) {
 //////////////////////////////////////////////////////////////////////
 TEST_F(DeclarableOpsTests, SubtractVectorVector1) {
 	
-	NDArray<float> x(1, 15, 'c');
-	NDArray<float> y(1, 15, 'c');
+	NDArray<float>* x = new NDArray<float>(1, 15, 'c');
+	NDArray<float>* y = new NDArray<float>(1, 15, 'c');
 	NDArray<float> exp(1, 15, 'c'); 
-	x.assign(3);
-	y.assign(1);
+	x->assign(3);
+	y->assign(1);
 	exp.assign(2);
 
 	VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &x);
-    variableSpace->putVariable(-2, &y);
+    variableSpace->putVariable(-1, x);
+    variableSpace->putVariable(-2, y);
 	Context<float>* block = new Context<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
@@ -621,7 +649,10 @@ TEST_F(DeclarableOpsTests, SubtractVectorVector1) {
  
 	subOp.execute(block);
 
-    ASSERT_TRUE(x.equalsTo(&exp));	
+    ASSERT_TRUE(x->equalsTo(&exp));	
+
+    delete block;
+    delete variableSpace;
 
 }
 
@@ -629,16 +660,16 @@ TEST_F(DeclarableOpsTests, SubtractVectorVector1) {
 //////////////////////////////////////////////////////////////////////
 TEST_F(DeclarableOpsTests, SubtractMatrixScalar1) {
 	
-	NDArray<float> x(5, 3, 'c');
-	NDArray<float> y(1, 1, 'c');
+	NDArray<float>* x = new NDArray<float>(5, 3, 'c');
+	NDArray<float>* y = new NDArray<float>(1, 1, 'c');
 	NDArray<float> exp(5, 3, 'c'); 
-	x.assign(3);
-	y.assign(1);
+	x->assign(3);
+	y->assign(1);
 	exp.assign(2);
 
 	VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &x);
-    variableSpace->putVariable(-2, &y);
+    variableSpace->putVariable(-1, x);
+    variableSpace->putVariable(-2, y);
 	Context<float>* block = new Context<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
@@ -646,23 +677,26 @@ TEST_F(DeclarableOpsTests, SubtractMatrixScalar1) {
  
 	subOp.execute(block);
 
-    ASSERT_TRUE(x.equalsTo(&exp));	
+    ASSERT_TRUE(x->equalsTo(&exp));	
+
+    delete block;
+    delete variableSpace;
 }
 
 
 //////////////////////////////////////////////////////////////////////
 TEST_F(DeclarableOpsTests, SubtractScalarScalar1) {
 	
-	NDArray<float> x(1, 1, 'c');
-	NDArray<float> y(1, 1, 'c');
+	NDArray<float>* x = new NDArray<float>(1, 1, 'c');
+	NDArray<float>* y = new NDArray<float>(1, 1, 'c');
 	NDArray<float> exp(1, 1, 'c'); 
-	x.assign(3);
-	y.assign(1);
+	x->assign(3);
+	y->assign(1);
 	exp.assign(2);
 
 	auto variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &x);
-    variableSpace->putVariable(-2, &y);
+    variableSpace->putVariable(-1, x);
+    variableSpace->putVariable(-2, y);
 	auto block = new Context<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
@@ -670,7 +704,10 @@ TEST_F(DeclarableOpsTests, SubtractScalarScalar1) {
  
 	subOp.execute(block);
 
-    ASSERT_TRUE(x.equalsTo(&exp));	
+    ASSERT_TRUE(x->equalsTo(&exp));	
+
+    delete block;
+    delete variableSpace;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -1110,16 +1147,16 @@ TEST_F(DeclarableOpsTests, DivideVectorVector1) {
 //////////////////////////////////////////////////////////////////////
 TEST_F(DeclarableOpsTests, DivideMatrixScalar1) {
 	
-	NDArray<float> x(5, 3, 'c');
-	NDArray<float> y(1, 1, 'c');
+	NDArray<float>* x = new NDArray<float>(5, 3, 'c');
+	NDArray<float>* y = new NDArray<float>(1, 1, 'c');
 	NDArray<float> exp(5, 3, 'c'); 
-	x.assign(6);
-	y.assign(2);
+	x->assign(6);
+	y->assign(2);
 	exp.assign(3);
 
 	VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &x);
-    variableSpace->putVariable(-2, &y);
+    variableSpace->putVariable(-1, x);
+    variableSpace->putVariable(-2, y);
 	Context<float>* block = new Context<float>(1, variableSpace, true);
     block->fillInputs({-1, -2});
 
@@ -1127,7 +1164,10 @@ TEST_F(DeclarableOpsTests, DivideMatrixScalar1) {
  
 	div.execute(block);
 
-    ASSERT_TRUE(x.equalsTo(&exp));	
+    ASSERT_TRUE(x->equalsTo(&exp));	
+
+    delete block;
+    delete variableSpace;
 }
 
 
@@ -1334,7 +1374,7 @@ TEST_F(DeclarableOpsTests, Test_Cast_1) {
 TEST_F(DeclarableOpsTests, TestRegistrator1) {
     auto res = nd4j::ops::OpRegistrator::getInstance()->getAllCustomOperations();
 
-    nd4j_printf("Ops: %s\n", res)
+    // nd4j_printf("Ops: %s\n", res)
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -1457,6 +1497,9 @@ TEST_F(DeclarableOpsTests, TestGemv1) {
 	z->printBuffer();
 
 	ASSERT_TRUE(z->equalsTo(exp));
+
+    delete []xBuffer; delete []xShape; delete x; delete []yBuffer; delete []yShape; delete y; delete z; delete []expBuffer; delete exp;
+
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -1464,16 +1507,16 @@ TEST_F(DeclarableOpsTests, Reshape1) {
 	const std::vector<int> xShape = {5,4,3};
 	const std::vector<int> yShape = {3,5,4};	
 	
-	NDArray<float> x('c', xShape);	
-	NDArray<float> y('f', yShape);	
+	NDArray<float>* x = new NDArray<float>('c', xShape);	
+	NDArray<float>* y = new NDArray<float>('f', yShape);	
 
 	VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &x);
+    variableSpace->putVariable(-1, x);
     
 	Context<float>* block = new Context<float>(1, variableSpace, true);
     block->fillInputs({-1});	
 	std::vector<int>* arguments = block->getIArguments();
-	arguments->push_back(y.ordering());
+	arguments->push_back(y->ordering());
     arguments->push_back(3);
     arguments->push_back(5);
     arguments->push_back(4);
@@ -1482,7 +1525,11 @@ TEST_F(DeclarableOpsTests, Reshape1) {
 	
 	reshape.execute(block);
 
-    ASSERT_TRUE(x.isSameShape(&y));	
+    ASSERT_TRUE(x->isSameShape(y));	
+
+    delete y;
+    delete block;
+    delete variableSpace;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -1490,17 +1537,17 @@ TEST_F(DeclarableOpsTests, Reshape2) {
 	const std::vector<int> xShape = {5,4,3};
 	const std::vector<int> yShape = {3,5,4};	
 	
-	NDArray<float> x('c', xShape);	
-	NDArray<float> y('f', yShape);	
+	NDArray<float>* x = new NDArray<float>('c', xShape);	
+	NDArray<float>* y = new NDArray<float>('f', yShape);	
 
 	VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &x);
+    variableSpace->putVariable(-1, x);
 	variableSpace->putVariable(1, new Variable<float>());
     
 	Context<float>* block = new Context<float>(1, variableSpace, false);
     block->fillInputs({-1});	
 	std::vector<int>* arguments = block->getIArguments();
-	arguments->push_back(y.ordering());
+	arguments->push_back(y->ordering());
     arguments->push_back(3);
     arguments->push_back(5);
     arguments->push_back(4);
@@ -1511,21 +1558,23 @@ TEST_F(DeclarableOpsTests, Reshape2) {
 	ASSERT_EQ(ND4J_STATUS_OK, status);
 	NDArray<float>* result = variableSpace->getVariable(block->getNodeId())->getNDArray();
 
-	result->printShapeInfo();
-	y.printShapeInfo();
-	ASSERT_TRUE(result->isSameShape(&y));	
+	ASSERT_TRUE(result->isSameShape(y));	
+
+    delete y;
+    delete block;
+    delete variableSpace;
 }
 
 TEST_F(DeclarableOpsTests, TestScatterUpdate1) {
-    NDArray<float> matrix(3, 2, 'c');
-    NDArray<float> updates(2, 2, 'c');
-    updates.assign(1.0);
+    NDArray<float>* matrix  = new NDArray<float>(3, 2, 'c');
+    NDArray<float>* updates = new NDArray<float>(2, 2, 'c');
+    updates->assign(1.0);
 
     //updates.printBuffer("Updates");
 
     VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &matrix);
-    variableSpace->putVariable(-2, &updates);
+    variableSpace->putVariable(-1, matrix);
+    variableSpace->putVariable(-2, updates);
     variableSpace->putVariable(1, new Variable<float>(&matrix));
 
     Context<float>* block = new Context<float>(1, variableSpace, false);
@@ -1545,7 +1594,8 @@ TEST_F(DeclarableOpsTests, TestScatterUpdate1) {
     Nd4jStatus result = op.execute(block);
     ASSERT_EQ(ND4J_STATUS_OK, result);
 
-    //matrix.printBuffer("Result");
+    delete block;
+    delete variableSpace;
 }
 
 
@@ -1554,13 +1604,13 @@ TEST_F(DeclarableOpsTests, Repeat1) {
 	
 	float eBuffer[8] = {1.0,2.0,1.0,2.0,3.0,4.0,3.0,4.0};
     int eShape[8] = {2, 4, 2, 2, 1, 0, 1, 99};
-    NDArray<float>  x(2, 2, 'c');
-    NDArray<float> exp(eBuffer, eShape);
-    for (int e = 0; e < x.lengthOf(); e++)
-        x.putScalar(e, e + 1);
+    NDArray<float>* x = new NDArray<float>(2, 2, 'c');
+    NDArray<float>* exp = new NDArray<float>(eBuffer, eShape);
+    for (int e = 0; e < x->lengthOf(); e++)
+        x->putScalar(e, e + 1);
     
 	VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &x);
+    variableSpace->putVariable(-1, x);
 	variableSpace->putVariable(1, new Variable<float>());
 
 	Context<float>* block = new Context<float>(1, variableSpace, false);
@@ -1575,17 +1625,21 @@ TEST_F(DeclarableOpsTests, Repeat1) {
 	ASSERT_EQ(ND4J_STATUS_OK, status);
 	NDArray<float>* result = variableSpace->getVariable(block->getNodeId())->getNDArray();
 
-    ASSERT_TRUE(exp.equalsTo(result));
+    ASSERT_TRUE(exp->equalsTo(result));
+
+    delete exp;
+    delete block;
+    delete variableSpace;
 }
 
 //////////////////////////////////////////////////////////////////////
 TEST_F(DeclarableOpsTests, Transpose1) {
 
-	NDArray<float> x('c', {3,5,2});
-	NDArray<float> exp('f', {2,5,3});
+	NDArray<float>* x = new NDArray<float>('c', {3,5,2});
+	NDArray<float>* exp = new NDArray<float>('f', {2,5,3});
 
 	VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &x);
+    variableSpace->putVariable(-1, x);
 
 	Context<float>* block = new Context<float>(1, variableSpace, true);  // in-place
     block->fillInputs({-1});
@@ -1595,21 +1649,25 @@ TEST_F(DeclarableOpsTests, Transpose1) {
     ASSERT_EQ(ND4J_STATUS_OK, status);
 	// ASSERT_TRUE(x.isSameShapeStrict(&exp));
 
-	for (int e = 0; e < x.rankOf() * 2 + 2; e++) {
-        ASSERT_EQ(x.getShapeInfo()[e], exp.getShapeInfo()[e]);
+	for (int e = 0; e < x->rankOf() * 2 + 2; e++) {
+        ASSERT_EQ(x->getShapeInfo()[e], exp->getShapeInfo()[e]);
     }
 //	ASSERT_EQ(x.getShapeInfo()[x.rankOf() * 2 + 2],-exp.getShapeInfo()[x.rankOf() * 2 + 2]);
-	ASSERT_EQ(x.getShapeInfo()[x.rankOf() * 2 + 3], exp.getShapeInfo()[x.rankOf() * 2 + 3]);
+	ASSERT_EQ(x->getShapeInfo()[x->rankOf() * 2 + 3], exp->getShapeInfo()[x->rankOf() * 2 + 3]);
+
+    delete exp;
+    delete block;
+    delete variableSpace;
 
 }
 
 //////////////////////////////////////////////////////////////////////
 TEST_F(DeclarableOpsTests, Transpose2) {
-	NDArray<float> x('c', {3,5,2});
-	NDArray<float> exp('f', {2,5,3});
+	NDArray<float>* x = new NDArray<float>('c', {3,5,2});
+	NDArray<float>* exp = new NDArray<float>('f', {2,5,3});
 
 	VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &x);
+    variableSpace->putVariable(-1, x);
 	variableSpace->putVariable(1, new Variable<float>());
 
 	Context<float>* block = new Context<float>(1, variableSpace, false);  // not-in-place
@@ -1622,10 +1680,14 @@ TEST_F(DeclarableOpsTests, Transpose2) {
 	NDArray<float>* result = variableSpace->getVariable(block->getNodeId())->getNDArray();
 	// ASSERT_TRUE(result->isSameShapeStrict(&exp));
 	for (int e = 0; e < result->rankOf() * 2 + 2; e++) {
-        ASSERT_EQ(result->getShapeInfo()[e], exp.getShapeInfo()[e]);
+        ASSERT_EQ(result->getShapeInfo()[e], exp->getShapeInfo()[e]);
     }
 	//ASSERT_EQ(result->getShapeInfo()[x.rankOf() * 2 + 2],-exp.getShapeInfo()[x.rankOf() * 2 + 2]);
-	ASSERT_EQ(result->getShapeInfo()[x.rankOf() * 2 + 3], exp.getShapeInfo()[x.rankOf() * 2 + 3]);
+	ASSERT_EQ(result->getShapeInfo()[x->rankOf() * 2 + 3], exp->getShapeInfo()[x->rankOf() * 2 + 3]);
+
+    delete exp;
+    delete block;
+    delete variableSpace;
 }
 
 
@@ -1636,11 +1698,11 @@ TEST_F(DeclarableOpsTests, Permute1) {
     const int shapeX[]   = {3, 5, 10, 15, 150, 15, 1, 0, 1, 99};
 	const int shapeExp[] = {3, 15, 5, 10, 1, 150, 15, 0, -1, 99};    
 	const std::vector<int> perm = {2, 0, 1};    
-    NDArray<float>  x(shapeX);
-	NDArray<float>  exp(shapeExp);
+    NDArray<float>* x = new NDArray<float>(shapeX);
+	NDArray<float>* exp = new NDArray<float>(shapeExp);
 
 	VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &x);
+    variableSpace->putVariable(-1, x);
 
 	Context<float>* block = new Context<float>(1, variableSpace, true);  // in-place
     block->fillInputs({-1});
@@ -1651,7 +1713,11 @@ TEST_F(DeclarableOpsTests, Permute1) {
 	Nd4jStatus status = permute.execute(block);	
 	ASSERT_EQ(ND4J_STATUS_OK, status);
 	
-	ASSERT_TRUE(x.isSameShapeStrict(&exp));	
+	ASSERT_TRUE(x->isSameShapeStrict(exp));	
+
+    delete exp;
+    delete block;
+    delete variableSpace;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -1690,11 +1756,11 @@ TEST_F(DeclarableOpsTests, TestArgumentsValidation1) {
     const int shapeX[]   = {3, 5, 10, 15, 150, 15, 1, 0, 1, 99};
     const int shapeExp[] = {3, 15, 5, 10, 1, 150, 15, 0, -1, 99};
     const std::vector<int> perm = {2, 0, 1};
-    NDArray<float> x(shapeX);
-    NDArray<float> exp(shapeExp);
+    NDArray<float>* x = new NDArray<float>(shapeX);
+    NDArray<float>* exp = new NDArray<float>(shapeExp);
 
     VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &x);
+    variableSpace->putVariable(-1, x);
     variableSpace->putVariable(1, new Variable<float>());
 
     Context<float>* block = new Context<float>(1, variableSpace, false);  // not-in-place
@@ -1705,6 +1771,9 @@ TEST_F(DeclarableOpsTests, TestArgumentsValidation1) {
 
     ASSERT_TRUE(status != 0);
 
+    delete exp;
+    delete block;        
+    delete variableSpace;    
 }
 
 TEST_F(DeclarableOpsTests, Conv3D_ff_Test1) {
