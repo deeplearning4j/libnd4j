@@ -1081,7 +1081,7 @@ struct __registratorDouble_##NAME {\
                                                 template <typename T>\
                                                 nd4j::ShapeList* nd4j::ops::NAME<T>::calculateOutputShape(nd4j::ShapeList* inputShape, nd4j::graph::Context<T>& block) { \
                                                     auto shapeList = new nd4j::ShapeList(); \
-                                                    for (int e = 0; e < inputShape->size(); e++) { \
+                                                    for (int e = 0; e < this->getOpDescriptor()->getNumberOfOutputs(); e++) { \
                                                         int* newshape; \
                                                         ALLOCATE(newshape, block.getWorkspace(), shape::shapeInfoLength(inputShape->at(e)), int); \
                                                         memcpy(newshape, inputShape->at(0), shape::shapeInfoByteLength(inputShape->at(e))); \
@@ -1179,7 +1179,7 @@ struct __registratorSynonymDouble_##NAME {\
                                                             template <typename T>\
                                                             nd4j::ShapeList* nd4j::ops::NAME<T>::calculateOutputShape(nd4j::ShapeList* inputShape, nd4j::graph::Context<T>& block) { \
                                                                 auto shapeList = new nd4j::ShapeList(); \
-                                                                for (int e = 0; e < inputShape->size(); e++) { \
+                                                                for (int e = 0; e < this->getOpDescriptor()->getNumberOfOutputs(); e++) { \
                                                                     int* newshape; \
                                                                     ALLOCATE(newshape, block.getWorkspace(), shape::shapeInfoLength(inputShape->at(e)), int); \
                                                                     memcpy(newshape, inputShape->at(e), shape::shapeInfoByteLength(inputShape->at(e))); \
@@ -1231,7 +1231,7 @@ struct __registratorDouble_##NAME {\
                                                                                 template <typename T>\
                                                                                 nd4j::ShapeList* nd4j::ops::NAME<T>::calculateOutputShape(nd4j::ShapeList* inputShape, nd4j::graph::Context<T>& block) { \
                                                                                     auto shapeList = new nd4j::ShapeList(); \
-                                                                                    for (int e = 0; e < inputShape->size(); e++) { \
+                                                                                    for (int e = 0; e < this->getOpDescriptor()->getNumberOfOutputs(); e++) { \
                                                                                         int* newshape; \
                                                                                         ALLOCATE(newshape, block.getWorkspace(), shape::shapeInfoLength(inputShape->at(e)), int); \
                                                                                         memcpy(newshape, inputShape->at(e), shape::shapeInfoByteLength(inputShape->at(e))); \
