@@ -346,10 +346,10 @@ TEST_F(FlatBuffersTest, ReadInception1) {
 
     auto argMax = lastNode->argMax();
 
-    nd4j_printf("Predicted class: %i\n", (int) argMax);
-    nd4j_printf("Probability: %f\n", lastNode->getScalar(argMax));
-    nd4j_printf("Probability ipod: %f\n", lastNode->getScalar(980));
-    lastNode->printBuffer("Whole output");
+    //nd4j_printf("Predicted class: %i\n", (int) argMax);
+    //nd4j_printf("Probability: %f\n", lastNode->getScalar(argMax));
+    //nd4j_printf("Probability ipod: %f\n", lastNode->getScalar(980));
+    //lastNode->printBuffer("Whole output");
 
     ASSERT_EQ(561, (int) argMax);
 
@@ -374,7 +374,7 @@ TEST_F(FlatBuffersTest, ReduceDim_1) {
     auto result = variableSpace->getVariable(1)->getNDArray();
 
 
-    result->printShapeInfo("result shape");
+//    result->printShapeInfo("result shape");
 
     ASSERT_TRUE(exp.isSameShape(result));
     ASSERT_TRUE(exp.equalsTo(result));
@@ -389,6 +389,8 @@ TEST_F(FlatBuffersTest, ReadLoops_3argsWhile_1) {
 
     ASSERT_TRUE(graph != nullptr);
 
+    //graph->printOut();
+
     NDArray<float> expPhi('c', {2, 2});
 
     ASSERT_TRUE(graph->getVariableSpace()->hasVariable(-1));
@@ -398,8 +400,8 @@ TEST_F(FlatBuffersTest, ReadLoops_3argsWhile_1) {
     auto constA = graph->getVariableSpace()->getVariable(-5)->getNDArray();
     auto lessY = graph->getVariableSpace()->getVariable(-6)->getNDArray();
 
-    constA->printBuffer("constA");
-    lessY->printBuffer("lessY");
+    //constA->printBuffer("constA");
+    //lessY->printBuffer("lessY");
 
     ASSERT_TRUE(expPhi.isSameShape(phi));
 

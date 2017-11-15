@@ -368,18 +368,20 @@ namespace nd4j {
             NDArray<T> *x = INPUT_VARIABLE(0);
             NDArray<T> *y = INPUT_VARIABLE(1);
 
+            auto z = OUTPUT_VARIABLE(0);
+
             if (y->isScalar()) {
 
-                x->assign(y->getScalar(0));
+                z->assign(y->getScalar(0));
             } else {
                 REQUIRE_OK(this->validateInputLengthMatch(block));
                 REQUIRE_OK(this->validateInputDimensionsMatch(block));
 
-                x->assign(y);
+                z->assign(y);
             }
 
 
-            STORE_RESULT(*x);
+            STORE_RESULT(*z);
 
             return ND4J_STATUS_OK;
         }
