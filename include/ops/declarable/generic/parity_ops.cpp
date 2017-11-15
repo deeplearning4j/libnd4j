@@ -312,7 +312,7 @@ namespace nd4j {
         //////////////////////////////////////////////////////////////////////////
         // test op, non-divergent
         OP_IMPL(testop2i2o, 2, 2, true) {
-            nd4j_printf("CPU op used!\n","");
+            //nd4j_printf("CPU op used!\n","");
             auto x = INPUT_VARIABLE(0);
             auto y = INPUT_VARIABLE(1);
 

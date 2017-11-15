@@ -851,11 +851,11 @@ TEST_F(GraphTests, OutputValidation6) {
 
     auto outputs = graph->fetchOutputs();
 
-    nd4j_printf("Returned variables: \n", "");
-    for (int e = 0; e < outputs->size(); e++) {
-        printf("%i, ", outputs->at(e)->id());
-    }
-    printf("\n");
+//    nd4j_printf("Returned variables: \n", "");
+//    for (int e = 0; e < outputs->size(); e++) {
+//        printf("%i, ", outputs->at(e)->id());
+//    }
+//    printf("\n");
 
     ASSERT_EQ(4, outputs->size());
 
@@ -1122,7 +1122,7 @@ TEST_F(GraphTests, TestGraphInGraph_1) {
 
     float m = graphA.getVariableSpace()->getVariable(4)->getNDArray()->meanNumber();
 
-    nd4j_printf("OpResult: %f\n", m);
+    //nd4j_printf("OpResult: %f\n", m);
 
     ASSERT_NEAR(-11.0, m, 1e-5);
 }
@@ -1193,7 +1193,7 @@ TEST_F(GraphTests, TestGraphInGraph_2) {
 
     float m = graphA.getVariableSpace()->getVariable(4)->getNDArray()->meanNumber();
 
-    nd4j_printf("OpResult: %f\n", m);
+    //nd4j_printf("OpResult: %f\n", m);
 
     ASSERT_NEAR(-11.0, m, 1e-5);
 }
