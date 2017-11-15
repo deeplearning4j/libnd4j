@@ -6780,7 +6780,7 @@ const char* NativeOps::getAllCustomOps() {
 
 template<typename T>
 Nd4jPointer* _calculateOutputShapes(Nd4jPointer* extraPointers, nd4j::ops::DeclarableOp<T>* op, Nd4jPointer* inputShapes, int numInputShapes, T* tArgs, int numTArgs, int *iArgs, int numIArgs) {
-    nd4j::graph::Block<T> block(1);
+    nd4j::graph::Context<T> block(1);
 	nd4j::ShapeList inShapes;
 
 	for (int e = 0; e < numIArgs; e++)
