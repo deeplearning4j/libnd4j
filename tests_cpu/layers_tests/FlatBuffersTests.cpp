@@ -53,6 +53,9 @@ TEST_F(FlatBuffersTest, BasicTest1) {
     auto gB = new Node<float>(restored);
 
     ASSERT_TRUE(gA->equals(gB));
+
+    delete gA;
+    delete gB;
 }
 
 
@@ -180,6 +183,12 @@ TEST_F(FlatBuffersTest, ExecutionTest1) {
     //gA->execute(array, nullptr, array);
 
     //ASSERT_TRUE(exp->equalsTo(array));
+
+    delete gA;
+    delete[] c;
+    delete array;
+    delete[] e;
+    delete exp;
 }
 
 
@@ -256,6 +265,11 @@ TEST_F(FlatBuffersTest, ExplicitOutputTest1) {
 
     //ASSERT_EQ(-1, results->at(0)->id());
     //ASSERT_EQ(-2, results->at(1)->id());
+
+    delete restoredGraph;
+    delete results;
+    delete x;
+    delete y;
 }
 
 
@@ -280,6 +294,9 @@ TEST_F(FlatBuffersTest, ReadFile1) {
     auto result = restoredGraph->getVariableSpace()->getVariable(2)->getNDArray();
     ASSERT_EQ(1, result->lengthOf());
     ASSERT_EQ(8, result->getScalar(0));
+
+    delete[] data;
+    delete restoredGraph;
 }
 
 TEST_F(FlatBuffersTest, ReadFile2) {
@@ -291,6 +308,8 @@ TEST_F(FlatBuffersTest, ReadFile2) {
     ASSERT_EQ(1, arrays.size());
     ASSERT_EQ(1, arrays.at(0)->lengthOf());
     ASSERT_EQ(8, arrays.at(0)->getScalar(0));
+
+    delete[] data;
 }
 
 TEST_F(FlatBuffersTest, ReadFile3) {
@@ -388,6 +407,8 @@ TEST_F(FlatBuffersTest, ReadLoops_3argsWhile_1) {
 
     ASSERT_NEAR(110.0f, x->getNDArray()->meanNumber(), 1e-5);
     ASSERT_NEAR(33.0f, y->getNDArray()->meanNumber(), 1e-5);
+
+    delete graph;
 }
 
 TEST_F(FlatBuffersTest, ReadLoops_NestedWhile_1) {
@@ -477,8 +498,8 @@ TEST_F(FlatBuffersTest, ReadTensorArrayLoop_1) {
 
     auto z = variableSpace->getVariable(23)->getNDArray();
 
-    z->printShapeInfo("z shape");
-    z->printIndexedBuffer("z buffer");
+    //z->printShapeInfo("z shape");
+    //z->printIndexedBuffer("z buffer");
 
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
