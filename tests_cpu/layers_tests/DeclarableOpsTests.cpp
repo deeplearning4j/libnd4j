@@ -1661,11 +1661,11 @@ TEST_F(DeclarableOpsTests, Permute2) {
 	const int shapeX[]   = {3, 5, 10, 15, 150, 15, 1, 0, 1, 99};
 	const int shapeExp[] = {3, 15, 5, 10, 1, 150, 15, 0, -1, 99};    
 	const std::vector<int> perm = {2, 0, 1};    
-    NDArray<float> x(shapeX);
-	NDArray<float> exp(shapeExp);
+    NDArray<float>* x = new NDArray<float>(shapeX);
+	NDArray<float>* exp = new NDArray<float>(shapeExp);
 
 	VariableSpace<float>* variableSpace = new VariableSpace<float>();
-    variableSpace->putVariable(-1, &x);
+    variableSpace->putVariable(-1, x);
 	variableSpace->putVariable(1, new Variable<float>());
 
 	Context<float>* block = new Context<float>(1, variableSpace, false);  // not-in-place
@@ -1678,7 +1678,11 @@ TEST_F(DeclarableOpsTests, Permute2) {
 	NDArray<float>* result = variableSpace->getVariable(block->getNodeId())->getNDArray();	
 	
 	ASSERT_EQ(ND4J_STATUS_OK, status);	
-	ASSERT_TRUE(result->isSameShapeStrict(&exp));	
+	ASSERT_TRUE(result->isSameShapeStrict(exp));	
+
+    delete block;        
+    delete variableSpace;
+    delete exp;
 }
 
 
