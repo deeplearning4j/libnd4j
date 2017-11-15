@@ -24,8 +24,6 @@ namespace nd4j {
             // we recieve input array for graph integrity purposes only
             auto input = INPUT_VARIABLE(0);
 
-            block.trackList(list);
-
             OVERWRITE_RESULT(list);
 
             auto scalar = NDArrayFactory<T>::scalar(list->counter());

@@ -1548,7 +1548,7 @@ void NDArray<T>::tile(const std::vector<int>& reps, NDArray<T>& target) const {
         delete newShapeInfo;    
         throw "NDArray::tile method - shapeInfo of target array is not suitable for tile operation !";
     }
-    delete newShapeInfo;
+    delete[] newShapeInfo;
 
     // fill newBuff, loop through all elements of newBuff 
     // looping through _buffer goes automatically by means of getSubArrayIndex applying
@@ -1767,7 +1767,7 @@ NDArray<T> NDArray<T>::applyTrueBroadcast(const NDArray<T>& other, T *extraArgs)
 
     int* newShapeInfo = ShapeUtils<T>::evalBroadcastShapeInfo(max, min);          // the rank of new array = max->rankOf)()
     NDArray<T> result(newShapeInfo, _workspace);
-    delete newShapeInfo;    
+    delete[] newShapeInfo;
     
     // check whether min array have to be tiled        
     if(!max->isSameShape(&result)) {            
@@ -2505,6 +2505,7 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
             }
         }
         NDArray<T> result(this->_buffer + offset, newShape, this->_workspace);
+        result._isShapeAlloc = true;
 
         return result;
     }
