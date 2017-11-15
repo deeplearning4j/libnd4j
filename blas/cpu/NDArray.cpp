@@ -2231,6 +2231,10 @@ void NDArray<T>::svd(NDArray<T>& u, NDArray<T>& w, NDArray<T>& vt)
         auto result = new NDArray<T>(this->_buffer + offset, newShape, this->_workspace);
         result->_isShapeAlloc = true;
 
+        for (auto v: idx) {
+            delete v;
+        }
+
         return result;
     }
 
