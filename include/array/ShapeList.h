@@ -18,7 +18,7 @@ namespace nd4j {
         ShapeList(int* shape = nullptr);
         ShapeList(std::initializer_list<int*> shapes);
         ShapeList(std::vector<int*>& shapes);
-        ShapeList(bool autoRemovable);
+        //ShapeList(bool autoRemovable);
 
         ~ShapeList();
 

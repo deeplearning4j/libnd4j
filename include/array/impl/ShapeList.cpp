@@ -6,9 +6,9 @@
 #include <array/ShapeList.h>
 
 namespace nd4j {
-    ShapeList::ShapeList(bool autoRemovable) {
-        _autoremovable = autoRemovable;
-    }
+    //ShapeList::ShapeList(bool autoRemovable) {
+//        _autoremovable = autoRemovable;
+//    }
 
     ShapeList::ShapeList(int* shape) {
         if (shape != nullptr)
