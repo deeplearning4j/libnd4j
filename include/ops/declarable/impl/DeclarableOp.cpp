@@ -112,6 +112,7 @@ namespace nd4j {
                 ShapeList inSha;
 
                 int cntIn = 0;
+                // we build list of input shapes
                 for (auto p: *ctx.inputs()) {
                     auto var = ctx.variable(p);
                     if (var->variableType() == VariableType::NDARRAY) {
@@ -119,14 +120,11 @@ namespace nd4j {
                         inSha.push_back(array->getShapeInfo());
 
                     }
-                    //array->printShapeInfo("prepOutput");
                     cntIn++;
                 }
-                //nd4j_printf("Input shapes: %i\n", cntIn);
 
                 auto outSha = this->calculateOutputShape(&inSha, ctx);
                 int cnt = 0;
-                //nd4j_printf("Output shapes: %i; Rank_0: %i\n", outSha->size(), outSha->at(0)[0]);
                 for (auto out: *outSha->asVector()) {
                     // we need to check, if Z is really needed
                     std::pair<int, int> pair(ctx.nodeId(), cnt++);
@@ -155,7 +153,7 @@ namespace nd4j {
         template <typename T>
         void nd4j::ops::DeclarableOp<T>::storeResult(nd4j::graph::Context<T> &ctx, int outputNumber, NDArray<T>& array) {
 
-            if (nd4j::Environment::getInstance()->isDebug()) {
+            if (nd4j::Environment::getInstance()->isDebugAndVerbose()) {
                 T mean = array.meanNumber();
                 //if (mean == (T) 0.0f || (mean < (T) 1e-5f && mean > (T) -1e-5f))
                 //    nd4j_debug("node_%i:%i result has 0.0 as mean\n", block.getNodeId(), outputNumber);
