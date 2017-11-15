@@ -16,9 +16,12 @@ namespace nd4j {
 
                     out->assign(in);
                 } else if (inVar->variableType() == VariableType::ARRAY_LIST) {
-                    auto list = inVar->getNDArrayList();
+                    auto var = block.ensureVariable(e);
+                    if (!var->hasNDArrayList()) {
+                        auto list = inVar->getNDArrayList();
 
-                    block.pushNDArrayListToVariableSpace(block.nodeId(), e, list);
+                        block.pushNDArrayListToVariableSpace(block.nodeId(), e, list, false);
+                    }
                 }
             }
 

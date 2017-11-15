@@ -495,7 +495,7 @@ TEST_F(FlatBuffersTest, ReadTensorArrayLoop_1) {
 
     ASSERT_TRUE(graph != nullptr);
 
-    graph->printOut();
+    //graph->printOut();
 
     Nd4jStatus status = GraphExecutioner<float>::execute(graph);
 

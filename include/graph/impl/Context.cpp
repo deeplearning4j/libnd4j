@@ -297,13 +297,13 @@ namespace nd4j {
         }
 
         template <typename T>
-        void Context<T>::pushNDArrayListToVariableSpace(int nodeId, int index, NDArrayList<T>* list) {
+        void Context<T>::pushNDArrayListToVariableSpace(int nodeId, int index, NDArrayList<T>* list, bool track) {
             std::pair<int,int> pair(nodeId, index);
-            pushNDArrayListToVariableSpace(pair, list);
+            pushNDArrayListToVariableSpace(pair, list, track);
         }
         
         template <typename T>
-        void Context<T>::pushNDArrayListToVariableSpace(std::pair<int, int>& pair, NDArrayList<T>* list) {
+        void Context<T>::pushNDArrayListToVariableSpace(std::pair<int, int>& pair, NDArrayList<T>* list, bool track) {
             if (!_variableSpace->hasVariable(pair)) {
                 auto var = new Variable<T>(nullptr, nullptr, pair.first, pair.second);
                 var->setNDArrayList(list);
@@ -313,7 +313,8 @@ namespace nd4j {
                 var->setNDArrayList(list);
             }
 
-            _variableSpace->trackList(list);
+            if (track)
+                _variableSpace->trackList(list);
         }
 
         template <typename T>
