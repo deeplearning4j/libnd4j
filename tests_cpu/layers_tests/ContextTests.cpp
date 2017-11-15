@@ -218,3 +218,9 @@ TEST_F(ContextTests, Basic_Test_9) {
     Context<float> ctx(1, &variableSpace, true);
     ctx.pushNDArrayToVariableSpace(1, 1, &in, false);
 }
+
+TEST_F(ContextTests, Basic_Test_10) {
+    VariableSpace<float> variableSpace;
+
+    Context<float> ctx(119, &variableSpace);
+}

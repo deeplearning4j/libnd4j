@@ -161,7 +161,7 @@ TEST_F(FlatBuffersTest, FlatGraphTest1) {
     ASSERT_EQ(1, flatResults->variables()->size());
     ASSERT_TRUE(flatResults->variables()->Get(0)->name() != nullptr);
     ASSERT_TRUE(flatResults->variables()->Get(0)->name()->c_str() != nullptr);
-    nd4j_printf("VARNAME: %s\n", flatResults->variables()->Get(0)->name()->c_str());
+    //nd4j_printf("VARNAME: %s\n", flatResults->variables()->Get(0)->name()->c_str());
 
     auto var0 = new Variable<float>(flatResults->variables()->Get(0));
     //auto var1 = new Variable<float>(flatResults->variables()->Get(1));
@@ -169,6 +169,10 @@ TEST_F(FlatBuffersTest, FlatGraphTest1) {
     ASSERT_NEAR(-0.4161468, var0->getNDArray()->reduceNumber<simdOps::Mean<float>>(), 1e-5);
 
     //ASSERT_TRUE(var->equalsTo(var0->getNDArray()));
+
+    delete array;
+    delete var0;
+    delete[] result;
 }
 
 TEST_F(FlatBuffersTest, ExecutionTest1) {
@@ -310,6 +314,7 @@ TEST_F(FlatBuffersTest, ReadFile2) {
     ASSERT_EQ(8, arrays.at(0)->getScalar(0));
 
     delete[] data;
+    delete[] (char *) result;
 }
 
 TEST_F(FlatBuffersTest, ReadFile3) {
@@ -322,6 +327,8 @@ TEST_F(FlatBuffersTest, ReadFile3) {
 
     ASSERT_EQ(1, z->lengthOf());
     ASSERT_EQ(8, z->getScalar(0));
+
+    delete graph;
 }
 
 

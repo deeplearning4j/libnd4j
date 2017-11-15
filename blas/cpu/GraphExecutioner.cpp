@@ -337,9 +337,13 @@ Nd4jPointer GraphExecutioner<T>::executeFlatBuffer(Nd4jPointer pointer) {
     builder.Finish(result);
 
     // we might want to keep this graph for future
+    delete outputs;
     delete nativeGraph;
 
-    return (Nd4jPointer) builder.GetBufferPointer();
+    char* res = new char[builder.GetSize()];
+    memcpy(res, builder.GetBufferPointer(), builder.GetSize());
+
+    return (Nd4jPointer) res; //builder.GetBufferPointer();
 }
 
 
