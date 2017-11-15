@@ -38,8 +38,8 @@ TEST_F(NDArrayTest, TestDup1) {
     auto arrC = array.dup('c');
     auto arrF = array.dup('f');
 
-    arrC->printShapeInfo("C shape");
-    arrF->printShapeInfo("F shape");
+    //arrC->printShapeInfo("C shape");
+    //arrF->printShapeInfo("F shape");
 
     ASSERT_TRUE(array.equalsTo(arrF));
     ASSERT_TRUE(array.equalsTo(arrC));
@@ -686,9 +686,9 @@ TEST_F(NDArrayTest, TestTile1) {
 
     auto tiled = array1.tile(tileShape1);
 
-    array2.printShapeInfo("Expct shape");
-    tiled.printShapeInfo("Tiled shape");
-    tiled.printBuffer();
+    //array2.printShapeInfo("Expct shape");
+    //tiled.printShapeInfo("Tiled shape");
+    //tiled.printBuffer();
 
 	ASSERT_TRUE(tiled.isSameShape(&array2));
 	ASSERT_TRUE(tiled.equalsTo(&array2));
@@ -765,7 +765,7 @@ TEST_F(NDArrayTest, TestTile6)
     NDArrayFactory<double>::linspace(10, x);    
 
     NDArray<double> result = x.tile({1,4,1});
-    result.printBuffer();
+//    result.printBuffer();
 
     ASSERT_TRUE(expected.isSameShape(&result));
     ASSERT_TRUE(expected.equalsTo(&result));
@@ -1092,7 +1092,7 @@ TEST_F(NDArrayTest, TestMmulHelper7) {
 
     NDArrayFactory<float>::mmulHelper(y, x, z);
 
-    z->printBuffer();
+    //z->printBuffer();
     ASSERT_TRUE(z->equalsTo(exp));
 
     delete[] expBuffer;
