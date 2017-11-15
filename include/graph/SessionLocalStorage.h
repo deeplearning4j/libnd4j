@@ -30,7 +30,7 @@ namespace nd4j{
         public:
             SessionLocalStorage(VariableSpace<T>* variableSpace = nullptr, Stash<T>* stash = nullptr);
 
-            ~SessionLocalStorage() = default;
+            ~SessionLocalStorage();
 
             VariableSpace<T>* localVariableSpace();
             VariableSpace<T>* localVariableSpace(Nd4jIndex sessionId);
