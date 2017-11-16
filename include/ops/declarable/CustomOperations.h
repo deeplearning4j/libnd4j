@@ -151,6 +151,8 @@ namespace nd4j {
         DECLARE_LIST_OP(split_list, 2, 1, 0, -2);
         DECLARE_LIST_OP(gather_list, 2, 1, 0, -2);
         DECLARE_LIST_OP(clone_list, 1, 1, 0, 0);
+
+
     }
 }
 
