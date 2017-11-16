@@ -51,6 +51,11 @@ namespace nd4j {
         }
 
         template <typename T>
+        bool ContextPrototype<T>::hasVariablesFilled() {
+            return this->_inputs.size() > 0;
+        }
+
+        template <typename T>
         bool ContextPrototype<T>::isInplace() {
             return this->_isInplace;
         }

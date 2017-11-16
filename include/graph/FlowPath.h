@@ -29,6 +29,9 @@ namespace nd4j {
             bool isActive(int nodeId);
             
             void markActive(int nodeId, bool isActive);
+
+            int branch(int nodeId);
+            void markBranch(int nodeId, int index);
         };
     }
 }

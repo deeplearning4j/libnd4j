@@ -137,11 +137,6 @@ namespace nd4j {
             this->_executionTime.second = time;
         }
 
-        template <typename T>
-        bool nd4j::graph::Context<T>::hasVariablesFilled() {
-            return this->_inputs.size() > 0;
-        }
-
 
         template <typename T>
         Variable<T>* Context<T>::getVariable(int idx) {

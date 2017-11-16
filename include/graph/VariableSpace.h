@@ -97,7 +97,7 @@ namespace nd4j {
             std::vector<nd4j::graph::Variable<T> *> * getExternalVariables();
 
             void setFlowPath(FlowPath* timers);
-            FlowPath* timeHolder();
+            FlowPath* flowPath();
         };
     }
 }

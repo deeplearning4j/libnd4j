@@ -49,5 +49,17 @@ namespace nd4j {
 
             _states[nodeId].markActive(isActive);
         }
+
+        int FlowPath::branch(int nodeId){
+            ensureNode(nodeId);
+
+            return _states[nodeId].branch();
+        }
+
+        void FlowPath::markBranch(int nodeId, int index) {
+            ensureNode(nodeId);
+
+            _states[nodeId].markBranch(index);
+        }
     }
 }

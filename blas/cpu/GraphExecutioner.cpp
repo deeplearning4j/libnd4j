@@ -211,11 +211,13 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph) {
                  * 2) If previous node was divergent node (i.e. IF op) and code went other way
                  */
                 Node<T>* prevNode = graph->getMapped()->at(inputId.first);
-                if (!prevNode->isActive()) {
+                if (!flowPath->isActive(inputId.first)) {
                     shouldSkip = true;
-                    node->setActive(false);
+                    //node->setActive(false);
+                    flowPath->markActive(node->id(), false);
+
                 } else if (prevNode->isDivergencePoint()) {
-                    if (prevNode->getBlock()->getBranch() != inputId.second) {
+                    if (flowPath->branch(inputId.first) != inputId.second) {
                         shouldSkip = true;
                         node->setActive(false);
                     }
@@ -243,7 +245,7 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph) {
 
             // here we should handle divergent ops, and disable nodes accordingly
             if (node->isDivergencePoint()) {
-                auto activeBranch = node->getBlock()->getBranch();
+                auto activeBranch = flowPath->branch(node->id());
                 nd4j_debug("Active branch at node [%i]: %i\n", node->id(), activeBranch);
 
                 // now we skip all branches except of this active one
@@ -286,6 +288,10 @@ Nd4jPointer GraphExecutioner<T>::executeFlatBuffer(Nd4jPointer pointer) {
     // converting FlatGraph to internal representation
     auto nativeGraph = new Graph<T>(restoredGraph);
 
+    FlowPath flowPath;
+    nativeGraph->getVariableSpace()->setFlowPath(&flowPath);
+
+
     nd4j_debug("Going to execute graph\n", 0);
 
     // executing internal representation
@@ -303,7 +309,7 @@ Nd4jPointer GraphExecutioner<T>::executeFlatBuffer(Nd4jPointer pointer) {
         if (node->getContextPrototype() == nullptr)
             continue;
 
-        auto pair = CreateLongPair(builder, node->getBlock()->getOuterTime(), node->getBlock()->getInnerTime());
+        auto pair = CreateLongPair(builder, flowPath.outerTime(node->id()), flowPath.innerTime(node->id()));
         if (node->getName() != nullptr) {
             auto name = builder.CreateString(node->getName()->c_str());
             auto fr = CreateFlatTiming(builder, node->id(), name, pair);

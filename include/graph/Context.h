@@ -59,9 +59,6 @@ namespace nd4j {
             Nd4jIndex getOuterTime();
             Nd4jIndex getInnerTime();
 
-            // this method returns true, if inputs are defined
-            bool hasVariablesFilled();
-
             // these methods are related to Workspace abstraction
             bool hasWorkspaceProvided();
             void attachWorkspace(nd4j::memory::Workspace* workspace);

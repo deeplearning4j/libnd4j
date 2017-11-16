@@ -30,5 +30,13 @@ namespace nd4j {
         bool NodeState::isActive() {
             return _active;
         }
+
+        int NodeState::branch() {
+            return _branch;
+        }
+
+        void NodeState::markBranch(int index) {
+            _branch = index;
+        }
     }
 }

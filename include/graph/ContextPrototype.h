@@ -31,6 +31,8 @@ namespace nd4j {
             int getNodeId();
             int nodeId();
 
+            // this method returns true, if inputs are defined
+            bool hasVariablesFilled();
 
             bool isInplace();
             void markInplace(bool reallyInplace);
