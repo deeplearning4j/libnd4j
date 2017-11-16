@@ -31,7 +31,7 @@ namespace nd4j {
         class Context : public nd4j::graph::ContextPrototype<T> {
         protected:
             nd4j::memory::Workspace* _workspace = nullptr;
-            nd4j::graph::VariableSpace<T>* _variableSpace;
+            nd4j::graph::VariableSpace<T>* _variableSpace = nullptr;
             std::pair<Nd4jIndex, Nd4jIndex> _executionTime;
             nd4j::random::RandomBuffer* _rng = nullptr;
 

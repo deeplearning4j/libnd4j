@@ -239,6 +239,9 @@ TEST_F(ContextTests, Prototype_Test_1) {
 
     Context<float> ctx(&prototype, nullptr);
 
+    ASSERT_EQ(ctx.nodeId(), prototype.nodeId());
+    ASSERT_EQ(ctx.isInplace(), prototype.isInplace());
+
     ASSERT_EQ(2, ctx.inputs()->size());
     ASSERT_EQ(2, ctx.getTArguments()->size());
     ASSERT_EQ(2, ctx.getIArguments()->size());
@@ -248,4 +251,20 @@ TEST_F(ContextTests, Prototype_Test_1) {
 
     ASSERT_EQ(17, ctx.getIArguments()->at(0));
     ASSERT_EQ(119, ctx.getIArguments()->at(1));
+}
+
+
+TEST_F(ContextTests, Prototype_Test_2) {
+    ContextPrototype<float> prototype(119, false);
+    prototype.setOpNum(179);
+
+    Context<float> ctx(&prototype, nullptr);
+
+    ASSERT_EQ(ctx.isInplace(), prototype.isInplace());
+    ASSERT_EQ(ctx.opNum(), prototype.opNum());
+
+    ASSERT_EQ(0, ctx.inputs()->size());
+    ASSERT_EQ(0, ctx.getTArguments()->size());
+    ASSERT_EQ(0, ctx.getIArguments()->size());
+
 }
