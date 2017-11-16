@@ -224,3 +224,28 @@ TEST_F(ContextTests, Basic_Test_10) {
 
     Context<float> ctx(119, &variableSpace);
 }
+
+
+TEST_F(ContextTests, Prototype_Test_1) {
+    ContextPrototype<float> prototype(119, true);
+    prototype.pickInput(12, 3);
+    prototype.pickInput(12, 4);
+
+    prototype.getTArguments()->push_back(2.0);
+    prototype.getTArguments()->push_back(-2.0);
+
+    prototype.getIArguments()->push_back(17);
+    prototype.getIArguments()->push_back(119);
+
+    Context<float> ctx(&prototype, nullptr);
+
+    ASSERT_EQ(2, ctx.inputs()->size());
+    ASSERT_EQ(2, ctx.getTArguments()->size());
+    ASSERT_EQ(2, ctx.getIArguments()->size());
+
+    ASSERT_EQ(2.0, ctx.getTArguments()->at(0));
+    ASSERT_EQ(-2.0, ctx.getTArguments()->at(1));
+
+    ASSERT_EQ(17, ctx.getIArguments()->at(0));
+    ASSERT_EQ(119, ctx.getIArguments()->at(1));
+}

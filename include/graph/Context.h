@@ -30,10 +30,10 @@ namespace nd4j {
         template <typename T>
         class Context : public nd4j::graph::ContextPrototype<T> {
         protected:
-            nd4j::memory::Workspace* _workspace;
+            nd4j::memory::Workspace* _workspace = nullptr;
             nd4j::graph::VariableSpace<T>* _variableSpace;
             std::pair<Nd4jIndex, Nd4jIndex> _executionTime;
-            nd4j::random::RandomBuffer* _rng;
+            nd4j::random::RandomBuffer* _rng = nullptr;
 
             // branch for divergent_op
             int _branch = 0;

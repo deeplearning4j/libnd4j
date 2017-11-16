@@ -169,6 +169,11 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph) {
     graph->buildGraph();
     auto __variableSpace = graph->getVariableSpace();
 
+    bool tempFlow = false;
+    if (__variableSpace->flowPath() == nullptr) {
+        tempFlow = true;
+        __variableSpace->setFlowPath(new FlowPath());
+    }
     auto flowPath = __variableSpace->flowPath();
 
     bool pe = graph->getExecutorConfiguration()->_executionMode == ExecutionMode_AUTO;
@@ -219,7 +224,8 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph) {
                 } else if (prevNode->isDivergencePoint()) {
                     if (flowPath->branch(inputId.first) != inputId.second) {
                         shouldSkip = true;
-                        node->setActive(false);
+                        //node->setActive(false);
+                        flowPath->markActive(node->id(), false);
                     }
                 }
             }
@@ -262,6 +268,9 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph) {
             }
         }
     }
+
+    if (tempFlow)
+        delete flowPath;
 
     return ND4J_STATUS_OK;
 }

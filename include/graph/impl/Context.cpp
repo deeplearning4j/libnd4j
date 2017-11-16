@@ -10,6 +10,24 @@ namespace nd4j {
         template <typename T>
         Context<T>::Context(ContextPrototype<T>* prototype, VariableSpace<T>* variableSpace) {
             _variableSpace = variableSpace;
+
+            if (prototype != nullptr) {
+                for (const auto &v: *(prototype->inputs())) {
+                    this->_inputs.push_back(v);
+                }
+
+                for (const auto &v: *(prototype->getTArguments())) {
+                    this->_tArgs.push_back(v);
+                }
+
+                for (const auto &v: *(prototype->getIArguments())) {
+                    this->_iArgs.push_back(v);
+                }
+
+                this->_opNum = prototype->opNum();
+                this->_isInplace = prototype->isInplace();
+                this->_nodeId = prototype->nodeId();
+            }
         }
 
 
@@ -109,12 +127,13 @@ namespace nd4j {
 */
         template <typename T>
         int Context<T>::getBranch() {
-            return _branch;
+            return _variableSpace->flowPath()->branch(this->nodeId());
         }
 
         template <typename T>
         void Context<T>::setBranch(int branch) {
-            _branch = branch;
+            //_branch = branch;
+            _variableSpace->flowPath()->markBranch(this->nodeId(), branch);
         }
 
         template <typename T>
