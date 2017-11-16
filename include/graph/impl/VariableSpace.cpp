@@ -308,13 +308,13 @@ namespace nd4j {
         }
 
         template <typename T>
-        void VariableSpace<T>::setTimeHolder(TimeHolder* timers) {
-            _timers = timers;
+        void VariableSpace<T>::setFlowPath(FlowPath* flow) {
+            _flow = flow;
         }
 
         template <typename T>
-        TimeHolder* VariableSpace<T>::timeHolder() {
-            return _timers;
+        FlowPath* VariableSpace<T>::flowPath() {
+            return _flow;
         }
 
         template <typename T>

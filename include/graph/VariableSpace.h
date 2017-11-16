@@ -16,7 +16,7 @@
 #include <graph/Variable.h>
 #include <memory/Workspace.h>
 #include <graph/Stash.h>
-#include <graph/TimeHolder.h>
+#include <graph/FlowPath.h>
 
 
 namespace nd4j {
@@ -51,7 +51,7 @@ namespace nd4j {
 
             std::vector<nd4j::graph::Variable<T> *> *_handles;
 
-            TimeHolder* _timers = nullptr;
+            FlowPath* _flow = nullptr;
 
         public:
             VariableSpace();
@@ -96,8 +96,8 @@ namespace nd4j {
 
             std::vector<nd4j::graph::Variable<T> *> * getExternalVariables();
 
-            void setTimeHolder(TimeHolder* timers);
-            TimeHolder* timeHolder();
+            void setFlowPath(FlowPath* timers);
+            FlowPath* timeHolder();
         };
     }
 }

@@ -169,7 +169,7 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph) {
     graph->buildGraph();
     auto __variableSpace = graph->getVariableSpace();
 
-        auto timeHolder = __variableSpace->timeHolder();
+    auto flowPath = __variableSpace->flowPath();
 
     bool pe = graph->getExecutorConfiguration()->_executionMode == ExecutionMode_AUTO;
 
@@ -235,7 +235,7 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph) {
             auto outerTime = std::chrono::duration_cast<std::chrono::microseconds> (timeEnd - timeStart).count();
 
 
-            timeHolder->setOuterTime(node->id(), outerTime);
+            flowPath->setOuterTime(node->id(), outerTime);
 
             if (status != ND4J_STATUS_OK)
                 return status;
