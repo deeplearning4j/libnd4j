@@ -6,8 +6,9 @@
 #define LIBND4J_BLOCK_H
 
 #include <vector>
-#include "Variable.h"
-#include "VariableSpace.h"
+#include <graph/Variable.h>
+#include <graph/VariableSpace.h>
+#include <graph/ContextPrototype.h>
 #include <memory/Workspace.h>
 
 
@@ -27,31 +28,15 @@ namespace nd4j {
          * This class defines input desired for any given node/operation within graph
          */
         template <typename T>
-        class Context {
+        class Context : public nd4j::graph::ContextPrototype<T> {
         protected:
             nd4j::memory::Workspace* _workspace;
-
-            // int ids of the input nodes
-            std::vector<std::pair<int, int>> _inputs;
-
-            //std::vector<nd4j::graph::Variable<T> *> _variables;
-
             nd4j::graph::VariableSpace<T>* _variableSpace;
             std::pair<Nd4jIndex, Nd4jIndex> _executionTime;
             nd4j::random::RandomBuffer* _rng;
-            int _nodeId;
-
-            std::vector<T> _tArgs;
-            std::vector<int> _iArgs;            
-			
-			bool _isInplace;
 
             // branch for divergent_op
             int _branch = 0;
-
-            // opNum for legacy XYZ ops
-            int _opNum = -1;
-
         public:
             // TODO: maybe override new here as well?
 

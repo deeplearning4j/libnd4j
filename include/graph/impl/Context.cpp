@@ -9,41 +9,41 @@ namespace nd4j {
 
         template <typename T>
         Context<T>::Context(int nodeId, VariableSpace<T> *variableSpace) {
-            _nodeId = nodeId;
-            _variableSpace = variableSpace;
-            _isInplace = false;
-            _workspace = nullptr;
+            this->_nodeId = nodeId;
+            this->_variableSpace = variableSpace;
+            this->_isInplace = false;
+            this->_workspace = nullptr;
 
-            _executionTime.first = 0;
-            _executionTime.second = 0;
+            this->_executionTime.first = 0;
+            this->_executionTime.second = 0;
         }
 
         template <typename T>
         Context<T>::Context(int nodeId, VariableSpace<T> *variableSpace, bool isInplace) : Context(nodeId, variableSpace) {
-            _isInplace = isInplace;
+            this->_isInplace = isInplace;
         }
 
         template<typename T>
         Context<T>::~Context() {
-            _iArgs.clear();
-            _tArgs.clear();
-            _inputs.clear();
+            this->_iArgs.clear();
+            this->_tArgs.clear();
+            this->_inputs.clear();
         }
 
 
         template <typename T>
         bool Context<T>::hasWorkspaceProvided() {
-            return _workspace != nullptr;
+            return this->_workspace != nullptr;
         }
 
         template <typename T>
         void Context<T>::markInplace(bool reallyInplace) {
-            _isInplace = reallyInplace;
+            this->_isInplace = reallyInplace;
         }
 
         template <typename T>
         void Context<T>::attachWorkspace(nd4j::memory::Workspace* workspace) {
-            _workspace = workspace;
+            this->_workspace = workspace;
         }
 
         template <typename T>
@@ -83,7 +83,7 @@ namespace nd4j {
 
         template <typename T>
         int Context<T>::getNodeId() {
-            return _nodeId;
+            return this->_nodeId;
         }
 
         /**
@@ -92,7 +92,7 @@ namespace nd4j {
          */
         template <typename T>
         unsigned long Context<T>::width() {
-            return _inputs.size();
+            return this->_inputs.size();
         };
 
         /**
@@ -117,28 +117,28 @@ namespace nd4j {
 
         template <typename T>
         bool Context<T>::isInplace() {
-            return _isInplace;
+            return this->_isInplace;
         }
 
         template <typename T>
         std::vector<T>* Context<T>::getTArguments() {
-            return &_tArgs;
+            return &(this->_tArgs);
         }
 
         template <typename T>
         std::vector<int>* Context<T>::getIArguments() {
-            return &_iArgs;
+            return &(this->_iArgs);
         }
 
         template <typename T>
         void Context<T>::pickInput(int input) {
             std::pair<int, int> pair(input, 0);
-            _inputs.emplace_back(pair);
+            this->_inputs.emplace_back(pair);
         }
 
         template <typename T>
         std::pair<int, int>* Context<T>::input(int idx) {
-            return &(_inputs.at(idx));
+            return &(this->_inputs.at(idx));
         }
 
         template <typename T>
@@ -178,53 +178,53 @@ namespace nd4j {
 
         template <typename T>
         Nd4jIndex nd4j::graph::Context<T>::getOuterTime(){
-            return _executionTime.first;
+            return this->_executionTime.first;
         }
 
         template <typename T>
         Nd4jIndex nd4j::graph::Context<T>::getInnerTime(){
-            return _executionTime.second;
+            return this->_executionTime.second;
         }
 
         template <typename T>
         std::vector<std::pair<int, int>>* nd4j::graph::Context<T>::inputs() {
-            return &_inputs;
+            return &(this->_inputs);
         }
 
         template <typename T>
         void nd4j::graph::Context<T>::setOuterTime(Nd4jIndex time){
-            _executionTime.first = time;
+            this->_executionTime.first = time;
         }
 
         template <typename T>
         void nd4j::graph::Context<T>::setInnerTime(Nd4jIndex time){
-            _executionTime.second = time;
+            this->_executionTime.second = time;
         }
 
         template <typename T>
         bool nd4j::graph::Context<T>::hasVariablesFilled() {
-            return _inputs.size() > 0;
+            return this->_inputs.size() > 0;
         }
 
 
         template <typename T>
         int Context<T>::opNum() {
-            return _opNum;
+            return this->_opNum;
         }
 
         template <typename T>
         void Context<T>::setOpNum(int opNum) {
-            _opNum = opNum;
+           this->_opNum = opNum;
         }
 
         template <typename T>
         Variable<T>* Context<T>::getVariable(int idx) {
-            if (idx >= _inputs.size()) {
-                nd4j_printf("Node %i; Variable [%i] requested, but only %i inputs available\n", _nodeId, idx, _inputs.size());
+            if (idx >= this->_inputs.size()) {
+                nd4j_printf("Node %i; Variable [%i] requested, but only %i inputs available\n", this->_nodeId, idx, this->_inputs.size());
                 throw "Bad index";
             }
 
-            auto p = _inputs[idx];
+            auto p = this->_inputs[idx];
             return variable(p);
         }
 
@@ -253,7 +253,7 @@ namespace nd4j {
         template <typename T>
         Variable<T>* Context<T>::variable(std::pair<int,int>& p) {
             if (!_variableSpace->hasVariable(p)) {
-                nd4j_printf("Node %i; Non-existent variable requested: [%i:%i]\n", _nodeId, p.first, p.second);
+                nd4j_printf("Node %i; Non-existent variable requested: [%i:%i]\n", this->_nodeId, p.first, p.second);
                 throw "Bad variable";
             }
 
@@ -262,7 +262,7 @@ namespace nd4j {
 
         template <typename T>
         void Context<T>::pickInput(std::pair<int, int>& p) {
-            _inputs.emplace_back(p);
+            this->_inputs.emplace_back(p);
         }
 
         template <typename T>
