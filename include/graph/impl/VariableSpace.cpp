@@ -307,9 +307,18 @@ namespace nd4j {
             _lists.clear();
         }
 
+        template <typename T>
+        void VariableSpace<T>::setTimeHolder(TimeHolder* timers) {
+            _timers = timers;
+        }
 
         template <typename T>
-        nd4j::graph::VariableSpace<T>::VariableSpace() {
+        TimeHolder* VariableSpace<T>::timeHolder() {
+            return _timers;
+        }
+
+        template <typename T>
+        VariableSpace<T>::VariableSpace() {
             _handles = new std::vector<Variable<T> *>;
         }
 

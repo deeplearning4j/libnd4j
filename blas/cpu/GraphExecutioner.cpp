@@ -13,6 +13,7 @@
 #include <Node.h>
 #include <Scope.h>
 #include <GraphExecutioner.h>
+#include <graph/TimeHolder.h>
 #include <loops/scalar.h>
 #include <loops/pairwise_transform.h>
 #include <loops/transform.h>
@@ -168,6 +169,8 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph) {
     graph->buildGraph();
     auto __variableSpace = graph->getVariableSpace();
 
+        auto timeHolder = __variableSpace->timeHolder();
+
     bool pe = graph->getExecutorConfiguration()->_executionMode == ExecutionMode_AUTO;
 
     // TODO: add code divergence support here
@@ -231,8 +234,8 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph) {
 
             auto outerTime = std::chrono::duration_cast<std::chrono::microseconds> (timeEnd - timeStart).count();
 
-            if (node->getBlock() != nullptr)
-                node->getBlock()->setOuterTime(outerTime);
+
+            timeHolder->setOuterTime(node->id(), outerTime);
 
             if (status != ND4J_STATUS_OK)
                 return status;
@@ -297,7 +300,7 @@ Nd4jPointer GraphExecutioner<T>::executeFlatBuffer(Nd4jPointer pointer) {
     for (int e = 0; e < (int) nativeGraph->getAllNodes()->size(); e++) {
         Node<T> *node = nativeGraph->getAllNodes()->at(e);
 
-        if (node->getBlock() == nullptr)
+        if (node->getContextPrototype() == nullptr)
             continue;
 
         auto pair = CreateLongPair(builder, node->getBlock()->getOuterTime(), node->getBlock()->getInnerTime());
