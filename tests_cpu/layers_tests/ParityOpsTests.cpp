@@ -239,3 +239,21 @@ TEST_F(ParityOpsTests, Test_Greater_1) {
 
     delete result;
 }
+
+TEST_F(ParityOpsTests, Test_Where_1) {
+    NDArray<float> mask('c', {3, 3}, {1, 1, 1,  0, 0, 0,  1, 1, 1});
+    NDArray<float> x('c', {3, 3}, {1, 2, 3, 4, 5, 6, 7, 8, 9});
+    NDArray<float> y('c', {3, 3}, {9, 8, 7, 6, 5, 4, 3, 2, 1});
+    NDArray<float> exp('c', {3, 3}, {1, 2, 3, 6, 5, 4, 7, 8, 9});
+
+    nd4j::ops::where<float> op;
+    auto result = op.execute({&mask, &x, &y}, {}, {});
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}
