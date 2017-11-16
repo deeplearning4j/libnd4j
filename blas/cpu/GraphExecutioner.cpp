@@ -57,9 +57,7 @@ template <typename T>
         nd4j_debug("Executing node_%i{%s}\n", node->id(), node->getCustomOp()->getOpName()->c_str());
     }
 
-    if (node->getBlock() != nullptr) {
-        node->getBlock()->setVariableSpace(variableSpace);
-    }
+    Context<T> context(node->getContextPrototype(), variableSpace);
 
     if (nd4j::Environment::getInstance()->isDebugAndVerbose()) {
         //nd4j_debug("Input variables: %i\n", node->input()->size());
@@ -153,7 +151,7 @@ template <typename T>
 
     } else if (node->hasCustomOp()) {
         // if we have something to execute - lets just execute it.
-        return node->getCustomOp()->execute(node->getBlock());
+        return node->getCustomOp()->execute(&context);
     }
     return ND4J_STATUS_OK;
 }

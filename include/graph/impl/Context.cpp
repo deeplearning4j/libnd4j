@@ -8,6 +8,12 @@ namespace nd4j {
     namespace graph {
 
         template <typename T>
+        Context<T>::Context(ContextPrototype<T>* prototype, VariableSpace<T>* variableSpace) {
+            _variableSpace = variableSpace;
+        }
+
+
+        template <typename T>
         Context<T>::Context(int nodeId, VariableSpace<T> *variableSpace) {
             this->_nodeId = nodeId;
             this->_variableSpace = variableSpace;
@@ -30,15 +36,9 @@ namespace nd4j {
             this->_inputs.clear();
         }
 
-
         template <typename T>
         bool Context<T>::hasWorkspaceProvided() {
             return this->_workspace != nullptr;
-        }
-
-        template <typename T>
-        void Context<T>::markInplace(bool reallyInplace) {
-            this->_isInplace = reallyInplace;
         }
 
         template <typename T>
@@ -76,25 +76,6 @@ namespace nd4j {
             _rng = rng;
         }
 
-        template <typename T>
-        int Context<T>::nodeId() {
-            return getNodeId();
-        }
-
-        template <typename T>
-        int Context<T>::getNodeId() {
-            return this->_nodeId;
-        }
-
-        /**
-         * This method returns number of inputs available in this block
-         * @return
-         */
-        template <typename T>
-        unsigned long Context<T>::width() {
-            return this->_inputs.size();
-        };
-
         /**
          * This method returns variableSpace used in this block
          * @return
@@ -115,38 +96,6 @@ namespace nd4j {
             _variableSpace->trackList(list);
         }
 
-        template <typename T>
-        bool Context<T>::isInplace() {
-            return this->_isInplace;
-        }
-
-        template <typename T>
-        std::vector<T>* Context<T>::getTArguments() {
-            return &(this->_tArgs);
-        }
-
-        template <typename T>
-        std::vector<int>* Context<T>::getIArguments() {
-            return &(this->_iArgs);
-        }
-
-        template <typename T>
-        void Context<T>::pickInput(int input) {
-            std::pair<int, int> pair(input, 0);
-            this->_inputs.emplace_back(pair);
-        }
-
-        template <typename T>
-        std::pair<int, int>* Context<T>::input(int idx) {
-            return &(this->_inputs.at(idx));
-        }
-
-        template <typename T>
-        void Context<T>::fillInputs(std::initializer_list<int> inputs) {
-            for (auto v: inputs) {
-                pickInput(v);
-            }
-        }
 /*
         template <typename T>
         void Block<T>::updateVariables() {
@@ -169,14 +118,6 @@ namespace nd4j {
         }
 
         template <typename T>
-        void Context<T>::fillInputs(std::vector<int>& inputs) {
-            for (int e = 0; e < inputs.size(); e++) {
-                auto v = inputs.at(e);
-                pickInput(v);
-            }
-        }
-
-        template <typename T>
         Nd4jIndex nd4j::graph::Context<T>::getOuterTime(){
             return this->_executionTime.first;
         }
@@ -184,11 +125,6 @@ namespace nd4j {
         template <typename T>
         Nd4jIndex nd4j::graph::Context<T>::getInnerTime(){
             return this->_executionTime.second;
-        }
-
-        template <typename T>
-        std::vector<std::pair<int, int>>* nd4j::graph::Context<T>::inputs() {
-            return &(this->_inputs);
         }
 
         template <typename T>
@@ -206,16 +142,6 @@ namespace nd4j {
             return this->_inputs.size() > 0;
         }
 
-
-        template <typename T>
-        int Context<T>::opNum() {
-            return this->_opNum;
-        }
-
-        template <typename T>
-        void Context<T>::setOpNum(int opNum) {
-           this->_opNum = opNum;
-        }
 
         template <typename T>
         Variable<T>* Context<T>::getVariable(int idx) {
@@ -258,17 +184,6 @@ namespace nd4j {
             }
 
             return _variableSpace->getVariable(p);
-        }
-
-        template <typename T>
-        void Context<T>::pickInput(std::pair<int, int>& p) {
-            this->_inputs.emplace_back(p);
-        }
-
-        template <typename T>
-        void Context<T>::pickInput(int input, int index) {
-            std::pair<int, int> pair(input, index);
-            pickInput(pair);
         }
 
 
@@ -319,9 +234,9 @@ namespace nd4j {
 
         template <typename T>
         Variable<T>* Context<T>::ensureVariable(int idx) {
-            std::pair<int, int> pair(nodeId(), idx);
+            std::pair<int, int> pair(this->nodeId(), idx);
             if (!_variableSpace->hasVariable(pair)) {
-                auto var = new Variable<T>(nullptr, nullptr, nodeId(), idx);
+                auto var = new Variable<T>(nullptr, nullptr, this->nodeId(), idx);
                 _variableSpace->putVariable(pair, var);
                 return var;
             } else {

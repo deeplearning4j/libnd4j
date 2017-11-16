@@ -25,8 +25,36 @@ namespace nd4j {
             int _opNum = -1;
 
         public:
-            ContextPrototype() = default;
+            ContextPrototype(int nodeId = 1, bool inPlace = false);
             ~ContextPrototype() = default;
+
+            int getNodeId();
+            int nodeId();
+
+
+            bool isInplace();
+            void markInplace(bool reallyInplace);
+
+            void pickInput(int input);
+            void pickInput(int input, int index);
+            void pickInput(std::pair<int, int>& p);
+            void fillInputs(std::initializer_list<int> inputs);
+            void fillInputs(std::vector<int>& inputs);
+            std::vector<std::pair<int, int>>* inputs();
+
+            std::vector<T>* getTArguments();
+            std::vector<int>* getIArguments();
+
+            std::pair<int, int>* input(int idx);
+
+            int opNum();
+            void setOpNum(int opNum);
+
+            /**
+             * This method returns number of inputs available in this block
+             * @return
+             */
+            unsigned long width();
         };
     }
 }
