@@ -308,3 +308,21 @@ TEST_F(ParityOpsTests, Test_Where_3) {
 
     delete result;
 }
+
+TEST_F(ParityOpsTests, Test_Reshape_TF_1) {
+    NDArray<float> x('c', {2, 2}, {1, 2, 3, 4});
+    NDArray<float> exp('c', {1, 2, 2}, {1, 2, 3, 4});
+    NDArray<float> shape('c', {1, 3}, {1, 2, 2});
+    
+    nd4j::ops::reshape<float> op;
+
+    auto result = op.execute({&x, &shape}, {}, {});
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}
