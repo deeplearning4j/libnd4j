@@ -49,9 +49,35 @@ namespace nd4j {
                     delete tadsZ;
                 }
             } else {
+                // in this case we return 2D matrix, which basically contains coordinates fo true
+
                 REQUIRE_TRUE(block.width() == 1, 0, "Where op takes either 1 or 3 operands, But got %d operands instead", block.width());
 
+                int width = condition->rankOf(); 
 
+                std::vector<int> dims = ShapeUtils<T>::convertAxisToTadTarget(width, {0});
+                auto tads = NDArrayFactory<T>::allTensorsAlongDimension(condition, dims);
+
+                NDArrayList<T> list(0, true);
+                int cnt = 0;
+
+                int idx[MAX_RANK];
+                for (int e = 0; e < condition->lengthOf(); e++) {
+                    shape::ind2subC(condition->rankOf(), condition->shapeOf(), e, idx);
+
+                    Nd4jIndex offset = shape::getOffset(0, condition->shapeOf(), condition->stridesOf(), idx, condition->rankOf());
+                    T v = condition->buffer()[offset];
+                    if (v != (T) 0.0f) {
+                        auto array = new NDArray<T>('c', {1, condition->rankOf()});
+                        for (int f = 0; f < condition->rankOf(); f++)
+                            array->putIndexedScalar(f, (T) idx[f]);
+                            
+                        list.write(cnt++, array);
+                    }
+                }
+
+                auto result = list.stack();
+                OVERWRITE_RESULT(result);
             }
 
             return ND4J_STATUS_OK;
