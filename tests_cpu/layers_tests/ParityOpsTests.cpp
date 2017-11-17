@@ -309,6 +309,42 @@ TEST_F(ParityOpsTests, Test_Where_3) {
     delete result;
 }
 
+TEST_F(ParityOpsTests, Test_Select_1) {
+    NDArray<float> mask('c', {1, 3}, {1, 0, 0});
+    NDArray<float> x('c', {3, 3}, {1, 2, 3, 4, 5, 6, 7, 8, 9});
+    NDArray<float> y('c', {3, 3}, {9, 8, 7, 6, 5, 4, 3, 2, 1});
+    NDArray<float> exp('c', {3, 3}, {1, 2, 3, 6, 5, 4, 3, 2, 1});
+
+    nd4j::ops::select<float> op;
+    auto result = op.execute({&mask, &x, &y}, {}, {});
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}
+
+TEST_F(ParityOpsTests, Test_Select_2) {
+    NDArray<float> mask('c', {2, 2}, {1, 0, 1, 0});
+    NDArray<float> x('c', {2, 2}, {1, 2, 3, 4 });
+    NDArray<float> y('c', {2, 2}, {9, 8, 7, 6});
+    NDArray<float> exp('c', {2, 2}, {1, 8, 3, 6});
+
+    nd4j::ops::select<float> op;
+    auto result = op.execute({&mask, &x, &y}, {}, {});
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}
+
 TEST_F(ParityOpsTests, Test_Reshape_TF_1) {
     NDArray<float> x('c', {2, 2}, {1, 2, 3, 4});
     NDArray<float> shape('c', {1, 3}, {1, 2, 2});
