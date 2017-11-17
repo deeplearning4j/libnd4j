@@ -48,10 +48,40 @@ bool verbose = false;
 */
 
 #include <array/ShapeList.h>
-
+#include <cblas.h>
 
 class ND4J_EXPORT NativeOps {
 
+    typedef void (*CblasSgemm)(CBLAS_ORDER Layout, CBLAS_TRANSPOSE TransA,
+                     CBLAS_TRANSPOSE TransB, int M, int N,
+                     int K, float alpha, float *A,
+                     int lda, float *B, int ldb,
+                     float beta, float *C, int ldc);
+
+    typedef void (*CblasDgemm)(CBLAS_ORDER Layout, CBLAS_TRANSPOSE TransA,
+                     CBLAS_TRANSPOSE TransB, int M, int N,
+                     int K, double alpha, double *A,
+                     int lda, double *B, int ldb,
+                     double beta, double *C, int ldc);
+
+    typedef void (*CblasSgemmBatch)(CBLAS_ORDER Layout, CBLAS_TRANSPOSE *TransA_Array,
+                           CBLAS_TRANSPOSE *TransB_Array, int *M_Array, int *N_Array,
+                           int *K_Array, float *alpha_Array, float **A_Array,
+                           int *lda_Array, float **B_Array, int *ldb_Array,
+                           float *beta_Array, float **C_Array, int *ldc_Array,
+                           int group_count, int *group_size);
+
+    typedef void (*CblasDgemmBatch)(CBLAS_ORDER Layout, CBLAS_TRANSPOSE *TransA_Array,
+                           CBLAS_TRANSPOSE *TransB_Array, int *M_Array, int *N_Array,
+                           int *K_Array, double *alpha_Array, double **A_Array,
+                           int *lda_Array, double **B_Array, int* ldb_Array,
+                           double *beta_Array, double **C_Array, int *ldc_Array,
+                           int group_count, int *group_size);
+
+    CblasSgemm cblasSgemm;
+    CblasDgemm cblasDgemm;
+    CblasSgemmBatch cblasSgemmBatch;
+    CblasDgemmBatch cblasDgemmBatch;
 
 public:
 
@@ -1603,6 +1633,14 @@ public:
      */
     void initializeDevicesAndFunctions();
 
+    void initializeDevicesAndFunctions(void *cblasSgemm, void *cblasDgemm, void *cblasSgemmBatch, void *cblasDgemmBatch) {
+        initializeDevicesAndFunctions();
+
+        this->cblasSgemm = (CblasSgemm)cblasSgemm;
+        this->cblasDgemm = (CblasDgemm)cblasDgemm;
+        this->cblasSgemmBatch = (CblasSgemmBatch)cblasSgemmBatch;
+        this->cblasDgemmBatch = (CblasDgemmBatch)cblasDgemmBatch;
+    }
 
     /**
      * This method acquires memory chunk of requested size on host side
