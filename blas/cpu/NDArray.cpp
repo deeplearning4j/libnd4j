@@ -1234,7 +1234,7 @@ template <typename T>
             }
 
             shape_ = thisNewShape;
-            break;
+            // break;
         }
     }
 

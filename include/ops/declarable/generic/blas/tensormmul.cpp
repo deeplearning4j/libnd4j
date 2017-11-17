@@ -27,12 +27,12 @@ namespace nd4j {
             // building axes
             int axe0_size = INT_ARG(0);
             int axe1_size = INT_ARG(axe0_size+1);
-            std::vector<int> axes_0, axes_1;
+            std::vector<int> axes_0(axe0_size), axes_1(axe1_size);
             for (int e = 0; e < axe0_size; e++)
-                axes_0.emplace_back((int) INT_ARG(e+1));
+                axes_0[e] = (int) INT_ARG(e+1);
 
             for (int e = 0; e < axe1_size; e++)
-                axes_1.emplace_back((int) INT_ARG(e + axe0_size + 2));
+                axes_1[e] = (int) INT_ARG(e + axe0_size + 2);
 
             nd4j_verbose("axe0: %i; axe1: %i;\n", axes_0.size(), axes_1.size());
 
@@ -52,11 +52,12 @@ namespace nd4j {
             // building axes
             int axe0_size = INT_ARG(0);
             int axe1_size = INT_ARG(axe0_size+1);
-            std::vector<int> axes_0, axes_1;
+            std::vector<int> axes_0(axe0_size), axes_1(axe1_size);
             for (int e = 0; e < axe0_size; e++)
-                axes_0.emplace_back((int) INT_ARG(e+1));
+                axes_0[e] = (int) INT_ARG(e+1);
+
             for (int e = 0; e < axe1_size; e++)
-                axes_1.emplace_back((int) INT_ARG(e + axe0_size + 2));
+                axes_1[e] = (int) INT_ARG(e + axe0_size + 2);
 
             // evaluate shapes 
             std::vector<int> permutAt, permutBt, shapeAt, shapeBt;
