@@ -111,7 +111,8 @@
         (73,simdOps::ClipByValue) ,\
         (74,simdOps::Swish) ,\
         (75,simdOps::SwishDerivative) ,\
-        (76,simdOps::RSqrt)
+        (76,simdOps::RSqrt), \
+        (76,simdOps::Log1p)
 
 
 
