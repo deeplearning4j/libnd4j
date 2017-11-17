@@ -529,14 +529,15 @@ inline T NDArray<T>::operator()(const Nd4jIndex i) const {
     if (i >= shape::length(_shapeInfo))
             throw std::invalid_argument("NDArray::operator(i): input index is out of array length !");
 
-    int ews = shape::elementWiseStride(_shapeInfo);   
+    int  ews   = shape::elementWiseStride(_shapeInfo);   
+    char order = ordering();   
 
-    if(ews == 1)
+    if(ews == 1 && order == 'c')
         return _buffer[i];
-    else if(ews > 1)
+    else if(ews > 1 && order == 'c')
         return _buffer[i*ews];
     else {
-        int idx[rankOf()];
+        int idx[MAX_RANK];
         shape::ind2subC(rankOf(), shapeOf(), i, idx);
         Nd4jIndex offset = shape::getOffset(0, shapeOf(), stridesOf(), idx, rankOf());
         return _buffer[offset];        
@@ -551,14 +552,15 @@ inline T& NDArray<T>::operator()(const Nd4jIndex i) {
     if (i >= shape::length(_shapeInfo))
             throw std::invalid_argument("NDArray::operator(i): input index is out of array length !");
 
-    int ews = shape::elementWiseStride(_shapeInfo);   
+    int  ews   = shape::elementWiseStride(_shapeInfo);   
+    char order = ordering();   
 
-    if(ews == 1)
+    if(ews == 1 && order == 'c')
         return _buffer[i];
-    else if(ews > 1)
+    else if(ews > 1 && order == 'c')
         return _buffer[i*ews];
     else {
-        int idx[rankOf()];
+        int idx[MAX_RANK];
         shape::ind2subC(rankOf(), shapeOf(), i, idx);
         Nd4jIndex offset = shape::getOffset(0, shapeOf(), stridesOf(), idx, rankOf());
         return _buffer[offset];        
