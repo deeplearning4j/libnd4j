@@ -311,8 +311,9 @@ TEST_F(ParityOpsTests, Test_Where_3) {
 
 TEST_F(ParityOpsTests, Test_Reshape_TF_1) {
     NDArray<float> x('c', {2, 2}, {1, 2, 3, 4});
-    NDArray<float> exp('c', {1, 2, 2}, {1, 2, 3, 4});
     NDArray<float> shape('c', {1, 3}, {1, 2, 2});
+
+    NDArray<float> exp('c', {1, 2, 2}, {1, 2, 3, 4});
     
     nd4j::ops::reshape<float> op;
 

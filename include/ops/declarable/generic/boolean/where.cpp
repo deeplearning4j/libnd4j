@@ -56,7 +56,6 @@ namespace nd4j {
                 int width = condition->rankOf(); 
 
                 std::vector<int> dims = ShapeUtils<T>::convertAxisToTadTarget(width, {0});
-                auto tads = NDArrayFactory<T>::allTensorsAlongDimension(condition, dims);
 
                 NDArrayList<T> list(0, true);
                 int cnt = 0;
