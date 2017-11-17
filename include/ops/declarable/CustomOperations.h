@@ -19,7 +19,8 @@
 #include <ops/declarable/DeclarableListOp.h>
 #include <ops/declarable/OpRegistrator.h>
 #include <helpers/ArrayUtils.h>
-#include <ShapeList.h>
+#include <helpers/ShapeUtils.h>
+#include <array/ShapeList.h>
 
 namespace nd4j {
     namespace ops {
