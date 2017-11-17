@@ -60,7 +60,7 @@ namespace nd4j {
         DECLARE_OP(greater_equal, 2, 1, true);
         DECLARE_OP(less, 2, 1, true);
         DECLARE_OP(greater, 2, 1, true);
-        
+
 
         DECLARE_DIVERGENT_OP(Switch, 2, 2, true);
 
@@ -119,6 +119,7 @@ namespace nd4j {
         DECLARE_CUSTOM_OP(expose, -1, -1, true, 0, 0);
         DECLARE_CUSTOM_OP(where, 1, 1, false, 0, 0);
         DECLARE_CUSTOM_OP(shape_of, 1, 1, false, 0, 0);
+        DECLARE_CUSTOM_OP(gather, 2, 1, false, 0, 1);
 
         // recurrent ops
         DECLARE_CUSTOM_OP(sru,         5, 2, false, 0, 0);
