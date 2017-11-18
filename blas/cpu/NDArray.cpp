@@ -211,6 +211,27 @@ template <typename T>
         return vector;
     }
 
+    template<typename T>
+    void NDArray<T>::applyPairwiseLambda(NDArray<T>* other, std::function<T(T, T)> const& func, NDArray<T>* target) {
+        if (target == nullptr)
+            target = this;
+
+#pragma omp parallel for schedule(guided)
+        for (int e = 0; e < this->lengthOf(); e++) {
+            target->putIndexedScalar(e, func(this->getIndexedScalar(e), other->getIndexedScalar(e)));
+        }
+    }
+
+    template<typename T>
+    void NDArray<T>::applyLambda(std::function<T(T)> const& func, NDArray<T>* target) {
+        if (target == nullptr)
+            target = this;
+
+#pragma omp parallel for schedule(guided)
+        for (int e = 0; e < this->lengthOf(); e++)
+            target->putIndexedScalar(e, func(this->getIndexedScalar(e)));
+    }
+
 template <typename T>
 NDArray<T>::NDArray(const NDArray<T> *other, nd4j::memory::Workspace* workspace) {
     int arrLength = shape::length(other->_shapeInfo);
