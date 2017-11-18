@@ -185,7 +185,8 @@
         (18, simdOps::ShannonEntropy) ,\
         (19, simdOps::LogSumExp) ,\
         (20, simdOps::Any) ,\
-        (21, simdOps::All)
+        (21, simdOps::All), \
+        (22, simdOps::CountNonZero)
 
 
 
