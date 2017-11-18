@@ -217,12 +217,12 @@ template <typename T>
             target = this;
 
         if (other == nullptr) {
-            nd4j_printf("applyPairwiseLambda requires both operands to be valid NDArrays, both Y is NULL");
+            nd4j_printf("applyPairwiseLambda requires both operands to be valid NDArrays, both Y is NULL\n","");
             throw "Other is null";
         }
 
         if (this->lengthOf() != other->lengthOf() || !this.isSameShape(other)) {
-            nd4j_printf("applyPairwiseLambda requires both operands to have the same shape");
+            nd4j_printf("applyPairwiseLambda requires both operands to have the same shape\n","");
             throw "Shapes mismach";
         }
 
