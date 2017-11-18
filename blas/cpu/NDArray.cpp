@@ -216,6 +216,16 @@ template <typename T>
         if (target == nullptr)
             target = this;
 
+        if (other == nullptr) {
+            nd4j_printf("applyPairwiseLambda requires both operands to be valid NDArrays, both Y is NULL");
+            throw "Other is null";
+        }
+
+        if (this->lengthOf() != other->lengthOf() || !this.isSameShape(other)) {
+            nd4j_printf("applyPairwiseLambda requires both operands to have the same shape");
+            throw "Shapes mismach";
+        }
+
 #pragma omp parallel for schedule(guided)
         for (int e = 0; e < this->lengthOf(); e++) {
             target->putIndexedScalar(e, func(this->getIndexedScalar(e), other->getIndexedScalar(e)));
