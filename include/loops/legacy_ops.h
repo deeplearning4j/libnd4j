@@ -112,7 +112,8 @@
         (74,simdOps::Swish) ,\
         (75,simdOps::SwishDerivative) ,\
         (76,simdOps::RSqrt), \
-        (77,simdOps::Log1p)
+        (77,simdOps::Log1p), \
+        (78,simdOps::Erf)
 
 
 
