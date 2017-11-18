@@ -236,7 +236,8 @@
         (60,simdOps::FMod),\
         (69,simdOps::Atan2) ,\
         (19, simdOps::TruncateDiv),\
-        (20, simdOps::FloorDiv)
+        (20, simdOps::FloorDiv), \
+        (21, simdOps::FloorMod)
 
 
 #define INDEX_REDUCE_OPS \

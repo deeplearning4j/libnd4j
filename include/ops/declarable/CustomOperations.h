@@ -35,6 +35,7 @@ namespace nd4j {
         DECLARE_OP(softmax_bp, 2, 1, true);
         DECLARE_OP(biasadd, 2, 1, true);
         DECLARE_OP(floor, 1, 1, true);
+        DECLARE_OP(floormod, 2, 1, true);
         DECLARE_OP(realdiv, 2, 1, true);
         DECLARE_OP(merge, -1, 1, true);         // should become custom
         DECLARE_OP(broadcastgradientargs, 2, 2, true);
