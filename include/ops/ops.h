@@ -837,6 +837,39 @@ namespace simdOps {
 		}
 	};
 
+	template<typename T>
+	class IsNan {
+	public:
+		no_op_exec_special
+		no_op_exec_special_cuda
+
+		op_def static T op(T d1, T *params) {
+			return isnan(d1) ? (T) 1.0f : (T) 0.0f;
+		}
+	};
+
+	template<typename T>
+	class IsInf {
+	public:
+		no_op_exec_special
+		no_op_exec_special_cuda
+
+		op_def static T op(T d1, T *params) {
+			return isinf(d1) ? (T) 1.0f : (T) 0.0f;
+		}
+	};
+
+	template<typename T>
+	class IsFinite {
+	public:
+		no_op_exec_special
+		no_op_exec_special_cuda
+
+		op_def static T op(T d1, T *params) {
+			return (!isinf(d1) && ! isnan(d1))? (T) 1.0f : (T) 0.0f;
+		}
+	};
+
 
 	template<typename T>
 	class ClipByValue {
