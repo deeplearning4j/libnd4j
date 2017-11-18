@@ -71,3 +71,7 @@ TEST_F(NDArrayFactoryTests, Test_Linspace_5) {
 
     ASSERT_TRUE(x.equalsTo(&exp));
 }
+
+TEST_F(NDArrayFactoryTests, Test_Concat_1) {
+    
+}

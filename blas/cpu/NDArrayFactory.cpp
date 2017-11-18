@@ -490,6 +490,15 @@ namespace nd4j {
         return result;
     }
 
+    template <typename T>
+    NDArray<T>* NDArrayFactory<T>::concat(const std::vector<NDArray<T> *>& vectors, int axis, NDArray<T>* target) {
+        NDArray<T>* result = target;
+
+        
+
+        return result;
+    }
+
 
     template class ND4J_EXPORT NDArrayFactory<float>;
     template class ND4J_EXPORT NDArrayFactory<float16>;

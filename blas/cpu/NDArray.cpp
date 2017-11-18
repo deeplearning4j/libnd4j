@@ -225,6 +225,7 @@ NDArray<T>::NDArray(const NDArray<T> *other, nd4j::memory::Workspace* workspace)
         _shapeInfo = (int*) _workspace->allocateBytes(shapeLength * 4);
     }
 
+    // FIXME: memcpy should be removed
     memcpy(_buffer, other->_buffer, arrLength*sizeOfT());      // copy other._buffer information into new array
 
     memcpy(_shapeInfo, other->_shapeInfo, shapeLength*sizeof(int));     // copy shape information into new array
