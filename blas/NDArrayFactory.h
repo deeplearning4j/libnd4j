@@ -42,6 +42,9 @@ namespace nd4j {
         static NDArray<T>* scalar(T value);
 
         static NDArray<T>* valueOf(std::initializer_list<int> shape, T value, char order = 'c');
+
+        static NDArray<T>* simpleMMul(const nd4j::NDArray<T>* a, const nd4j::NDArray<T>* b, nd4j::NDArray<T>* c , const T alpha, const T beta);
+
     };
 }
 

@@ -1232,9 +1232,7 @@ template <typename T>
                 } else
                     thisNewShape[j] = realShape;
             }
-
             shape_ = thisNewShape;
-            // break;
         }
     }
 

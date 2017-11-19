@@ -36,10 +36,12 @@ namespace nd4j {
 
             nd4j_verbose("axe0: %i; axe1: %i;\n", axes_0.size(), axes_1.size());
 
-            nd4j::NDArrayFactory<T>::tensorDot(a, b, c, axes_0, axes_1);
+            // nd4j::NDArrayFactory<T>::tensorDot(a, b, c, axes_0, axes_1);
+            NDArray<T>* result = nd4j::NDArrayFactory<T>::tensorDot(a, b, axes_0, axes_1);
+            *c = *result;
 
             STORE_RESULT(*c);
-
+            delete result;  
             return ND4J_STATUS_OK;
         }
         DECLARE_SYN(tensordot, tensormmul);

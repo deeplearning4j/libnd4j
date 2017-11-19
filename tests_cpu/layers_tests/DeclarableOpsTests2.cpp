@@ -129,21 +129,20 @@ TEST_F(DeclarableOpsTests2, TestTensorDot5) {
     NDArray<float> x('c', {2,3,4}, {1,3,5,7,9,11,13,15, 1,3,5,7,9,11,13,15, 1,3,5,7,9,11,13,15});
     NDArray<float> y('c', {2,4,3}, {2,4,6,8,10,12,14,16, 2,4,6,8,10,12,14,16, 2,4,6,8,10,12,14,16});
     NDArray<float> expected('c', {2,4,2,4}, {44,110,160, 66,132, 38, 88,154, 68,170,224,102,204, 82,136,238, 92,230,288,138,276,126,184,322, 116,290,352,174,348,170,232,406, 76,190,160,114,228,182,152,266, 100,250,224,150,300,226,200,350, 124,310,288,186,372,270,248,434, 148,370,352,222,444,314,296,518});
-
+                                             
     nd4j::ops::tensormmul<float> op;
     nd4j::ResultSet<float>* results = op.execute({&x, &y}, {}, {1,1,1,2});
 
     ASSERT_EQ(ND4J_STATUS_OK, results->status());
 
     NDArray<float> *result = results->at(0);    
-    result->printShapeInfo();
-    result->printBuffer();
 
     ASSERT_TRUE(expected.isSameShape(result));
     ASSERT_TRUE(expected.equalsTo(result));
 
-    delete result;
+    delete results;
 
 }
 
 
+ 
