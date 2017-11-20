@@ -211,6 +211,39 @@ template <typename T>
         return vector;
     }
 
+#ifndef __JAVACPP_HACK__
+    template<typename T>
+    void NDArray<T>::applyPairwiseLambda(NDArray<T>* other, std::function<T(T, T)> const& func, NDArray<T>* target) {
+        if (target == nullptr)
+            target = this;
+
+        if (other == nullptr) {
+            nd4j_printf("applyPairwiseLambda requires both operands to be valid NDArrays, both Y is NULL\n","");
+            throw "Other is null";
+        }
+
+        if (this->lengthOf() != other->lengthOf() || !this->isSameShape(other)) {
+            nd4j_printf("applyPairwiseLambda requires both operands to have the same shape\n","");
+            throw "Shapes mismach";
+        }
+
+#pragma omp parallel for schedule(guided)
+        for (int e = 0; e < this->lengthOf(); e++) {
+            target->putIndexedScalar(e, func(this->getIndexedScalar(e), other->getIndexedScalar(e)));
+        }
+    }
+
+    template<typename T>
+    void NDArray<T>::applyLambda(std::function<T(T)> const& func, NDArray<T>* target) {
+        if (target == nullptr)
+            target = this;
+
+#pragma omp parallel for schedule(guided)
+        for (int e = 0; e < this->lengthOf(); e++)
+            target->putIndexedScalar(e, func(this->getIndexedScalar(e)));
+    }
+#endif
+
 template <typename T>
 NDArray<T>::NDArray(const NDArray<T> *other, nd4j::memory::Workspace* workspace) {
     int arrLength = shape::length(other->_shapeInfo);
@@ -225,6 +258,7 @@ NDArray<T>::NDArray(const NDArray<T> *other, nd4j::memory::Workspace* workspace)
         _shapeInfo = (int*) _workspace->allocateBytes(shapeLength * 4);
     }
 
+    // FIXME: memcpy should be removed
     memcpy(_buffer, other->_buffer, arrLength*sizeOfT());      // copy other._buffer information into new array
 
     memcpy(_shapeInfo, other->_shapeInfo, shapeLength*sizeof(int));     // copy shape information into new array
@@ -804,19 +838,21 @@ template <typename T>
         if (index >= numTads)
             throw "Can't get index higher than total number of TADs";
 
-        std::unique_ptr<shape::TAD> tad(new shape::TAD(this->_shapeInfo, copy.data(), copy.size()));
-        tad->createTadOnlyShapeInfo();
-        tad->createOffsets();
+        shape::TAD tad(this->_shapeInfo, copy.data(), copy.size());
+        tad.createTadOnlyShapeInfo();
+        tad.createOffsets();
 
-        T* buffer = this->_buffer + tad->tadOffsets[index];
+        shape::printShapeInfoLinear(tad.tadOnlyShapeInfo);
+
+        T* buffer = this->_buffer + tad.tadOffsets[index];
 
         int* shapeInfo;
         if (_workspace == nullptr) {
-            shapeInfo = new int[shape::shapeInfoLength(tad->tadOnlyShapeInfo[0])];
+            shapeInfo = new int[shape::shapeInfoLength(tad.tadOnlyShapeInfo[0])];
         } else {
-            shapeInfo = (int *) _workspace->allocateBytes(shape::shapeInfoByteLength(tad->tadOnlyShapeInfo[0]));
+            shapeInfo = (int *) _workspace->allocateBytes(shape::shapeInfoByteLength(tad.tadOnlyShapeInfo[0]));
         }
-        std::memcpy(shapeInfo, tad->tadOnlyShapeInfo, shape::shapeInfoByteLength(tad->tadOnlyShapeInfo));
+        std::memcpy(shapeInfo, tad.tadOnlyShapeInfo, shape::shapeInfoByteLength(tad.tadOnlyShapeInfo));
 
         auto array = new NDArray<T>(buffer, shapeInfo, _workspace);
         array->_isBuffAlloc = false;

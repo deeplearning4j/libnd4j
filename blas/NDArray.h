@@ -2,6 +2,7 @@
 #define NDARRAY_H
 
 #include <initializer_list>
+#include <functional>
 #include "NativeOps.h"
 #include <shape.h>
 #include "NativeOpExcutioner.h"
@@ -301,6 +302,11 @@ namespace nd4j {
         template<typename OpName>
         void applyScalar(NDArray<T>& scalar, NDArray<T>* target = nullptr, T *extraParams = nullptr);
 
+#ifndef __JAVACPP_HACK__
+        void applyLambda(std::function<T(T)> const& func, NDArray<T>* target = nullptr);
+
+        void applyPairwiseLambda(NDArray<T>* other, std::function<T(T, T)> const& func, NDArray<T>* target = nullptr);
+#endif
 
         // method makes copy of this array and applies to the copy the transpose operation, that is this array remains unaffected 
         NDArray<T> *transpose() const;

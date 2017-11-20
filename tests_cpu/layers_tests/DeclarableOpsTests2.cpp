@@ -1,6 +1,8 @@
 #include "testlayers.h"
 #include <ops/declarable/CustomOperations.h>
+#include <helpers/helper_hash.h>
 #include <NDArray.h>
+#include <array/NDArrayList.h>
 
 
 using namespace nd4j;
@@ -118,6 +120,43 @@ TEST_F(DeclarableOpsTests2, Gather_test_5) {
 
     ASSERT_TRUE(expected.isSameShapeStrict(output));
     ASSERT_TRUE(expected.equalsTo(output));
+
+    delete result;
+}
+
+
+TEST_F(DeclarableOpsTests2, Test_FloorMod_1) {
+    NDArray<float> x('c', {1, 3}, {2.0, 6.0, -3.0});
+    NDArray<float> y('c', {1, 3}, {-3.0, 2.0, -2.0});
+    NDArray<float> exp('c', {1, 3}, {-1.,  0., -1.,});
+
+    nd4j::ops::floormod<float> op;
+    
+    auto result = op.execute({&x, &y}, {}, {});
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}
+
+TEST_F(DeclarableOpsTests2, Test_CRelu_1) {
+    NDArray<float> x('c', {2, 2}, {1.0, 2.0, 3.0, 4.0});
+    NDArray<float> exp('c', {2, 4}, {1.0, 2.0, 0, 0, 3.0, 4.0, 0, 0});
+
+    nd4j::ops::crelu<float> op;
+
+    auto result = op.execute({&x}, {}, {});
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
 
     delete result;
 }
