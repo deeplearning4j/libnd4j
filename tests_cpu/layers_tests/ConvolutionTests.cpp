@@ -898,4 +898,25 @@ TEST_F(ConvolutionTests, TestDeconv_ff_2) {
     delete result;
 }
 
+TEST_F(ConvolutionTests, Test_Conv1D_ff_1) {
+    NDArray<double> input('c', {2, 2, 6});
+    NDArray<double> weights('c', {3, 2, 2});
+    NDArray<double> bias('c', {1, 3});
+
+    NDArrayFactory<double>::linspace(1, input);
+    NDArrayFactory<double>::linspace(1, weights);
+    NDArrayFactory<double>::linspace(1, bias);
+
+    nd4j::ops::conv1d<double> op;
+    auto result = op.execute({&input, &weights, &bias}, {}, {2, 1, 0});
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    z->printIndexedBuffer("Z");
+
+    delete result;
+}
+
 #endif //LIBND4J_CONVOLUTIONTESTS_H
