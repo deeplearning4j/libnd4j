@@ -316,6 +316,7 @@ namespace nd4j {
         } else { //if ((A->isMatrix() && B->isMatrix()) || (A->isVector() && B->isMatrix()) || (A->isColumnVector() && B->isRowVector())) {
             // gemm
             // int[] shape = {rows(), other.columns()};
+            
             if (result == nullptr) {
                 nd4j_verbose("Creating new array: [%i x %i]\n", A->rows(), B->columns());
                 result = new NDArray<T>(A->rows(), B->columns(), 'f');

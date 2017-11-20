@@ -19,13 +19,13 @@ std::vector<int> ShapeUtils<T>::evalShapeForTensorDot(const nd4j::NDArray<T>* a,
     int axe0_size = (int) axes_0.size();
     int axe1_size = (int) axes_1.size();                 
     if(axe0_size != axe1_size)
-        throw "ShapeUtils::evalShapeForTensorDot method: the vectors of a axis and b axis must have identical length !";
+        throw "ShapeUtils::evalShapeForTensorDot method: the numbers of a axes and b axes to make dot product along must have identical values !";
     if(axe0_size > a->rankOf() || axe1_size > b->rankOf())
-        throw "ShapeUtils::evalShapeForTensorDot method: the length of vector of a or b axis is is larger than array rank !";
+        throw "ShapeUtils::evalShapeForTensorDot method: the length of vector of a or b axes is larger than array rank !";
     // validating axes
     for (int i = 0; i < axe1_size; i++) {
         if (a->sizeAt(axes_0[i]) != b->sizeAt(axes_1[i]))
-            throw "ShapeUtils::evalShapeForTensorDot method: size of the given axes at each dimension must be the same size.";
+            throw "ShapeUtils::evalShapeForTensorDot method: the dimensions at given axes for both input arrays must be the same !";
         if (axes_0[i] < 0)
             axes_0[i] += a->rankOf();
         if (axes_1[i] < 0)
@@ -34,11 +34,11 @@ std::vector<int> ShapeUtils<T>::evalShapeForTensorDot(const nd4j::NDArray<T>* a,
     // check whether axes_0 and axes_1 contain on;y unique numbers
     std::set<T> uniqueElems(axes_0.begin(), axes_0.end());
     if((int)uniqueElems.size() != axe0_size)
-        throw "ShapeUtils::evalShapeForTensorDot method: the vector of a axis contains duplicates !";
+        throw "ShapeUtils::evalShapeForTensorDot method: the vector of a axes contains duplicates !";
     uniqueElems.clear();
     uniqueElems = std::set<T>(axes_1.begin(), axes_1.end());
     if((int)uniqueElems.size() != axe1_size)
-        throw "ShapeUtils::evalShapeForTensorDot method: the vector of b axis contains duplicates !";
+        throw "ShapeUtils::evalShapeForTensorDot method: the vector of b axes contains duplicates !";
 
     std::vector<int> list_A, list_B;
     for (int i = 0; i < a->rankOf(); i++)
