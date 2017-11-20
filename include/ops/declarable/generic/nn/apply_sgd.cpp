@@ -6,7 +6,7 @@
 
 namespace nd4j {
     namespace ops {
-        CONFIGURABLE_OP_IMPL(apply_gradients, 2, 1, true, -2, 0) {
+        CONFIGURABLE_OP_IMPL(apply_sgd, 2, 1, true, -2, 0) {
             auto parameters = INPUT_VARIABLE(0);
             auto gradients = INPUT_VARIABLE(1);
 
@@ -31,6 +31,6 @@ namespace nd4j {
 
             return ND4J_STATUS_OK;
         }
-        DECLARE_SYN(ApplyGradientDescent, apply_gradients);
+        DECLARE_SYN(ApplyGradientDescent, apply_sgd);
     }
 }
