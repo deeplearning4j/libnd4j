@@ -345,7 +345,7 @@ int ShapeUtils<T>::getSubArrayIndex(const int* maxShapeInfo, const int* minShape
 }
 
 //////////////////////////////////////////////////////////////////////////
-// evaluate shapeInfo for resulting array of tile operation
+// evaluate shapeInfo for resulting array from tile operation
 template <typename T>
 int* ShapeUtils<T>::evalTileShapeInfo(const NDArray<T>& arr, const std::vector<int>& reps) {
 

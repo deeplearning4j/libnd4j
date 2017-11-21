@@ -47,7 +47,7 @@ namespace nd4j {
         // the array with larger dimensions number has to be passed as first argument
         static int* evalBroadcastShapeInfo(const NDArray<T>& max, const NDArray<T>& min);
 
-        // return sorted vector of dimensions of array with larger dimensions number along which two input arrays have same shape
+        // return sorted vector of dimensions of array with larger dimensions along which two input arrays have same shape
         static std::vector<int> getDimsWithSameShape(const NDArray<T>& max, const NDArray<T>& min);
 
         // return absolute index of array min, min is sub-array of max, index to be returned is min index and it corresponds maxIdx of max array 

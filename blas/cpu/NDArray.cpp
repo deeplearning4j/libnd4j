@@ -190,6 +190,7 @@ template <typename T>
         return vector;
     }
 
+////////////////////////////////////////////////////////////////////////
     template<typename T>
     std::vector<int> NDArray<T>::getShapeAsVector() {
         std::vector<int> vector;
@@ -200,6 +201,7 @@ template <typename T>
         return vector;
     }
 
+////////////////////////////////////////////////////////////////////////
     template<typename T>
     std::vector<int> NDArray<T>::getShapeInfoAsVector() {
         std::vector<int> vector;
@@ -211,9 +213,10 @@ template <typename T>
         return vector;
     }
 
+////////////////////////////////////////////////////////////////////////
 #ifndef __JAVACPP_HACK__
     template<typename T>
-    void NDArray<T>::applyPairwiseLambda(NDArray<T>* other, std::function<T(T, T)> const& func, NDArray<T>* target) {
+    void NDArray<T>::applyPairwiseLambda(NDArray<T>* other, const std::function<T(T, T)>& func, NDArray<T>* target) {
         if (target == nullptr)
             target = this;
 
@@ -233,8 +236,9 @@ template <typename T>
         }
     }
 
+////////////////////////////////////////////////////////////////////////
     template<typename T>
-    void NDArray<T>::applyLambda(std::function<T(T)> const& func, NDArray<T>* target) {
+    void NDArray<T>::applyLambda(const std::function<T(T)>& func, NDArray<T>* target) {
         if (target == nullptr)
             target = this;
 
@@ -244,6 +248,7 @@ template <typename T>
     }
 #endif
 
+////////////////////////////////////////////////////////////////////////
 template <typename T>
 NDArray<T>::NDArray(const NDArray<T> *other, nd4j::memory::Workspace* workspace) {
     int arrLength = shape::length(other->_shapeInfo);
@@ -1420,9 +1425,7 @@ NDArray<T> NDArray<T>::tile(const std::vector<int>& reps) const {
     // fill newBuff, loop through all elements of newBuff 
     // looping through _buffer goes automatically by means of getSubArrayIndex applying
     for(int i=0;  i<result.lengthOf(); ++i)        
-        result.putIndexedScalar(i, this->getIndexedScalar(shape::subArrayIndex(result._shapeInfo, _shapeInfo, i)));
-        // result(i) = this->getIndexedScalar(shape::subArrayIndex(result._shapeInfo, _shapeInfo, i));
-        // result(i) = (*this)(shape::subArrayIndex(result._shapeInfo, _shapeInfo, i));
+        result(i) = (*this)(shape::subArrayIndex(result._shapeInfo, _shapeInfo, i));
               
     return result;
     
