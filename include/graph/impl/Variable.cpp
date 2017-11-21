@@ -171,7 +171,7 @@ namespace nd4j {
                 }
             }
 
-            if (flatVariable->buffer() != nullptr && flatVariable->buffer()->Length() > 0) {
+            if (flatVariable->buffer() != nullptr && flatVariable->buffer()->size() > 0) {
                 auto dtype = DataTypeUtils::fromFlatDataType(flatVariable->dataType());
                 auto bo = ByteOrderUtils::fromFlatByteOrder(flatVariable->order());
 

@@ -518,7 +518,7 @@ namespace nd4j {
 
         void assign(const NDArray<T>& other, const Intervals& idx);
 
-        std::vector<uint8_t>* asByteVector();
+        std::vector<int8_t> asByteVector();
 
         // default destructor
         ~NDArray(); 

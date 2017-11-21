@@ -22,12 +22,11 @@ TEST_F(NDArrayTest2, Test_ByteVector_1) {
 
     auto vec = x.asByteVector();
 
-    auto restored = new NDArray<float>((float *)vec->data(), x.shapeInfo());
+    auto restored = new NDArray<float>((float *)vec.data(), x.shapeInfo());
     restored->triggerAllocationFlag(false, false);
 
     ASSERT_TRUE(x.equalsTo(restored));
 
-    delete vec;
     delete restored;
 }
 
@@ -37,12 +36,11 @@ TEST_F(NDArrayTest2, Test_ByteVector_2) {
 
     auto vec = x.asByteVector();
 
-    auto restored = new NDArray<float16>((float16 *)vec->data(), x.shapeInfo());
+    auto restored = new NDArray<float16>((float16 *)vec.data(), x.shapeInfo());
     restored->triggerAllocationFlag(false, false);
 
     ASSERT_TRUE(x.equalsTo(restored));
 
-    delete vec;
     delete restored;
 }
 
@@ -52,11 +50,10 @@ TEST_F(NDArrayTest2, Test_ByteVector_3) {
 
     auto vec = x.asByteVector();
 
-    auto restored = new NDArray<double>((double *)vec->data(), x.shapeInfo());
+    auto restored = new NDArray<double>((double *)vec.data(), x.shapeInfo());
     restored->triggerAllocationFlag(false, false);
 
     ASSERT_TRUE(x.equalsTo(restored));
 
-    delete vec;
     delete restored;
 }

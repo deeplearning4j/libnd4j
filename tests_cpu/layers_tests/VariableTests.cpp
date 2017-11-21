@@ -8,6 +8,8 @@
 #include "testlayers.h"
 #include <NDArray.h>
 #include <graph/Variable.h>
+#include <flatbuffers/flatbuffers.h>
+#include <NDArrayFactory.h>
 
 using namespace nd4j;
 using namespace nd4j::graph;
@@ -16,7 +18,6 @@ class VariableTests : public testing::Test {
 public:
 
 };
-
 
 TEST_F(VariableTests, TestClone_1) {
     auto array1 = new NDArray<float>(5,5, 'c');
@@ -44,6 +45,28 @@ TEST_F(VariableTests, TestClone_1) {
     ASSERT_NEAR(2.0, array2->meanNumber(), 1e-5);
 
     delete var2;
+}
+
+TEST_F(VariableTests, Test_FlatVariableDataType_1) {
+    flatbuffers::FlatBufferBuilder builder(1024);
+    NDArray<float> original('c', {5, 10});
+    NDArrayFactory<float>::linspace(1, original);
+
+    auto vec = original.asByteVector();
+
+    auto fShape = builder.CreateVector(original.getShapeInfoAsVector());
+    auto fBuffer = builder.CreateVector(vec);
+
+    auto flatVar = CreateFlatVariable(builder, 1, 0, fShape, 0, fBuffer, nd4j::graph::DataType_FLOAT, ByteOrder_LE);
+
+    builder.Finish(flatVar);
+
+    auto ptr = builder.GetBufferPointer();
+
+    GetF
+
+
+    auto restoredVar = new Variable<float>(flatVar);
 }
 
 #endif //LIBND4J_VARIABLETESTS_H
