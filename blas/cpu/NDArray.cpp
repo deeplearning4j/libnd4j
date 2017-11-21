@@ -230,9 +230,26 @@ template <typename T>
             throw "Shapes mismach";
         }
 
-#pragma omp parallel for schedule(guided)
-        for (int e = 0; e < this->lengthOf(); e++) {
-            target->putIndexedScalar(e, func(this->getIndexedScalar(e), other->getIndexedScalar(e)));
+        if (this->ordering() == other->ordering() && this->ordering() == target->ordering() && (this->ews() == 1 && target->ews() == 1) && this->ews() == other->ews()) {
+#pragma omp parallel for simd schedule(guided)
+            for (int e = 0; e < this->lengthOf(); e++)
+                target->_buffer[e] = func(this->_buffer[e], other->_buffer[e]);
+        } else {
+            int xCoord[MAX_RANK];
+            int yCoord[MAX_RANK];
+            int zCoord[MAX_RANK];
+#pragma omp parallel for schedule(guided) private(xCoord, yCoord, zCoord)
+            for (int e = 0; e < this->lengthOf(); e++) {
+                shape::ind2subC(this->rankOf(), this->shapeOf(), e, xCoord);
+                shape::ind2subC(other->rankOf(), other->shapeOf(), e, yCoord);
+                shape::ind2subC(target->rankOf(), target->shapeOf(), e, zCoord);
+
+                Nd4jIndex xOffset = shape::getOffset(0, this->shapeOf(), this->stridesOf(), xCoord, this->rankOf());
+                Nd4jIndex yOffset = shape::getOffset(0, other->shapeOf(), other->stridesOf(), yCoord, other->rankOf());
+                Nd4jIndex zOffset = shape::getOffset(0, target->shapeOf(), target->stridesOf(), zCoord, target->rankOf());
+
+                target->_buffer[zOffset] = func(this->_buffer[xOffset], other->_buffer[yOffset]);
+            }
         }
     }
 
@@ -242,9 +259,24 @@ template <typename T>
         if (target == nullptr)
             target = this;
 
-#pragma omp parallel for schedule(guided)
-        for (int e = 0; e < this->lengthOf(); e++)
-            target->putIndexedScalar(e, func(this->getIndexedScalar(e)));
+        if (this->ordering() == target->ordering() && (this->ews() == 1 && target->ews() == 1)) {
+#pragma omp parallel for simd schedule(guided)
+            for (int e = 0; e < this->lengthOf(); e++)
+                target->_buffer[e] = func(this->_buffer[e]);
+        } else {
+            int xCoord[MAX_RANK];
+            int zCoord[MAX_RANK];
+#pragma omp parallel for schedule(guided) private(xCoord, zCoord)
+            for (int e = 0; e < this->lengthOf(); e++) {
+                shape::ind2subC(this->rankOf(), this->shapeOf(), e, xCoord);
+                shape::ind2subC(target->rankOf(), target->shapeOf(), e, zCoord);
+
+                Nd4jIndex xOffset = shape::getOffset(0, this->shapeOf(), this->stridesOf(), xCoord, this->rankOf());
+                Nd4jIndex zOffset = shape::getOffset(0, target->shapeOf(), target->stridesOf(), zCoord, target->rankOf());
+
+                target->_buffer[zOffset] = func(this->_buffer[xOffset]);
+            }
+        }
     }
 #endif
 
@@ -805,7 +837,7 @@ template <typename T>
         else
             printf("[");
         for (Nd4jIndex e = 0; e < limit; e++) {
-            printf("%f", this->getScalar(e));
+            printf("%f", (float) this->getScalar(e));
             if (e < limit - 1)
                 printf(", ");
         }
@@ -823,7 +855,7 @@ template <typename T>
         else
             printf("[");
         for (Nd4jIndex e = 0; e < limit; e++) {
-            printf("%f", this->getIndexedScalar(e));
+            printf("%f", (float) this->getIndexedScalar(e));
             if (e < limit - 1)
                 printf(", ");
         }
