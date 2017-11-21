@@ -75,6 +75,7 @@ namespace nd4j {
 
         DECLARE_CUSTOM_OP(testcustom, 1, 1, false, 0, -1);
         DECLARE_CUSTOM_OP(concat, -1, 1, false, 0, 1);
+        DECLARE_CUSTOM_OP(concat_bp, -1, -1, false, 0, 1);
         DECLARE_CUSTOM_OP(matmul, 2, 1, false, -2, 0);
         DECLARE_CUSTOM_OP(conv1d, 2, 1, false, 0, 3);
         DECLARE_CUSTOM_OP(conv1d_bp, 3, 2, false, 0, 3);
