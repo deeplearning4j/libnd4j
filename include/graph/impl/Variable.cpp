@@ -153,17 +153,23 @@ namespace nd4j {
             _external = true;
             _readOnly = false;
 
-#pragma omp parallel for simd
             for (int e = 0; e < shapeLen; e++) {
                 shape[e] = flatVariable->shape()->Get(e);
             }
 
-            int bufLen = flatVariable->values()->Length();
-            T *buffer = new T[bufLen];
+            T *buffer = nullptr;
+            if (flatVariable->values() != nullptr && flatVariable->values()->Length() > 0) {
+                int bufLen = (int) flatVariable->values()->Length();
+                 buffer = new T[bufLen];
 
 #pragma omp parallel for simd
-            for (int e = 0; e < bufLen; e++) {
-                buffer[e] = (T) flatVariable->values()->Get(e);
+                for (int e = 0; e < bufLen; e++) {
+                    buffer[e] = (T) flatVariable->values()->Get(e);
+                }
+            }
+
+            if (flatVariable->buffer() != nullptr && flatVariable->buffer()->Length() > 0) {
+
             }
 
             _ndarray = new NDArray<T>(buffer, shape);

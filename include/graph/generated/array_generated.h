@@ -11,6 +11,35 @@ namespace graph {
 
 struct FlatArray;
 
+enum ByteOrder {
+  ByteOrder_LE = 0,
+  ByteOrder_BE = 1,
+  ByteOrder_MIN = ByteOrder_LE,
+  ByteOrder_MAX = ByteOrder_BE
+};
+
+inline ByteOrder (&EnumValuesByteOrder())[2] {
+  static ByteOrder values[] = {
+    ByteOrder_LE,
+    ByteOrder_BE
+  };
+  return values;
+}
+
+inline const char **EnumNamesByteOrder() {
+  static const char *names[] = {
+    "LE",
+    "BE",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameByteOrder(ByteOrder e) {
+  const size_t index = static_cast<int>(e);
+  return EnumNamesByteOrder()[index];
+}
+
 enum DataType {
   DataType_INHERIT = 0,
   DataType_BOOL = 1,
@@ -27,11 +56,13 @@ enum DataType {
   DataType_UINT16 = 12,
   DataType_UINT32 = 13,
   DataType_UINT64 = 14,
+  DataType_QINT8 = 15,
+  DataType_QINT16 = 16,
   DataType_MIN = DataType_INHERIT,
-  DataType_MAX = DataType_UINT64
+  DataType_MAX = DataType_QINT16
 };
 
-inline DataType (&EnumValuesDataType())[15] {
+inline DataType (&EnumValuesDataType())[17] {
   static DataType values[] = {
     DataType_INHERIT,
     DataType_BOOL,
@@ -47,7 +78,9 @@ inline DataType (&EnumValuesDataType())[15] {
     DataType_UINT8,
     DataType_UINT16,
     DataType_UINT32,
-    DataType_UINT64
+    DataType_UINT64,
+    DataType_QINT8,
+    DataType_QINT16
   };
   return values;
 }
@@ -69,6 +102,8 @@ inline const char **EnumNamesDataType() {
     "UINT16",
     "UINT32",
     "UINT64",
+    "QINT8",
+    "QINT16",
     nullptr
   };
   return names;

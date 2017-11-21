@@ -303,7 +303,10 @@ struct FlatVariable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_NAME = 6,
     VT_SHAPE = 8,
     VT_VALUES = 10,
-    VT_DEVICE = 12
+    VT_BUFFER = 12,
+    VT_DATATYPE = 14,
+    VT_ORDER = 16,
+    VT_DEVICE = 18
   };
   int32_t id() const {
     return GetField<int32_t>(VT_ID, 0);
@@ -317,6 +320,15 @@ struct FlatVariable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::Vector<float> *values() const {
     return GetPointer<const flatbuffers::Vector<float> *>(VT_VALUES);
   }
+  const flatbuffers::Vector<int8_t> *buffer() const {
+    return GetPointer<const flatbuffers::Vector<int8_t> *>(VT_BUFFER);
+  }
+  nd4j::graph::DataType dataType() const {
+    return static_cast<nd4j::graph::DataType>(GetField<int8_t>(VT_DATATYPE, 0));
+  }
+  nd4j::graph::ByteOrder order() const {
+    return static_cast<nd4j::graph::ByteOrder>(GetField<int8_t>(VT_ORDER, 0));
+  }
   int32_t device() const {
     return GetField<int32_t>(VT_DEVICE, 0);
   }
@@ -329,6 +341,10 @@ struct FlatVariable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.Verify(shape()) &&
            VerifyOffset(verifier, VT_VALUES) &&
            verifier.Verify(values()) &&
+           VerifyOffset(verifier, VT_BUFFER) &&
+           verifier.Verify(buffer()) &&
+           VerifyField<int8_t>(verifier, VT_DATATYPE) &&
+           VerifyField<int8_t>(verifier, VT_ORDER) &&
            VerifyField<int32_t>(verifier, VT_DEVICE) &&
            verifier.EndTable();
   }
@@ -349,6 +365,15 @@ struct FlatVariableBuilder {
   void add_values(flatbuffers::Offset<flatbuffers::Vector<float>> values) {
     fbb_.AddOffset(FlatVariable::VT_VALUES, values);
   }
+  void add_buffer(flatbuffers::Offset<flatbuffers::Vector<int8_t>> buffer) {
+    fbb_.AddOffset(FlatVariable::VT_BUFFER, buffer);
+  }
+  void add_dataType(nd4j::graph::DataType dataType) {
+    fbb_.AddElement<int8_t>(FlatVariable::VT_DATATYPE, static_cast<int8_t>(dataType), 0);
+  }
+  void add_order(nd4j::graph::ByteOrder order) {
+    fbb_.AddElement<int8_t>(FlatVariable::VT_ORDER, static_cast<int8_t>(order), 0);
+  }
   void add_device(int32_t device) {
     fbb_.AddElement<int32_t>(FlatVariable::VT_DEVICE, device, 0);
   }
@@ -358,7 +383,7 @@ struct FlatVariableBuilder {
   }
   FlatVariableBuilder &operator=(const FlatVariableBuilder &);
   flatbuffers::Offset<FlatVariable> Finish() {
-    const auto end = fbb_.EndTable(start_, 5);
+    const auto end = fbb_.EndTable(start_, 8);
     auto o = flatbuffers::Offset<FlatVariable>(end);
     return o;
   }
@@ -370,13 +395,19 @@ inline flatbuffers::Offset<FlatVariable> CreateFlatVariable(
     flatbuffers::Offset<flatbuffers::String> name = 0,
     flatbuffers::Offset<flatbuffers::Vector<int32_t>> shape = 0,
     flatbuffers::Offset<flatbuffers::Vector<float>> values = 0,
+    flatbuffers::Offset<flatbuffers::Vector<int8_t>> buffer = 0,
+    nd4j::graph::DataType dataType = nd4j::graph::DataType_INHERIT,
+    nd4j::graph::ByteOrder order = nd4j::graph::ByteOrder_LE,
     int32_t device = 0) {
   FlatVariableBuilder builder_(_fbb);
   builder_.add_device(device);
+  builder_.add_buffer(buffer);
   builder_.add_values(values);
   builder_.add_shape(shape);
   builder_.add_name(name);
   builder_.add_id(id);
+  builder_.add_order(order);
+  builder_.add_dataType(dataType);
   return builder_.Finish();
 }
 
@@ -386,6 +417,9 @@ inline flatbuffers::Offset<FlatVariable> CreateFlatVariableDirect(
     const char *name = nullptr,
     const std::vector<int32_t> *shape = nullptr,
     const std::vector<float> *values = nullptr,
+    const std::vector<int8_t> *buffer = nullptr,
+    nd4j::graph::DataType dataType = nd4j::graph::DataType_INHERIT,
+    nd4j::graph::ByteOrder order = nd4j::graph::ByteOrder_LE,
     int32_t device = 0) {
   return nd4j::graph::CreateFlatVariable(
       _fbb,
@@ -393,6 +427,9 @@ inline flatbuffers::Offset<FlatVariable> CreateFlatVariableDirect(
       name ? _fbb.CreateString(name) : 0,
       shape ? _fbb.CreateVector<int32_t>(*shape) : 0,
       values ? _fbb.CreateVector<float>(*values) : 0,
+      buffer ? _fbb.CreateVector<int8_t>(*buffer) : 0,
+      dataType,
+      order,
       device);
 }
 

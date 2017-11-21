@@ -58,7 +58,13 @@ table FlatVariable {
     id:int;
     name:string;
     shape:[int];
-    values:[float];
+
+    values:[float]; // deprecated, to be removed
+
+    buffer:[byte];
+    dataType:DataType;
+    order:ByteOrder;
+
     device:int; // default is -1, which means _auto_
 }
 
