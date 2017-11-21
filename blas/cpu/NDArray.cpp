@@ -303,7 +303,15 @@ NDArray<T>::NDArray(const NDArray<T> *other, nd4j::memory::Workspace* workspace)
     std::vector<uint8_t>* NDArray<T>::asByteVector() {
         auto result = new std::vector<uint8_t>((unsigned long) this->lengthOf() * sizeOfT());
 
-        memcpy(result->data(), _buffer, (unsigned long) this->lengthOf() * sizeOfT());
+        if (this->isView()) {
+            auto tmp = this->dup();
+
+            memcpy(result->data(), tmp->_buffer, (unsigned long) tmp->lengthOf() * sizeOfT());
+
+            delete tmp;
+        } else {
+            memcpy(result->data(), _buffer, (unsigned long) this->lengthOf() * sizeOfT());
+        }
 
         return result;
     }
