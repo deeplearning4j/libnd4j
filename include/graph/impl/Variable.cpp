@@ -4,6 +4,8 @@
 
 #include <helpers/EnumUtils.h>
 #include <graph/Variable.h>
+#include <array/DataTypeUtils.h>
+#include <array/ByteOrderUtils.h>
 
 namespace nd4j {
     namespace graph {
@@ -169,6 +171,10 @@ namespace nd4j {
             }
 
             if (flatVariable->buffer() != nullptr && flatVariable->buffer()->Length() > 0) {
+                auto dtype = DataTypeUtils::fromFlatDataType(flatVariable->dataType());
+                auto bo = ByteOrderUtils::fromFlatByteOrder(flatVariable->order());
+
+                // TODO: byteorder should be honored here
 
             }
 

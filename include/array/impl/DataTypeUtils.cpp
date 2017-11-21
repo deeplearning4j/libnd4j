@@ -23,10 +23,12 @@ namespace nd4j {
             case DataType_UINT8:
             case DataType_INT8:
             case DataType_FLOAT8:
+            case DataType_QINT8:
             case DataType_BOOL: return (size_t) 1;
             
             case DataType_HALF:
             case DataType_INT16:
+            case DataType_QINT16:
             case DataType_UINT16: return (size_t) 2;
 
             case DataType_INT32:
