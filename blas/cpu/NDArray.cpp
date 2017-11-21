@@ -299,6 +299,15 @@ NDArray<T>::NDArray(const NDArray<T> *other, nd4j::memory::Workspace* workspace)
     _isShapeAlloc = true;
 }
 
+    template <typename T>
+    std::vector<uint8_t>* NDArray<T>::asByteVector() {
+        auto result = new std::vector<uint8_t>((unsigned long) this->lengthOf() * sizeOfT());
+
+        memcpy(result->data(), _buffer, (unsigned long) this->lengthOf() * sizeOfT());
+
+        return result;
+    }
+
 ////////////////////////////////////////////////////////////////////////
 // copy constructor
 template <typename T>

@@ -6,6 +6,7 @@
 #include <graph/Variable.h>
 #include <array/DataTypeUtils.h>
 #include <array/ByteOrderUtils.h>
+#include <array/DataTypeConversions.h>
 
 namespace nd4j {
     namespace graph {
@@ -174,8 +175,15 @@ namespace nd4j {
                 auto dtype = DataTypeUtils::fromFlatDataType(flatVariable->dataType());
                 auto bo = ByteOrderUtils::fromFlatByteOrder(flatVariable->order());
 
+                auto bufLen = shape::length(shape);
+                buffer = new T[bufLen];
+
                 // TODO: byteorder should be honored here
 
+                // TODO: we want to have variable datatype, so in future we should replace explicit conversion with simple migration
+                auto flatBuf = (void *) flatVariable->buffer()->data();
+
+                DataTypeConversions<T>::convertType(buffer, flatBuf, dtype, bufLen);
             }
 
             _ndarray = new NDArray<T>(buffer, shape);
