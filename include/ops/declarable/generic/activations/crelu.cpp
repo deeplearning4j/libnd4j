@@ -74,9 +74,6 @@ namespace nd4j {
             auto pos = dec->at(0);
             auto neg = dec->at(1);
 
-            pos->printIndexedBuffer("Pos");
-            neg->printIndexedBuffer("Neg");
-
             pos->template applyPairwiseTransform<simdOps::Subtract<T>>(neg, epsilon, nullptr);
 
             delete tmpResult;

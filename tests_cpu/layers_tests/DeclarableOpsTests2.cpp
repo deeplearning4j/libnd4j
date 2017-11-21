@@ -174,9 +174,6 @@ TEST_F(DeclarableOpsTests2, Test_CRelu_BP_2) {
     auto z = result->at(0);
 
     ASSERT_TRUE(exp.isSameShape(z));
-
-    z->printIndexedBuffer("Z");
-
     ASSERT_TRUE(exp.equalsTo(z));
 
     delete result;
