@@ -165,7 +165,9 @@ namespace nd4j {
             T *buffer = nullptr;
 
             if (flatVariable->ndarray() != nullptr) {
-                _ndarray = nd4j::graph::FlatUtils::fromFlatArray<T>(flatVariable->ndarray());
+                 auto ar = flatVariable->ndarray();
+                _ndarray = nd4j::graph::FlatUtils::fromFlatArray<T>(ar);
+                _ndarray->triggerAllocationFlag(true, true);
             } else if (flatVariable->shape() != nullptr) {
                 int shapeLen = flatVariable->shape()->Length();
                 //int *shape = new int[shapeLen];
@@ -215,7 +217,6 @@ namespace nd4j {
             */
 
             //_ndarray = new NDArray<T>(buffer, shape);
-            _ndarray->triggerAllocationFlag(true, true);
             _variableType = VariableType::NDARRAY;
         }
 

@@ -10,6 +10,7 @@
 #include <op_boilerplate.h>
 #include <array/DataType.h>
 #include <types/float16.h>
+#include <helpers/BitwiseUtils.h>
 
 namespace nd4j {
     template <typename T>
@@ -21,8 +22,9 @@ namespace nd4j {
                         auto tmp = (float *) src;
 
                         #pragma omp parallel for simd schedule(guided)
-                        for (Nd4jIndex e = 0; e < length; e++)
-                            buffer[e] = (T) tmp[e];
+                        for (Nd4jIndex e = 0; e < length; e++) {
+                            buffer[e] = BitwiseUtils::swap_bytes<T>((T) tmp[e]);
+                        }
                     }
                     break;
                 case DataType_DOUBLE: {
@@ -30,7 +32,7 @@ namespace nd4j {
 
                         #pragma omp parallel for simd schedule(guided)
                         for (Nd4jIndex e = 0; e < length; e++)
-                            buffer[e] = (T) tmp[e];
+                            buffer[e] = BitwiseUtils::swap_bytes<T>((T) tmp[e]);
                     }
                     break;
                 case DataType_HALF: {
@@ -38,7 +40,7 @@ namespace nd4j {
 
                         #pragma omp parallel for simd schedule(guided)
                         for (Nd4jIndex e = 0; e < length; e++)
-                            buffer[e] = (T) tmp[e];
+                            buffer[e] = BitwiseUtils::swap_bytes<T>((T) tmp[e]);
                     }
                     break;
                 default: {

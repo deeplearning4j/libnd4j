@@ -7,6 +7,8 @@
 
 #include <vector>
 #include <array/ByteOrder.h>
+#include <op_boilerplate.h>
+#include <climits>
 
 namespace nd4j {
     class BitwiseUtils {
@@ -37,6 +39,23 @@ namespace nd4j {
          * @return
          */
         static nd4j::ByteOrder asByteOrder();
+
+        template <typename T>
+        static FORCEINLINE T swap_bytes(T v) {
+            static_assert (CHAR_BIT == 8, "CHAR_BIT != 8");
+
+            union {
+                T v = (T) 0;
+                unsigned char u8[sizeof(T)];
+            } source, dest;
+
+            source.v = v;
+
+            for (size_t k = 0; k < sizeof(T); k++)
+                dest.u8[k] = source.u8[sizeof(T) - k - 1];
+
+            return dest.v;
+        }
     };
 }
 

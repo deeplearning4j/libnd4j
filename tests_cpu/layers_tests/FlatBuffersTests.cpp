@@ -365,32 +365,6 @@ TEST_F(FlatBuffersTest, ReadInception1) {
     delete graph;
 }
 
-TEST_F(FlatBuffersTest, ReduceDim_1) {
-    NDArray<float> exp('c', {3, 1});
-    exp.assign(3.0);
-
-
-    auto graph = GraphExecutioner<float>::importFromFlatBuffers("./resources/reduce_dim.fb");
-
-    Nd4jStatus status = GraphExecutioner<float>::execute(graph);
-
-    ASSERT_EQ(ND4J_STATUS_OK, status);
-
-    auto variableSpace = graph->getVariableSpace();
-
-    ASSERT_TRUE(variableSpace->hasVariable(1));
-
-    auto result = variableSpace->getVariable(1)->getNDArray();
-
-
-//    result->printShapeInfo("result shape");
-
-    ASSERT_TRUE(exp.isSameShape(result));
-    ASSERT_TRUE(exp.equalsTo(result));
-
-    delete graph;
-}
-
 TEST_F(FlatBuffersTest, ReadLoops_3argsWhile_1) {
     // TF graph:
     // https://gist.github.com/raver119/b86ef727e9a094aab386e2b35e878966
@@ -526,3 +500,41 @@ TEST_F(FlatBuffersTest, ReadTensorArrayLoop_1) {
 }
 
 */
+
+TEST_F(FlatBuffersTest, ReduceDim_1) {
+    NDArray<float> exp('c', {3, 1});
+    exp.assign(3.0);
+
+
+    auto graph = GraphExecutioner<float>::importFromFlatBuffers("./resources/reduce_dim.fb");
+
+    Nd4jStatus status = GraphExecutioner<float>::execute(graph);
+
+    ASSERT_EQ(ND4J_STATUS_OK, status);
+
+    auto variableSpace = graph->getVariableSpace();
+
+    ASSERT_TRUE(variableSpace->hasVariable(3));
+
+    auto result = variableSpace->getVariable(3)->getNDArray();
+
+    ASSERT_TRUE(exp.isSameShape(result));
+    ASSERT_TRUE(exp.equalsTo(result));
+
+    delete graph;
+}
+
+
+TEST_F(FlatBuffersTest, ReadLoops_SimpleWhile_1) {
+    // TF graph:
+    // https://gist.github.com/raver119/2aa49daf7ec09ed4ddddbc6262f213a0
+    auto graph = GraphExecutioner<float>::importFromFlatBuffers("./resources/simple_while.fb");
+
+    ASSERT_TRUE(graph != nullptr);
+
+    Nd4jStatus status = GraphExecutioner<float>::execute(graph);
+
+    ASSERT_EQ(ND4J_STATUS_OK, status);
+
+    delete graph;
+}
