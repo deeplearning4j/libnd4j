@@ -9,7 +9,7 @@ table FlatTiming {
 }
 
 table FlatResult {
-    id:int; // ID of the graph generated this result
+    id:long; // ID of the graph generated this result
     variables:[FlatVariable]; // variables with results
     timing:[FlatTiming]; // timing results
 }

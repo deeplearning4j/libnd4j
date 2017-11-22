@@ -302,14 +302,11 @@ struct FlatVariable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_ID = 4,
     VT_NAME = 6,
     VT_SHAPE = 8,
-    VT_VALUES = 10,
-    VT_BUFFER = 12,
-    VT_DATATYPE = 14,
-    VT_ORDER = 16,
-    VT_DEVICE = 18
+    VT_NDARRAY = 10,
+    VT_DEVICE = 12
   };
-  int32_t id() const {
-    return GetField<int32_t>(VT_ID, 0);
+  const flatbuffers::Vector<flatbuffers::Offset<IntPair>> *id() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<IntPair>> *>(VT_ID);
   }
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
@@ -317,34 +314,23 @@ struct FlatVariable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::Vector<int32_t> *shape() const {
     return GetPointer<const flatbuffers::Vector<int32_t> *>(VT_SHAPE);
   }
-  const flatbuffers::Vector<float> *values() const {
-    return GetPointer<const flatbuffers::Vector<float> *>(VT_VALUES);
-  }
-  const flatbuffers::Vector<int8_t> *buffer() const {
-    return GetPointer<const flatbuffers::Vector<int8_t> *>(VT_BUFFER);
-  }
-  nd4j::graph::DataType dataType() const {
-    return static_cast<nd4j::graph::DataType>(GetField<int8_t>(VT_DATATYPE, 0));
-  }
-  nd4j::graph::ByteOrder order() const {
-    return static_cast<nd4j::graph::ByteOrder>(GetField<int8_t>(VT_ORDER, 0));
+  const nd4j::graph::FlatArray *ndarray() const {
+    return GetPointer<const nd4j::graph::FlatArray *>(VT_NDARRAY);
   }
   int32_t device() const {
     return GetField<int32_t>(VT_DEVICE, 0);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<int32_t>(verifier, VT_ID) &&
+           VerifyOffset(verifier, VT_ID) &&
+           verifier.Verify(id()) &&
+           verifier.VerifyVectorOfTables(id()) &&
            VerifyOffset(verifier, VT_NAME) &&
            verifier.Verify(name()) &&
            VerifyOffset(verifier, VT_SHAPE) &&
            verifier.Verify(shape()) &&
-           VerifyOffset(verifier, VT_VALUES) &&
-           verifier.Verify(values()) &&
-           VerifyOffset(verifier, VT_BUFFER) &&
-           verifier.Verify(buffer()) &&
-           VerifyField<int8_t>(verifier, VT_DATATYPE) &&
-           VerifyField<int8_t>(verifier, VT_ORDER) &&
+           VerifyOffset(verifier, VT_NDARRAY) &&
+           verifier.VerifyTable(ndarray()) &&
            VerifyField<int32_t>(verifier, VT_DEVICE) &&
            verifier.EndTable();
   }
@@ -353,8 +339,8 @@ struct FlatVariable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 struct FlatVariableBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_id(int32_t id) {
-    fbb_.AddElement<int32_t>(FlatVariable::VT_ID, id, 0);
+  void add_id(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<IntPair>>> id) {
+    fbb_.AddOffset(FlatVariable::VT_ID, id);
   }
   void add_name(flatbuffers::Offset<flatbuffers::String> name) {
     fbb_.AddOffset(FlatVariable::VT_NAME, name);
@@ -362,17 +348,8 @@ struct FlatVariableBuilder {
   void add_shape(flatbuffers::Offset<flatbuffers::Vector<int32_t>> shape) {
     fbb_.AddOffset(FlatVariable::VT_SHAPE, shape);
   }
-  void add_values(flatbuffers::Offset<flatbuffers::Vector<float>> values) {
-    fbb_.AddOffset(FlatVariable::VT_VALUES, values);
-  }
-  void add_buffer(flatbuffers::Offset<flatbuffers::Vector<int8_t>> buffer) {
-    fbb_.AddOffset(FlatVariable::VT_BUFFER, buffer);
-  }
-  void add_dataType(nd4j::graph::DataType dataType) {
-    fbb_.AddElement<int8_t>(FlatVariable::VT_DATATYPE, static_cast<int8_t>(dataType), 0);
-  }
-  void add_order(nd4j::graph::ByteOrder order) {
-    fbb_.AddElement<int8_t>(FlatVariable::VT_ORDER, static_cast<int8_t>(order), 0);
+  void add_ndarray(flatbuffers::Offset<nd4j::graph::FlatArray> ndarray) {
+    fbb_.AddOffset(FlatVariable::VT_NDARRAY, ndarray);
   }
   void add_device(int32_t device) {
     fbb_.AddElement<int32_t>(FlatVariable::VT_DEVICE, device, 0);
@@ -383,7 +360,7 @@ struct FlatVariableBuilder {
   }
   FlatVariableBuilder &operator=(const FlatVariableBuilder &);
   flatbuffers::Offset<FlatVariable> Finish() {
-    const auto end = fbb_.EndTable(start_, 8);
+    const auto end = fbb_.EndTable(start_, 5);
     auto o = flatbuffers::Offset<FlatVariable>(end);
     return o;
   }
@@ -391,45 +368,33 @@ struct FlatVariableBuilder {
 
 inline flatbuffers::Offset<FlatVariable> CreateFlatVariable(
     flatbuffers::FlatBufferBuilder &_fbb,
-    int32_t id = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<IntPair>>> id = 0,
     flatbuffers::Offset<flatbuffers::String> name = 0,
     flatbuffers::Offset<flatbuffers::Vector<int32_t>> shape = 0,
-    flatbuffers::Offset<flatbuffers::Vector<float>> values = 0,
-    flatbuffers::Offset<flatbuffers::Vector<int8_t>> buffer = 0,
-    nd4j::graph::DataType dataType = nd4j::graph::DataType_INHERIT,
-    nd4j::graph::ByteOrder order = nd4j::graph::ByteOrder_LE,
+    flatbuffers::Offset<nd4j::graph::FlatArray> ndarray = 0,
     int32_t device = 0) {
   FlatVariableBuilder builder_(_fbb);
   builder_.add_device(device);
-  builder_.add_buffer(buffer);
-  builder_.add_values(values);
+  builder_.add_ndarray(ndarray);
   builder_.add_shape(shape);
   builder_.add_name(name);
   builder_.add_id(id);
-  builder_.add_order(order);
-  builder_.add_dataType(dataType);
   return builder_.Finish();
 }
 
 inline flatbuffers::Offset<FlatVariable> CreateFlatVariableDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
-    int32_t id = 0,
+    const std::vector<flatbuffers::Offset<IntPair>> *id = nullptr,
     const char *name = nullptr,
     const std::vector<int32_t> *shape = nullptr,
-    const std::vector<float> *values = nullptr,
-    const std::vector<int8_t> *buffer = nullptr,
-    nd4j::graph::DataType dataType = nd4j::graph::DataType_INHERIT,
-    nd4j::graph::ByteOrder order = nd4j::graph::ByteOrder_LE,
+    flatbuffers::Offset<nd4j::graph::FlatArray> ndarray = 0,
     int32_t device = 0) {
   return nd4j::graph::CreateFlatVariable(
       _fbb,
-      id,
+      id ? _fbb.CreateVector<flatbuffers::Offset<IntPair>>(*id) : 0,
       name ? _fbb.CreateString(name) : 0,
       shape ? _fbb.CreateVector<int32_t>(*shape) : 0,
-      values ? _fbb.CreateVector<float>(*values) : 0,
-      buffer ? _fbb.CreateVector<int8_t>(*buffer) : 0,
-      dataType,
-      order,
+      ndarray,
       device);
 }
 

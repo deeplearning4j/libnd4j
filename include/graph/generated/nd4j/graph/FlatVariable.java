@@ -14,58 +14,43 @@ public final class FlatVariable extends Table {
   public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; }
   public FlatVariable __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
-  public int id() { int o = __offset(4); return o != 0 ? bb.getInt(o + bb_pos) : 0; }
+  public IntPair id(int j) { return id(new IntPair(), j); }
+  public IntPair id(IntPair obj, int j) { int o = __offset(4); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
+  public int idLength() { int o = __offset(4); return o != 0 ? __vector_len(o) : 0; }
   public String name() { int o = __offset(6); return o != 0 ? __string(o + bb_pos) : null; }
   public ByteBuffer nameAsByteBuffer() { return __vector_as_bytebuffer(6, 1); }
   public int shape(int j) { int o = __offset(8); return o != 0 ? bb.getInt(__vector(o) + j * 4) : 0; }
   public int shapeLength() { int o = __offset(8); return o != 0 ? __vector_len(o) : 0; }
   public ByteBuffer shapeAsByteBuffer() { return __vector_as_bytebuffer(8, 4); }
-  public float values(int j) { int o = __offset(10); return o != 0 ? bb.getFloat(__vector(o) + j * 4) : 0; }
-  public int valuesLength() { int o = __offset(10); return o != 0 ? __vector_len(o) : 0; }
-  public ByteBuffer valuesAsByteBuffer() { return __vector_as_bytebuffer(10, 4); }
-  public byte buffer(int j) { int o = __offset(12); return o != 0 ? bb.get(__vector(o) + j * 1) : 0; }
-  public int bufferLength() { int o = __offset(12); return o != 0 ? __vector_len(o) : 0; }
-  public ByteBuffer bufferAsByteBuffer() { return __vector_as_bytebuffer(12, 1); }
-  public byte dataType() { int o = __offset(14); return o != 0 ? bb.get(o + bb_pos) : 0; }
-  public byte order() { int o = __offset(16); return o != 0 ? bb.get(o + bb_pos) : 0; }
-  public int device() { int o = __offset(18); return o != 0 ? bb.getInt(o + bb_pos) : 0; }
+  public nd4j.graph.FlatArray ndarray() { return ndarray(new nd4j.graph.FlatArray()); }
+  public nd4j.graph.FlatArray ndarray(nd4j.graph.FlatArray obj) { int o = __offset(10); return o != 0 ? obj.__assign(__indirect(o + bb_pos), bb) : null; }
+  public int device() { int o = __offset(12); return o != 0 ? bb.getInt(o + bb_pos) : 0; }
 
   public static int createFlatVariable(FlatBufferBuilder builder,
-      int id,
+      int idOffset,
       int nameOffset,
       int shapeOffset,
-      int valuesOffset,
-      int bufferOffset,
-      byte dataType,
-      byte order,
+      int ndarrayOffset,
       int device) {
-    builder.startObject(8);
+    builder.startObject(5);
     FlatVariable.addDevice(builder, device);
-    FlatVariable.addBuffer(builder, bufferOffset);
-    FlatVariable.addValues(builder, valuesOffset);
+    FlatVariable.addNdarray(builder, ndarrayOffset);
     FlatVariable.addShape(builder, shapeOffset);
     FlatVariable.addName(builder, nameOffset);
-    FlatVariable.addId(builder, id);
-    FlatVariable.addOrder(builder, order);
-    FlatVariable.addDataType(builder, dataType);
+    FlatVariable.addId(builder, idOffset);
     return FlatVariable.endFlatVariable(builder);
   }
 
-  public static void startFlatVariable(FlatBufferBuilder builder) { builder.startObject(8); }
-  public static void addId(FlatBufferBuilder builder, int id) { builder.addInt(0, id, 0); }
+  public static void startFlatVariable(FlatBufferBuilder builder) { builder.startObject(5); }
+  public static void addId(FlatBufferBuilder builder, int idOffset) { builder.addOffset(0, idOffset, 0); }
+  public static int createIdVector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset(data[i]); return builder.endVector(); }
+  public static void startIdVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
   public static void addName(FlatBufferBuilder builder, int nameOffset) { builder.addOffset(1, nameOffset, 0); }
   public static void addShape(FlatBufferBuilder builder, int shapeOffset) { builder.addOffset(2, shapeOffset, 0); }
   public static int createShapeVector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addInt(data[i]); return builder.endVector(); }
   public static void startShapeVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
-  public static void addValues(FlatBufferBuilder builder, int valuesOffset) { builder.addOffset(3, valuesOffset, 0); }
-  public static int createValuesVector(FlatBufferBuilder builder, float[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addFloat(data[i]); return builder.endVector(); }
-  public static void startValuesVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
-  public static void addBuffer(FlatBufferBuilder builder, int bufferOffset) { builder.addOffset(4, bufferOffset, 0); }
-  public static int createBufferVector(FlatBufferBuilder builder, byte[] data) { builder.startVector(1, data.length, 1); for (int i = data.length - 1; i >= 0; i--) builder.addByte(data[i]); return builder.endVector(); }
-  public static void startBufferVector(FlatBufferBuilder builder, int numElems) { builder.startVector(1, numElems, 1); }
-  public static void addDataType(FlatBufferBuilder builder, byte dataType) { builder.addByte(5, dataType, 0); }
-  public static void addOrder(FlatBufferBuilder builder, byte order) { builder.addByte(6, order, 0); }
-  public static void addDevice(FlatBufferBuilder builder, int device) { builder.addInt(7, device, 0); }
+  public static void addNdarray(FlatBufferBuilder builder, int ndarrayOffset) { builder.addOffset(3, ndarrayOffset, 0); }
+  public static void addDevice(FlatBufferBuilder builder, int device) { builder.addInt(4, device, 0); }
   public static int endFlatVariable(FlatBufferBuilder builder) {
     int o = builder.endObject();
     return o;

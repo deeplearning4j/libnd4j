@@ -116,26 +116,31 @@ inline const char *EnumNameDataType(DataType e) {
 
 struct FlatArray FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum {
-    VT_DTYPE = 4,
+    VT_SHAPE = 4,
     VT_BUFFER = 6,
-    VT_SHAPE = 8
+    VT_DTYPE = 8,
+    VT_BYTEORDER = 10
   };
-  DataType dtype() const {
-    return static_cast<DataType>(GetField<int8_t>(VT_DTYPE, 0));
+  const flatbuffers::Vector<int32_t> *shape() const {
+    return GetPointer<const flatbuffers::Vector<int32_t> *>(VT_SHAPE);
   }
   const flatbuffers::Vector<int8_t> *buffer() const {
     return GetPointer<const flatbuffers::Vector<int8_t> *>(VT_BUFFER);
   }
-  const flatbuffers::Vector<int32_t> *shape() const {
-    return GetPointer<const flatbuffers::Vector<int32_t> *>(VT_SHAPE);
+  DataType dtype() const {
+    return static_cast<DataType>(GetField<int8_t>(VT_DTYPE, 0));
+  }
+  ByteOrder byteOrder() const {
+    return static_cast<ByteOrder>(GetField<int8_t>(VT_BYTEORDER, 0));
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<int8_t>(verifier, VT_DTYPE) &&
-           VerifyOffset(verifier, VT_BUFFER) &&
-           verifier.Verify(buffer()) &&
            VerifyOffset(verifier, VT_SHAPE) &&
            verifier.Verify(shape()) &&
+           VerifyOffset(verifier, VT_BUFFER) &&
+           verifier.Verify(buffer()) &&
+           VerifyField<int8_t>(verifier, VT_DTYPE) &&
+           VerifyField<int8_t>(verifier, VT_BYTEORDER) &&
            verifier.EndTable();
   }
 };
@@ -143,14 +148,17 @@ struct FlatArray FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 struct FlatArrayBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_dtype(DataType dtype) {
-    fbb_.AddElement<int8_t>(FlatArray::VT_DTYPE, static_cast<int8_t>(dtype), 0);
+  void add_shape(flatbuffers::Offset<flatbuffers::Vector<int32_t>> shape) {
+    fbb_.AddOffset(FlatArray::VT_SHAPE, shape);
   }
   void add_buffer(flatbuffers::Offset<flatbuffers::Vector<int8_t>> buffer) {
     fbb_.AddOffset(FlatArray::VT_BUFFER, buffer);
   }
-  void add_shape(flatbuffers::Offset<flatbuffers::Vector<int32_t>> shape) {
-    fbb_.AddOffset(FlatArray::VT_SHAPE, shape);
+  void add_dtype(DataType dtype) {
+    fbb_.AddElement<int8_t>(FlatArray::VT_DTYPE, static_cast<int8_t>(dtype), 0);
+  }
+  void add_byteOrder(ByteOrder byteOrder) {
+    fbb_.AddElement<int8_t>(FlatArray::VT_BYTEORDER, static_cast<int8_t>(byteOrder), 0);
   }
   FlatArrayBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -158,7 +166,7 @@ struct FlatArrayBuilder {
   }
   FlatArrayBuilder &operator=(const FlatArrayBuilder &);
   flatbuffers::Offset<FlatArray> Finish() {
-    const auto end = fbb_.EndTable(start_, 3);
+    const auto end = fbb_.EndTable(start_, 4);
     auto o = flatbuffers::Offset<FlatArray>(end);
     return o;
   }
@@ -166,26 +174,30 @@ struct FlatArrayBuilder {
 
 inline flatbuffers::Offset<FlatArray> CreateFlatArray(
     flatbuffers::FlatBufferBuilder &_fbb,
-    DataType dtype = DataType_INHERIT,
+    flatbuffers::Offset<flatbuffers::Vector<int32_t>> shape = 0,
     flatbuffers::Offset<flatbuffers::Vector<int8_t>> buffer = 0,
-    flatbuffers::Offset<flatbuffers::Vector<int32_t>> shape = 0) {
+    DataType dtype = DataType_INHERIT,
+    ByteOrder byteOrder = ByteOrder_LE) {
   FlatArrayBuilder builder_(_fbb);
-  builder_.add_shape(shape);
   builder_.add_buffer(buffer);
+  builder_.add_shape(shape);
+  builder_.add_byteOrder(byteOrder);
   builder_.add_dtype(dtype);
   return builder_.Finish();
 }
 
 inline flatbuffers::Offset<FlatArray> CreateFlatArrayDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
-    DataType dtype = DataType_INHERIT,
+    const std::vector<int32_t> *shape = nullptr,
     const std::vector<int8_t> *buffer = nullptr,
-    const std::vector<int32_t> *shape = nullptr) {
+    DataType dtype = DataType_INHERIT,
+    ByteOrder byteOrder = ByteOrder_LE) {
   return nd4j::graph::CreateFlatArray(
       _fbb,
-      dtype,
+      shape ? _fbb.CreateVector<int32_t>(*shape) : 0,
       buffer ? _fbb.CreateVector<int8_t>(*buffer) : 0,
-      shape ? _fbb.CreateVector<int32_t>(*shape) : 0);
+      dtype,
+      byteOrder);
 }
 
 }  // namespace graph

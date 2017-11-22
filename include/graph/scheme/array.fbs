@@ -26,7 +26,8 @@ enum DataType:byte {
 }
 
 table FlatArray {
-    dtype:DataType;
-    buffer:[byte];
     shape:[int];
+    buffer:[byte];
+    dtype:DataType;
+    byteOrder:ByteOrder;
 }

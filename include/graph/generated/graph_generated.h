@@ -23,8 +23,8 @@ struct FlatGraph FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_OUTPUTS = 10,
     VT_CONFIGURATION = 12
   };
-  int32_t id() const {
-    return GetField<int32_t>(VT_ID, 0);
+  int64_t id() const {
+    return GetField<int64_t>(VT_ID, 0);
   }
   const flatbuffers::Vector<flatbuffers::Offset<nd4j::graph::FlatVariable>> *variables() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<nd4j::graph::FlatVariable>> *>(VT_VARIABLES);
@@ -32,15 +32,15 @@ struct FlatGraph FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::Vector<flatbuffers::Offset<nd4j::graph::FlatNode>> *nodes() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<nd4j::graph::FlatNode>> *>(VT_NODES);
   }
-  const flatbuffers::Vector<int32_t> *outputs() const {
-    return GetPointer<const flatbuffers::Vector<int32_t> *>(VT_OUTPUTS);
+  const flatbuffers::Vector<flatbuffers::Offset<nd4j::graph::IntPair>> *outputs() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<nd4j::graph::IntPair>> *>(VT_OUTPUTS);
   }
   const nd4j::graph::FlatConfiguration *configuration() const {
     return GetPointer<const nd4j::graph::FlatConfiguration *>(VT_CONFIGURATION);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<int32_t>(verifier, VT_ID) &&
+           VerifyField<int64_t>(verifier, VT_ID) &&
            VerifyOffset(verifier, VT_VARIABLES) &&
            verifier.Verify(variables()) &&
            verifier.VerifyVectorOfTables(variables()) &&
@@ -49,6 +49,7 @@ struct FlatGraph FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyVectorOfTables(nodes()) &&
            VerifyOffset(verifier, VT_OUTPUTS) &&
            verifier.Verify(outputs()) &&
+           verifier.VerifyVectorOfTables(outputs()) &&
            VerifyOffset(verifier, VT_CONFIGURATION) &&
            verifier.VerifyTable(configuration()) &&
            verifier.EndTable();
@@ -58,8 +59,8 @@ struct FlatGraph FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 struct FlatGraphBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_id(int32_t id) {
-    fbb_.AddElement<int32_t>(FlatGraph::VT_ID, id, 0);
+  void add_id(int64_t id) {
+    fbb_.AddElement<int64_t>(FlatGraph::VT_ID, id, 0);
   }
   void add_variables(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<nd4j::graph::FlatVariable>>> variables) {
     fbb_.AddOffset(FlatGraph::VT_VARIABLES, variables);
@@ -67,7 +68,7 @@ struct FlatGraphBuilder {
   void add_nodes(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<nd4j::graph::FlatNode>>> nodes) {
     fbb_.AddOffset(FlatGraph::VT_NODES, nodes);
   }
-  void add_outputs(flatbuffers::Offset<flatbuffers::Vector<int32_t>> outputs) {
+  void add_outputs(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<nd4j::graph::IntPair>>> outputs) {
     fbb_.AddOffset(FlatGraph::VT_OUTPUTS, outputs);
   }
   void add_configuration(flatbuffers::Offset<nd4j::graph::FlatConfiguration> configuration) {
@@ -87,33 +88,33 @@ struct FlatGraphBuilder {
 
 inline flatbuffers::Offset<FlatGraph> CreateFlatGraph(
     flatbuffers::FlatBufferBuilder &_fbb,
-    int32_t id = 0,
+    int64_t id = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<nd4j::graph::FlatVariable>>> variables = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<nd4j::graph::FlatNode>>> nodes = 0,
-    flatbuffers::Offset<flatbuffers::Vector<int32_t>> outputs = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<nd4j::graph::IntPair>>> outputs = 0,
     flatbuffers::Offset<nd4j::graph::FlatConfiguration> configuration = 0) {
   FlatGraphBuilder builder_(_fbb);
+  builder_.add_id(id);
   builder_.add_configuration(configuration);
   builder_.add_outputs(outputs);
   builder_.add_nodes(nodes);
   builder_.add_variables(variables);
-  builder_.add_id(id);
   return builder_.Finish();
 }
 
 inline flatbuffers::Offset<FlatGraph> CreateFlatGraphDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
-    int32_t id = 0,
+    int64_t id = 0,
     const std::vector<flatbuffers::Offset<nd4j::graph::FlatVariable>> *variables = nullptr,
     const std::vector<flatbuffers::Offset<nd4j::graph::FlatNode>> *nodes = nullptr,
-    const std::vector<int32_t> *outputs = nullptr,
+    const std::vector<flatbuffers::Offset<nd4j::graph::IntPair>> *outputs = nullptr,
     flatbuffers::Offset<nd4j::graph::FlatConfiguration> configuration = 0) {
   return nd4j::graph::CreateFlatGraph(
       _fbb,
       id,
       variables ? _fbb.CreateVector<flatbuffers::Offset<nd4j::graph::FlatVariable>>(*variables) : 0,
       nodes ? _fbb.CreateVector<flatbuffers::Offset<nd4j::graph::FlatNode>>(*nodes) : 0,
-      outputs ? _fbb.CreateVector<int32_t>(*outputs) : 0,
+      outputs ? _fbb.CreateVector<flatbuffers::Offset<nd4j::graph::IntPair>>(*outputs) : 0,
       configuration);
 }
 

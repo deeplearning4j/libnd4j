@@ -55,15 +55,11 @@ enum OpClass:byte {
 
 // TODO: to be changed. Should include FlatArray instead
 table FlatVariable {
-    id:int;
+    id:[IntPair];
     name:string;
-    shape:[int];
 
-    values:[float]; // deprecated, to be removed
-
-    buffer:[byte];
-    dataType:DataType;
-    order:ByteOrder;
+    shape:[int]; // shape is absolutely optional. either shape or ndarray might be set
+    ndarray:FlatArray;
 
     device:int; // default is -1, which means _auto_
 }
@@ -75,7 +71,7 @@ table FlatNode {
     opNum:long;
     input:[int]; // ID's of input nodes for this node !!! only used if inputPaired in unset !!!
     inputPaired:[IntPair]; //
-    dataType:DataType;
+    dataType:DataType; // to be removed
     output:[int]; // ID's of connected nodes for this node
     extraParams:[float]; // extra params for this op (if any)
     extraInteger:[int]; // optional integer extra params
