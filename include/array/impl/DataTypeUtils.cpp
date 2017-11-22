@@ -4,6 +4,7 @@
 
 #include <helpers/logger.h>
 #include <array/DataTypeUtils.h>
+#include <types/float16.h>
 
 namespace nd4j {
     DataType DataTypeUtils::fromInt(int val) {
@@ -45,5 +46,20 @@ namespace nd4j {
                 throw "Unknown DataType requested";
             }
         }
+    }
+
+    template <>
+    DataType DataTypeUtils::fromT<float>() {
+        return DataType_FLOAT;
+    }
+
+    template <>
+    DataType DataTypeUtils::fromT<float16>() {
+        return DataType_HALF;
+    }
+
+    template <>
+    DataType DataTypeUtils::fromT<double>() {
+        return DataType_DOUBLE;
     }
 }

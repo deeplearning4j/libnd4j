@@ -55,7 +55,7 @@ enum OpClass:byte {
 
 // TODO: to be changed. Should include FlatArray instead
 table FlatVariable {
-    id:[IntPair];
+    id:IntPair;
     name:string;
 
     shape:[int]; // shape is absolutely optional. either shape or ndarray might be set

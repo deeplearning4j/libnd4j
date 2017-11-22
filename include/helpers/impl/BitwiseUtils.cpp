@@ -71,4 +71,8 @@ namespace nd4j {
 
         return bits;
     }
+
+    nd4j::ByteOrder BitwiseUtils::asByteOrder() {
+        return isBE() ? ByteOrder::BE : ByteOrder::LE;
+    }
 }

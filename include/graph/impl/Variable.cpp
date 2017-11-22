@@ -148,7 +148,9 @@ namespace nd4j {
         nd4j::graph::Variable<T>::Variable(const nd4j::graph::FlatVariable *flatVariable) {
             int shapeLen = flatVariable->shape()->Length();
             int *shape = new int[shapeLen];
-            this->_id = flatVariable->id();
+            auto vid = flatVariable->id();
+            this->_id = vid->first();
+            this->_index = vid->second();
 
             if (flatVariable->name() != nullptr && flatVariable->name()->size() != 0)
                 this->_name = flatVariable->name()->str();
@@ -161,6 +163,7 @@ namespace nd4j {
             }
 
             T *buffer = nullptr;
+            /*
             if (flatVariable->values() != nullptr && flatVariable->values()->Length() > 0) {
                 int bufLen = (int) flatVariable->values()->Length();
                  buffer = new T[bufLen];
@@ -185,6 +188,7 @@ namespace nd4j {
 
                 DataTypeConversions<T>::convertType(buffer, flatBuf, dtype, bufLen);
             }
+            */
 
             _ndarray = new NDArray<T>(buffer, shape);
             _ndarray->triggerAllocationFlag(true, true);

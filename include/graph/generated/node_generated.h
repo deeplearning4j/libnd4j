@@ -305,8 +305,8 @@ struct FlatVariable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_NDARRAY = 10,
     VT_DEVICE = 12
   };
-  const flatbuffers::Vector<flatbuffers::Offset<IntPair>> *id() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<IntPair>> *>(VT_ID);
+  const IntPair *id() const {
+    return GetPointer<const IntPair *>(VT_ID);
   }
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
@@ -323,8 +323,7 @@ struct FlatVariable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_ID) &&
-           verifier.Verify(id()) &&
-           verifier.VerifyVectorOfTables(id()) &&
+           verifier.VerifyTable(id()) &&
            VerifyOffset(verifier, VT_NAME) &&
            verifier.Verify(name()) &&
            VerifyOffset(verifier, VT_SHAPE) &&
@@ -339,7 +338,7 @@ struct FlatVariable FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 struct FlatVariableBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_id(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<IntPair>>> id) {
+  void add_id(flatbuffers::Offset<IntPair> id) {
     fbb_.AddOffset(FlatVariable::VT_ID, id);
   }
   void add_name(flatbuffers::Offset<flatbuffers::String> name) {
@@ -368,7 +367,7 @@ struct FlatVariableBuilder {
 
 inline flatbuffers::Offset<FlatVariable> CreateFlatVariable(
     flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<IntPair>>> id = 0,
+    flatbuffers::Offset<IntPair> id = 0,
     flatbuffers::Offset<flatbuffers::String> name = 0,
     flatbuffers::Offset<flatbuffers::Vector<int32_t>> shape = 0,
     flatbuffers::Offset<nd4j::graph::FlatArray> ndarray = 0,
@@ -384,14 +383,14 @@ inline flatbuffers::Offset<FlatVariable> CreateFlatVariable(
 
 inline flatbuffers::Offset<FlatVariable> CreateFlatVariableDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const std::vector<flatbuffers::Offset<IntPair>> *id = nullptr,
+    flatbuffers::Offset<IntPair> id = 0,
     const char *name = nullptr,
     const std::vector<int32_t> *shape = nullptr,
     flatbuffers::Offset<nd4j::graph::FlatArray> ndarray = 0,
     int32_t device = 0) {
   return nd4j::graph::CreateFlatVariable(
       _fbb,
-      id ? _fbb.CreateVector<flatbuffers::Offset<IntPair>>(*id) : 0,
+      id,
       name ? _fbb.CreateString(name) : 0,
       shape ? _fbb.CreateVector<int32_t>(*shape) : 0,
       ndarray,
