@@ -57,16 +57,17 @@ TEST_F(VariableTests, Test_FlatVariableDataType_1) {
     auto fShape = builder.CreateVector(original.getShapeInfoAsVector());
     auto fBuffer = builder.CreateVector(vec);
 
-    auto flatVar = CreateFlatVariable(builder, 1, 0, fShape, 0, fBuffer, nd4j::graph::DataType_FLOAT, ByteOrder_LE);
+    auto fArray = CreateFlatArray(builder, fShape, fBuffer, nd4j::graph::DataType::DataType_FLOAT);
+
+    auto flatVar = CreateFlatVariable(builder, 1, 0, 0, fArray);
 
     builder.Finish(flatVar);
 
     auto ptr = builder.GetBufferPointer();
 
-    GetF
 
 
-    auto restoredVar = new Variable<float>(flatVar);
+    //auto restoredVar = new Variable<float>(flatVar);
 }
 
 #endif //LIBND4J_VARIABLETESTS_H
