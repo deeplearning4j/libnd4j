@@ -56,18 +56,63 @@ TEST_F(VariableTests, Test_FlatVariableDataType_1) {
 
     auto fShape = builder.CreateVector(original.getShapeInfoAsVector());
     auto fBuffer = builder.CreateVector(vec);
+    auto fVid = CreateIntPair(builder, 1, 12);
 
     auto fArray = CreateFlatArray(builder, fShape, fBuffer, nd4j::graph::DataType::DataType_FLOAT);
 
-    auto flatVar = CreateFlatVariable(builder, 1, 0, 0, fArray);
+    auto flatVar = CreateFlatVariable(builder, fVid, 0, 0, fArray);
 
     builder.Finish(flatVar);
 
     auto ptr = builder.GetBufferPointer();
 
+    auto restoredVar = GetFlatVariable(ptr);
 
+    auto rv = new Variable<float>(restoredVar);
 
-    //auto restoredVar = new Variable<float>(flatVar);
+    ASSERT_EQ(1, rv->id());
+    ASSERT_EQ(12, rv->index());
+
+    auto restoredArray = rv->getNDArray();
+
+    ASSERT_TRUE(original.isSameShape(restoredArray));
+    ASSERT_TRUE(original.equalsTo(restoredArray));
+
+    delete rv;
+}
+
+TEST_F(VariableTests, Test_FlatVariableDataType_2) {
+    flatbuffers::FlatBufferBuilder builder(1024);
+    NDArray<double> original('c', {5, 10});
+    NDArrayFactory<double>::linspace(1, original);
+
+    auto vec = original.asByteVector();
+
+    auto fShape = builder.CreateVector(original.getShapeInfoAsVector());
+    auto fBuffer = builder.CreateVector(vec);
+    auto fVid = CreateIntPair(builder, 1, 12);
+
+    auto fArray = CreateFlatArray(builder, fShape, fBuffer, nd4j::graph::DataType::DataType_DOUBLE);
+
+    auto flatVar = CreateFlatVariable(builder, fVid, 0, 0, fArray);
+
+    builder.Finish(flatVar);
+
+    auto ptr = builder.GetBufferPointer();
+
+    auto restoredVar = GetFlatVariable(ptr);
+
+    auto rv = new Variable<double>(restoredVar);
+
+    ASSERT_EQ(1, rv->id());
+    ASSERT_EQ(12, rv->index());
+
+    auto restoredArray = rv->getNDArray();
+
+    ASSERT_TRUE(original.isSameShape(restoredArray));
+    ASSERT_TRUE(original.equalsTo(restoredArray));
+
+    delete rv;
 }
 
 #endif //LIBND4J_VARIABLETESTS_H

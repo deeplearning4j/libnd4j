@@ -3,6 +3,8 @@
 //
 
 #include <graph/FlatUtils.h>
+#include <array/DataTypeConversions.h>
+#include <array/DataTypeUtils.h>
 
 
 namespace nd4j {
@@ -17,7 +19,15 @@ namespace nd4j {
 
         template<typename T>
         NDArray<T> *FlatUtils::fromFlatArray(const nd4j::graph::FlatArray *flatArray) {
-            return nullptr;
+            int * newShape = new int[shape::shapeInfoLength((int *)flatArray->shape()->data())];
+            memcpy(newShape, flatArray->shape()->data(), shape::shapeInfoByteLength((int *)flatArray->shape()->data()));
+
+            T * newBuffer = new T[shape::length(newShape)];
+            DataTypeConversions<T>::convertType(newBuffer, (void *) flatArray->buffer()->data(), DataTypeUtils::fromFlatDataType(flatArray->dtype()),  shape::length(newShape));
+            auto array = new NDArray<T>(newBuffer, newShape);
+            array->triggerAllocationFlag(true, true);
+
+            return array;
         }
 
 

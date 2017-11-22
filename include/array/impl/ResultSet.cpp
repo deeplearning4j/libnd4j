@@ -12,16 +12,16 @@ namespace nd4j {
             for (int e = 0; e < result->variables()->size(); e++) {
                 auto var = result->variables()->Get(e);
 
-                std::vector<int> shapeInfo;
-                for (int i = 0; i < var->shape()->size(); i++) {
-                    shapeInfo.emplace_back(var->shape()->Get(i));
-                }
-
                 NDArray<T>* array;
 
                 if (var->ndarray() != nullptr) {
                     array = nd4j::graph::FlatUtils::fromFlatArray<T>(var->ndarray());
                 } else if (var->shape() != nullptr) {
+                    std::vector<int> shapeInfo;
+                    for (int i = 0; i < var->shape()->size(); i++) {
+                        shapeInfo.emplace_back(var->shape()->Get(i));
+                    }
+
                     // we just create empty array here
                     std::vector<int> shape;
                     for (int i = 0; i < shapeInfo.at(0); i++) {

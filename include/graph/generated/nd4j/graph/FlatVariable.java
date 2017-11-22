@@ -52,5 +52,6 @@ public final class FlatVariable extends Table {
     int o = builder.endObject();
     return o;
   }
+  public static void finishFlatVariableBuffer(FlatBufferBuilder builder, int offset) { builder.finish(offset); }
 }
 

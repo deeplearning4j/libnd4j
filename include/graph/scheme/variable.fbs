@@ -13,3 +13,5 @@ table FlatVariable {
 
     device:int; // default is -1, which means _auto_
 }
+
+root_type FlatVariable;

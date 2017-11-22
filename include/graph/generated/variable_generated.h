@@ -114,6 +114,21 @@ inline flatbuffers::Offset<FlatVariable> CreateFlatVariableDirect(
       device);
 }
 
+inline const nd4j::graph::FlatVariable *GetFlatVariable(const void *buf) {
+  return flatbuffers::GetRoot<nd4j::graph::FlatVariable>(buf);
+}
+
+inline bool VerifyFlatVariableBuffer(
+    flatbuffers::Verifier &verifier) {
+  return verifier.VerifyBuffer<nd4j::graph::FlatVariable>(nullptr);
+}
+
+inline void FinishFlatVariableBuffer(
+    flatbuffers::FlatBufferBuilder &fbb,
+    flatbuffers::Offset<nd4j::graph::FlatVariable> root) {
+  fbb.Finish(root);
+}
+
 }  // namespace graph
 }  // namespace nd4j
 
