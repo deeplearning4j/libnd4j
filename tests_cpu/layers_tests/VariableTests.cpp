@@ -161,10 +161,7 @@ TEST_F(VariableTests, Test_FlatVariableDataType_4) {
     auto vec = original.asByteVector();
 
     auto fShape = builder.CreateVector(original.getShapeInfoAsVector());
-    auto fBuffer = builder.CreateVector(vec);
-    auto fVid = CreateIntPair(builder, 1, 12);
-
-    //auto fArray = CreateFlatArray(builder, fShape, fBuffer, nd4j::graph::DataType::DataType_FLOAT);
+    auto fVid = CreateIntPair(builder, 37, 12);
 
     auto flatVar = CreateFlatVariable(builder, fVid, 0, fShape, 0);
 
@@ -176,7 +173,7 @@ TEST_F(VariableTests, Test_FlatVariableDataType_4) {
 
     auto rv = new Variable<float>(restoredVar);
 
-    ASSERT_EQ(1, rv->id());
+    ASSERT_EQ(37, rv->id());
     ASSERT_EQ(12, rv->index());
 
     auto restoredArray = rv->getNDArray();
