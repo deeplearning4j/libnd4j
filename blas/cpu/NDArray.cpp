@@ -663,15 +663,6 @@ template <typename T>
     }
 
 //////////////////////////////////////////////////////////////////////////
-// method calculates sum along dimension(s) in this array and save it to row: as new NDArray with dimensions 1xN
-    template<typename T>
-    NDArray<T> NDArray<T>::sumAlongDims(const std::vector<int> &dimensions, const bool keepDims) const {        
-            
-        return reduceAlongDims<simdOps::Sum<T>>(dimensions, keepDims);
-
-    }
-
-//////////////////////////////////////////////////////////////////////////
     template<typename T>
     bool NDArray<T>::isContiguous() {
         Nd4jIndex z = 1;

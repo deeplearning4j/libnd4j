@@ -252,9 +252,6 @@ namespace nd4j {
         // method calculates sum along dimension(s) in this array and save it reduced array
         NDArray<T> *sum(const std::initializer_list<int> &dimensions, const bool keepDims = false) const;
 
-        // method calculates sum along dimension(s) in this array and save it reduced array
-        NDArray<T> sumAlongDims(const std::vector<int> &dimensions, const bool keepDims = false) const;
-
 		// method reduces array by excluding its shapes along axes present in dimensions vector
         template<typename OpName>
         NDArray<T>* reduceAlongDimension(const std::vector<int>& dimensions, const bool keepDims = false) const;

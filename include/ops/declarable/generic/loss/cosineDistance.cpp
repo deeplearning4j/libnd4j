@@ -33,7 +33,7 @@ CUSTOM_OP_IMPL(cosineDistance, 3, 1, false, 0, 2) {
 		weightsBroad = new NDArray<T>(weights->tile(reps));
 	}
 		
-	NDArray<T> weightedLosses = (T)1. - ((*predictions) * (*labels)).sumAlongDims({dim}, true);
+	NDArray<T> weightedLosses = (T)1. - ((*predictions) * (*labels)).template reduceAlongDims<simdOps::Sum<T>>({dim}, true);
 
  	// multiply weightedLosses on weights
  	if(weights->isScalar())
