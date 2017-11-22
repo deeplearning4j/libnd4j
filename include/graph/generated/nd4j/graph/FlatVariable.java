@@ -14,8 +14,8 @@ public final class FlatVariable extends Table {
   public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; }
   public FlatVariable __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
-  public IntPair id() { return id(new IntPair()); }
-  public IntPair id(IntPair obj) { int o = __offset(4); return o != 0 ? obj.__assign(__indirect(o + bb_pos), bb) : null; }
+  public nd4j.graph.IntPair id() { return id(new nd4j.graph.IntPair()); }
+  public nd4j.graph.IntPair id(nd4j.graph.IntPair obj) { int o = __offset(4); return o != 0 ? obj.__assign(__indirect(o + bb_pos), bb) : null; }
   public String name() { int o = __offset(6); return o != 0 ? __string(o + bb_pos) : null; }
   public ByteBuffer nameAsByteBuffer() { return __vector_as_bytebuffer(6, 1); }
   public int shape(int j) { int o = __offset(8); return o != 0 ? bb.getInt(__vector(o) + j * 4) : 0; }

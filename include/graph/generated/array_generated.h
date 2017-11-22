@@ -200,6 +200,21 @@ inline flatbuffers::Offset<FlatArray> CreateFlatArrayDirect(
       byteOrder);
 }
 
+inline const nd4j::graph::FlatArray *GetFlatArray(const void *buf) {
+  return flatbuffers::GetRoot<nd4j::graph::FlatArray>(buf);
+}
+
+inline bool VerifyFlatArrayBuffer(
+    flatbuffers::Verifier &verifier) {
+  return verifier.VerifyBuffer<nd4j::graph::FlatArray>(nullptr);
+}
+
+inline void FinishFlatArrayBuffer(
+    flatbuffers::FlatBufferBuilder &fbb,
+    flatbuffers::Offset<nd4j::graph::FlatArray> root) {
+  fbb.Finish(root);
+}
+
 }  // namespace graph
 }  // namespace nd4j
 

@@ -1,5 +1,7 @@
 include "node.fbs";
 include "config.fbs";
+include "variable.fbs";
+include "utils.fbs";
 
 namespace nd4j.graph;
 

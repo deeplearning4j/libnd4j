@@ -8,6 +8,8 @@
 
 #include "array_generated.h"
 #include "node_generated.h"
+#include "utils_generated.h"
+#include "variable_generated.h"
 
 namespace nd4j {
 namespace graph {

@@ -49,5 +49,6 @@ public final class FlatArray extends Table {
     int o = builder.endObject();
     return o;
   }
+  public static void finishFlatArrayBuffer(FlatBufferBuilder builder, int offset) { builder.finish(offset); }
 }
 

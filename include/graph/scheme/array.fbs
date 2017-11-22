@@ -31,3 +31,5 @@ table FlatArray {
     dtype:DataType;
     byteOrder:ByteOrder;
 }
+
+root_type FlatArray;
