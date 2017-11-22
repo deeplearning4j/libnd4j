@@ -17,13 +17,15 @@ namespace nd4j {
     class DataTypeConversions {
     public:
         static FORCEINLINE void convertType(T* buffer, void* src, DataType dataType, Nd4jIndex length) {
+            bool isBe = BitwiseUtils::isBE();
+
             switch (dataType) {
                 case DataType_FLOAT: {
                         auto tmp = (float *) src;
 
                         #pragma omp parallel for simd schedule(guided)
                         for (Nd4jIndex e = 0; e < length; e++) {
-                            buffer[e] = BitwiseUtils::swap_bytes<T>((T) tmp[e]);
+                            buffer[e] = isBe ? (T) tmp[e] : BitwiseUtils::swap_bytes<T>((T) tmp[e]);
                         }
                     }
                     break;
@@ -32,7 +34,7 @@ namespace nd4j {
 
                         #pragma omp parallel for simd schedule(guided)
                         for (Nd4jIndex e = 0; e < length; e++)
-                            buffer[e] = BitwiseUtils::swap_bytes<T>((T) tmp[e]);
+                            buffer[e] = isBe ? (T) tmp[e] : BitwiseUtils::swap_bytes<T>((T) tmp[e]);
                     }
                     break;
                 case DataType_HALF: {
@@ -40,7 +42,7 @@ namespace nd4j {
 
                         #pragma omp parallel for simd schedule(guided)
                         for (Nd4jIndex e = 0; e < length; e++)
-                            buffer[e] = BitwiseUtils::swap_bytes<T>((T) tmp[e]);
+                            buffer[e] = isBe ? (T) tmp[e] : BitwiseUtils::swap_bytes<T>((T) tmp[e]);
                     }
                     break;
                 default: {
