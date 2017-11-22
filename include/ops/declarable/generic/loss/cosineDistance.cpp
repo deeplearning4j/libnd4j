@@ -1,15 +1,16 @@
 //
-// Created by Yurii Shyrma on 20.11.2017.
+// Created by Yurii Shyrma on 22.11.2017.
 //
 
 #include <ops/declarable/CustomOperations.h>
+#include <helpers/ShapeUtils.h>
 
 namespace nd4j {
     namespace ops {
 
 
 //////////////////////////////////////////////////////////////////////////
-CUSTOM_OP_IMPL(absoluteDifference, 3, 1, false, 0, 1) {
+CUSTOM_OP_IMPL(cosineDistance, 3, 1, false, 0, 2) {
 
   	NDArray<T>* predictions = INPUT_VARIABLE(0);
     NDArray<T>* weights 	= INPUT_VARIABLE(1);
@@ -17,21 +18,23 @@ CUSTOM_OP_IMPL(absoluteDifference, 3, 1, false, 0, 1) {
     NDArray<T>* output      = OUTPUT_VARIABLE(0);
 
     int reductionMode = INT_ARG(0);			// 0 - "none"; 1 - "weighted_sum";  2 - "weighted_mean";  3 - "weighted_sum_by_nonzero_weights"
+    int dim = INT_ARG(1);					// axis, dimension should be reduced to unity along this axis
+    if(dim < 0)
+    	dim += labels->rankOf();
+
     
-	// perform weights broadcasting/tile to labels if needed	
+	// perform weights broadcasting/tile to output if needed	
 	NDArray<T>* weightsBroad = weights;	
-	if(!weights->isScalar() && !weights->isSameShape(predictions)) {
+	if(!weights->isScalar() && !weights->isSameShape(output)) {
 		// evaluate repeat dimensions for tile operation
 		std::vector<int> reps;
-		for(int i = 0; i < labels->rankOf(); ++i)
+		for(int i = 0; i < output->rankOf(); ++i)
 			reps.emplace_back(labels->shapeOf()[i] / weights->shapeOf()[i]);
 		weightsBroad = new NDArray<T>(weights->tile(reps));
 	}
+		
+	NDArray<T> weightedLosses = (T)1. - ((*predictions) * (*labels)).sumAlongDims({dim}, true);
 
-	// perform subtraction (predictions - labels) and apply abs
-	auto absDiffr = LAMBDA_TT(p, l) { return nd4j::math::nd4j_abs(p - l); };
-    NDArray<T> weightedLosses(labels->getShapeInfo(), block.getWorkspace());
- 	predictions->applyPairwiseLambda(labels, absDiffr, &weightedLosses);
  	// multiply weightedLosses on weights
  	if(weights->isScalar())
  		weightedLosses *= (*weights)(0);
@@ -80,7 +83,7 @@ CUSTOM_OP_IMPL(absoluteDifference, 3, 1, false, 0, 1) {
 			break;
 		}
 		default:
-			throw "CUSTOM_OP loss function absoluteDifference: reduction mode has not acceptable value, possible values are 0, 1, 2, 3 !";			
+			throw "CUSTOM_OP loss function cosineDistance: reduction mode has not acceptable value, possible values are 0, 1, 2, 3 !";			
 	}
 
 
@@ -93,24 +96,33 @@ CUSTOM_OP_IMPL(absoluteDifference, 3, 1, false, 0, 1) {
 }
 
 
-DECLARE_SHAPE_FN(absoluteDifference) {
+DECLARE_SHAPE_FN(cosineDistance) {
 
 	// labels and predictions must have the same shapes 
 	NDArray<T>* predictions = INPUT_VARIABLE(0);
     NDArray<T>* weights 	= INPUT_VARIABLE(1);
-    NDArray<T>* labels      = INPUT_VARIABLE(2);
+    NDArray<T>* labels      = INPUT_VARIABLE(2);   
+
+    int dim = INT_ARG(1);
+    if(dim < 0)
+    	dim += labels->rankOf();
 
     if(!labels->isSameShape(predictions))
-    	throw "CUSTOM_OP loss function absoluteDifference: labels and predictions arrays have different shapes!";
+    	throw "CUSTOM_OP loss function cosineDistance: labels and predictions arrays have different shapes!";
     // weights array can be single scalar or has the same rank as labels, and must be broadcastable to labels
     if(!weights->isScalar() && weights->rankOf() != labels->rankOf())
-    	throw "CUSTOM_OP loss function absoluteDifference: weights array must have the same rank as labels array!";
+    	throw "CUSTOM_OP loss function cosineDistance: weights array must have the same rank as labels array!";
+    // input dimension can't be larger than labels/predictions/weights rank
+    if(dim >= labels->rankOf())
+    	throw "CUSTOM_OP loss function cosineDistance: input reduction dimension can't be larger than labels rank!";
+
     // check whether broadcast operation is possible for weights array
     if(!weights->isScalar())
-    	for (int i = 0; i < weights->rankOf(); ++i)
-        	if (weights->shapeOf()[i] != labels->shapeOf()[i] && weights->shapeOf()[i] != 1)
-            	throw "CUSTOM_OP loss function absoluteDifference: shapes of weights array is not broadcastable to labels shape!";
-
+    	for (int i = 0; i < weights->rankOf(); ++i)    		           	
+            if( (i != dim && weights->shapeOf()[i] != labels->shapeOf()[i] && weights->shapeOf()[i] != 1) || (i == dim && weights->shapeOf()[i] != 1))
+            	throw "CUSTOM_OP loss function cosineDistance: shapes of weights array is not broadcastable to losses shape!";
+ 
+ 	// evaluate output shapeInfo
     int* outShapeInfo = nullptr;
     if(INT_ARG(0) != 0) {			// in this case output is scalar
     	ALLOCATE(outShapeInfo, block.getWorkspace(), shape::shapeInfoLength(2) /*rank=2*/, int);
@@ -120,20 +132,18 @@ DECLARE_SHAPE_FN(absoluteDifference) {
     	outShapeInfo[6] = 1;
     	outShapeInfo[7] = 99;
     }
-    else {							// in this case output has the same shape as labels
-    	ALLOCATE(outShapeInfo, block.getWorkspace(), shape::shapeInfoLength(labels->rankOf()), int);
-    	outShapeInfo[0] = labels->rankOf();
-    	for(int i = 1; i <= outShapeInfo[0]; ++i)
-    		outShapeInfo[i] = labels->shapeOf()[i-1];
-    	shape::updateStrides(outShapeInfo, labels->ordering());    
+    else {							// in this case output has the same shape as labels reduced  by dim axis    	
+    	std::vector<int> dimensions = {dim};
+    	outShapeInfo = ShapeUtils<T>::evalReduceShapeInfo(labels->ordering(), dimensions, labels->getShapeInfo(), true, block.getWorkspace());
     }
- 
+    
     return new ShapeList(outShapeInfo);    
 
 }
 
-// INT_ARG(0) - reduction mode
 
+// INT_ARG(0) - reduction mode
+// INT_ARG(1) - axis, dimension should be reduced to unity along this axis
 
 
 
