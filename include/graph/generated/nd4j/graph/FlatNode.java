@@ -22,8 +22,8 @@ public final class FlatNode extends Table {
   public int input(int j) { int o = __offset(12); return o != 0 ? bb.getInt(__vector(o) + j * 4) : 0; }
   public int inputLength() { int o = __offset(12); return o != 0 ? __vector_len(o) : 0; }
   public ByteBuffer inputAsByteBuffer() { return __vector_as_bytebuffer(12, 4); }
-  public nd4j.graph.IntPair inputPaired(int j) { return inputPaired(new nd4j.graph.IntPair(), j); }
-  public nd4j.graph.IntPair inputPaired(nd4j.graph.IntPair obj, int j) { int o = __offset(14); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
+  public IntPair inputPaired(int j) { return inputPaired(new IntPair(), j); }
+  public IntPair inputPaired(IntPair obj, int j) { int o = __offset(14); return o != 0 ? obj.__assign(__indirect(__vector(o) + j * 4), bb) : null; }
   public int inputPairedLength() { int o = __offset(14); return o != 0 ? __vector_len(o) : 0; }
   public byte dataType() { int o = __offset(16); return o != 0 ? bb.get(o + bb_pos) : 0; }
   public int output(int j) { int o = __offset(18); return o != 0 ? bb.getInt(__vector(o) + j * 4) : 0; }

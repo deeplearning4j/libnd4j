@@ -30,8 +30,8 @@ struct FlatTiming FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
   }
-  const nd4j::graph::LongPair *timing() const {
-    return GetPointer<const nd4j::graph::LongPair *>(VT_TIMING);
+  const LongPair *timing() const {
+    return GetPointer<const LongPair *>(VT_TIMING);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -53,16 +53,16 @@ struct FlatTimingBuilder {
   void add_name(flatbuffers::Offset<flatbuffers::String> name) {
     fbb_.AddOffset(FlatTiming::VT_NAME, name);
   }
-  void add_timing(flatbuffers::Offset<nd4j::graph::LongPair> timing) {
+  void add_timing(flatbuffers::Offset<LongPair> timing) {
     fbb_.AddOffset(FlatTiming::VT_TIMING, timing);
   }
-  FlatTimingBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit FlatTimingBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
   FlatTimingBuilder &operator=(const FlatTimingBuilder &);
   flatbuffers::Offset<FlatTiming> Finish() {
-    const auto end = fbb_.EndTable(start_, 3);
+    const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<FlatTiming>(end);
     return o;
   }
@@ -72,7 +72,7 @@ inline flatbuffers::Offset<FlatTiming> CreateFlatTiming(
     flatbuffers::FlatBufferBuilder &_fbb,
     int32_t id = 0,
     flatbuffers::Offset<flatbuffers::String> name = 0,
-    flatbuffers::Offset<nd4j::graph::LongPair> timing = 0) {
+    flatbuffers::Offset<LongPair> timing = 0) {
   FlatTimingBuilder builder_(_fbb);
   builder_.add_timing(timing);
   builder_.add_name(name);
@@ -84,7 +84,7 @@ inline flatbuffers::Offset<FlatTiming> CreateFlatTimingDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     int32_t id = 0,
     const char *name = nullptr,
-    flatbuffers::Offset<nd4j::graph::LongPair> timing = 0) {
+    flatbuffers::Offset<LongPair> timing = 0) {
   return nd4j::graph::CreateFlatTiming(
       _fbb,
       id,
@@ -101,8 +101,8 @@ struct FlatResult FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   int64_t id() const {
     return GetField<int64_t>(VT_ID, 0);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<nd4j::graph::FlatVariable>> *variables() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<nd4j::graph::FlatVariable>> *>(VT_VARIABLES);
+  const flatbuffers::Vector<flatbuffers::Offset<FlatVariable>> *variables() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<FlatVariable>> *>(VT_VARIABLES);
   }
   const flatbuffers::Vector<flatbuffers::Offset<FlatTiming>> *timing() const {
     return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<FlatTiming>> *>(VT_TIMING);
@@ -126,19 +126,19 @@ struct FlatResultBuilder {
   void add_id(int64_t id) {
     fbb_.AddElement<int64_t>(FlatResult::VT_ID, id, 0);
   }
-  void add_variables(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<nd4j::graph::FlatVariable>>> variables) {
+  void add_variables(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatVariable>>> variables) {
     fbb_.AddOffset(FlatResult::VT_VARIABLES, variables);
   }
   void add_timing(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatTiming>>> timing) {
     fbb_.AddOffset(FlatResult::VT_TIMING, timing);
   }
-  FlatResultBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit FlatResultBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
   FlatResultBuilder &operator=(const FlatResultBuilder &);
   flatbuffers::Offset<FlatResult> Finish() {
-    const auto end = fbb_.EndTable(start_, 3);
+    const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<FlatResult>(end);
     return o;
   }
@@ -147,7 +147,7 @@ struct FlatResultBuilder {
 inline flatbuffers::Offset<FlatResult> CreateFlatResult(
     flatbuffers::FlatBufferBuilder &_fbb,
     int64_t id = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<nd4j::graph::FlatVariable>>> variables = 0,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatVariable>>> variables = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<FlatTiming>>> timing = 0) {
   FlatResultBuilder builder_(_fbb);
   builder_.add_id(id);
@@ -159,12 +159,12 @@ inline flatbuffers::Offset<FlatResult> CreateFlatResult(
 inline flatbuffers::Offset<FlatResult> CreateFlatResultDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     int64_t id = 0,
-    const std::vector<flatbuffers::Offset<nd4j::graph::FlatVariable>> *variables = nullptr,
+    const std::vector<flatbuffers::Offset<FlatVariable>> *variables = nullptr,
     const std::vector<flatbuffers::Offset<FlatTiming>> *timing = nullptr) {
   return nd4j::graph::CreateFlatResult(
       _fbb,
       id,
-      variables ? _fbb.CreateVector<flatbuffers::Offset<nd4j::graph::FlatVariable>>(*variables) : 0,
+      variables ? _fbb.CreateVector<flatbuffers::Offset<FlatVariable>>(*variables) : 0,
       timing ? _fbb.CreateVector<flatbuffers::Offset<FlatTiming>>(*timing) : 0);
 }
 
