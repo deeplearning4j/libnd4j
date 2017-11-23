@@ -120,7 +120,8 @@
         (82,simdOps::ACosh), \
         (83,simdOps::ACoshDerivative) ,\
         (84,simdOps::ASinh), \
-        (85,simdOps::ASinhDerivative)
+        (85,simdOps::ASinhDerivative) ,\
+        (86,simdOps::SinhDerivative)
 
 
 
