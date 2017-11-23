@@ -135,6 +135,27 @@ namespace simdOps {
 	};
 
 	template<typename T>
+	class SquaredSubtract {
+	public:
+		op_def static T op(T d1, T d2) {
+			return nd4j::math::nd4j_pow(d1 - d2, (T) 2);
+		}
+
+		op_def static T op(T d1, T d2, T *params) {
+			return nd4j::math::nd4j_pow(d1 - d2, (T) 2);
+		}
+
+		op_def static T op(T d1) {
+			return d1;
+		}
+
+		// op for MetaOps
+		op_def static T op(T d1, T *params) {
+			return nd4j::math::nd4j_pow(d1 - params[0], (T) 2);
+		}
+	};
+
+	template<typename T>
 	class ReverseSubtract {
 	public:
 		op_def static T op(T d1, T d2) {

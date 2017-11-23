@@ -49,6 +49,7 @@ namespace nd4j {
         DECLARE_OP(add, 2, 1, true);
         DECLARE_OP(subtract, 2, 1, true);
         DECLARE_OP(reversesubtract, 2, 1, true);
+        DECLARE_OP(squaredsubtract, 2, 1, true)
         DECLARE_OP(multiply, 2, 1, true);
         DECLARE_OP(divide, 2, 1, true);
         DECLARE_OP(reversedivide, 2, 1, true);
