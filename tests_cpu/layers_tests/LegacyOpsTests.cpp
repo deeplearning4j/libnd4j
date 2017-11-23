@@ -177,11 +177,29 @@ TEST_F(LegacyOpsTests, ReduceTests_3) {
 
     ASSERT_EQ(ND4J_STATUS_OK, result->status());
 
-    z->printShapeInfo("z shape");
-
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
     
+    delete result;
+}
+
+
+TEST_F(LegacyOpsTests, ReduceTests_4) {
+    NDArray<float> x('c', {2, 3, 5});
+    NDArrayFactory<float>::linspace(1, x);
+    NDArray<float> indices('c', {1,1}, {1});
+
+
+    nd4j::ops::LegacyReduceOp<float> op(1);
+    auto result = op.execute({&x, &indices}, {}, {1});
+    auto z = result->at(0);
+    auto exp = x.template reduceAlongDims<simdOps::Sum<float>>({1}, true);
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
     delete result;
 }
 

@@ -41,7 +41,7 @@ namespace nd4j {
                     std::vector<int> dims(*block.getIArguments());
                     std::sort(dims.begin(), dims.end());
 
-                    REQUIRE_TRUE(dims.size() > 0, 0, "Some dimensions requuired for reduction!");
+                    REQUIRE_TRUE(dims.size() > 0, 0, "Some dimensions required for reduction!");
 
                     shape::TAD tad(x->getShapeInfo(), dims.data(), dims.size());
                     tad.createTadOnlyShapeInfo();
@@ -70,7 +70,7 @@ namespace nd4j {
                     if (indices->lengthOf() > 1)
                         std::sort(axis.begin(), axis.end());
 
-                    REQUIRE_TRUE(axis.size() > 0, 0, "Some dimensions requuired for reduction!");
+                    REQUIRE_TRUE(axis.size() > 0, 0, "Some dimensions required for reduction!");
 
                     shape::TAD tad(x->getShapeInfo(), axis.data(), axis.size());
                     tad.createTadOnlyShapeInfo();
@@ -80,6 +80,19 @@ namespace nd4j {
                     auto z = new NDArray<T>(newShape, x->getWorkspace());
 
                     NativeOpExcutioner<T>::execReduce(opNum, x->getBuffer(), x->getShapeInfo(), block.getTArguments()->data(), z->getBuffer(), z->getShapeInfo(), axis.data(), (int) axis.size(), tad.tadOnlyShapeInfo, tad.tadOffsets);
+
+                    RELEASE(newShape, x->getWorkspace());
+
+
+                    // keepDims processing, for TF compatibility
+                    if (block.getIArguments()->size() > 0 && block.getIArguments()->at(0) == 1) {
+                        std::vector<int> newshape(z->getShapeAsVector());
+                        for (int e = 0; e < axis.size(); e++) {
+                            auto a = axis.at(e);
+                            newshape.insert(newshape.begin() + a, 1);
+                        }
+                        z->reshapei(z->ordering(), newshape);
+                    }
 
                     OVERWRITE_RESULT(z);
                 }
