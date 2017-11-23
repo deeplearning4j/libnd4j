@@ -815,6 +815,18 @@ template <typename T>
         applyTransform<OpName>(this, extraParams);
     }
 
+// perform array transformation
+    template<typename T>
+    template<typename OpName>
+    NDArray<T> NDArray<T>::transform(T *extraParams) {
+    
+        NDArray<T> result(this->_shapeInfo, true, this->_workspace);
+        functions::transform::Transform<T>::template exec<OpName>(this->_buffer, this->_shapeInfo, result._buffer,
+                                                                  result._shapeInfo, extraParams, nullptr, nullptr);
+        return result;
+    }
+
+
 // perform pairwise transformation
     template<typename T>
     template<typename OpName>
