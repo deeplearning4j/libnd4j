@@ -501,6 +501,9 @@ namespace nd4j {
 
         // multiplication operator array1*array2
         NDArray<T> operator*(const NDArray<T>& other) const;        
+    
+        // multiplication operator array*scalar
+        NDArray<T> operator*(const T scalar) const;
 
         // multiplication operator array1 *= array2
         void operator*=(const NDArray<T>& other);

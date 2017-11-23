@@ -304,6 +304,7 @@ NDArray<T>::NDArray(const NDArray<T> *other, nd4j::memory::Workspace* workspace)
     _isShapeAlloc = true;
 }
 
+////////////////////////////////////////////////////////////////////////
     template <typename T>
     std::vector<int8_t> NDArray<T>::asByteVector() {
         std::vector<int8_t> result((unsigned long) this->lengthOf() * sizeOfT());
@@ -2498,6 +2499,7 @@ NDArray<T> NDArray<T>::operator+(const NDArray<T>& other) const {
 
     if (other.lengthOf() == lengthOf()) {
         NDArray<T> result(this->_shapeInfo, this->_workspace);
+        result.updateStrides(this->ordering());
         functions::pairwise_transforms::PairWiseTransform<T>::template exec<simdOps::Add<T>>(this->_buffer, this->_shapeInfo, other._buffer, other._shapeInfo, result._buffer, result._shapeInfo, nullptr);
         return result;
     }
@@ -2512,6 +2514,7 @@ NDArray<T> NDArray<T>::operator+(const NDArray<T>& other) const {
     NDArray<T> NDArray<T>::operator+(const T scalar) const {
 
         NDArray<T> result(this->_shapeInfo, this->_workspace);
+        result.updateStrides(this->ordering());
         functions::scalar::ScalarTransform<T>::template transform<simdOps::Add<T>>(this->_buffer, this->_shapeInfo, result._buffer, result._shapeInfo, scalar, nullptr);
 
         return result;
@@ -2531,6 +2534,7 @@ NDArray<T> NDArray<T>::operator+(const NDArray<T>& other) const {
         
         if (other.lengthOf() == lengthOf()) {
             NDArray<T> result(this->_shapeInfo, this->_workspace);
+            result.updateStrides(this->ordering());
             functions::pairwise_transforms::PairWiseTransform<T>::template exec<simdOps::Subtract<T>>(this->_buffer, this->_shapeInfo, other._buffer, other._shapeInfo, result._buffer, result._shapeInfo, nullptr);
             return result;
         }
@@ -2544,6 +2548,7 @@ NDArray<T> NDArray<T>::operator+(const NDArray<T>& other) const {
     NDArray<T> NDArray<T>::operator-(const T& scalar) const {
 
         NDArray<T> result(this->_shapeInfo, this->_workspace);
+        result.updateStrides(this->ordering());
         functions::scalar::ScalarTransform<T>::template transform<simdOps::Subtract<T>>(this->_buffer, this->_shapeInfo, result._buffer, result._shapeInfo, scalar, nullptr);
 
         return result;
@@ -2554,6 +2559,7 @@ NDArray<T> NDArray<T>::operator+(const NDArray<T>& other) const {
     NDArray<T> NDArray<T>::operator-() const {
 
         NDArray<T> result(this->_shapeInfo, this->_workspace);
+        result.updateStrides(this->ordering());        
         functions::transform::Transform<T>::template exec<simdOps::Neg<T>>(this->_buffer, this->_shapeInfo, result._buffer, result._shapeInfo, nullptr, nullptr, nullptr);
 
         return result;
@@ -2565,6 +2571,7 @@ NDArray<T> NDArray<T>::operator+(const NDArray<T>& other) const {
     // NDArray<T> operator-(const T scalar, const NDArray<T>& arr) {
 
     //     NDArray<T> result(arr._shapeInfo, arr._workspace);
+    //     result.updateStrides(arr.ordering());
     //     functions::scalar::ScalarTransform<T>::template transform<simdOps::ReverseSubtract<T>>(arr._buffer, arr._shapeInfo, result._buffer, result._shapeInfo, scalar, nullptr);
 
     //     return result;
@@ -2575,6 +2582,7 @@ NDArray<T> NDArray<T>::operator+(const NDArray<T>& other) const {
     ND4J_EXPORT NDArray<float> operator-(const float scalar, const NDArray<float>& arr) {
         
         NDArray<float> result(arr._shapeInfo, arr._workspace);
+        result.updateStrides(arr.ordering());
         functions::scalar::ScalarTransform<float>::template transform<simdOps::ReverseSubtract<float>>(arr._buffer, arr._shapeInfo, result._buffer, result._shapeInfo, scalar, nullptr);
 
         return result;
@@ -2584,6 +2592,7 @@ NDArray<T> NDArray<T>::operator+(const NDArray<T>& other) const {
     ND4J_EXPORT NDArray<float16> operator-(const float16 scalar, const NDArray<float16>& arr) {
         
         NDArray<float16> result(arr._shapeInfo, arr._workspace);
+        result.updateStrides(arr.ordering());
         functions::scalar::ScalarTransform<float16>::template transform<simdOps::ReverseSubtract<float16>>(arr._buffer, arr._shapeInfo, result._buffer, result._shapeInfo, scalar, nullptr);
 
         return result;
@@ -2593,6 +2602,7 @@ NDArray<T> NDArray<T>::operator+(const NDArray<T>& other) const {
     ND4J_EXPORT NDArray<double> operator-(const double scalar, const NDArray<double>& arr) {
         
         NDArray<double> result(arr._shapeInfo, arr._workspace);
+        result.updateStrides(arr.ordering());
         functions::scalar::ScalarTransform<double>::template transform<simdOps::ReverseSubtract<double>>(arr._buffer, arr._shapeInfo, result._buffer, result._shapeInfo, scalar, nullptr);
 
         return result;
@@ -2605,11 +2615,24 @@ NDArray<T> NDArray<T>::operator+(const NDArray<T>& other) const {
         
         if (other.lengthOf() == lengthOf()) {
             NDArray<T> result(this->_shapeInfo, this->_workspace);
+            result.updateStrides(this->ordering());
             functions::pairwise_transforms::PairWiseTransform<T>::template exec<simdOps::Multiply<T>>(this->_buffer, this->_shapeInfo, other._buffer, other._shapeInfo, result._buffer, result._shapeInfo, nullptr);
             return result;
         }
 
         return this->template applyTrueBroadcast<simdOps::Multiply<T>>(other);
+    }
+
+    ////////////////////////////////////////////////////////////////////////
+    // multiplication operator array*scalar
+    template<typename T>
+    NDArray<T> NDArray<T>::operator*(const T scalar) const {
+        
+        NDArray<T> result(this->_shapeInfo, this->_workspace);
+        result.updateStrides(this->ordering());
+        functions::scalar::ScalarTransform<T>::template transform<simdOps::Multiply<T>>(this->_buffer, this->_shapeInfo, result._buffer, result._shapeInfo, scalar, nullptr);
+
+        return result;
     }
 
     ////////////////////////////////////////////////////////////////////////
@@ -2639,6 +2662,7 @@ NDArray<T> NDArray<T>::operator+(const NDArray<T>& other) const {
         
         if (other.lengthOf() == lengthOf()) {
             NDArray<T> result(this->_shapeInfo, this->_workspace);
+            result.updateStrides(this->ordering());
             functions::pairwise_transforms::PairWiseTransform<T>::template exec<simdOps::Divide<T>>(this->_buffer, this->_shapeInfo, other._buffer, other._shapeInfo, result._buffer, result._shapeInfo, nullptr);
             return result;
         }

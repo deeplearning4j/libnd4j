@@ -1316,3 +1316,323 @@ TEST_F(DeclarableOpsTests2, cosineDistance_test10) {
     delete results;
 
 }
+
+///////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests2, hingeLoss_test1) {
+    
+    NDArray<float> labels('c', {2,3,4},{0,1,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,0,1,1,0,1,0});
+    NDArray<float> logits('c', {2,3,4});
+    NDArray<float> weights('c', {2,3,4});
+    NDArray<float> expected('c', {2,3,4}, {1., 0. , 0., 2.5,0., 3.5, 0., 4.5,0., 5.5, 0., 6.5, 0., 7.5, 0., 8.5,0., 9.5,10., 0. ,0.,11.5, 0.,12.5});
+                                            
+    NDArrayFactory<float>::linspace(1, logits);
+    weights.assign(0.5);    
+
+    nd4j::ops::hingeLoss<float> op;
+    nd4j::ResultSet<float>* results = op.execute({&logits, &weights, &labels}, {}, {0});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<float> *result = results->at(0);    
+    // result->printBuffer();
+
+    ASSERT_TRUE(expected.isSameShape(result));
+    ASSERT_TRUE(expected.equalsTo(result));
+
+    delete results;
+}
+
+///////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests2, hingeLoss_test2) {
+    
+    NDArray<float> labels('c', {2,3,4},{0,1,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,0,1,1,0,1,0});
+    NDArray<float> logits('c', {2,3,4});
+    NDArray<float> weights('c', {1,1});
+    NDArray<float> expected('c', {2,3,4}, {1., 0. , 0., 2.5,0., 3.5, 0., 4.5,0., 5.5, 0., 6.5, 0., 7.5, 0., 8.5,0., 9.5,10., 0. ,0.,11.5, 0.,12.5});
+                                            
+    NDArrayFactory<float>::linspace(1, logits);
+    weights.assign(0.5);    
+
+    nd4j::ops::hingeLoss<float> op;
+    nd4j::ResultSet<float>* results = op.execute({&logits, &weights, &labels}, {}, {0});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<float> *result = results->at(0);    
+    // result->printBuffer();
+
+    ASSERT_TRUE(expected.isSameShape(result));
+    ASSERT_TRUE(expected.equalsTo(result));
+
+    delete results;
+}
+
+///////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests2, hingeLoss_test3) {
+    
+    NDArray<float> labels('c', {2,3,4},{0,1,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,0,1,1,0,1,0});
+    NDArray<float> logits('c', {2,3,4});
+    NDArray<float> weights('c', {1,3,1});
+    NDArray<float> expected('c', {2,3,4}, {1., 0. , 0., 2.5,0., 3.5, 0., 4.5,0., 5.5, 0., 6.5, 0., 7.5, 0., 8.5,0., 9.5,10., 0. ,0.,11.5, 0.,12.5});
+                                            
+    NDArrayFactory<float>::linspace(1, logits);
+    weights.assign(0.5);    
+
+    nd4j::ops::hingeLoss<float> op;
+    nd4j::ResultSet<float>* results = op.execute({&logits, &weights, &labels}, {}, {0});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<float> *result = results->at(0);    
+    // result->printBuffer();
+
+    ASSERT_TRUE(expected.isSameShape(result));
+    ASSERT_TRUE(expected.equalsTo(result));
+
+    delete results;
+}
+
+///////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests2, hingeLoss_test4) {
+    
+    NDArray<float> labels('c', {2,3,4},{0,1,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,0,1,1,0,1,0});
+    NDArray<float> logits('c', {2,3,4});
+    NDArray<float> weights('c', {2,3,4});    
+                                            
+    NDArrayFactory<float>::linspace(1, logits);
+    weights.assign(0.5);
+    
+
+    nd4j::ops::hingeLoss<float> op;
+    nd4j::ResultSet<float>* results = op.execute({&logits, &weights, &labels}, {}, {1});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<float> *result = results->at(0);    
+
+    ASSERT_TRUE(result->isScalar());
+    ASSERT_TRUE((*result)(0) == 83.);
+
+    delete results;
+}
+
+///////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests2, hingeLoss_test5) {
+    
+    NDArray<float> labels('c', {2,3,4},{0,1,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,0,1,1,0,1,0});
+    NDArray<float> logits('c', {2,3,4});
+    NDArray<float> weights('c', {1,1});    
+                                            
+    NDArrayFactory<float>::linspace(1, logits);
+    weights.assign(0.5);
+    
+
+    nd4j::ops::hingeLoss<float> op;
+    nd4j::ResultSet<float>* results = op.execute({&logits, &weights, &labels}, {}, {1});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<float> *result = results->at(0);    
+
+    ASSERT_TRUE(result->isScalar());
+    ASSERT_TRUE((*result)(0) == 83.);
+
+    delete results;
+}
+
+///////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests2, hingeLoss_test6) {
+    
+    NDArray<float> labels('c', {2,3,4},{0,1,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,0,1,1,0,1,0});
+    NDArray<float> logits('c', {2,3,4});
+    NDArray<float> weights('c', {2,1,1});    
+                                            
+    NDArrayFactory<float>::linspace(1, logits);
+    weights.assign(0.5);
+    
+
+    nd4j::ops::hingeLoss<float> op;
+    nd4j::ResultSet<float>* results = op.execute({&logits, &weights, &labels}, {}, {1});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<float> *result = results->at(0);    
+
+    ASSERT_TRUE(result->isScalar());
+    ASSERT_TRUE((*result)(0) == 83.);
+
+    delete results;
+}
+
+///////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests2, hingeLoss_test7) {
+    
+    NDArray<float> labels('c', {2,3,4},{0,1,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,0,1,1,0,1,0});
+    NDArray<float> logits('c', {2,3,4});
+    NDArray<float> weights('c', {2,3,4});    
+                                            
+    NDArrayFactory<float>::linspace(1, logits);
+    weights.assign(0.5);
+    
+
+    nd4j::ops::hingeLoss<float> op;
+    nd4j::ResultSet<float>* results = op.execute({&logits, &weights, &labels}, {}, {2});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<float> *result = results->at(0);    
+
+    ASSERT_TRUE(result->isScalar());    
+    ASSERT_NEAR((*result)(0), 6.91667, 1e-5);    
+
+    delete results;
+}
+
+///////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests2, hingeLoss_test8) {
+    
+    NDArray<float> labels('c', {2,3,4},{0,1,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,0,1,1,0,1,0});
+    NDArray<float> logits('c', {2,3,4});
+    NDArray<float> weights('c', {1,1});    
+                                            
+    NDArrayFactory<float>::linspace(1, logits);
+    weights.assign(0.5);
+    
+
+    nd4j::ops::hingeLoss<float> op;
+    nd4j::ResultSet<float>* results = op.execute({&logits, &weights, &labels}, {}, {2});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<float> *result = results->at(0);    
+
+    ASSERT_TRUE(result->isScalar());    
+    ASSERT_NEAR((*result)(0), 6.91667, 1e-5);    
+
+    delete results;
+}
+
+///////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests2, hingeLoss_test9) {
+    
+    NDArray<float> labels('c', {2,3,4},{0,1,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,0,1,1,0,1,0});
+    NDArray<float> logits('c', {2,3,4});
+    NDArray<float> weights('c', {1,1,4});    
+                                            
+    NDArrayFactory<float>::linspace(1, logits);
+    weights.assign(0.5);
+    
+
+    nd4j::ops::hingeLoss<float> op;
+    nd4j::ResultSet<float>* results = op.execute({&logits, &weights, &labels}, {}, {2});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<float> *result = results->at(0);    
+
+    ASSERT_TRUE(result->isScalar());    
+    ASSERT_NEAR((*result)(0), 6.91667, 1e-5);    
+
+    delete results;
+}
+
+///////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests2, hingeLoss_test10) {
+    
+    NDArray<float> labels('c', {2,3,4},{0,1,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,0,1,1,0,1,0});
+    NDArray<float> logits('c', {2,3,4});
+    NDArray<float> weights('c', {2,3,4});    
+                                            
+    NDArrayFactory<float>::linspace(1, logits);
+    weights.assign(0.5);
+    
+
+    nd4j::ops::hingeLoss<float> op;
+    nd4j::ResultSet<float>* results = op.execute({&logits, &weights, &labels}, {}, {3});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<float> *result = results->at(0);    
+
+    ASSERT_TRUE(result->isScalar());    
+    ASSERT_NEAR((*result)(0), 3.45833, 1e-5);    
+
+    delete results;
+}
+
+///////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests2, hingeLoss_test11) {
+    
+    NDArray<float> labels('c', {2,3,4},{0,1,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,0,1,1,0,1,0});
+    NDArray<float> logits('c', {2,3,4});
+    NDArray<float> weights('c', {2,1,4});    
+                                            
+    NDArrayFactory<float>::linspace(1, logits);
+    weights.assign(0.5);
+    
+
+    nd4j::ops::hingeLoss<float> op;
+    nd4j::ResultSet<float>* results = op.execute({&logits, &weights, &labels}, {}, {3});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<float> *result = results->at(0);    
+
+    ASSERT_TRUE(result->isScalar());    
+    ASSERT_NEAR((*result)(0), 3.45833, 1e-5);    
+
+    delete results;
+}
+
+///////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests2, hingeLoss_test12) {
+    
+    NDArray<float> labels('c', {2,3,4},{0,1,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,0,1,1,0,1,0});
+    NDArray<float> logits('c', {2,3,4});
+    NDArray<float> weights('c', {2,3,4});    
+                                            
+    NDArrayFactory<float>::linspace(1, logits);
+    weights.assign(0.5);
+    weights(0) = 0.;
+    weights(1) = 0.;
+    weights(2) = 0.;
+    weights(3) = 0.;
+    
+
+    nd4j::ops::hingeLoss<float> op;
+    nd4j::ResultSet<float>* results = op.execute({&logits, &weights, &labels}, {}, {3});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<float> *result = results->at(0);    
+
+    ASSERT_TRUE(result->isScalar());    
+    ASSERT_NEAR((*result)(0), 3.975, 1e-5);    
+
+    delete results;
+}
+
+///////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests2, hingeLoss_test13) {
+    
+    NDArray<float> labels('c', {2,3,4},{0,1,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,0,1,1,0,1,0});
+    NDArray<float> logits('c', {2,3,4});
+    NDArray<float> weights('c', {1,1});    
+                                            
+    NDArrayFactory<float>::linspace(1, logits);
+    weights.assign(0.);    
+    
+
+    nd4j::ops::hingeLoss<float> op;
+    nd4j::ResultSet<float>* results = op.execute({&logits, &weights, &labels}, {}, {3});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<float> *result = results->at(0);    
+
+    ASSERT_TRUE(result->isScalar());    
+    ASSERT_TRUE((*result)(0) == 0.);    
+
+    delete results;
+}
+
