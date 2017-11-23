@@ -9,7 +9,7 @@ namespace nd4j {
         OP_IMPL(squaredsubtract, 2, 1, true) {
             NDArray<T> *x = INPUT_VARIABLE(0);
             NDArray<T> *y = INPUT_VARIABLE(1);
-            NDArray<T> *z = OUTPUT_VARIABLE(2);
+            NDArray<T> *z = OUTPUT_VARIABLE(0);
 
             if (!x->isScalar() && !y->isScalar() && x->lengthOf() == y->lengthOf()) {
                 REQUIRE_OK(this->validateInputLengthMatch(block));

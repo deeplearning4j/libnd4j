@@ -246,7 +246,7 @@ namespace functions {
                 int _threads = nd4j::math::nd4j_max<int>(1, tadsPerThread);
                 _threads = nd4j::math::nd4j_min<int>(_threads, omp_get_max_threads());
 
-//#pragma omp parallel for schedule(guided) num_threads(_threads) if (_threads > 1) proc_bind(AFFINITY) default(shared)
+#pragma omp parallel for schedule(guided) num_threads(_threads) if (_threads > 1) proc_bind(AFFINITY) default(shared)
                 for (int i = 0; i < tads; i++) {
                     Nd4jIndex offset = tadOffsets[i];
                     Nd4jIndex offsetZ = tadOffsetZ[i];
@@ -258,12 +258,12 @@ namespace functions {
                         T *oX = x + offset;
 
                         if (tadEWS == 1 && yStride == 1 && zEWS == 1) {
-//#pragma omp simd
+#pragma omp simd
                             for (int f = 0; f < tadLength; f++) {
                                 oRes[f] = OpType::op(oX[f], y[f]);
                             }
                         } else {
-//#pragma omp simd
+#pragma omp simd
                             for (int f = 0; f < tadLength; f++) {
                                 oRes[f * zEWS] = OpType::op(oX[f * tadEWS], y[f * yStride]);
                             }
