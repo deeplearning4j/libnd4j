@@ -118,7 +118,9 @@
         (80,simdOps::IsNan), \
         (81,simdOps::IsFinite), \
         (82,simdOps::ACosh), \
-        (83,simdOps::ACoshDerivative)
+        (83,simdOps::ACoshDerivative) ,\
+        (84,simdOps::ASinh), \
+        (85,simdOps::ASinhDerivative)
 
 
 

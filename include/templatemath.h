@@ -253,10 +253,13 @@ template<typename T>
 		template<typename T>
         math_def inline T nd4j_asin(T val);
 
+		template<typename T>
+		math_def inline T nd4j_asinh(T val);
+
         template<typename T>
         math_def inline T nd4j_asinh(T val) {
             //Math.log(Math.sqrt(Math.pow(x, 2) + 1) + x)
-            return nd4j_log(nd4j_sqrt(nd4j_pow(val,2) + 1) + val);
+            return nd4j_log(nd4j_sqrt(nd4j_pow(val, (T) 2) + (T) 1) + val);
         }
 
 		template<typename T>
