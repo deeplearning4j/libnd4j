@@ -21,7 +21,7 @@ namespace nd4j {
             } else if (x->isScalar() && !y->isScalar()) {
                 y->template applyScalar<simdOps::SquaredSubtract<T>>(*x, z);
             }
-            else { // x->isScalar() && y->isScalar()
+            else if (x->isScalar() && y->isScalar()) { // x->isScalar() && y->isScalar()
                 z->putScalar(0, nd4j::math::nd4j_pow(x->getScalar(0) - y->getScalar(0), (T) 2));
             }
         }
