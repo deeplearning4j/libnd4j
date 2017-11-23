@@ -1636,3 +1636,277 @@ TEST_F(DeclarableOpsTests2, hingeLoss_test13) {
     delete results;
 }
 
+///////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests2, huberLoss_test1) {
+    
+    NDArray<double> labels('c', {2,3,4});
+    NDArray<double> predictions('c', {2,3,4});
+    NDArray<double> weights('c', {2,3,4});
+    NDArray<double> expected('c', {2,3,4}, {0.0425 ,0.0875 ,0.13250001,0.17749999,0.22250001,0.26750001,0.31250003,0.35749999,0.4025    ,0.44749999,0.49249998,0.53750002, 0.58249998,0.6275    ,0.67250001,0.71749997,0.76249999,0.8075    ,0.85250002,0.89749998,0.9425    ,0.98749995,1.03250015,1.0775001});
+                                            
+    NDArrayFactory<double>::linspace(0.1, labels, 0.1);
+    NDArrayFactory<double>::linspace(1, predictions);
+    weights.assign(0.5);    
+
+    nd4j::ops::huberLoss<double> op;
+    nd4j::ResultSet<double>* results = op.execute({&predictions, &weights, &labels}, {0.1}, {0});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<double> *result = results->at(0);            
+
+    ASSERT_TRUE(expected.isSameShape(result));
+    ASSERT_TRUE(expected.equalsTo(result));
+
+    delete results;
+}
+
+///////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests2, huberLoss_test2) {
+    
+    NDArray<double> labels('c', {2,3,4});
+    NDArray<double> predictions('c', {2,3,4});
+    NDArray<double> weights('c', {2,3,1}); 
+    NDArray<double> expected('c', {2,3,4}, {0.0425 ,0.0875 ,0.13250001,0.17749999,0.22250001,0.26750001,0.31250003,0.35749999,0.4025    ,0.44749999,0.49249998,0.53750002, 0.58249998,0.6275    ,0.67250001,0.71749997,0.76249999,0.8075    ,0.85250002,0.89749998,0.9425    ,0.98749995,1.03250015,1.0775001});
+                                            
+    NDArrayFactory<double>::linspace(0.1, labels, 0.1);
+    NDArrayFactory<double>::linspace(1, predictions);
+    weights.assign(0.5);    
+
+    nd4j::ops::huberLoss<double> op;
+    nd4j::ResultSet<double>* results = op.execute({&predictions, &weights, &labels}, {0.1}, {0});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<double> *result = results->at(0);            
+
+    ASSERT_TRUE(expected.isSameShape(result));
+    ASSERT_TRUE(expected.equalsTo(result));
+
+    delete results;
+}
+
+///////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests2, huberLoss_test3) {
+    
+    NDArray<double> labels('c', {2,3,4});
+    NDArray<double> predictions('c', {2,3,4});
+    NDArray<double> weights('c', {1,1}); 
+    NDArray<double> expected('c', {2,3,4}, {0.0425 ,0.0875 ,0.13250001,0.17749999,0.22250001,0.26750001,0.31250003,0.35749999,0.4025    ,0.44749999,0.49249998,0.53750002, 0.58249998,0.6275    ,0.67250001,0.71749997,0.76249999,0.8075    ,0.85250002,0.89749998,0.9425    ,0.98749995,1.03250015,1.0775001});
+                                            
+    NDArrayFactory<double>::linspace(0.1, labels, 0.1);
+    NDArrayFactory<double>::linspace(1, predictions);
+    weights.assign(0.5);    
+
+    nd4j::ops::huberLoss<double> op;
+    nd4j::ResultSet<double>* results = op.execute({&predictions, &weights, &labels}, {0.1}, {0});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<double> *result = results->at(0);            
+
+    ASSERT_TRUE(expected.isSameShape(result));
+    ASSERT_TRUE(expected.equalsTo(result));
+
+    delete results;
+}
+
+///////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests2, huberLoss_test4) {
+    
+    NDArray<double> labels('c', {2,3,4});
+    NDArray<double> predictions('c', {2,3,4});
+    NDArray<double> weights('c', {2,3,4}); 
+                                            
+    NDArrayFactory<double>::linspace(0.1, labels, 0.1);
+    NDArrayFactory<double>::linspace(1, predictions);
+    weights.assign(0.5);    
+
+    nd4j::ops::huberLoss<double> op;
+    nd4j::ResultSet<double>* results = op.execute({&predictions, &weights, &labels}, {0.1}, {1});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<double> *result = results->at(0);            
+
+    ASSERT_TRUE(result->isScalar());    
+    ASSERT_NEAR((*result)(0), 13.44, 1e-5);    
+
+    delete results;
+}
+
+///////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests2, huberLoss_test5) {
+    
+    NDArray<double> labels('c', {2,3,4});
+    NDArray<double> predictions('c', {2,3,4});
+    NDArray<double> weights('c', {1,1}); 
+                                            
+    NDArrayFactory<double>::linspace(0.1, labels, 0.1);
+    NDArrayFactory<double>::linspace(1, predictions);
+    weights.assign(0.5);    
+
+    nd4j::ops::huberLoss<double> op;
+    nd4j::ResultSet<double>* results = op.execute({&predictions, &weights, &labels}, {0.1}, {1});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<double> *result = results->at(0);            
+
+    ASSERT_TRUE(result->isScalar());    
+    ASSERT_NEAR((*result)(0), 13.44, 1e-5);    
+
+    delete results;
+}
+
+///////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests2, huberLoss_test6) {
+    
+    NDArray<double> labels('c', {2,3,4});
+    NDArray<double> predictions('c', {2,3,4});
+    NDArray<double> weights('c', {2,3,4}); 
+                                            
+    NDArrayFactory<double>::linspace(0.1, labels, 0.1);
+    NDArrayFactory<double>::linspace(1, predictions);
+    weights.assign(0.5);    
+
+    nd4j::ops::huberLoss<double> op;
+    nd4j::ResultSet<double>* results = op.execute({&predictions, &weights, &labels}, {0.1}, {2});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<double> *result = results->at(0);            
+
+    ASSERT_TRUE(result->isScalar());    
+    ASSERT_NEAR((*result)(0), 1.12, 1e-5);    
+
+    delete results;
+}
+
+///////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests2, huberLoss_test7) {
+    
+    NDArray<double> labels('c', {2,3,4});
+    NDArray<double> predictions('c', {2,3,4});
+    NDArray<double> weights('c', {2,1,1}); 
+                                            
+    NDArrayFactory<double>::linspace(0.1, labels, 0.1);
+    NDArrayFactory<double>::linspace(1, predictions);
+    weights.assign(0.5);    
+
+    nd4j::ops::huberLoss<double> op;
+    nd4j::ResultSet<double>* results = op.execute({&predictions, &weights, &labels}, {0.1}, {2});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<double> *result = results->at(0);            
+
+    ASSERT_TRUE(result->isScalar());    
+    ASSERT_NEAR((*result)(0), 1.12, 1e-5);    
+
+    delete results;
+}
+
+///////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests2, huberLoss_test8) {
+    
+    NDArray<double> labels('c', {2,3,4});
+    NDArray<double> predictions('c', {2,3,4});
+    NDArray<double> weights('c', {2,3,4}); 
+                                            
+    NDArrayFactory<double>::linspace(0.1, labels, 0.1);
+    NDArrayFactory<double>::linspace(1, predictions);
+    weights.assign(0.5);    
+    weights(0) = 0.;
+    weights(1) = 0.;
+    weights(2) = 0.;
+    weights(3) = 0.;
+
+    nd4j::ops::huberLoss<double> op;
+    nd4j::ResultSet<double>* results = op.execute({&predictions, &weights, &labels}, {0.1}, {2});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<double> *result = results->at(0);            
+
+    ASSERT_TRUE(result->isScalar());    
+    ASSERT_NEAR((*result)(0), 1.3, 1e-5);    
+
+    delete results;
+}
+
+///////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests2, huberLoss_test9) {
+    
+    NDArray<double> labels('c', {2,3,4});
+    NDArray<double> predictions('c', {2,3,4});
+    NDArray<double> weights('c', {2,3,4}); 
+                                            
+    NDArrayFactory<double>::linspace(0.1, labels, 0.1);
+    NDArrayFactory<double>::linspace(1, predictions);
+    weights.assign(0.5);    
+
+    nd4j::ops::huberLoss<double> op;
+    nd4j::ResultSet<double>* results = op.execute({&predictions, &weights, &labels}, {0.1}, {3});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<double> *result = results->at(0);            
+
+    ASSERT_TRUE(result->isScalar());    
+    ASSERT_NEAR((*result)(0), 0.56, 1e-5);    
+
+    delete results;
+}
+
+/////////////////////////////////
+TEST_F(DeclarableOpsTests2, huberLoss_test10) {
+    
+    NDArray<double> labels('c', {2,3,4});
+    NDArray<double> predictions('c', {2,3,4});
+    NDArray<double> weights('c', {1,1}); 
+                                            
+    NDArrayFactory<double>::linspace(0.1, labels, 0.1);
+    NDArrayFactory<double>::linspace(1, predictions);
+    weights.assign(0.5);    
+
+    nd4j::ops::huberLoss<double> op;
+    nd4j::ResultSet<double>* results = op.execute({&predictions, &weights, &labels}, {0.1}, {3});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<double> *result = results->at(0);            
+
+    ASSERT_TRUE(result->isScalar());    
+    ASSERT_NEAR((*result)(0), 0.56, 1e-5);    
+
+    delete results;
+}
+
+/////////////////////////////////
+TEST_F(DeclarableOpsTests2, huberLoss_test11) {
+    
+    NDArray<double> labels('c', {2,3,4});
+    NDArray<double> predictions('c', {2,3,4});
+    NDArray<double> weights('c', {2,3,4}); 
+                                            
+    NDArrayFactory<double>::linspace(0.1, labels, 0.1);
+    NDArrayFactory<double>::linspace(1, predictions);
+    weights.assign(0.5);    
+    weights(0) = 0.;
+    weights(1) = 0.;
+    weights(2) = 0.;
+    weights(3) = 0.;
+
+    nd4j::ops::huberLoss<double> op;
+    nd4j::ResultSet<double>* results = op.execute({&predictions, &weights, &labels}, {0.1}, {3});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<double> *result = results->at(0);            
+
+    ASSERT_TRUE(result->isScalar());    
+    ASSERT_NEAR((*result)(0), 0.65, 1e-5);    
+
+    delete results;
+}

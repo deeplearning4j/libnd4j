@@ -9,18 +9,19 @@ namespace nd4j {
 
 
 //////////////////////////////////////////////////////////////////////////
-CUSTOM_OP_IMPL(hingeLoss, 3, 1, false, 0, 1) {
+CUSTOM_OP_IMPL(huberLoss, 3, 1, false, 1, 1) {
 
-  	NDArray<T>* logits  = INPUT_VARIABLE(0);
-    NDArray<T>* weights = INPUT_VARIABLE(1);
-    NDArray<T>* labels  = INPUT_VARIABLE(2);
-    NDArray<T>* output  = OUTPUT_VARIABLE(0);
+  	NDArray<T>* predictions = INPUT_VARIABLE(0);
+    NDArray<T>* weights     = INPUT_VARIABLE(1);
+    NDArray<T>* labels      = INPUT_VARIABLE(2);
+    NDArray<T>* output      = OUTPUT_VARIABLE(0);
 
     int reductionMode = INT_ARG(0);			// 0 - "none"; 1 - "weighted_sum";  2 - "weighted_mean";  3 - "weighted_sum_by_nonzero_weights"
+    T delta = T_ARG(0);
     
 	// perform weights broadcasting/tile to labels if needed	
 	NDArray<T>* weightsBroad = weights;	
-	if(!weights->isScalar() && !weights->isSameShape(logits)) {
+	if(!weights->isScalar() && !weights->isSameShape(predictions)) {
 		// evaluate repeat dimensions for tile operation
 		std::vector<int> reps;
 		for(int i = 0; i < labels->rankOf(); ++i)
@@ -28,10 +29,13 @@ CUSTOM_OP_IMPL(hingeLoss, 3, 1, false, 0, 1) {
 		weightsBroad = new NDArray<T>(weights->tile(reps));
 	}
 
-	 // We first need to convert binary labels to -1/1 labels (as floats)
-	NDArray<T> weightedLosses = (T)1. - ((*labels)*(T)2. - (T)1.)*(*logits);
-	auto relu = LAMBDA_T(value) { return value > (T)0. ? value : (T)0.; };
-    weightedLosses.applyLambda(relu);
+	NDArray<T> error = *predictions - *labels;
+	error.template applyTransform<simdOps::Abs<T>>();
+	NDArray<T> quadratic(error.getShapeInfo(), block.getWorkspace());
+	error.template applyScalar<simdOps::Min<T>>(delta, &quadratic);	
+ 
+    NDArray<T> weightedLosses = quadratic*quadratic*(T)0.5 + (error - quadratic)*delta;
+
     // multiply weightedLosses on weights
  	if(weights->isScalar())
  		weightedLosses *= (*weights)(0);
@@ -92,15 +96,15 @@ CUSTOM_OP_IMPL(hingeLoss, 3, 1, false, 0, 1) {
 }
 
 
-DECLARE_SHAPE_FN(hingeLoss) {
+DECLARE_SHAPE_FN(huberLoss) {
 
-	// labels and logits must have the same shapes 
-	NDArray<T>* logits  = INPUT_VARIABLE(0);
+	// labels and predictions must have the same shapes 
+	NDArray<T>* predictions  = INPUT_VARIABLE(0);
     NDArray<T>* weights = INPUT_VARIABLE(1);
     NDArray<T>* labels  = INPUT_VARIABLE(2);
 
-    if(!labels->isSameShape(logits))
-    	throw "CUSTOM_OP loss function absoluteDifference: labels and logits arrays have different shapes!";
+    if(!labels->isSameShape(predictions))
+    	throw "CUSTOM_OP loss function absoluteDifference: labels and predictions arrays have different shapes!";
     // weights array can be single scalar or has the same rank as labels, and must be broadcastable to labels
     if(!weights->isScalar() && weights->rankOf() != labels->rankOf())
     	throw "CUSTOM_OP loss function absoluteDifference: weights array must have the same rank as labels array!";
