@@ -248,6 +248,9 @@ template<typename T>
         math_def inline T nd4j_acos(T val);
 
 		template<typename T>
+		math_def inline T nd4j_acosh(T val);
+
+		template<typename T>
         math_def inline T nd4j_asin(T val);
 
         template<typename T>
@@ -746,6 +749,28 @@ template<typename T>
 		template<>
         math_def inline int nd4j_acos<int>(int val) {
 			return acosf((float) val);
+		}
+
+
+		template<>
+		math_def inline float16 nd4j_acosh<float16>(float16 val) {
+			return (float16) acoshf((float) val);
+		}
+
+
+		template<>
+		math_def inline float nd4j_acosh<float>(float val) {
+			return acoshf(val);
+		}
+
+		template<>
+		math_def inline double nd4j_acosh<double>(double val) {
+			return acos(val);
+		}
+
+		template<>
+		math_def inline int nd4j_acosh<int>(int val) {
+			return acoshf((float) val);
 		}
 
 

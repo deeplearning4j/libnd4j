@@ -116,7 +116,9 @@
         (78,simdOps::Erf), \
         (79,simdOps::IsInf), \
         (80,simdOps::IsNan), \
-        (81,simdOps::IsFinite)
+        (81,simdOps::IsFinite), \
+        (82,simdOps::ACosh), \
+        (83,simdOps::ACoshDerivative)
 
 
 

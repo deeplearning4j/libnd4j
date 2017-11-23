@@ -1174,6 +1174,30 @@ namespace simdOps {
 		}
 	};
 
+	template<typename T>
+	class ACosh {
+	public:
+		no_op_exec_special
+		no_op_exec_special_cuda
+
+		op_def static T op(T d1, T *params) {
+			return nd4j::math::nd4j_acosh<T>(d1);
+		}
+	};
+
+
+	template<typename T>
+	class ACoshDerivative {
+	public:
+		no_op_exec_special
+		no_op_exec_special_cuda
+
+		op_def static T op(T d1, T *params) {
+			return (T) 1.f / (nd4j::math::nd4j_sqrt(d1 - (T) 1.f) * nd4j::math::nd4j_sqrt(d1 + (T) 1.f));
+		}
+	};
+
+
 
 	template<typename T>
 	class Ones {
