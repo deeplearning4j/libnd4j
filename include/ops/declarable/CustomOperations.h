@@ -36,6 +36,7 @@ namespace nd4j {
         DECLARE_OP(biasadd, 2, 1, true);
         DECLARE_OP(floor, 1, 1, true);
         DECLARE_OP(floormod, 2, 1, true);
+        DECLARE_OP(floordiv, 2, 1, true)
         DECLARE_OP(realdiv, 2, 1, true);
         DECLARE_OP(merge, -1, 1, true);         // should become custom
         DECLARE_OP(broadcastgradientargs, 2, 2, true);
@@ -49,6 +50,7 @@ namespace nd4j {
         DECLARE_OP(add, 2, 1, true);
         DECLARE_OP(subtract, 2, 1, true);
         DECLARE_OP(reversesubtract, 2, 1, true);
+        DECLARE_OP(reversemod, 2, 1, true);
         DECLARE_OP(squaredsubtract, 2, 1, true)
         DECLARE_OP(multiply, 2, 1, true);
         DECLARE_OP(divide, 2, 1, true);

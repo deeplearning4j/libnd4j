@@ -12,7 +12,7 @@ namespace nd4j {
             NDArray<T> *y = INPUT_VARIABLE(1);
             NDArray<T> *z = this->getZ(block);
 
-			if (!x->isScalar() && !y->isScalar()) {
+			if (!x->isScalar() && !y->isScalar() && x->lengthOf() == y->lengthOf()) {
 				REQUIRE_OK(this->validateInputLengthMatch(block));
 				// REQUIRE_OK(this->validateInputDimensionsMatch(block));
 				x->template applyPairwiseTransform<simdOps::Multiply<T>>(y, z, nullptr);
@@ -26,9 +26,10 @@ namespace nd4j {
             }						
 			else if (x->isScalar() && y->isScalar()) { // (x->isScalar() && y->isScalar())
 				z->putScalar(0, x->getScalar(0) * y->getScalar(0));
+            } else {
+                auto tZ = x->template applyTrueBroadcast<simdOps::Multiply<T>>(y);
+                OVERWRITE_RESULT(tZ);
             }
-
-            STORE_RESULT(*z);
 
 			return ND4J_STATUS_OK;
         }

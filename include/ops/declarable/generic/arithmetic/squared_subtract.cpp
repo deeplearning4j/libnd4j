@@ -11,7 +11,7 @@ namespace nd4j {
             NDArray<T> *y = INPUT_VARIABLE(1);
             NDArray<T> *z = OUTPUT_VARIABLE(2);
 
-            if (!x->isScalar() && !y->isScalar()) {
+            if (!x->isScalar() && !y->isScalar() && x->lengthOf() == y->lengthOf()) {
                 REQUIRE_OK(this->validateInputLengthMatch(block));
                 x->template applyPairwiseTransform<simdOps::SquaredSubtract<T>>(y, z, nullptr);
 
@@ -23,7 +23,12 @@ namespace nd4j {
             }
             else if (x->isScalar() && y->isScalar()) { // x->isScalar() && y->isScalar()
                 z->putScalar(0, nd4j::math::nd4j_pow(x->getScalar(0) - y->getScalar(0), (T) 2));
+            } else {
+                auto tZ = x->template applyTrueBroadcast<simdOps::SquaredSubtract<T>>(y);
+                OVERWRITE_RESULT(tZ);
             }
+
+            return ND4J_STATUS_OK;
         }
         DECLARE_SYN(squareddifference, squaredsubtract);
     }

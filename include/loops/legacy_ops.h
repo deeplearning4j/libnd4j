@@ -35,7 +35,8 @@
        (14, simdOps::Max) ,\
        (15, simdOps::AMin) ,\
        (16, simdOps::AMax) ,\
-       (17, simdOps::SquaredSubtract)
+       (17, simdOps::SquaredSubtract),\
+       (18, simdOps::FloorMod)
 
 
 
