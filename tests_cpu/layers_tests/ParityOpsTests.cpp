@@ -402,3 +402,20 @@ TEST_F(ParityOpsTests, Test_Bias_Add_1) {
     delete tads;
     delete result;
 }
+
+TEST_F(ParityOpsTests, Test_Scatter_Add_1) {
+    NDArray<float> matrix('c', {2, 2}, {1, 2, 3, 4});
+    NDArray<float> idc('c', {1, 1}, {0});
+    NDArray<float> updates('c', {1, 2}, {1, 1});
+    NDArray<float> exp('c', {2, 2}, {2, 3, 3, 4});
+
+    nd4j::ops::scatter_add<float> op;
+    auto result = op.execute({&matrix, &idc, &updates}, {}, {});
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0); 
+
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}

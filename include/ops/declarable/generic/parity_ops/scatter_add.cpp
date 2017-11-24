@@ -12,10 +12,33 @@ namespace nd4j {
             auto updates = INPUT_VARIABLE(2);
 
             auto output = OUTPUT_VARIABLE(0);
+
             if (!block.isInplace())
                 output->assign(input);
 
+            if (indices->isVector() || (indices->isScalar() && indices->rankOf() == input->rankOf())) {
+                std::vector<int> idc;
+                std::vector<int> idcU;
 
+                for (int e = 0; e < indices->lengthOf(); e++) {
+                    idc.push_back((int) indices->getScalar(e));
+                    idcU.push_back(e);
+                }
+
+                std::vector<int> tadDimension = ShapeUtils<T>::convertAxisToTadTarget(input->rankOf(), {0});
+                auto tadsOperand = NDArrayFactory<T>::multipleTensorsAlongDimension(output, idc, tadDimension);
+                auto tadsUpdate = NDArrayFactory<T>::multipleTensorsAlongDimension(updates, idcU, tadDimension);
+
+                for (int e = 0; e < tadsOperand->size(); e++) {
+                    auto t0 = tadsOperand->at(e);
+                    auto t1 = tadsUpdate->at(e);
+
+                    t0->template applyPairwiseTransform<simdOps::Add<T>>(t1, nullptr);
+                }
+
+                delete tadsOperand;
+                delete tadsUpdate;
+            }
 
             return ND4J_STATUS_OK;
         }
