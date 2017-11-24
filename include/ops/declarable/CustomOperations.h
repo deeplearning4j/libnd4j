@@ -68,6 +68,8 @@ namespace nd4j {
         DECLARE_OP(log1p, 2, 1, true);
         DECLARE_OP(toggle_bits, -1, -1, true);
 
+        DECLARE_OP(scatter_add, 3, 1, true);
+
 
         DECLARE_DIVERGENT_OP(Switch, 2, 2, true);
 
