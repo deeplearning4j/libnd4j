@@ -16,7 +16,16 @@ namespace nd4j {
             if (!block.isInplace())
                 output->assign(input);
 
-            if (indices->isVector() || (indices->isScalar() && indices->rankOf() == input->rankOf())) {
+            if (indices->isVector() && input->isVector() && updates->isVector()) {
+                for (int e = 0; e < indices->lengthOf(); e++) {
+                    int idx = (int) indices->getScalar(e);
+                    
+                    T t0 = input->getScalar(idx);
+                    T t1 = updates->getScalar(e);
+                    
+                    output->putScalar(idx, t0 + t1);
+                }
+            } else if (indices->isVector() || (indices->isScalar() && indices->rankOf() == input->rankOf())) {
                 std::vector<int> idc;
                 std::vector<int> idcU;
 

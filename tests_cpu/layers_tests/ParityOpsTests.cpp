@@ -419,3 +419,20 @@ TEST_F(ParityOpsTests, Test_Scatter_Add_1) {
 
     delete result;
 }
+
+TEST_F(ParityOpsTests, Test_Scatter_Add_2) {
+    NDArray<float> matrix('c', {1, 4}, {1, 2, 3, 4});
+    NDArray<float> idc('c', {1, 4}, {0, 1, 2, 3});
+    NDArray<float> updates('c', {1, 4}, {1, 1, 1, 1});
+    NDArray<float> exp('c', {1, 4}, {2, 3, 4, 5});
+
+    nd4j::ops::scatter_add<float> op;
+    auto result = op.execute({&matrix, &idc, &updates}, {}, {});
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0); 
+
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}
