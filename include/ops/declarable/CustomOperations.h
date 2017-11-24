@@ -27,7 +27,6 @@ namespace nd4j {
         DECLARE_REDUCTION_OP(testreduction, 1, 1, false, 0, -1);
         DECLARE_REDUCTION_OP(argmax, 1, 1, false, 0, -2);
         DECLARE_REDUCTION_OP(argmin, 1, 1, false, 0, -2);
-        DECLARE_REDUCTION_OP(sum, 1, 1, false, 0, -1);
 
         DECLARE_OP(noop, -1, -1, true);
         DECLARE_OP(testop2i2o, 2, 2, true);
