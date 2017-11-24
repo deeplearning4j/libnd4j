@@ -16,10 +16,13 @@ namespace nd4j {
             if (!block.isInplace())
                 output->assign(input);
 
+            int indicesLength = (int) indices->lengthOf();
+
             if ((indices->isVector() && input->isVector() && updates->isVector()) ||
                 (input->isScalar() && input->isScalar() && updates->isScalar()) ||
                 (input->isVector() && indices->isScalar() && updates->isScalar()) ) {
-                for (int e = 0; e < indices->lengthOf(); e++) {
+                
+                for (int e = 0; e < indicesLength; e++) {
                     int idx = (int) indices->getScalar(e);
                     
                     T t0 = input->getScalar(idx);
@@ -31,7 +34,7 @@ namespace nd4j {
                 std::vector<int> idc;
                 std::vector<int> idcU;
 
-                for (int e = 0; e < indices->lengthOf(); e++) {
+                for (int e = 0; e < indicesLength; e++) {
                     idc.push_back((int) indices->getScalar(e));
                     idcU.push_back(e);
                 }
@@ -54,8 +57,27 @@ namespace nd4j {
 
                 delete tadsOperand;
                 delete tadsUpdate;
-            } else if (indices->isMatrix() || indices->rankOf() > 2) {
+            } else if (indices->isMatrix() || indices->rankOf() >= 2) {
+                auto _input = input->reshape(input->ordering(), {input->sizeAt(0), -1});
+                auto _updates = updates->reshape(updates->ordering(), {indicesLength, (int) updates->lengthOf() / indicesLength});
 
+                auto tadsOperand = NDArrayFactory<T>::allTensorsAlongDimension(_input, {1});
+                auto tadsUpdates = NDArrayFactory<T>::allTensorsAlongDimension(_updates, {1});
+
+                for (int e = 0; e < indicesLength; e++) {
+                    int idx = indices->getScalar(e);
+                    
+                    auto t0 = tadsOperand->at(idx);
+                    auto t1 = tadsUpdates->at(e);
+
+                    t0->template applyPairwiseTransform<simdOps::Add<T>>(t1, nullptr);
+                }
+
+                delete _input;
+                delete _updates;
+
+                delete tadsOperand;
+                delete tadsUpdates;
             }
 
             return ND4J_STATUS_OK;
