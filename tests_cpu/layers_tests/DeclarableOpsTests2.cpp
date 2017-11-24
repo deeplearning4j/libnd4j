@@ -2271,3 +2271,224 @@ TEST_F(DeclarableOpsTests2, logLoss_test13) {
 
     delete results;
 }
+
+///////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests2, meanPairWsSqErr_test1) {
+    
+    NDArray<double> labels('c', {2,3,4});
+    NDArray<double> predictions('c', {2,3,4});
+    NDArray<double> weights('c', {2,3,4}); 
+                                            
+    NDArrayFactory<double>::linspace(0.5, predictions, 0.5);
+    NDArrayFactory<double>::linspace(1, labels);
+    weights.assign(0.5);    
+ 
+    nd4j::ops::meanPairWsSqErr<double> op;
+    nd4j::ResultSet<double>* results = op.execute({&predictions, &weights, &labels}, {}, {});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<double> *result = results->at(0);            
+
+    ASSERT_TRUE(result->isScalar());    
+    ASSERT_NEAR((*result)(0), 71.5, 1e-5);    
+
+    delete results;
+}
+
+///////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests2, meanPairWsSqErr_test2) {
+    
+    NDArray<double> labels('c', {2,3,4});
+    NDArray<double> predictions('c', {2,3,4});
+    NDArray<double> weights('c', {1,3,1}); 
+                                            
+    NDArrayFactory<double>::linspace(0.5, predictions, 0.5);
+    NDArrayFactory<double>::linspace(1, labels);
+    weights.assign(0.5);    
+ 
+    nd4j::ops::meanPairWsSqErr<double> op;
+    nd4j::ResultSet<double>* results = op.execute({&predictions, &weights, &labels}, {}, {});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<double> *result = results->at(0);            
+
+    ASSERT_TRUE(result->isScalar());    
+    ASSERT_NEAR((*result)(0), 17.875, 1e-5);    
+
+    delete results;
+}
+
+///////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests2, meanPairWsSqErr_test3) {
+    
+    NDArray<double> labels('c', {2,3,4});
+    NDArray<double> predictions('c', {2,3,4});
+    NDArray<double> weights('c', {1,1,4}); 
+                                            
+    NDArrayFactory<double>::linspace(0.5, predictions, 0.5);
+    NDArrayFactory<double>::linspace(1, labels);
+    weights.assign(0.5);    
+ 
+    nd4j::ops::meanPairWsSqErr<double> op;
+    nd4j::ResultSet<double>* results = op.execute({&predictions, &weights, &labels}, {}, {});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<double> *result = results->at(0);            
+
+    ASSERT_TRUE(result->isScalar());    
+    ASSERT_NEAR((*result)(0), 23.833324, 1e-5);    
+
+    delete results;
+}
+
+
+///////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests2, meanPairWsSqErr_test4) {
+    
+    NDArray<double> labels('c', {2,3,4});
+    NDArray<double> predictions('c', {2,3,4});
+    NDArray<double> weights('c', {2,1,1}); 
+                                            
+    NDArrayFactory<double>::linspace(0.5, predictions, 0.5);
+    NDArrayFactory<double>::linspace(1, labels);
+    weights.assign(0.5);    
+ 
+    nd4j::ops::meanPairWsSqErr<double> op;
+    nd4j::ResultSet<double>* results = op.execute({&predictions, &weights, &labels}, {}, {});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<double> *result = results->at(0);            
+
+    ASSERT_TRUE(result->isScalar());    
+    ASSERT_NEAR((*result)(0), 5.958331, 1e-5);    
+
+    delete results;
+}
+
+///////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests2, meanPairWsSqErr_test5) {
+    
+    NDArray<double> labels('c', {2,3,4});
+    NDArray<double> predictions('c', {2,3,4});
+    NDArray<double> weights('c', {1,1}); 
+                                            
+    NDArrayFactory<double>::linspace(0.5, predictions, 0.5);
+    NDArrayFactory<double>::linspace(1, labels);
+    weights.assign(0.5);    
+ 
+    nd4j::ops::meanPairWsSqErr<double> op;
+    nd4j::ResultSet<double>* results = op.execute({&predictions, &weights, &labels}, {}, {});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<double> *result = results->at(0);            
+
+    ASSERT_TRUE(result->isScalar());    
+    ASSERT_NEAR((*result)(0), 5.958331, 1e-5);    
+
+    delete results;
+}
+
+///////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests2, meanPairWsSqErr_test6) {
+    
+    NDArray<double> labels('c', {2,3,4});
+    NDArray<double> predictions('c', {2,3,4});
+    NDArray<double> weights('c', {2,3,1}); 
+                                            
+    NDArrayFactory<double>::linspace(0.5, predictions, 0.5);
+    NDArrayFactory<double>::linspace(1, labels);
+    weights.assign(0.5);    
+ 
+    nd4j::ops::meanPairWsSqErr<double> op;
+    nd4j::ResultSet<double>* results = op.execute({&predictions, &weights, &labels}, {}, {});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<double> *result = results->at(0);            
+
+    ASSERT_TRUE(result->isScalar());    
+    ASSERT_NEAR((*result)(0), 17.874992, 1e-5);    
+
+    delete results;
+}
+
+///////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests2, meanPairWsSqErr_test7) {
+    
+    NDArray<double> labels('c', {2,3,4});
+    NDArray<double> predictions('c', {2,3,4});
+    NDArray<double> weights('c', {2,1,4}); 
+                                            
+    NDArrayFactory<double>::linspace(0.5, predictions, 0.5);
+    NDArrayFactory<double>::linspace(1, labels);
+    weights.assign(0.5);    
+ 
+    nd4j::ops::meanPairWsSqErr<double> op;
+    nd4j::ResultSet<double>* results = op.execute({&predictions, &weights, &labels}, {}, {});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<double> *result = results->at(0);            
+
+    ASSERT_TRUE(result->isScalar());    
+    ASSERT_NEAR((*result)(0), 23.833324, 1e-5);    
+
+    delete results;
+}
+
+///////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests2, meanPairWsSqErr_test8) {
+    
+    NDArray<double> labels('c', {2,3,4});
+    NDArray<double> predictions('c', {2,3,4});
+    NDArray<double> weights('c', {1,3,4}); 
+                                            
+    NDArrayFactory<double>::linspace(0.5, predictions, 0.5);
+    NDArrayFactory<double>::linspace(1, labels);
+    weights.assign(0.5);    
+ 
+    nd4j::ops::meanPairWsSqErr<double> op;
+    nd4j::ResultSet<double>* results = op.execute({&predictions, &weights, &labels}, {}, {});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<double> *result = results->at(0);            
+
+    ASSERT_TRUE(result->isScalar());    
+    ASSERT_NEAR((*result)(0), 71.5, 1e-5);    
+
+    delete results;
+}
+
+///////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests2, meanPairWsSqErr_test9) {
+    
+    NDArray<double> labels('c', {2,3,4});
+    NDArray<double> predictions('c', {2,3,4});
+    NDArray<double> weights('c', {2,3,4}); 
+                                            
+    NDArrayFactory<double>::linspace(0.5, predictions, 0.5);
+    NDArrayFactory<double>::linspace(1, labels);
+    weights.assign(0.5);    
+    weights(0) = 0.;
+    weights(1) = 0.;
+    weights(2) = 0.;
+    weights(3) = 0.;
+ 
+    nd4j::ops::meanPairWsSqErr<double> op;
+    nd4j::ResultSet<double>* results = op.execute({&predictions, &weights, &labels}, {}, {});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<double> *result = results->at(0);            
+
+    ASSERT_TRUE(result->isScalar());    
+    ASSERT_NEAR((*result)(0), 8.125, 1e-5);    
+
+    delete results;
+}
