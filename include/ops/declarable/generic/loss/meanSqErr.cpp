@@ -78,7 +78,7 @@ CUSTOM_OP_IMPL(meanSqErr, 3, 1, false, 0, 1) {
 			break;
 		}
 		default:
-			throw "CUSTOM_OP loss function absoluteDifference: reduction mode has not acceptable value, possible values are 0, 1, 2, 3 !";			
+			throw "CUSTOM_OP loss function meanSqErr: reduction mode has not acceptable value, possible values are 0, 1, 2, 3 !";			
 	}
 
 
@@ -99,15 +99,15 @@ DECLARE_SHAPE_FN(meanSqErr) {
     NDArray<T>* labels  	= INPUT_VARIABLE(2);
 
     if(!labels->isSameShape(predictions))
-    	throw "CUSTOM_OP loss function absoluteDifference: labels and predictions arrays have different shapes!";
+    	throw "CUSTOM_OP loss function meanSqErr: labels and predictions arrays have different shapes!";
     // weights array can be single scalar or has the same rank as labels, and must be broadcastable to labels
     if(!weights->isScalar() && weights->rankOf() != labels->rankOf())
-    	throw "CUSTOM_OP loss function absoluteDifference: weights array must have the same rank as labels array!";
+    	throw "CUSTOM_OP loss function meanSqErr: weights array must have the same rank as labels array!";
     // check whether broadcast operation is possible for weights array
     if(!weights->isScalar())
     	for (int i = 0; i < weights->rankOf(); ++i)
         	if (weights->shapeOf()[i] != labels->shapeOf()[i] && weights->shapeOf()[i] != 1)
-            	throw "CUSTOM_OP loss function absoluteDifference: shapes of weights array is not broadcastable to labels shape!";
+            	throw "CUSTOM_OP loss function meanSqErr: shapes of weights array is not broadcastable to labels shape!";
 
     int* outShapeInfo = nullptr;
     if(INT_ARG(0) != 0) {			// in this case output is scalar
