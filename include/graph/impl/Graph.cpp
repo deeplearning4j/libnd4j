@@ -630,7 +630,12 @@ namespace nd4j {
                 // second pass is mover, we'll be moving onion layers around here
                 buildCnt++;
                 if (buildCnt > buildLimit) {
-                    nd4j_printf("Unable to build graph, probably unmapped nodes, or something: %i nodes left", _unmapped.size());
+                    nd4j_printf("Unable to build graph, probably unmapped nodes, or something: %i nodes left\n", _unmapped.size());
+                    for (auto v: _unmapped) {
+                        Node<T>* node = v.second;
+                        nd4j_printf("Unmapped node: [%i]\n", node->id());
+                    }
+
                     throw "Unable to build graph";
                 }
             }
