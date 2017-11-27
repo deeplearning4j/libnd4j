@@ -70,6 +70,9 @@ namespace nd4j {
 
         DECLARE_OP(scatter_add, 3, 1, true);
         DECLARE_OP(scatter_sub, 3, 1, true);
+        DECLARE_OP(scatter_mul, 3, 1, true);
+        DECLARE_OP(scatter_div, 3, 1, true);
+        DECLARE_OP(scatter_upd, 3, 1, true);
     
 
 
