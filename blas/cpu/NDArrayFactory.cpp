@@ -11,6 +11,7 @@
 #include <ops/gemm.h>
 #include <types/float16.h>
 #include <helpers/ShapeUtils.h>
+#include <helpers/BlasHelper.h>
 
 namespace nd4j {
 
@@ -407,7 +408,11 @@ namespace nd4j {
 
             // we'll use platform-specific gemm here eventually. maybe tomorrow.
             // TODO: put proper _gemm here
-            nd4j::blas::GEMM<T>::op(rOrder, transA, transB, M, N, K, alpha, pA->getBuffer(), lda, pB->getBuffer(), ldb, beta, pC->getBuffer(), ldc);
+            if (BlasHelper::getInstance()->template hasGEMM<T>()) {
+                nd4j_debug("Using provided GEMM pointer\n","");
+            } else {
+                nd4j::blas::GEMM<T>::op(rOrder, transA, transB, M, N, K, alpha, pA->getBuffer(), lda, pB->getBuffer(), ldb, beta, pC->getBuffer(), ldc);
+            }
 
             if (cOrder != 'f') {
                 tC->assign(pC);
