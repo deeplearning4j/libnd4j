@@ -210,7 +210,7 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph) {
                 auto inputId = node->input()->at(e);
 
                 // we're skipping external variables here
-                if (inputId.first < 0)
+                if (inputId.first < 0 || __variableSpace->hasExternalVariable(inputId.first))
                     continue;
 
                 /**
