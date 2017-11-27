@@ -507,7 +507,7 @@ namespace nd4j {
                         }
 
                         int iNode = node->input()->at(0).first;
-                        if (iNode < 0) {
+                        if (iNode < 0 || _variableSpace->hasExternalVariable(iNode)) {
                             // this is external variable, should we check, who's the last user of this variable?
                             int lastLayer = _onion->size();
                             expandOnion(lastLayer);
@@ -587,7 +587,7 @@ namespace nd4j {
                                 if (maxLayer < iNode->getLayer())
                                     maxLayer = iNode->getLayer();
                             } else {
-                                if (nodeId > 0) {
+                                if (nodeId > 0 && !_variableSpace->hasExternalVariable(nodeId)) {
                                     breaker = true;
                                     break;
                                 }

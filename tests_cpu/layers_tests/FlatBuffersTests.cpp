@@ -514,9 +514,9 @@ TEST_F(FlatBuffersTest, ReduceDim_1) {
 
     auto variableSpace = graph->getVariableSpace();
 
-    ASSERT_TRUE(variableSpace->hasVariable(2));
+    ASSERT_TRUE(variableSpace->hasVariable(3));
 
-    auto result = variableSpace->getVariable(2)->getNDArray();
+    auto result = variableSpace->getVariable(3)->getNDArray();
 
     ASSERT_TRUE(exp.isSameShape(result));
     ASSERT_TRUE(exp.equalsTo(result));
