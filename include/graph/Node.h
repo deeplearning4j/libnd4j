@@ -146,7 +146,7 @@ namespace nd4j {
             int scopeId();
             std::string* scopeName();
 
-            static nd4j::ops::DeclarableOp<T>* buildOpByType(OpType opType, int numInputs, int opNum, T scalar);
+            static nd4j::ops::DeclarableOp<T>* buildOpByType(OpType opType, int numInputs, int numIArgs, int numTArgs, int opNum, T scalar);
         };
     }
 }

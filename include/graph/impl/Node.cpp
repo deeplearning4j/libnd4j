@@ -334,7 +334,6 @@ namespace nd4j {
                     opType == OpType_TRANSFORM ||
                     opType == OpType_SCALAR) {
 
-                this->setCustomOp(Node<T>::buildOpByType(opType, (int) input.size(), opNum, scalar));
                 this->_isDeductable = true;
 
                 auto block = new ContextPrototype<T>(this->id(), false);
@@ -350,6 +349,7 @@ namespace nd4j {
                     block->getTArguments()->emplace_back(v);
 
                 this->setContextPrototype(block);
+                this->setCustomOp(Node<T>::buildOpByType(opType, (int) input.size(), (int) block->getIArguments()->size(), (int) block->getTArguments()->size(), opNum, scalar));
             } else if (opType == OpType_CUSTOM) {
                 auto block = new ContextPrototype<T>(this->id(), false);
 
@@ -439,7 +439,6 @@ namespace nd4j {
                     }
 
                     if (node->input() != nullptr && node->input()->size() > 0) {
-                        this->setCustomOp(Node<T>::buildOpByType(_opType, (int) node->input()->size(), _opNum, _scalar));
                         this->_isDeductable = true;
 
                         auto block = new ContextPrototype<T>(this->id(), false);
@@ -454,8 +453,8 @@ namespace nd4j {
                             }
 
                         this->setContextPrototype(block);
+                        this->setCustomOp(Node<T>::buildOpByType(_opType, (int) node->inputPaired()->size(), (int) block->getIArguments()->size(), (int) block->getTArguments()->size(), (int) _opNum, _scalar));
                     } else if (node->inputPaired() != nullptr && node->inputPaired()->size() > 0) {
-                        this->setCustomOp(Node<T>::buildOpByType(_opType, (int) node->inputPaired()->size(), _opNum, _scalar));
                         this->_isDeductable = true;
 
                         auto block = new ContextPrototype<T>(this->id(), false);
@@ -474,6 +473,8 @@ namespace nd4j {
                             }
 
                         this->setContextPrototype(block);
+
+                        this->setCustomOp(Node<T>::buildOpByType(_opType, (int) node->inputPaired()->size(), (int) block->getIArguments()->size(), (int) block->getTArguments()->size(), (int) _opNum, _scalar));
                     }
                 } else if (this->_opType == OpType_CUSTOM) {
                     auto op = nd4j::ops::OpRegistrator::getInstance()->getOperationFloat(this->opNum());
@@ -532,20 +533,18 @@ namespace nd4j {
         }
 
         template <typename T>
-        nd4j::ops::DeclarableOp<T>* nd4j::graph::Node<T>::buildOpByType(OpType opType, int numInputs, int opNum, T scalar) {
+        nd4j::ops::DeclarableOp<T>* nd4j::graph::Node<T>::buildOpByType(OpType opType, int numInputs,  int numIArgs, int numTArgs, int opNum, T scalar) {
             switch (opType) {
+                case OpType_PAIRWISE:
+                    return new nd4j::ops::LegacyPairwiseTransformOp<T>(opNum);
                 case OpType_TRANSFORM:
-                    if (numInputs == 2)
-                        return new nd4j::ops::LegacyPairwiseTransformOp<T>(opNum);
-                    else
-                        return new nd4j::ops::LegacyTransformOp<T>(opNum);
+                    return new nd4j::ops::LegacyTransformOp<T>(opNum);
                 case OpType_SCALAR:
                     return new nd4j::ops::LegacyScalarOp<T>(opNum, scalar);
+                case OpType_ACCUMULATION3:
+                    return new nd4j::ops::LegacyReduce3Op<T>(opNum);
                 case OpType_ACCUMULATION:
-                    if (numInputs == 2)
-                        return new nd4j::ops::LegacyReduce3Op<T>(opNum);
-                    else
-                        return new nd4j::ops::LegacyReduceOp<T>(opNum);
+                    return new nd4j::ops::LegacyReduceOp<T>(opNum);
                 case OpType_INDEX_ACCUMULATION:
                     return new nd4j::ops::LegacyIndexReduceOp<T>(opNum);
                 case OpType_SUMMARYSTATS:
