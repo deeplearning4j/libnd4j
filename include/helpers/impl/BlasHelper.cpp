@@ -12,6 +12,17 @@ namespace nd4j {
 
 
     void BlasHelper::initializeFunctions(Nd4jPointer *functions) {
+        nd4j_debug("Initializing BLAS\n","");
+
+        _hasSgemv = functions[0] != nullptr;
+        _hasSgemm = functions[2] != nullptr;
+
+        _hasDgemv = functions[1] != nullptr;
+        _hasDgemm = functions[3] != nullptr;
+
+        _hasSgemmBatch = functions[4] != nullptr;
+        _hasDgemmBatch = functions[5] != nullptr;
+
         this->cblasSgemv = (CblasSgemv)functions[0];
         this->cblasDgemv = (CblasDgemv)functions[1];
         this->cblasSgemm = (CblasSgemm)functions[2];
@@ -33,12 +44,12 @@ namespace nd4j {
 
     template <>
     bool BlasHelper::hasGEMV<float>() {
-        return this->cblasSgemv != nullptr;
+        return _hasSgemv;
     }
 
     template <>
     bool BlasHelper::hasGEMV<double>() {
-        return this->cblasDgemv != nullptr;
+        return _hasDgemv;
     }
 
     template <>
@@ -48,12 +59,12 @@ namespace nd4j {
 
     template <>
     bool BlasHelper::hasGEMM<float>() {
-        return this->cblasSgemm != nullptr;
+        return _hasSgemm;
     }
 
     template <>
     bool BlasHelper::hasGEMM<double>() {
-        return this->cblasDgemm != nullptr;
+        return _hasDgemm;
     }
 
     template <>
@@ -62,13 +73,23 @@ namespace nd4j {
     }
 
     template <>
+    bool BlasHelper::hasGEMM<int>() {
+        return false;
+    }
+
+    template <>
+    bool BlasHelper::hasGEMM<Nd4jIndex>() {
+        return false;
+    }
+
+    template <>
     bool BlasHelper::hasBatchedGEMM<float>() {
-        return this->cblasSgemmBatch != nullptr;
+        return _hasSgemmBatch;
     }
 
     template <>
     bool BlasHelper::hasBatchedGEMM<double>() {
-        return this->cblasDgemmBatch != nullptr;
+        return _hasDgemmBatch;
     }
 
     template <>

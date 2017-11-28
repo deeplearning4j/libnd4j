@@ -8,6 +8,7 @@
 #include <pointercast.h>
 #include <types/float16.h>
 #include <cblas.h>
+#include <helpers/logger.h>
 
 #ifdef _WIN32
 #define CUBLASWINAPI __stdcall
@@ -241,23 +242,32 @@ namespace nd4j {
     class BlasHelper {
     private:
         static BlasHelper* _instance;
-        
-        CblasSgemv cblasSgemv = nullptr;
-        CblasDgemv cblasDgemv = nullptr;
-        CblasSgemm cblasSgemm = nullptr;
-        CblasDgemm cblasDgemm = nullptr;
-        CblasSgemmBatch cblasSgemmBatch = nullptr;
-        CblasDgemmBatch cblasDgemmBatch = nullptr;
 
-        CublasSgemv cublasSgemv = nullptr;
-        CublasDgemv cublasDgemv = nullptr;
-        CublasHgemm cublasHgemm = nullptr;
-        CublasSgemm cublasSgemm = nullptr;
-        CublasDgemm cublasDgemm = nullptr;
-        CublasSgemmEx cublasSgemmEx = nullptr;
-        CublasHgemmBatched cublasHgemmBatched = nullptr;
-        CublasSgemmBatched cublasSgemmBatched = nullptr;
-        CublasDgemmBatched cublasDgemmBatched = nullptr;
+
+        bool _hasSgemv = false;
+        bool _hasSgemm = false;
+        bool _hasSgemmBatch = false;
+
+        bool _hasDgemv = false;
+        bool _hasDgemm = false;
+        bool _hasDgemmBatch = false;
+        
+        CblasSgemv cblasSgemv;
+        CblasDgemv cblasDgemv;
+        CblasSgemm cblasSgemm;
+        CblasDgemm cblasDgemm;
+        CblasSgemmBatch cblasSgemmBatch;
+        CblasDgemmBatch cblasDgemmBatch;
+
+        CublasSgemv cublasSgemv;
+        CublasDgemv cublasDgemv;
+        CublasHgemm cublasHgemm;
+        CublasSgemm cublasSgemm;
+        CublasDgemm cublasDgemm;
+        CublasSgemmEx cublasSgemmEx;
+        CublasHgemmBatched cublasHgemmBatched;
+        CublasSgemmBatched cublasSgemmBatched;
+        CublasDgemmBatched cublasDgemmBatched;
 
     public:
         static BlasHelper* getInstance();

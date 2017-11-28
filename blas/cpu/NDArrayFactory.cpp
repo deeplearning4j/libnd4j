@@ -410,7 +410,10 @@ namespace nd4j {
             // TODO: put proper _gemm here
             if (BlasHelper::getInstance()->template hasGEMM<T>()) {
                 nd4j_debug("Using provided GEMM pointer\n","");
+                BlasHelper::getInstance()->sgemm()(CblasRowMajor, CblasNoTrans, CblasNoTrans, M, N, K, (float) alpha, (float *) pA->getBuffer(), lda, (float *) pB->getBuffer(), ldb, (float) beta, (float *) pC->getBuffer(), ldc);
             } else {
+                nd4j_debug("Using fallback GEMM impl\n","");
+
                 nd4j::blas::GEMM<T>::op(rOrder, transA, transB, M, N, K, alpha, pA->getBuffer(), lda, pB->getBuffer(), ldb, beta, pC->getBuffer(), ldc);
             }
 
