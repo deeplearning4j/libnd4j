@@ -1602,11 +1602,7 @@ public:
      */
     void initializeDevicesAndFunctions();
 
-    void initializeDevicesAndFunctions(Nd4jPointer *functions) {
-        initializeDevicesAndFunctions();
-
-        nd4j::BlasHelper::getInstance()->initializeFunctions(functions);
-    }
+    void initializeFunctions(Nd4jPointer *functions);
 
     /**
      * This method acquires memory chunk of requested size on host side
