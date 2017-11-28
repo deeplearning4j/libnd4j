@@ -1862,7 +1862,7 @@ void NativeOps::initializeDevicesAndFunctions() {
 }
 
 void NativeOps::initializeFunctions(Nd4jPointer *functions) {
-    BlasHelper::getInstance()->getInstance()->initializeFunctions(functions);
+    BlasHelper::getInstance()->initializeFunctions(functions);
 }
 
 /**

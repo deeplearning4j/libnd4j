@@ -4568,7 +4568,8 @@ void NativeOps::initializeDevicesAndFunctions() {
 }
 
 void NativeOps::initializeFunctions(Nd4jPointer *functions) {
-    /*
+    nd4j::BlasHelper::getInstance()->initializeDeviceFunctions(functions);
+	/*
 	this->cublasSgemv = (CublasSgemv)functions[0];
     this->cublasDgemv = (CublasDgemv)functions[1];
     this->cublasHgemm = (CublasHgemm)functions[2];

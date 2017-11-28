@@ -36,15 +36,17 @@ namespace nd4j {
     void BlasHelper::initializeDeviceFunctions(Nd4jPointer *functions) {
         nd4j_debug("Initializing device BLAS\n","");
 
-        this->cublasSgemv = (CublasSgemv)functions[6];
-        this->cublasDgemv = (CublasDgemv)functions[7];
-        this->cublasHgemm = (CublasHgemm)functions[8];
-        this->cublasSgemm = (CublasSgemm)functions[9];
-        this->cublasDgemm = (CublasDgemm)functions[10];
-        this->cublasSgemmEx = (CublasSgemmEx)functions[11];
-        this->cublasHgemmBatched = (CublasHgemmBatched)functions[12];
-        this->cublasSgemmBatched = (CublasSgemmBatched)functions[13];
-        this->cublasDgemmBatched = (CublasDgemmBatched)functions[14];
+        /*
+	    this->cublasSgemv = (CublasSgemv)functions[0];
+        this->cublasDgemv = (CublasDgemv)functions[1];
+        this->cublasHgemm = (CublasHgemm)functions[2];
+        this->cublasSgemm = (CublasSgemm)functions[3];
+        this->cublasDgemm = (CublasDgemm)functions[4];
+        this->cublasSgemmEx = (CublasSgemmEx)functions[5];
+        this->cublasHgemmBatched = (CublasHgemmBatched)functions[6];
+        this->cublasSgemmBatched = (CublasSgemmBatched)functions[7];
+        this->cublasDgemmBatched = (CublasDgemmBatched)functions[8];
+	    */
     }
 
 
