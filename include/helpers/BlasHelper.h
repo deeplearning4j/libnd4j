@@ -243,6 +243,9 @@ namespace nd4j {
     private:
         static BlasHelper* _instance;
 
+		bool _hasHgemv = false;
+		bool _hasHgemm = false;
+		bool _hasHgemmBatch = false;
 
         bool _hasSgemv = false;
         bool _hasSgemm = false;
@@ -273,6 +276,7 @@ namespace nd4j {
         static BlasHelper* getInstance();
 
         void initializeFunctions(Nd4jPointer *functions);
+		void initializeDeviceFunctions(Nd4jPointer *functions);
 
         template <typename T>
         bool hasGEMV();

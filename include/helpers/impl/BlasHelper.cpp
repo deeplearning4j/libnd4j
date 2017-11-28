@@ -30,6 +30,12 @@ namespace nd4j {
         this->cblasSgemmBatch = (CblasSgemmBatch)functions[4];
         this->cblasDgemmBatch = (CblasDgemmBatch)functions[5];
 
+
+    }
+
+    void BlasHelper::initializeDeviceFunctions(Nd4jPointer *functions) {
+        nd4j_debug("Initializing device BLAS\n","");
+
         this->cublasSgemv = (CublasSgemv)functions[6];
         this->cublasDgemv = (CublasDgemv)functions[7];
         this->cublasHgemm = (CublasHgemm)functions[8];
