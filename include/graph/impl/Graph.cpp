@@ -303,6 +303,9 @@ namespace nd4j {
 
             _handles.push_back(node);
 
+
+            _nodes->emplace_back(node->id());
+
             // storing node state now
             _variableSpace->putVariable(node->id(), nodeState);
 
@@ -530,7 +533,7 @@ namespace nd4j {
 
                                     for (int e = 0; e < node->input()->size(); e++) {
                                         auto p = node->input()->at(e);
-;
+
                                         block->pickInput(p);
                                     }
                                 }
@@ -649,6 +652,12 @@ namespace nd4j {
                 nd4j_verbose("Number of external variables: %i\n", ext->size())
                 for (unsigned int e = 0; e < ext->size(); e++) {
                     pushToOutputOnce(ext->at(e)->id());
+                }
+            } else if (_configuration->_outputMode == OutputMode_IMPLICIT) {
+                // we're adding final nodes of the graph. those, not used as input anywhere
+                nd4j_printf("Paring nodes...\n", "");
+                for (auto v: *_nodes) {
+                    nd4j_printf("Node %i\n", v);
                 }
             }
 
