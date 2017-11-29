@@ -13,7 +13,8 @@ using namespace nd4j::graph;
 
 class PlaygroundTests : public testing::Test {
 public:
-    int numIterations = 10000;
+    int numIterations = 10;
+    int poolSize = 10;
 };
 
 
@@ -68,7 +69,7 @@ TEST_F(PlaygroundTests, LambdaTest_2) {
 
 
 TEST_F(PlaygroundTests, NoCacheTest_1) {
-    std::vector<NDArray<float> *> pool(100);
+    std::vector<NDArray<float> *> pool(poolSize);
     NDArray<float> source('c', {8192, 1024});
     for (int e = 0; e < pool.size(); e++)
         pool[e] = source.dup();
@@ -80,10 +81,10 @@ TEST_F(PlaygroundTests, NoCacheTest_1) {
     auto timeStart = std::chrono::system_clock::now();
     int cnt = 0;
     for (int e = 0; e < numIterations; e++) {
-        auto v = pool[99 - (cnt++)];
+        auto v = pool[poolSize - 1 - (cnt++)];
         v->applyLambda(lambda);
 
-        if (cnt == 100)
+        if (cnt == poolSize)
             cnt = 0;
     }
 
@@ -99,8 +100,8 @@ TEST_F(PlaygroundTests, NoCacheTest_1) {
 
 
 TEST_F(PlaygroundTests, NoCacheTest_2) {
-    std::vector<NDArray<float> *> pool1(100);
-    std::vector<NDArray<float> *> pool2(100);
+    std::vector<NDArray<float> *> pool1(poolSize);
+    std::vector<NDArray<float> *> pool2(poolSize);
     NDArray<float> source('c', {8192, 1024});
     for (int e = 0; e < pool1.size(); e++) {
         pool1[e] = source.dup();
@@ -114,11 +115,11 @@ TEST_F(PlaygroundTests, NoCacheTest_2) {
     auto timeStart = std::chrono::system_clock::now();
     int cnt = 0;
     for (int e = 0; e < numIterations; e++) {
-        auto v1 = pool1[99 - cnt];
+        auto v1 = pool1[poolSize - 1 - cnt];
         auto v2 = pool2[cnt++];
         v1->applyPairwiseLambda(v2, lambda);
 
-        if (cnt == 100)
+        if (cnt == poolSize)
             cnt = 0;
     }
 

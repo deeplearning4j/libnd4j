@@ -107,6 +107,7 @@ namespace nd4j {
             int * getDimensionsPtr();
 
 
+            void pickOutputOnce(int outputId);
             void pickOutput(int outputId);
             void pickExternalOutput(int outputId);
             void pickInput(int inputId);

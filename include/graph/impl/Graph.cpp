@@ -214,6 +214,7 @@ namespace nd4j {
 
             nd4j_debug("Graph output size: %i\n", _output.size());
             for (int e = 0; e < (int) _output.size(); e++) {
+                nd4j_printf("Output node: %i\n", _output.at(e));
                 res->push_back(_variableSpace->getVariable(_output.at(e)));
             }
 
@@ -407,11 +408,12 @@ namespace nd4j {
                 node->pickExternalOutput(var->id());
 
                 // we're pushing this variable to output
+                /*
                 if (_configuration->_outputMode == OutputMode_IMPLICIT ||
                     _configuration->_outputMode == OutputMode_EXPLICIT_AND_IMPLICIT ||
                     _configuration->_outputMode == OutputMode_VARIABLE_SPACE)
                     pushToOutputOnce(var->id());
-
+*/
                 this->_autos.push_back(var->id());
                 assert(node->hasExternalOutputs());
 //        }
@@ -654,12 +656,29 @@ namespace nd4j {
                 for (unsigned int e = 0; e < ext->size(); e++) {
                     pushToOutputOnce(ext->at(e)->id());
                 }
+
+                for (auto v: *_nodes) {
+                    if (_mapped->count(v) == 0)
+                        continue;
+
+                    Node<T>* node = _mapped->at(v);
+
+                    if (std::find(_output.begin(), _output.end(), node->id()) == _output.end())
+                        _output.emplace_back(node->id());
+                }
+
             } else if (_configuration->_outputMode == OutputMode_IMPLICIT) {
                 // we're adding final nodes of the graph. those, not used as input anywhere
-                nd4j_debug("Paring nodes...\n", "");
-                _output.clear();
-                
+                nd4j_debug("Paring nodes... \n", "");
+
+                nd4j_printv("current _output", _output);
+                //_output.clear();
+
                 for (auto v: *_nodes) {
+                    // we should check for scopes, and other possible non-mapped stuff
+                    if (_mapped->count(v) == 0)
+                        continue;
+
                     Node<T>* node = _mapped->at(v);
                     if (node->name() != nullptr) {
                         nd4j_debug("Node %i; Name: [%s]\n", v, node->name()->c_str());
@@ -673,13 +692,17 @@ namespace nd4j {
 
                         // input can be variable, or node. we only care about nodes
                         if (_mapped->count(inP.first) > 0) {
-                            _mapped->at(inP.first)->pickOutput(v);
+                            _mapped->at(inP.first)->pickOutputOnce(v);
                         }
                     }
                 }
                 // at this point all nodes have filled inputs/outputs, so we know nodes that do not have any connected outputs
 
                 for (auto v: *_nodes) {
+                    // we should check for scopes, and other possible non-mapped stuff
+                    if (_mapped->count(v) == 0)
+                        continue;
+
                     Node<T>* node = _mapped->at(v);
 
                     if (!node->hasInternalOutputs()) {
@@ -689,7 +712,10 @@ namespace nd4j {
                             nd4j_debug("Output node found: [%i]\n", v);
                         }
 
-                        _output.emplace_back(node->id());
+                        // FIXME: we don't really need search here.
+
+                        if (std::find(_output.begin(), _output.end(), node->id()) == _output.end())
+                            _output.emplace_back(node->id());
                     } else if (Environment::getInstance()->isDebugAndVerbose()) {
                         nd4j_debug("Node [%i:<%s>] has %i outputs announced:\n", v, node->name()->c_str(), node->output()->size());
                         printf("{");
@@ -701,7 +727,6 @@ namespace nd4j {
                     }
                 }
             }
-
             return ND4J_STATUS_OK;
         }
 

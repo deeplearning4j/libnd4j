@@ -178,6 +178,13 @@ namespace nd4j {
         }
 
         template <typename T>
+        void nd4j::graph::Node<T>::pickOutputOnce(int outputId) {
+            std::pair<int, int> pair(outputId, 0);
+            if (std::find(_output.begin(), _output.end(), pair) == _output.end())
+                pickOutput(outputId);
+        }
+
+        template <typename T>
         void nd4j::graph::Node<T>::pickOutput(int outputId) {
             std::pair<int, int> pair(outputId, 0);
             _output.emplace_back(pair);
@@ -336,7 +343,9 @@ namespace nd4j {
                     opType == OpType_INDEX_ACCUMULATION ||
                     opType == OpType_SUMMARYSTATS ||
                     opType == OpType_ACCUMULATION ||
+                    opType == OpType_ACCUMULATION3 ||
                     opType == OpType_TRANSFORM ||
+                    opType == OpType_PAIRWISE ||
                     opType == OpType_SCALAR) {
 
                 this->_isDeductable = true;
@@ -416,10 +425,11 @@ namespace nd4j {
 
                 if (node->output() != nullptr)
                     for (int e = 0; e < (int) node->output()->size(); e++) {
-                        nd4j_verbose("Picking output: %i\n", node->output()->Get(e));
                         auto oid = node->output()->Get(e);
-                        if (oid != this->_id)
+                        if (oid != this->_id && oid != 0) {
+                            nd4j_verbose("Picking output: %i\n", node->output()->Get(e));
                             pickOutput(oid);
+                        }
                     }
 
 
@@ -460,7 +470,7 @@ namespace nd4j {
                             }
 
                         this->setContextPrototype(block);
-                        this->setCustomOp(Node<T>::buildOpByType(_opType, (int) node->inputPaired()->size(), (int) block->getIArguments()->size(), (int) block->getTArguments()->size(), (int) _opNum, _scalar));
+                        this->setCustomOp(Node<T>::buildOpByType(_opType, (int) node->input()->size(), (int) block->getIArguments()->size(), (int) block->getTArguments()->size(), (int) _opNum, _scalar));
                     } else if (node->inputPaired() != nullptr && node->inputPaired()->size() > 0) {
                         this->_isDeductable = true;
 

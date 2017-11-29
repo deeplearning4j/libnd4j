@@ -462,7 +462,7 @@ TEST_F(FlatBuffersTest, ReadLoops_NestedWhile_1) {
     delete graph;
 }
 */
-
+/*
 
 TEST_F(FlatBuffersTest, ReadTensorArray_1) {
     // TF graph: https://gist.github.com/raver119/3265923eed48feecc465d17ec842b6e2
@@ -487,6 +487,8 @@ TEST_F(FlatBuffersTest, ReadTensorArray_1) {
 
     delete graph;
 }
+
+*/
 
 TEST_F(FlatBuffersTest, ReadStridedSlice_1) {
     // TF graph: https://gist.github.com/raver119/fc3bf2d31c91e465c635b24020fd798d
@@ -541,7 +543,7 @@ TEST_F(FlatBuffersTest, ReduceDim_1) {
     delete graph;
 }
 
-
+/*
 TEST_F(FlatBuffersTest, ReadLoops_SimpleWhile_1) {
     // TF graph:
     // https://gist.github.com/raver119/2aa49daf7ec09ed4ddddbc6262f213a0
@@ -555,3 +557,5 @@ TEST_F(FlatBuffersTest, ReadLoops_SimpleWhile_1) {
 
     delete graph;
 }
+
+ */

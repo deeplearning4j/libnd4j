@@ -155,7 +155,20 @@ template <typename T>
 
     } else if (node->hasCustomOp()) {
         // if we have something to execute - lets just execute it.
-        return node->getCustomOp()->execute(&context);
+        auto status = node->getCustomOp()->execute(&context);
+        if (status != ND4J_STATUS_OK)
+            return status;
+
+        // propagate variables
+        if (node->hasExternalOutputs()) {
+            for (auto v: *node->output()) {
+                if (variableSpace->hasExternalVariable(v.first)) {
+                    variableSpace->getVariable(v.first)->getNDArray()->assign(variableSpace->getVariable(node->id())->getNDArray());
+                }
+            }
+        }
+
+        return status;
     }
     return ND4J_STATUS_OK;
 }
