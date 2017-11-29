@@ -124,6 +124,11 @@ namespace nd4j {
         }
 
         template <typename T>
+        std::string * nd4j::graph::Node<T>::name() {
+            return this->getName();
+        }
+
+        template <typename T>
         std::string * nd4j::graph::Node<T>::getName() {
             return &_name;
         }
@@ -412,7 +417,9 @@ namespace nd4j {
                 if (node->output() != nullptr)
                     for (int e = 0; e < (int) node->output()->size(); e++) {
                         nd4j_verbose("Picking output: %i\n", node->output()->Get(e));
-                        pickOutput(node->output()->Get(e));
+                        auto oid = node->output()->Get(e);
+                        if (oid != this->_id)
+                            pickOutput(oid);
                     }
 
 

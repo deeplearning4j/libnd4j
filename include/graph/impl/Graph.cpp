@@ -212,6 +212,7 @@ namespace nd4j {
         std::vector<Variable<T> *> * Graph<T>::fetchOutputs() {
             auto res = new std::vector<Variable<T> *>();
 
+            nd4j_debug("Graph output size: %i\n", _output.size());
             for (int e = 0; e < (int) _output.size(); e++) {
                 res->push_back(_variableSpace->getVariable(_output.at(e)));
             }
@@ -655,9 +656,49 @@ namespace nd4j {
                 }
             } else if (_configuration->_outputMode == OutputMode_IMPLICIT) {
                 // we're adding final nodes of the graph. those, not used as input anywhere
-                nd4j_printf("Paring nodes...\n", "");
+                nd4j_debug("Paring nodes...\n", "");
+                _output.clear();
+                
                 for (auto v: *_nodes) {
-                    nd4j_printf("Node %i\n", v);
+                    Node<T>* node = _mapped->at(v);
+                    if (node->name() != nullptr) {
+                        nd4j_debug("Node %i; Name: [%s]\n", v, node->name()->c_str());
+                    } else {
+                        nd4j_debug("Node %i\n", v);
+                    }
+
+                    // updating outputs now
+                    for (int e = 0; e < node->input()->size(); e++) {
+                        auto inP = node->input()->at(e);
+
+                        // input can be variable, or node. we only care about nodes
+                        if (_mapped->count(inP.first) > 0) {
+                            _mapped->at(inP.first)->pickOutput(v);
+                        }
+                    }
+                }
+                // at this point all nodes have filled inputs/outputs, so we know nodes that do not have any connected outputs
+
+                for (auto v: *_nodes) {
+                    Node<T>* node = _mapped->at(v);
+
+                    if (!node->hasInternalOutputs()) {
+                        if (node->name() != nullptr) {
+                            nd4j_debug("Output node found: [%i:<%s>]\n", v, node->name()->c_str());
+                        } else {
+                            nd4j_debug("Output node found: [%i]\n", v);
+                        }
+
+                        _output.emplace_back(node->id());
+                    } else if (Environment::getInstance()->isDebugAndVerbose()) {
+                        nd4j_debug("Node [%i:<%s>] has %i outputs announced:\n", v, node->name()->c_str(), node->output()->size());
+                        printf("{");
+                        for (auto s : *node->output()) {
+                            printf("[%i:%i], ", s.first, s.second);
+                        }
+                        printf("}\n");
+                        fflush(stdout);
+                    }
                 }
             }
 

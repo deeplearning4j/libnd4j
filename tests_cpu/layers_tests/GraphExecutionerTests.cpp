@@ -28,6 +28,47 @@ TEST_F(GraphExecutionerTests, Test_Implicit_Output_1) {
 
     ASSERT_EQ(1, outputs->size());
 
+    auto var0 = outputs->at(0);
+
+    ASSERT_EQ(7, var0->id());
+    ASSERT_EQ(0, var0->index());
+
+    delete outputs;
+    delete graph;
+}
+
+TEST_F(GraphExecutionerTests, Test_Implicit_Output_2) {
+    auto graph = GraphExecutioner<float>::importFromFlatBuffers("./resources/reduce_dim.fb");
+    graph->buildGraph();
+
+    auto outputs = graph->fetchOutputs();
+
+    ASSERT_EQ(1, outputs->size());
+
+    auto var0 = outputs->at(0);
+
+    ASSERT_EQ(3, var0->id());
+    ASSERT_EQ(0, var0->index());
+
+    delete outputs;
+    delete graph;
+}
+
+TEST_F(GraphExecutionerTests, Test_Implicit_Output_3) {
+    auto graph = GraphExecutioner<float>::importFromFlatBuffers("./resources/reduce_dim.fb");
+    auto status = GraphExecutioner<float>::execute(graph);
+
+    ASSERT_EQ(ND4J_STATUS_OK, status);
+
+    auto outputs = graph->fetchOutputs();
+
+    ASSERT_EQ(1, outputs->size());
+
+    auto var0 = outputs->at(0);
+
+    ASSERT_EQ(7, var0->id());
+    ASSERT_EQ(0, var0->index());
+
     delete outputs;
     delete graph;
 }

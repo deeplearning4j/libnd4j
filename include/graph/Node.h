@@ -116,6 +116,7 @@ namespace nd4j {
             void setName(std::string *name);
             void setName(const std::string& name);
             std::string * getName();
+            std::string * name();
 
 
             void setContextPrototype(ContextPrototype<T> *block);
