@@ -55,6 +55,8 @@ TEST_F(GraphExecutionerTests, Test_Implicit_Output_2) {
 }
 
 TEST_F(GraphExecutionerTests, Test_Implicit_Output_3) {
+    NDArray<float> exp('c', {3, 1}, {3, 3, 3});
+
     auto graph = GraphExecutioner<float>::importFromFlatBuffers("./resources/reduce_dim.fb");
     auto status = GraphExecutioner<float>::execute(graph);
 
@@ -66,8 +68,15 @@ TEST_F(GraphExecutionerTests, Test_Implicit_Output_3) {
 
     auto var0 = outputs->at(0);
 
-    ASSERT_EQ(7, var0->id());
+    ASSERT_EQ(3, var0->id());
     ASSERT_EQ(0, var0->index());
+
+    auto array = var0->getNDArray();
+
+    ASSERT_TRUE(array != nullptr);
+
+    ASSERT_TRUE(exp.isSameShape(array));
+    ASSERT_TRUE(exp.equalsTo(array));
 
     delete outputs;
     delete graph;
