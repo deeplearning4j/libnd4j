@@ -350,8 +350,9 @@ Nd4jPointer GraphExecutioner<T>::executeFlatBuffer(Nd4jPointer pointer) {
         auto fArray = CreateFlatArray(builder, fShape, fBuffer, (nd4j::graph::DataType) DataTypeUtils::fromT<T>(), bo);
 
         auto fName = builder.CreateString(*(var->getName()));
+        auto id = CreateIntPair(builder, var->id(), var->index());
 
-        auto fv = CreateFlatVariable(builder, var->id(), fName, 0, fArray);
+        auto fv = CreateFlatVariable(builder, id, fName, 0, fArray);
 
         variables_vector.push_back(fv);
     }
