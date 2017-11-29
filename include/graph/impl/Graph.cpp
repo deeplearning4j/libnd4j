@@ -671,7 +671,9 @@ namespace nd4j {
                 // we're adding final nodes of the graph. those, not used as input anywhere
                 nd4j_debug("Paring nodes... \n", "");
 
-                nd4j_printv("current _output", _output);
+                if (Environment::getInstance()->isDebugAndVerbose()) {
+                    nd4j_printv("current _output", _output);
+                }
                 //_output.clear();
 
                 for (auto v: *_nodes) {
