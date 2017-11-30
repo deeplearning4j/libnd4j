@@ -101,7 +101,9 @@ namespace nd4j {
             }
 
 
-
+            template void _im2col<float>(nd4j::graph::Context<float>& context, float *result, float *dx, int *zShape, int *xShape, int kY, int kX, int sY, int sX, int pY, int pX, int dY, int dX, bool isSameMode);
+            template void _im2col<float16>(nd4j::graph::Context<float16>& context, float16 *result, float16 *dx, int *zShape, int *xShape, int kY, int kX, int sY, int sX, int pY, int pX, int dY, int dX, bool isSameMode);
+            template void _im2col<double>(nd4j::graph::Context<double>& context, double *result, double *dx, int *zShape, int *xShape, int kY, int kX, int sY, int sX, int pY, int pX, int dY, int dX, bool isSameMode);
         }
     }
 }
