@@ -96,14 +96,14 @@ namespace nd4j {
 
             template <typename T>
             _CUDA_H
-            void _im2col(nd4j::graph::Context<T>& context, T *dst, T *src, int *outShape, int *inShape, int kY, int kX, int sY, int sX, int pY, int pX, int dY, int dX, bool isSameMode) {
+            void _im2col(nd4j::graph::LaunchContext& context, T *dst, T *src, int *outShape, int *inShape, int kY, int kX, int sY, int sX, int pY, int pX, int dY, int dX, bool isSameMode) {
                 device_im2col<T><<<512, 512>>>(dst, src, outShape, inShape, kY, kX, sY, sX, pY, pX, dY, dX, isSameMode);
             }
 
 
-            template void _im2col<float>(nd4j::graph::Context<float>& context, float *result, float *dx, int *zShape, int *xShape, int kY, int kX, int sY, int sX, int pY, int pX, int dY, int dX, bool isSameMode);
-            template void _im2col<float16>(nd4j::graph::Context<float16>& context, float16 *result, float16 *dx, int *zShape, int *xShape, int kY, int kX, int sY, int sX, int pY, int pX, int dY, int dX, bool isSameMode);
-            template void _im2col<double>(nd4j::graph::Context<double>& context, double *result, double *dx, int *zShape, int *xShape, int kY, int kX, int sY, int sX, int pY, int pX, int dY, int dX, bool isSameMode);
+            template void _im2col<float>(nd4j::graph::LaunchContext& context, float *result, float *dx, int *zShape, int *xShape, int kY, int kX, int sY, int sX, int pY, int pX, int dY, int dX, bool isSameMode);
+            template void _im2col<float16>(nd4j::graph::LaunchContext& context, float16 *result, float16 *dx, int *zShape, int *xShape, int kY, int kX, int sY, int sX, int pY, int pX, int dY, int dX, bool isSameMode);
+            template void _im2col<double>(nd4j::graph::LaunchContext& context, double *result, double *dx, int *zShape, int *xShape, int kY, int kX, int sY, int sX, int pY, int pX, int dY, int dX, bool isSameMode);
         }
     }
 }

@@ -27,7 +27,8 @@ namespace nd4j {
             int dX = INT_ARG(7);			//Dilation, width/x dimension
             bool isSameMode = INT_ARG(8) > 0;
 
-            nd4j::ops::helpers::_im2col(block, z->specialBuffer(), x->specialBuffer(), z->specialShapeInfo(), x->specialShapeInfo(), kernelHeight, kernelWidth, strideY, strideX, padHeight, padWidth, dY, dX, isSameMode);
+            LaunchContext ctx;
+            nd4j::ops::helpers::_im2col(ctx, z->specialBuffer(), x->specialBuffer(), z->specialShapeInfo(), x->specialShapeInfo(), kernelHeight, kernelWidth, strideY, strideX, padHeight, padWidth, dY, dX, isSameMode);
 
             STORE_RESULT(*z);
 
