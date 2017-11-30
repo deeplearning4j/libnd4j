@@ -152,6 +152,7 @@ namespace nd4j {
         DECLARE_CUSTOM_OP(sigmCrossEntropy, 3, 1, false, 1, 1);
         DECLARE_CUSTOM_OP(softmaxCrossEntropy, 3, 1, false, 1, 1);      
         DECLARE_CUSTOM_OP(batchnorm, 5, 1, false, 1, 2);  
+        DECLARE_CUSTOM_OP(lstmCell, 6, 2, false, 1, 0);  
 
         // recurrent ops
         DECLARE_CUSTOM_OP(sru,         5, 2, false, 0, 0);
