@@ -8,7 +8,7 @@ namespace nd4j {
     namespace ops {
         namespace helpers {
             template <typename T>
-            void _col2im(nd4j::graph::LaunchContext& context, T *dx, T *result, int *zShape, int *xShape, int sY, int sX, int pY, int pX, int imgY, int imgX, int dY, int dX) {
+            void _col2im(nd4j::graph::LaunchContext& context, T *result, T *dx, int *zShape, int *xShape, int sY, int sX, int pY, int pX, int imgY, int imgX, int dY, int dX) {
                 int *inShape = shape::shapeOf(xShape);
                 int *inStride = shape::stride(xShape);
 
@@ -23,13 +23,10 @@ namespace nd4j {
                 int kernelWidth = inShape[3];
 
                 int *outShape = shape::shapeOf(zShape);
-                char resultOrder = shape::order(zShape);
                 int *outStride = shape::stride(zShape);
 
                 int samples = outShape[0];
                 int depth = outShape[1];
-                int imgH = outShape[2];
-                int imgW = outShape[3];
 
                 int height_col = inShape[4];//(imgHeight + 2 * padHeight - kernelHeight) / strideX + 1;
                 int width_col = inShape[5];//(imgWidth + 2 * padWidth - kernelWidth) / strideY + 1;
@@ -40,7 +37,7 @@ namespace nd4j {
                 int kEffectiveW = kernelWidth + (kernelWidth - 1) * (dX - 1);
                 int kEffectiveH = kernelHeight + (kernelHeight - 1) * (dY - 1);
 
-#pragma omp parallel for schedule(guided) proc_bind(close)
+//#pragma omp parallel for schedule(guided) proc_bind(close)
                 for (int i = 0; i < n; i++) {
                     T val = 0;
                     int w_im = i % imgX + pX;

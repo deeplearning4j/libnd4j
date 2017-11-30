@@ -15,9 +15,6 @@ namespace nd4j {
             REQUIRE_TRUE(x->rankOf() == 6, 0, "col2im input should be 6D, but got %i instead", x->rankOf());
             REQUIRE_TRUE(z->rankOf() == 4, 0, "col2im output should be 4D, but got %i instead", z->rankOf());
 
-            T* dx = x->buffer();
-            T* result = z->buffer();
-
             int strideY = INT_ARG(0);
             int strideX = INT_ARG(1);
             int padHeight = INT_ARG(2);

@@ -8,7 +8,7 @@ namespace nd4j {
     namespace ops {
         namespace helpers {
             template <typename T>
-            void _CUDA_G device_col2im(T *dx, T *result, int *zShape, int *xShape, int sY, int sX, int pY, int pX, int imgY, int imgX, int dY, int dX) {
+            void _CUDA_G device_col2im(T *result, T *dx, int *zShape, int *xShape, int sY, int sX, int pY, int pX, int imgY, int imgX, int dY, int dX) {
                 int *inShape = shape::shapeOf(xShape);
                 int *inStride = shape::stride(xShape);
 
@@ -87,7 +87,7 @@ namespace nd4j {
 
             template<typename T>
             void _col2im(nd4j::graph::LaunchContext &context, T *dx, T *result, int *zShape, int *xShape, int sY, int sX, int pY, int pX, int imgY, int imgX, int dY, int dX) {
-                device_col2im<T><<<512, 512>>>(dx, result, zShape, xShape, sY, sX, pY, pX, imgY, imgX, dY, dX);
+                device_col2im<T><<<512, 512>>>(result, dx, zShape, xShape, sY, sX, pY, pX, imgY, imgX, dY, dX);
             };
 
 
