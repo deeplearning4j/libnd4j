@@ -130,6 +130,10 @@ namespace nd4j {
         T* buffer();
 
 
+        T* specialBuffer();
+        int* specialShapeInfo();
+
+
         int* shapeInfo();
         int* getShapeInfo() const;
 

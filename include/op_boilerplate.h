@@ -1396,6 +1396,26 @@ struct __registratorDouble_##NAME {\
 #define FORCEINLINE inline 
 #endif
 
+
+#ifdef __CUDACC__
+#define _CUDA_H  #ifdef __CUDACC__\
+                    __host__\
+                    #endif
+
+#define _CUDA_D  #ifdef __CUDACC__\
+                    __device__\
+                    #endif
+
+#define _CUDA_HD  #ifdef __CUDACC__\
+                    __host__ __device\
+                    #endif
+#else
+#define _CUDA_H
+#define _CUDA_D
+#define _CUDA_HD
+#endif
+
+
 #define LAMBDA_H(X, ...) [__VA_ARGS__] (float16 X) -> float16
 #define LAMBDA_HH(X, Y, ...) [__VA_ARGS__] (float16 X, float16 Y) -> float16
 
