@@ -132,6 +132,7 @@ namespace nd4j {
 
         T* specialBuffer();
         int* specialShapeInfo();
+        void setSpecialBuffers(T * buffer, int *shape);
 
 
         int* shapeInfo();

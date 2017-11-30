@@ -6854,7 +6854,10 @@ Nd4jStatus realExec(nd4j::ops::DeclarableOp<T>* op, Nd4jPointer* extraPointers, 
 
 		// auto var = new Variable<T>(new NDArray<T>(buffer, shape));
 		// block.getVariables()->emplace_back(var);
-		inputs.push_back(new nd4j::NDArray<T>(buffer, shape));
+		auto array = new nd4j::NDArray<T>(buffer, shape);
+		array->setSpecialBuffers( (T *) inputBuffers[e + numInputs],  (int *) inputShapes[e + numInputs]);
+
+		inputs.push_back(array);
 	}
 
 	for (int e = 0; e < numIArgs; e++) {

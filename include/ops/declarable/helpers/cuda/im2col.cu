@@ -12,6 +12,11 @@ namespace nd4j {
             void _CUDA_G device_im2col(T *result, T *dx, int *resultShapeBuffer, int *xShapeBuffer, int kY, int kX, int sY, int sX, int pY, int pX, int dY, int dX, bool isSameMode) {
                 int kSize = kX * kY;
 
+                if (threadIdx.x == 0) {
+                    printf("WOW!\n");
+                }
+                __syncthreads();
+
                 int *outShape = shape::shapeOf(resultShapeBuffer);
                 char resultOrder = shape::order(resultShapeBuffer);
                 int *outStride = shape::stride(resultShapeBuffer);

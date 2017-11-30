@@ -423,6 +423,17 @@ template <typename T>
 #endif
     }
 
+    template<typename T>
+    void NDArray<T>::setSpecialBuffers(T * buffer, int *shape) {
+#ifdef __CUDACC__
+        _bufferD = buffer;
+        _shapeInfoD = shape;
+#else
+        _buffer = buffer;
+        _shapeInfo = shape;
+#endif
+    }
+
 
     template<typename T>
     int* NDArray<T>::getShapeInfo() const{

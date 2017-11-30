@@ -11,4 +11,13 @@
 #include <types/float16.h>
 #include <helpers/shape.h>
 
-#endif //LIBND4J_HELPERS_H
+#ifdef __CUDACC__
+#include <cuda.h>
+#include <cuda_runtime_api.h>
+#include <cuda_runtime.h>
+#include <cuda_device_runtime_api.h>
+#include <stdio.h>
+#include <stdlib.h>
+#endif // CUDACC
+
+#endif // LIBND4J_HELPERS_H
