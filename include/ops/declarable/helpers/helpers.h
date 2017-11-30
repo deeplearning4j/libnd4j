@@ -7,5 +7,6 @@
 
 #include <pointercast.h>
 #include <op_boilerplate.h>
+#include <Context.h>
 
 #endif //LIBND4J_HELPERS_H
