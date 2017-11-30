@@ -1398,22 +1398,20 @@ struct __registratorDouble_##NAME {\
 
 
 #ifdef __CUDACC__
-#define _CUDA_H  #ifdef __CUDACC__\
-                    __host__\
-                    #endif
 
-#define _CUDA_D  #ifdef __CUDACC__\
-                    __device__\
-                    #endif
+#define _CUDA_H  __host__
+#define _CUDA_D __device__
+#define _CUDA_G __global__
+#define _CUDA_HD __host__ __device__
 
-#define _CUDA_HD  #ifdef __CUDACC__\
-                    __host__ __device\
-                    #endif
 #else
+
 #define _CUDA_H
 #define _CUDA_D
+#define _CUDA_G
 #define _CUDA_HD
-#endif
+
+#endif // CUDACC
 
 
 #define LAMBDA_H(X, ...) [__VA_ARGS__] (float16 X) -> float16

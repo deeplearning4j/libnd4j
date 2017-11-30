@@ -17,9 +17,6 @@ namespace nd4j {
             REQUIRE_TRUE(x->rankOf() == 4, 0, "im2col input should be 4D, but got %i instead", x->rankOf());
             REQUIRE_TRUE(z->rankOf() == 6, 0, "im2col output should be 6D, but got %i instead", z->rankOf());
 
-            T* dx = x->buffer();
-            T* result = z->buffer();
-
             int kernelHeight = INT_ARG(0);
             int kernelWidth = INT_ARG(1);
             int strideY = INT_ARG(2);
@@ -30,7 +27,7 @@ namespace nd4j {
             int dX = INT_ARG(7);			//Dilation, width/x dimension
             bool isSameMode = INT_ARG(8) > 0;
 
-            nd4j::ops::helpers::_im2col(block, result, dx, z->shapeInfo(), x->shapeInfo(), kernelHeight, kernelWidth, strideY, strideX, padHeight, padWidth, dY, dX, isSameMode);
+            nd4j::ops::helpers::_im2col(block, z->specialBuffer(), x->specialBuffer(), z->specialShapeInfo(), x->specialShapeInfo(), kernelHeight, kernelWidth, strideY, strideX, padHeight, padWidth, dY, dX, isSameMode);
 
             STORE_RESULT(*z);
 
