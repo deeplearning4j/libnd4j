@@ -6844,6 +6844,7 @@ Nd4jStatus realExec(nd4j::ops::DeclarableOp<T>* op, Nd4jPointer* extraPointers, 
 	// we're using the same fake nodeId everywhere here
 
 	std::vector<nd4j::NDArray<T>*> inputs(numInputs);
+    std::vector<nd4j::NDArray<T>*> outputs(numOutputs);
 	std::vector<T> ttArgs(numTArgs);
 	std::vector<int> iiArgs(numIArgs);
 
@@ -6855,10 +6856,7 @@ Nd4jStatus realExec(nd4j::ops::DeclarableOp<T>* op, Nd4jPointer* extraPointers, 
 		// auto var = new Variable<T>(new NDArray<T>(buffer, shape));
 		// block.getVariables()->emplace_back(var);
 		auto array = new nd4j::NDArray<T>(buffer, shape);
-		array->setSpecialBuffers( (T *) inputBuffers[e + numInputs],  (int *) inputShapes[e + numInputs]);
-
-		nd4j_printf("HostShape: [%p]; DeviceShape: [%p]\n", (void *) shape, (void *) inputShapes[e + numInputs]);
-        nd4j_printf("Validated HostShape: [%p]; DeviceShape: [%p]\n", (void *) array->shapeInfo(), (void *) array->specialShapeInfo());
+		//array->setSpecialBuffers( (T *) inputBuffers[e + numInputs],  (int *) inputShapes[e + numInputs]);
 
 		inputs[e] = array;
 	}
@@ -6894,10 +6892,11 @@ Nd4jStatus realExec(nd4j::ops::DeclarableOp<T>* op, Nd4jPointer* extraPointers, 
 	delete result;
 
 
-	for (int e = 0; e < inputs.size(); e++) {
-		auto ptr = inputs.at(e);
+	for (auto ptr: inputs)
 		delete ptr;
-	}
+
+    for (auto ptr: outputs)
+        delete ptr;
 
 
 	return ND4J_STATUS_OK;

@@ -407,34 +407,27 @@ template <typename T>
 
     template<typename T>
     T* NDArray<T>::specialBuffer() {
-#ifdef __CUDACC__
+        if (_bufferD == nullptr)
+            return _buffer;
+
+        // FIXME: this should be fixed once CUDA backend added
         return _bufferD;
-#else
-        return _buffer;
-#endif
     }
 
     template<typename T>
     int* NDArray<T>::specialShapeInfo() {
-#ifdef __CUDACC__
+        if (_shapeInfoD == nullptr)
+            return _shapeInfo;
+
+        // FIXME: this should be fixed once CUDA backend added
+
         return _shapeInfoD;
-#else
-        return _shapeInfo;
-#endif
     }
 
     template<typename T>
     void NDArray<T>::setSpecialBuffers(T * buffer, int *shape) {
-#ifdef __CUDACC__
-        printf("Setting buffers\n");
-        fflush(stdout);
-
         _bufferD = buffer;
         _shapeInfoD = shape;
-#else
-        _buffer = buffer;
-        _shapeInfo = shape;
-#endif
     }
 
 
