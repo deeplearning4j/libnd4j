@@ -426,6 +426,9 @@ template <typename T>
     template<typename T>
     void NDArray<T>::setSpecialBuffers(T * buffer, int *shape) {
 #ifdef __CUDACC__
+        printf("Setting buffers\n");
+        fflush(stdout);
+
         _bufferD = buffer;
         _shapeInfoD = shape;
 #else

@@ -35,12 +35,19 @@ namespace nd4j {
             return ND4J_STATUS_OK;
         }
         DECLARE_SHAPE_FN(im2col) {
+            nd4j_printf("starting im2col shape\n","");
             auto inShape = inputShape->at(0);
+
+            nd4j_printf("step %i\n", 0);
+
+            nd4j_printf("im2col HostShape: [%p]; \n", (void *) inShape);
 
             int bS = shape::shapeOf(inShape)[0];
             int iD = shape::shapeOf(inShape)[1];
             int inY = shape::shapeOf(inShape)[2];
             int inX = shape::shapeOf(inShape)[3];
+
+            nd4j_printf("step %i\n", 4);
 
             int kY = INT_ARG(0);
             int kX = INT_ARG(1);
@@ -52,14 +59,20 @@ namespace nd4j {
             int dX = INT_ARG(7);			//Dilation, width/x dimension
             bool isSameMode = INT_ARG(8) > 0;
 
+            nd4j_printf("step %i\n", 8);
+
             // output is always 6d for im2col
             int* zShape;
             ALLOCATE(zShape, block.getWorkspace(), shape::shapeInfoLength(6), int);
+
+            nd4j_printf("step %i\n", 12);
 
             int oY = 0;
             int oX = 0;
 
             ConvolutionUtils<T>::calcOutHWpool2D(oY, oX, kY, kX, sY, sX, pY, pX, dY, dX, inY, inX, isSameMode);
+
+            nd4j_printf("step %i\n", 16);
 
             if (isSameMode)
                 ConvolutionUtils<T>::_calcPadding2D(pY, pX, oY, oX, inY, inX, kY, kX, sY, sX, dY, dX);
@@ -72,11 +85,15 @@ namespace nd4j {
             zShape[5] = oY;
             zShape[6] = oX;
 
+            nd4j_printf("step %i\n", 20);
+
             zShape[shape::shapeInfoLength(zShape) - 3] = 0;
             zShape[shape::shapeInfoLength(zShape) - 2] = 1;
             zShape[shape::shapeInfoLength(zShape) - 1] = 99;
 
             shape::updateStrides(zShape, 'c');
+
+            nd4j_printf("step %i\n", 24);
 
             return new ShapeList(zShape);
         }
