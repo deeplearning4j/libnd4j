@@ -30,7 +30,7 @@ namespace nd4j {
 
             if(block.isInplace()) {		// in-place
                 x->permutei(*arguments);
-                OVERWRITE_RESULT(x);
+                STORE_RESULT(x);
             } else {	
                 if (!replace) {			// not-in-place        
                     NDArray<T>* output = OUTPUT_VARIABLE(0);
