@@ -6844,7 +6844,7 @@ Nd4jStatus realExec(nd4j::ops::DeclarableOp<T>* op, Nd4jPointer* extraPointers, 
 	// we're using the same fake nodeId everywhere here
 
 	std::vector<nd4j::NDArray<T>*> inputs(numInputs);
-    std::vector<nd4j::NDArray<T>*> outputs(numOutputs);
+    std::vector<nd4j::NDArray<T>*> outputs;
 	std::vector<T> ttArgs(numTArgs);
 	std::vector<int> iiArgs(numIArgs);
 
@@ -6894,9 +6894,6 @@ Nd4jStatus realExec(nd4j::ops::DeclarableOp<T>* op, Nd4jPointer* extraPointers, 
 
 	for (auto ptr: inputs)
 		delete ptr;
-
-    for (auto ptr: outputs)
-        delete ptr;
 
 
 	return ND4J_STATUS_OK;

@@ -1084,7 +1084,10 @@ struct __registratorDouble_##NAME {\
                                                     for (int e = 0; e < this->getOpDescriptor()->getNumberOfOutputs(); e++) { \
                                                         int* newshape; \
                                                         ALLOCATE(newshape, block.getWorkspace(), shape::shapeInfoLength(inputShape->at(e)), int); \
-                                                        memcpy(newshape, inputShape->at(0), shape::shapeInfoByteLength(inputShape->at(e))); \
+                                                        if (shape::order(inputShape->at(e)) == 'c') \
+                                                            shape::shapeBuffer(shape::rank(inputShape->at(e)), shape::shapeOf(inputShape->at(e)), newshape);\
+                                                        else \
+                                                            shape::shapeBufferFortran(shape::rank(inputShape->at(e)), shape::shapeOf(inputShape->at(e)), newshape);\
                                                         shapeList->push_back(newshape); \
                                                     } \
                                                     return shapeList; \
@@ -1182,7 +1185,10 @@ struct __registratorSynonymDouble_##NAME {\
                                                                 for (int e = 0; e < this->getOpDescriptor()->getNumberOfOutputs(); e++) { \
                                                                     int* newshape; \
                                                                     ALLOCATE(newshape, block.getWorkspace(), shape::shapeInfoLength(inputShape->at(e)), int); \
-                                                                    memcpy(newshape, inputShape->at(e), shape::shapeInfoByteLength(inputShape->at(e))); \
+                                                                    if (shape::order(inputShape->at(e)) == 'c') \
+                                                                        shape::shapeBuffer(shape::rank(inputShape->at(e)), shape::shapeOf(inputShape->at(e)), newshape);\
+                                                                    else \
+                                                                        shape::shapeBufferFortran(shape::rank(inputShape->at(e)), shape::shapeOf(inputShape->at(e)), newshape);\
                                                                     shapeList->push_back(newshape); \
                                                                 } \
                                                                 return shapeList; \
@@ -1234,7 +1240,10 @@ struct __registratorDouble_##NAME {\
                                                                                     for (int e = 0; e < this->getOpDescriptor()->getNumberOfOutputs(); e++) { \
                                                                                         int* newshape; \
                                                                                         ALLOCATE(newshape, block.getWorkspace(), shape::shapeInfoLength(inputShape->at(e)), int); \
-                                                                                        memcpy(newshape, inputShape->at(e), shape::shapeInfoByteLength(inputShape->at(e))); \
+                                                                                        if (shape::order(inputShape->at(e)) == 'c') \
+                                                                                            shape::shapeBuffer(shape::rank(inputShape->at(e)), shape::shapeOf(inputShape->at(e)), newshape);\
+                                                                                        else \
+                                                                                            shape::shapeBufferFortran(shape::rank(inputShape->at(e)), shape::shapeOf(inputShape->at(e)), newshape);\
                                                                                         shapeList->push_back(newshape); \
                                                                                     } \
                                                                                     return shapeList; \
