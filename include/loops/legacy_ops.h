@@ -127,7 +127,9 @@
         (84,simdOps::ASinh), \
         (85,simdOps::ASinhDerivative) ,\
         (86,simdOps::SinhDerivative), \
-        (87,simdOps::Rint)
+        (87,simdOps::Rint), \
+        (88,simdOps::LogSigmoid), \
+        (89,simdOps::LogSigmoidDerivative)
 
 
 
