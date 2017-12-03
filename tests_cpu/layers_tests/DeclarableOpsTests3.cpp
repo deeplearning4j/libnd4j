@@ -48,3 +48,27 @@ TEST_F(DeclarableOpsTests3, Test_Permute_2) {
 
     delete result;
 }
+
+
+TEST_F(DeclarableOpsTests3, Test_Unique_1) {
+    NDArray<float> x('c', {1, 5}, {1, 2, 1, 2, 3});
+    NDArray<float> expV('c', {1, 3}, {1, 2, 3});
+    NDArray<float> expI('c', {1, 3}, {0, 1, 4});
+
+    nd4j::ops::unique<float> op;
+    auto result = op.execute({&x}, {}, {});
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    ASSERT_EQ(2, result->size());
+    
+    auto v = result->at(0);
+    auto i = result->at(1);
+
+    ASSERT_TRUE(expV.isSameShape(v));
+    ASSERT_TRUE(expV.equalsTo(v));
+
+    ASSERT_TRUE(expI.isSameShape(i));
+    ASSERT_TRUE(expI.equalsTo(i));
+
+    delete result;
+}
