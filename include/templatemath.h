@@ -12,6 +12,13 @@
 #include <dll.h>
 #include <pointercast.h>
 
+
+#define HALF_MAX_VALUE 65504.
+#define FLOAT_MAX_VALUE 3.4028235E38
+#define DOUBLE_MAX_VALUE 1.7976931348623157E308
+#define FLOAT_MIN_NORMAL 1.17549435e-38
+
+
 #ifdef __CUDACC__
 #include <types/float16.h>
 #define math_def __host__ __device__
@@ -84,6 +91,15 @@ template<typename T>
 
 		template<typename T>
         math_def inline T nd4j_ceil(T val1);
+
+		template<typename T>
+        math_def inline bool nd4j_isnan(T val1);
+
+		template<typename T>
+        math_def inline bool nd4j_isinf(T val1);
+
+		template<typename T>
+        math_def inline bool nd4j_isfin(T val1);
 
 		template<typename T>
         math_def inline T nd4j_cos(T val);
@@ -327,6 +343,61 @@ template<typename T>
 		template<>
 		math_def inline Nd4jIndex nd4j_rint<Nd4jIndex>(Nd4jIndex value) {
 			return value;
+		}
+
+		template<>
+        math_def inline bool nd4j_isnan<float16>(float16 value) {
+			return *(value.data.getXP()) == 0x7fffU;
+		}
+
+		template<>
+        math_def inline bool nd4j_isnan<float>(float value) {
+			return value != value;
+		}
+
+		template<>
+        math_def inline bool nd4j_isnan<double>(double value) {
+			return value != value;
+		}
+
+		template<>
+        math_def inline bool nd4j_isnan<int>(int value) {
+			return false;
+		}
+
+		template<>
+		math_def inline bool nd4j_isnan<Nd4jIndex>(Nd4jIndex value) {
+			return false;
+		}
+
+		template<>
+        math_def inline bool nd4j_isinf<float16>(float16 value) {
+			return value < (float16) -HALF_MAX_VALUE || value > (float16) HALF_MAX_VALUE;
+		}
+
+		template<>
+        math_def inline bool nd4j_isinf<float>(float value) {
+			return value < -FLOAT_MAX_VALUE || value > FLOAT_MAX_VALUE;
+		}
+
+		template<>
+        math_def inline bool nd4j_isinf<double>(double value) {
+			return value < -DOUBLE_MAX_VALUE || value > DOUBLE_MAX_VALUE;
+		}
+
+		template<>
+        math_def inline bool nd4j_isinf<int>(int value) {
+			return false;
+		}
+
+		template<>
+		math_def inline bool nd4j_isinf<Nd4jIndex>(Nd4jIndex value) {
+			return false;
+		}
+
+		template<typename T>
+        math_def inline bool nd4j_isfin(T value) {
+			return !nd4j_isnan<T>(value) && !nd4j_isinf<T>(value);
 		}
 
 		template<>

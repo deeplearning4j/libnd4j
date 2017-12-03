@@ -12,7 +12,6 @@
 #define MAX_INT 2147483647
 #define MIN_CUTFOFF -3.79297773665f
 #define FLOAT_MIN_NORMAL 1.17549435e-38
-#define FLOAT_MAX_VALUE 3.4028235E38
 #define EPS 1e-5
 #define AFFINITY close
 #ifndef M_E
