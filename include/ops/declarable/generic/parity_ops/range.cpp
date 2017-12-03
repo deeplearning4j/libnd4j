@@ -47,11 +47,15 @@ namespace nd4j {
                 T stop = arr1->getScalar(0);
                 T step = arr2->getScalar(0);
 
+                nd4j_printf("range: start: [%f]; stop: [%f]; step: [%f]\n", (float) start, (float) stop, (float) step);
+
                 for (T e = start; e < (T) stop; e += step)
                     data.emplace_back((T) e);
 
                 auto array = new nd4j::NDArray<T>(1, data.size(), 'c', block.getWorkspace());
-                memcpy(array->buffer(), data.data(), data.size() * sizeof(T));    
+                memcpy(array->buffer(), data.data(), data.size() * sizeof(T));
+
+                array->printBuffer("range result");
     
                 block.pushNDArrayToVariableSpace(block.nodeId(), 0, array);
             } else {
