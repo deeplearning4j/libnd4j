@@ -93,7 +93,7 @@ TEST_F(DeclarableOpsTests3, Test_Range_1) {
     NDArray<float> start('c', {1, 1}, {2});
     NDArray<float> stop('c', {1, 1}, {0});
     NDArray<float> step('c', {1, 1}, {1});
-    NDArray<float> exp('c', {1, 3}, {2, 1, 0});
+    NDArray<float> exp('c', {1, 2}, {2, 1});
 
     nd4j::ops::range<float> op;
     auto result = op.execute({&start, &stop, &step}, {}, {});
@@ -113,7 +113,7 @@ TEST_F(DeclarableOpsTests3, Test_Range_2) {
     NDArray<float> start('c', {1, 1}, {2});
     NDArray<float> stop('c', {1, 1}, {0});
     NDArray<float> step('c', {1, 1}, {-1});
-    NDArray<float> exp('c', {1, 3}, {2, 1, 0});
+    NDArray<float> exp('c', {1, 2}, {2, 1});
 
     nd4j::ops::range<float> op;
     auto result = op.execute({&start, &stop, &step}, {}, {});
@@ -132,7 +132,7 @@ TEST_F(DeclarableOpsTests3, Test_Range_3) {
     NDArray<float> start('c', {1, 1}, {0});
     NDArray<float> stop('c', {1, 1}, {2});
     NDArray<float> step('c', {1, 1}, {1});
-    NDArray<float> exp('c', {1, 3}, {0, 1, 2});
+    NDArray<float> exp('c', {1, 2}, {0, 1});
 
     nd4j::ops::range<float> op;
     auto result = op.execute({&start, &stop, &step}, {}, {});
@@ -149,7 +149,7 @@ TEST_F(DeclarableOpsTests3, Test_Range_3) {
 
 
 TEST_F(DeclarableOpsTests3, Test_Range_4) {
-    NDArray<float> exp('c', {1, 3}, {2, 1, 0});
+    NDArray<float> exp('c', {1, 2}, {2, 1});
 
     nd4j::ops::range<float> op;
     auto result = op.execute({}, {2, 0, 1}, {});
@@ -166,7 +166,7 @@ TEST_F(DeclarableOpsTests3, Test_Range_4) {
 
 
 TEST_F(DeclarableOpsTests3, Test_Range_5) {
-    NDArray<float> exp('c', {1, 3}, {2, 1, 0});
+    NDArray<float> exp('c', {1, 2}, {2, 1});
 
     nd4j::ops::range<float> op;
     auto result = op.execute({}, {2, 0, -1}, {});
@@ -182,7 +182,7 @@ TEST_F(DeclarableOpsTests3, Test_Range_5) {
 }
 
 TEST_F(DeclarableOpsTests3, Test_Range_6) {
-    NDArray<float> exp('c', {1, 3}, {0, 1, 2});
+    NDArray<float> exp('c', {1, 2}, {0, 1});
 
     nd4j::ops::range<float> op;
     auto result = op.execute({}, {0, 2, 1}, {});
@@ -198,7 +198,7 @@ TEST_F(DeclarableOpsTests3, Test_Range_6) {
 }
 
 TEST_F(DeclarableOpsTests3, Test_Range_7) {
-    NDArray<float> exp('c', {1, 3}, {2, 1, 0});
+    NDArray<float> exp('c', {1, 2}, {2, 1});
 
     nd4j::ops::range<float> op;
     auto result = op.execute({}, {}, {2, 0, 1});
@@ -215,7 +215,7 @@ TEST_F(DeclarableOpsTests3, Test_Range_7) {
 
 
 TEST_F(DeclarableOpsTests3, Test_Range_8) {
-    NDArray<float> exp('c', {1, 3}, {2, 1, 0});
+    NDArray<float> exp('c', {1, 2}, {2, 1});
 
     nd4j::ops::range<float> op;
     auto result = op.execute({}, {}, {2, 0, -1});
@@ -231,7 +231,7 @@ TEST_F(DeclarableOpsTests3, Test_Range_8) {
 }
 
 TEST_F(DeclarableOpsTests3, Test_Range_9) {
-    NDArray<float> exp('c', {1, 3}, {0, 1, 2});
+    NDArray<float> exp('c', {1, 2}, {0, 1});
 
     nd4j::ops::range<float> op;
     auto result = op.execute({}, {}, {0, 2, 1});

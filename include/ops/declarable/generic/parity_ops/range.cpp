@@ -24,12 +24,12 @@ namespace nd4j {
                 int cnt = 0;
                 T e = start;
                 if (start > stop) {
-                    while (e >= (T) stop) {
+                    while (e > (T) stop) {
                         output->putScalar(cnt++, e);
                         e = (T) step > (T) 0.0 ? e - step : e + step;
                     }
                 } else {
-                    while (e <= (T) stop) {
+                    while (e < (T) stop) {
                         output->putScalar(cnt++, (T) e);
                         e += step;
                     }
@@ -44,12 +44,12 @@ namespace nd4j {
                 int cnt = 0;
                 T e = start;
                 if (start > stop) {
-                    while (e >= stop) {
+                    while (e > stop) {
                         output->putScalar(cnt++, e);
                         e = step > (T) 0.0 ? e - step : e + step;
                     }
                 } else {
-                    while (e <= stop) {
+                    while (e < stop) {
                         output->putScalar(cnt++, e);
                         e += step;
                     }
@@ -71,12 +71,12 @@ namespace nd4j {
                 //    data.emplace_back((T) e);
                 T e = (T) start;
                 if (start > stop) {
-                    while (e >= stop) {
+                    while (e > stop) {
                         data.emplace_back(e);
                         e = step > (T) 0.0 ? e - step : e + step;
                     }
                 } else {
-                    while (e <= stop) {
+                    while (e < stop) {
                         data.emplace_back(e);
                         e += step;
                     }
@@ -104,12 +104,12 @@ namespace nd4j {
                 int cnt = 0;
                 T e = (T) start;
                 if (start > stop) {
-                    while (e >= (T) stop) {
+                    while (e > (T) stop) {
                         cnt++;
                         e = (T) step > (T) 0.0 ? e - step : e + step;
                     }
                 } else {
-                    while (e <= (T) stop) {
+                    while (e < (T) stop) {
                         cnt++;
                         e += step;
                     }
@@ -124,12 +124,12 @@ namespace nd4j {
                 int cnt = 0;
                 T e = start;
                 if (start > stop) {
-                    while (e >= stop) {
+                    while (e > stop) {
                         cnt++;
                         e = step > (T) 0.0 ? e - step : e + step;
                     }
                 } else {
-                    while (e <= stop) {
+                    while (e < stop) {
                         cnt++;
                         e += step;
                     }
