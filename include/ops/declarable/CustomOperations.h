@@ -67,6 +67,7 @@ namespace nd4j {
         DECLARE_OP(greater, 2, 1, true);
         DECLARE_OP(log1p, 2, 1, true);
         DECLARE_OP(toggle_bits, -1, -1, true);
+        DECLARE_OP(rint, 1, 1, true);
 
         DECLARE_OP(scatter_add, 3, 1, true);
         DECLARE_OP(scatter_sub, 3, 1, true);

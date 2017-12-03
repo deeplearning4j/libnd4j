@@ -72,3 +72,18 @@ TEST_F(DeclarableOpsTests3, Test_Unique_1) {
 
     delete result;
 }
+
+TEST_F(DeclarableOpsTests3, Test_Rint_1) {
+    NDArray<float> x('c', {1, 7}, {-1.7, -1.5, -0.2, 0.2, 1.5, 1.7, 2.0});
+    NDArray<float> exp('c', {1, 7}, {-2., -2., -0., 0., 2., 2., 2.});
+
+    nd4j::ops::rint<float> op;
+    auto result = op.execute({&x}, {}, {});
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}

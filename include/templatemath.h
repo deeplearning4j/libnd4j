@@ -72,6 +72,9 @@ template<typename T>
         math_def inline T nd4j_min(T val1, T val2);
 
 		template<typename T>
+        math_def inline T nd4j_rint(T val1);
+
+		template<typename T>
 		math_def inline T nd4j_copysign(T val1, T val2);
 
 //#ifndef __CUDACC__
@@ -297,6 +300,33 @@ template<typename T>
 		template<>
 		math_def inline Nd4jIndex nd4j_abs<Nd4jIndex>(Nd4jIndex value) {
 			return value < 0 ? -value : value;
+		}
+
+
+		template<>
+        math_def inline float16 nd4j_rint<float16>(float16 value) {
+			return (float16) rintf((float) value);
+		}
+
+
+		template<>
+        math_def inline float nd4j_rint<float>(float value) {
+			return rintf(value);
+		}
+
+		template<>
+        math_def inline double nd4j_rint<double>(double value) {
+			return rint(value);
+		}
+
+		template<>
+        math_def inline int nd4j_rint<int>(int value) {
+			return value;
+		}
+
+		template<>
+		math_def inline Nd4jIndex nd4j_rint<Nd4jIndex>(Nd4jIndex value) {
+			return value;
 		}
 
 		template<>

@@ -1073,6 +1073,17 @@ namespace simdOps {
 		}
 	};
 
+	template<typename T>
+	class Rint {
+	public:
+		no_op_exec_special
+		no_op_exec_special_cuda
+
+		op_def static T op(T d1, T *params) {
+			return nd4j::math::nd4j_rint<T>(d1);
+		}
+	};
+
 	
 	template<typename T>
 	class SoftPlus {
