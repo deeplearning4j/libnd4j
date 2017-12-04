@@ -133,3 +133,80 @@ TEST_F(RNGTests, Test_Launcher_3) {
     ASSERT_FALSE(x0.equalsTo(nexp1));
     ASSERT_FALSE(x0.equalsTo(nexp2));
 }
+
+TEST_F(RNGTests, Test_Uniform_1) {
+    NDArray<float> x0('c', {10, 10});
+    NDArray<float> x1('c', {10, 10});
+
+    RandomLauncher<float>::fillUniform(_rngA, &x0, 1.0f, 2.0f);
+    RandomLauncher<float>::fillUniform(_rngB, &x1, 1.0f, 2.0f);
+
+    ASSERT_TRUE(x0.equalsTo(&x1));
+
+    ASSERT_FALSE(x0.equalsTo(nexp0));
+    ASSERT_FALSE(x0.equalsTo(nexp1));
+    ASSERT_FALSE(x0.equalsTo(nexp2));
+
+    for (int e = 0; e < x0.lengthOf(); e++) {
+        float v = x0.getScalar(e);
+        ASSERT_TRUE(v >= 1.0f && v <= 2.0f);
+    }
+}
+
+TEST_F(RNGTests, Test_Gaussian_1) {
+    NDArray<float> x0('c', {10, 10});
+    NDArray<float> x1('c', {10, 10});
+
+    RandomLauncher<float>::fillGaussian(_rngA, &x0, 1.0f, 2.0f);
+    RandomLauncher<float>::fillGaussian(_rngB, &x1, 1.0f, 2.0f);
+
+    ASSERT_TRUE(x0.equalsTo(&x1));
+
+    ASSERT_FALSE(x0.equalsTo(nexp0));
+    ASSERT_FALSE(x0.equalsTo(nexp1));
+    ASSERT_FALSE(x0.equalsTo(nexp2));
+}
+
+
+TEST_F(RNGTests, Test_LogNormal_1) {
+    NDArray<float> x0('c', {10, 10});
+    NDArray<float> x1('c', {10, 10});
+
+    RandomLauncher<float>::fillLogNormal(_rngA, &x0, 1.0f, 2.0f);
+    RandomLauncher<float>::fillLogNormal(_rngB, &x1, 1.0f, 2.0f);
+
+    ASSERT_TRUE(x0.equalsTo(&x1));
+
+    ASSERT_FALSE(x0.equalsTo(nexp0));
+    ASSERT_FALSE(x0.equalsTo(nexp1));
+    ASSERT_FALSE(x0.equalsTo(nexp2));
+}
+
+TEST_F(RNGTests, Test_Truncated_1) {
+    NDArray<float> x0('c', {10, 10});
+    NDArray<float> x1('c', {10, 10});
+
+    RandomLauncher<float>::fillTruncatedNormal(_rngA, &x0, 1.0f, 2.0f);
+    RandomLauncher<float>::fillTruncatedNormal(_rngB, &x1, 1.0f, 2.0f);
+
+    ASSERT_TRUE(x0.equalsTo(&x1));
+
+    ASSERT_FALSE(x0.equalsTo(nexp0));
+    ASSERT_FALSE(x0.equalsTo(nexp1));
+    ASSERT_FALSE(x0.equalsTo(nexp2));
+}
+
+
+TEST_F(RNGTests, Test_Binomial_1) {
+    NDArray<float> x0('c', {10, 10});
+    NDArray<float> x1('c', {10, 10});
+
+    RandomLauncher<float>::fillBinomial(_rngA, &x0, 3, 2.0f);
+    RandomLauncher<float>::fillBinomial(_rngB, &x1, 3, 2.0f);
+
+    ASSERT_TRUE(x0.equalsTo(&x1));
+
+    ASSERT_FALSE(x0.equalsTo(nexp0));
+    ASSERT_FALSE(x0.equalsTo(nexp1));
+    ASSERT_FALSE(x0.equalsTo(nexp2));
+}

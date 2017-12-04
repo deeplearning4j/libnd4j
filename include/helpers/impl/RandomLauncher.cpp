@@ -36,27 +36,37 @@ namespace nd4j {
 
     template <typename T>
     void RandomLauncher<T>::fillUniform(nd4j::random::RandomBuffer* buffer, NDArray<T>* array, T from, T to) {
+        T args[] = {from, to};
 
+        array->template applyRandom<randomOps::UniformDistribution<T>>(buffer, nullptr, nullptr, args);
     }
 
     template <typename T>
     void RandomLauncher<T>::fillGaussian(nd4j::random::RandomBuffer* buffer, NDArray<T>* array, T mean, T stdev) {
+        T args[] = {mean, stdev};
 
+        array->template applyRandom<randomOps::GaussianDistribution<T>>(buffer, array, array, args);
     }
 
     template <typename T>
     void RandomLauncher<T>::fillLogNormal(nd4j::random::RandomBuffer* buffer, NDArray<T>* array, T mean, T stdev) {
+        T args[] = {mean, stdev};
 
+        array->template applyRandom<randomOps::LogNormalDistribution<T>>(buffer, array, array, args);
     }
 
     template <typename T>
     void RandomLauncher<T>::fillTruncatedNormal(nd4j::random::RandomBuffer* buffer, NDArray<T>* array, T mean, T stdev) {
+        T args[] = {mean, stdev};
 
+        array->template applyRandom<randomOps::TruncatedNormalDistribution<T>>(buffer, array, array, args);
     }
 
     template <typename T>
     void RandomLauncher<T>::fillBinomial(nd4j::random::RandomBuffer* buffer, NDArray<T>* array, int trials, T prob) {
+        T args[] = {(T) trials, prob};
 
+        array->template applyRandom<randomOps::BinomialDistributionEx<T>>(buffer, array, array, args);
     }
 
     template class ND4J_EXPORT RandomLauncher<float>;
