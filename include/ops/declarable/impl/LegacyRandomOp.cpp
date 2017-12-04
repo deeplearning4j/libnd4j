@@ -3,7 +3,7 @@
 //
 
 #include <ops/declarable/LegacyRandomOp.h>
-
+#include <helpers/RandomLauncher.h>
 #include <NativeOpExcutioner.h>
 
 
@@ -26,7 +26,64 @@ namespace nd4j {
 
             int opNum = block.opNum() < 0 ? this->_opNum : block.opNum();
 
-            //NativeOpExcutioner<T>::execTransform(opNum, input->getBuffer(), input->getShapeInfo(), z->getBuffer(), z->getShapeInfo(), block.getTArguments()->data(), nullptr, nullptr);
+            /*
+                (0, randomOps::UniformDistribution) ,\
+                (1, randomOps::DropOut) ,\
+                (2, randomOps::DropOutInverted) ,\
+                (3, randomOps::ProbablisticMerge) ,\
+                (4, randomOps::Linspace) ,\
+                (5, randomOps::Choice) ,\
+                (6, randomOps::GaussianDistribution) ,\
+                (7, randomOps::BernoulliDistribution) ,\
+                (8, randomOps::BinomialDistribution),\
+                (9, randomOps::BinomialDistributionEx),\
+                (10, randomOps::LogNormalDistribution) ,\
+                (11, randomOps::TruncatedNormalDistribution) ,\
+                (12, randomOps::AlphaDropOut)
+            */
+            switch(opNum) {
+                case 0: {
+                    T from = T_ARG(0);
+                    T to = T_ARG(0);
+
+                    RandomLauncher<T>::fillUniform(block.getRNG(), z, from, to);
+                }
+                break;
+                case 1: {
+                    T prob = T_ARG(0);
+
+                    if (!block.isInplace())
+                        z->assign(input);
+
+                    RandomLauncher<T>::applyDropOut(block.getRNG(), z, prob);
+                }
+                break;
+                case 2: {
+                    T prob = T_ARG(0);
+
+                    if (!block.isInplace())
+                        z->assign(input);
+                        
+                    RandomLauncher<T>::applyInvertedDropOut(block.getRNG(), z, prob);
+                }
+                break;
+                case 12: {
+                    T prob = T_ARG(0);
+                    T a = T_ARG(1);
+                    T b = T_ARG(2);
+                    T pa = T_ARG(3);
+
+                    if (!block.isInplace())
+                        z->assign(input);
+                        
+                    RandomLauncher<T>::applyAlphaDropOut(block.getRNG(), z, prob, a, b, pa);
+                }
+                break;
+                default: {
+                    nd4j_printf("Unknown random op requested: [%i]\n", opNum);
+                    return ND4J_STATUS_KERNEL_FAILURE;
+                }
+            }
 
             STORE_RESULT(*z);
 
