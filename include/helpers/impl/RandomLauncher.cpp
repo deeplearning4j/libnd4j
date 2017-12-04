@@ -35,6 +35,11 @@ namespace nd4j {
     }
 
     template <typename T>
+    void RandomLauncher<T>::fillBernoulli(nd4j::random::RandomBuffer* buffer, NDArray<T>* array, T prob) {
+        array->template applyRandom<randomOps::BernoulliDistribution<T>>(buffer, nullptr, array, &prob);
+    }
+
+    template <typename T>
     void RandomLauncher<T>::fillUniform(nd4j::random::RandomBuffer* buffer, NDArray<T>* array, T from, T to) {
         T args[] = {from, to};
 

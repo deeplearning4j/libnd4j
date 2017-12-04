@@ -154,6 +154,20 @@ TEST_F(RNGTests, Test_Uniform_1) {
     }
 }
 
+TEST_F(RNGTests, Test_Bernoulli_1) {
+    NDArray<float> x0('c', {10, 10});
+    NDArray<float> x1('c', {10, 10});
+
+    RandomLauncher<float>::fillBernoulli(_rngA, &x0, 1.0f);
+    RandomLauncher<float>::fillBernoulli(_rngB, &x1, 1.0f);
+
+    ASSERT_TRUE(x0.equalsTo(&x1));
+
+    ASSERT_FALSE(x0.equalsTo(nexp0));
+    ASSERT_FALSE(x0.equalsTo(nexp1));
+    ASSERT_FALSE(x0.equalsTo(nexp2));
+}
+
 TEST_F(RNGTests, Test_Gaussian_1) {
     NDArray<float> x0('c', {10, 10});
     NDArray<float> x1('c', {10, 10});
@@ -302,6 +316,27 @@ TEST_F(RNGTests, Test_Binomial_2) {
 
     auto op = new nd4j::ops::LegacyRandomOp<float>(9);
     auto result = op->execute(_rngA, {&input}, {0.5f}, {3});
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(x1.isSameShape(z));
+    ASSERT_TRUE(x1.equalsTo(z));
+
+    delete op;
+    delete result;
+}
+
+
+TEST_F(RNGTests, Test_Bernoulli_2) {
+    NDArray<float> input('c', {1, 2}, {10, 10});
+    NDArray<float> x1('c', {10, 10});
+
+    RandomLauncher<float>::fillBernoulli(_rngB, &x1, 0.5f);
+
+    auto op = new nd4j::ops::LegacyRandomOp<float>(7);
+    auto result = op->execute(_rngA, {&input}, {0.5f}, {});
 
     ASSERT_EQ(ND4J_STATUS_OK, result->status());
 

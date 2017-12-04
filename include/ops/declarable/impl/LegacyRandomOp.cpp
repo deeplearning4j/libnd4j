@@ -146,6 +146,33 @@ namespace nd4j {
                     OVERWRITE_RESULT(z);
                 }
                 break;
+                case 7: {
+                    // bernoulli distribution
+                    T prob;
+                    if (block.width() > 1) {
+                        auto arg1 = INPUT_VARIABLE(1);
+                        REQUIRE_TRUE(arg1->isScalar(), 0, "Bernoulli: Second argument must be scalar");
+
+                        prob = arg1->getScalar(0);
+                    } else if (block.getTArguments()->size() > 0) {
+                        prob = T_ARG(0);
+                    } else {
+                        REQUIRE_TRUE(false, 0, "Bernoulli requires either 1 TArg or 2 arguments to be present");
+                    }
+
+                    REQUIRE_TRUE(input->isVector(), 0, "Bernoulli requires pure shape as first argument");
+
+                    std::vector<int> shape(input->lengthOf());
+                    for (int e = 0; e < input->lengthOf(); e++)
+                        shape[e] = (int) input->getScalar(e);
+
+                    auto z = new NDArray<T>('c', shape, block.getWorkspace());
+
+                    RandomLauncher<T>::fillBernoulli(block.getRNG(), z, prob);
+
+                    OVERWRITE_RESULT(z);
+                }
+                break;
                 case 9: {
                     // BinomialEx distribution
                     T prob;
