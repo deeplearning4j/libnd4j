@@ -165,13 +165,13 @@ struct FlatConfigurationBuilder {
   void add_timestats(bool timestats) {
     fbb_.AddElement<uint8_t>(FlatConfiguration::VT_TIMESTATS, static_cast<uint8_t>(timestats), 0);
   }
-  FlatConfigurationBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit FlatConfigurationBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
   FlatConfigurationBuilder &operator=(const FlatConfigurationBuilder &);
   flatbuffers::Offset<FlatConfiguration> Finish() {
-    const auto end = fbb_.EndTable(start_, 5);
+    const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<FlatConfiguration>(end);
     return o;
   }

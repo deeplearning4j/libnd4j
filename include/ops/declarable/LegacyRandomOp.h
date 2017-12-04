@@ -2,8 +2,8 @@
 // Created by raver119 on 16.10.2017.
 //
 
-#ifndef LIBND4J_LEGACYTRANSFORMOP_H
-#define LIBND4J_LEGACYTRANSFORMOP_H
+#ifndef LIBND4J_LEGACYRANDOMOP_H
+#define LIBND4J_LEGACYRANDOMOP_H
 
 
 #include <helpers/helper_random.h>

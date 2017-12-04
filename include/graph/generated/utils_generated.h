@@ -165,13 +165,13 @@ struct LongPairBuilder {
   void add_second(int64_t second) {
     fbb_.AddElement<int64_t>(LongPair::VT_SECOND, second, 0);
   }
-  LongPairBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit LongPairBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
   LongPairBuilder &operator=(const LongPairBuilder &);
   flatbuffers::Offset<LongPair> Finish() {
-    const auto end = fbb_.EndTable(start_, 2);
+    const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<LongPair>(end);
     return o;
   }
@@ -215,13 +215,13 @@ struct IntPairBuilder {
   void add_second(int32_t second) {
     fbb_.AddElement<int32_t>(IntPair::VT_SECOND, second, 0);
   }
-  IntPairBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit IntPairBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
   IntPairBuilder &operator=(const IntPairBuilder &);
   flatbuffers::Offset<IntPair> Finish() {
-    const auto end = fbb_.EndTable(start_, 2);
+    const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<IntPair>(end);
     return o;
   }
@@ -273,13 +273,13 @@ struct IntTripleBuilder {
   void add_third(int32_t third) {
     fbb_.AddElement<int32_t>(IntTriple::VT_THIRD, third, 0);
   }
-  IntTripleBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit IntTripleBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
   IntTripleBuilder &operator=(const IntTripleBuilder &);
   flatbuffers::Offset<IntTriple> Finish() {
-    const auto end = fbb_.EndTable(start_, 3);
+    const auto end = fbb_.EndTable(start_);
     auto o = flatbuffers::Offset<IntTriple>(end);
     return o;
   }
