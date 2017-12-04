@@ -377,12 +377,22 @@ template<typename T>
 
 		template<>
         math_def inline bool nd4j_isinf<float>(float value) {
-            return value < -FLOAT_MAX_VALUE || value > FLOAT_MAX_VALUE;
+#ifdef __CUDACC__
+            return isinf(value);
+#else
+            return std::isinf(value);
+#endif
+            //return value < -FLOAT_MAX_VALUE || value > FLOAT_MAX_VALUE;
 		}
 
 		template<>
         math_def inline bool nd4j_isinf<double>(double value) {
-            return value < -DOUBLE_MAX_VALUE || value > DOUBLE_MAX_VALUE;
+#ifdef __CUDACC__
+            return isinf(value);
+#else
+            return std::isinf(value);
+#endif
+            //return value < -DOUBLE_MAX_VALUE || value > DOUBLE_MAX_VALUE;
 		}
 
 		template<>
