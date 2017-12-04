@@ -21,6 +21,7 @@ namespace nd4j {
         public:
             LegacyRandomOp();
             LegacyRandomOp(int opNum);
+            ~LegacyRandomOp() = default;
 
             nd4j::ResultSet<T>*  execute(nd4j::random::RandomBuffer* rng, std::initializer_list<NDArray<T>*> inputs, std::initializer_list<T> tArgs, std::initializer_list<int> iArgs, bool isInplace = false);
             nd4j::ResultSet<T>*  execute(nd4j::random::RandomBuffer* rng, std::vector<NDArray<T>*>& inputs, std::vector<T>& tArgs, std::vector<int>& iArgs, bool isInplace = false);

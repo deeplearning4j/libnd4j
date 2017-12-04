@@ -38,8 +38,8 @@ struct FlatNode FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *name() const {
     return GetPointer<const flatbuffers::String *>(VT_NAME);
   }
-  OpType opType() const {
-    return static_cast<OpType>(GetField<int8_t>(VT_OPTYPE, 0));
+  nd4j::graph::OpType opType() const {
+    return static_cast<nd4j::graph::OpType>(GetField<int8_t>(VT_OPTYPE, 0));
   }
   int64_t opNum() const {
     return GetField<int64_t>(VT_OPNUM, 0);
@@ -47,11 +47,11 @@ struct FlatNode FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::Vector<int32_t> *input() const {
     return GetPointer<const flatbuffers::Vector<int32_t> *>(VT_INPUT);
   }
-  const flatbuffers::Vector<flatbuffers::Offset<IntPair>> *inputPaired() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<IntPair>> *>(VT_INPUTPAIRED);
+  const flatbuffers::Vector<flatbuffers::Offset<nd4j::graph::IntPair>> *inputPaired() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<nd4j::graph::IntPair>> *>(VT_INPUTPAIRED);
   }
-  DataType dataType() const {
-    return static_cast<DataType>(GetField<int8_t>(VT_DATATYPE, 0));
+  nd4j::graph::DataType dataType() const {
+    return static_cast<nd4j::graph::DataType>(GetField<int8_t>(VT_DATATYPE, 0));
   }
   const flatbuffers::Vector<int32_t> *output() const {
     return GetPointer<const flatbuffers::Vector<int32_t> *>(VT_OUTPUT);
@@ -116,7 +116,7 @@ struct FlatNodeBuilder {
   void add_name(flatbuffers::Offset<flatbuffers::String> name) {
     fbb_.AddOffset(FlatNode::VT_NAME, name);
   }
-  void add_opType(OpType opType) {
+  void add_opType(nd4j::graph::OpType opType) {
     fbb_.AddElement<int8_t>(FlatNode::VT_OPTYPE, static_cast<int8_t>(opType), 0);
   }
   void add_opNum(int64_t opNum) {
@@ -125,10 +125,10 @@ struct FlatNodeBuilder {
   void add_input(flatbuffers::Offset<flatbuffers::Vector<int32_t>> input) {
     fbb_.AddOffset(FlatNode::VT_INPUT, input);
   }
-  void add_inputPaired(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<IntPair>>> inputPaired) {
+  void add_inputPaired(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<nd4j::graph::IntPair>>> inputPaired) {
     fbb_.AddOffset(FlatNode::VT_INPUTPAIRED, inputPaired);
   }
-  void add_dataType(DataType dataType) {
+  void add_dataType(nd4j::graph::DataType dataType) {
     fbb_.AddElement<int8_t>(FlatNode::VT_DATATYPE, static_cast<int8_t>(dataType), 0);
   }
   void add_output(flatbuffers::Offset<flatbuffers::Vector<int32_t>> output) {
@@ -155,13 +155,13 @@ struct FlatNodeBuilder {
   void add_scope_name(flatbuffers::Offset<flatbuffers::String> scope_name) {
     fbb_.AddOffset(FlatNode::VT_SCOPE_NAME, scope_name);
   }
-  explicit FlatNodeBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  FlatNodeBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
   FlatNodeBuilder &operator=(const FlatNodeBuilder &);
   flatbuffers::Offset<FlatNode> Finish() {
-    const auto end = fbb_.EndTable(start_);
+    const auto end = fbb_.EndTable(start_, 15);
     auto o = flatbuffers::Offset<FlatNode>(end);
     return o;
   }
@@ -171,11 +171,11 @@ inline flatbuffers::Offset<FlatNode> CreateFlatNode(
     flatbuffers::FlatBufferBuilder &_fbb,
     int32_t id = 0,
     flatbuffers::Offset<flatbuffers::String> name = 0,
-    OpType opType = OpType_TRANSFORM,
+    nd4j::graph::OpType opType = nd4j::graph::OpType_TRANSFORM,
     int64_t opNum = 0,
     flatbuffers::Offset<flatbuffers::Vector<int32_t>> input = 0,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<IntPair>>> inputPaired = 0,
-    DataType dataType = DataType_INHERIT,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<nd4j::graph::IntPair>>> inputPaired = 0,
+    nd4j::graph::DataType dataType = nd4j::graph::DataType_INHERIT,
     flatbuffers::Offset<flatbuffers::Vector<int32_t>> output = 0,
     flatbuffers::Offset<flatbuffers::Vector<float>> extraParams = 0,
     flatbuffers::Offset<flatbuffers::Vector<int32_t>> extraInteger = 0,
@@ -207,11 +207,11 @@ inline flatbuffers::Offset<FlatNode> CreateFlatNodeDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     int32_t id = 0,
     const char *name = nullptr,
-    OpType opType = OpType_TRANSFORM,
+    nd4j::graph::OpType opType = nd4j::graph::OpType_TRANSFORM,
     int64_t opNum = 0,
     const std::vector<int32_t> *input = nullptr,
-    const std::vector<flatbuffers::Offset<IntPair>> *inputPaired = nullptr,
-    DataType dataType = DataType_INHERIT,
+    const std::vector<flatbuffers::Offset<nd4j::graph::IntPair>> *inputPaired = nullptr,
+    nd4j::graph::DataType dataType = nd4j::graph::DataType_INHERIT,
     const std::vector<int32_t> *output = nullptr,
     const std::vector<float> *extraParams = nullptr,
     const std::vector<int32_t> *extraInteger = nullptr,
@@ -227,7 +227,7 @@ inline flatbuffers::Offset<FlatNode> CreateFlatNodeDirect(
       opType,
       opNum,
       input ? _fbb.CreateVector<int32_t>(*input) : 0,
-      inputPaired ? _fbb.CreateVector<flatbuffers::Offset<IntPair>>(*inputPaired) : 0,
+      inputPaired ? _fbb.CreateVector<flatbuffers::Offset<nd4j::graph::IntPair>>(*inputPaired) : 0,
       dataType,
       output ? _fbb.CreateVector<int32_t>(*output) : 0,
       extraParams ? _fbb.CreateVector<float>(*extraParams) : 0,

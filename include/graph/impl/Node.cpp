@@ -346,6 +346,7 @@ namespace nd4j {
                     opType == OpType_ACCUMULATION ||
                     opType == OpType_ACCUMULATION3 ||
                     opType == OpType_TRANSFORM ||
+                    opType == OpType_RANDOM ||
                     opType == OpType_PAIRWISE ||
                     opType == OpType_SCALAR) {
 
@@ -451,7 +452,7 @@ namespace nd4j {
 
 
                 // these ops allow in-place execution by design
-                if (this->_opType == OpType_TRANSFORM || this->_opType == OpType_SCALAR || this->_opType == OpType_BROADCAST || this->_opType == OpType_ACCUMULATION || this->_opType == OpType_ACCUMULATION3 || this->_opType == OpType_PAIRWISE || this->_opType == OpType_SUMMARYSTATS || this->_opType == OpType_INDEX_ACCUMULATION) {
+                if (this->_opType == OpType_TRANSFORM || this->_opType == OpType_SCALAR || this->_opType == OpType_BROADCAST || this->_opType == OpType_RANDOM || this->_opType == OpType_ACCUMULATION || this->_opType == OpType_ACCUMULATION3 || this->_opType == OpType_PAIRWISE || this->_opType == OpType_SUMMARYSTATS || this->_opType == OpType_INDEX_ACCUMULATION) {
                     if (_output.size() <= 1) {
                         _isInplace = true;
                     }
@@ -567,6 +568,8 @@ namespace nd4j {
                     return new nd4j::ops::LegacyIndexReduceOp<T>(opNum);
                 case OpType_SUMMARYSTATS:
                     return new nd4j::ops::LegacyStatsOp<T>(opNum);
+                case OpType_RANDOM:
+                    return new nd4j::ops::LegacyRandomOp<T>(opNum);
                 case OpType_BROADCAST:
                     return new nd4j::ops::LegacyBroadcastOp<T>(opNum);
                 default:

@@ -26,8 +26,9 @@ enum OpType {
   OpType_SUMMARYSTATS = 7,
   OpType_SHAPE = 8,
   OpType_AGGREGATION = 9,
-  OpType_CUSTOM = 10,
-  OpType_GRAPH = 11,
+  OpType_RANDOM = 10,
+  OpType_CUSTOM = 11,
+  OpType_GRAPH = 12,
   OpType_VARIABLE = 30,
   OpType_BOOLEAN = 40,
   OpType_LOGIC = 119,
@@ -35,7 +36,7 @@ enum OpType {
   OpType_MAX = OpType_LOGIC
 };
 
-inline OpType (&EnumValuesOpType())[15] {
+inline OpType (&EnumValuesOpType())[16] {
   static OpType values[] = {
     OpType_TRANSFORM,
     OpType_ACCUMULATION,
@@ -47,6 +48,7 @@ inline OpType (&EnumValuesOpType())[15] {
     OpType_SUMMARYSTATS,
     OpType_SHAPE,
     OpType_AGGREGATION,
+    OpType_RANDOM,
     OpType_CUSTOM,
     OpType_GRAPH,
     OpType_VARIABLE,
@@ -163,13 +165,13 @@ struct LongPairBuilder {
   void add_second(int64_t second) {
     fbb_.AddElement<int64_t>(LongPair::VT_SECOND, second, 0);
   }
-  explicit LongPairBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  LongPairBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
   LongPairBuilder &operator=(const LongPairBuilder &);
   flatbuffers::Offset<LongPair> Finish() {
-    const auto end = fbb_.EndTable(start_);
+    const auto end = fbb_.EndTable(start_, 2);
     auto o = flatbuffers::Offset<LongPair>(end);
     return o;
   }
@@ -213,13 +215,13 @@ struct IntPairBuilder {
   void add_second(int32_t second) {
     fbb_.AddElement<int32_t>(IntPair::VT_SECOND, second, 0);
   }
-  explicit IntPairBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  IntPairBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
   IntPairBuilder &operator=(const IntPairBuilder &);
   flatbuffers::Offset<IntPair> Finish() {
-    const auto end = fbb_.EndTable(start_);
+    const auto end = fbb_.EndTable(start_, 2);
     auto o = flatbuffers::Offset<IntPair>(end);
     return o;
   }
@@ -271,13 +273,13 @@ struct IntTripleBuilder {
   void add_third(int32_t third) {
     fbb_.AddElement<int32_t>(IntTriple::VT_THIRD, third, 0);
   }
-  explicit IntTripleBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  IntTripleBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
   IntTripleBuilder &operator=(const IntTripleBuilder &);
   flatbuffers::Offset<IntTriple> Finish() {
-    const auto end = fbb_.EndTable(start_);
+    const auto end = fbb_.EndTable(start_, 3);
     auto o = flatbuffers::Offset<IntTriple>(end);
     return o;
   }

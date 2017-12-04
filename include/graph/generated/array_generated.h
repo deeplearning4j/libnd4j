@@ -160,13 +160,13 @@ struct FlatArrayBuilder {
   void add_byteOrder(ByteOrder byteOrder) {
     fbb_.AddElement<int8_t>(FlatArray::VT_BYTEORDER, static_cast<int8_t>(byteOrder), 0);
   }
-  explicit FlatArrayBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  FlatArrayBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
   FlatArrayBuilder &operator=(const FlatArrayBuilder &);
   flatbuffers::Offset<FlatArray> Finish() {
-    const auto end = fbb_.EndTable(start_);
+    const auto end = fbb_.EndTable(start_, 4);
     auto o = flatbuffers::Offset<FlatArray>(end);
     return o;
   }
