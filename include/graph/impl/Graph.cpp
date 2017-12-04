@@ -214,7 +214,7 @@ namespace nd4j {
 
             nd4j_debug("Graph output size: %i\n", _output.size());
             for (int e = 0; e < (int) _output.size(); e++) {
-                nd4j_printf("Output node: %i\n", _output.at(e));
+                nd4j_debug("Output node: %i\n", _output.at(e));
                 res->push_back(_variableSpace->getVariable(_output.at(e)));
             }
 

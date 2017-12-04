@@ -56,7 +56,7 @@ namespace nd4j {
                 if (indices->lengthOf() == x->rankOf())
                     allAxes = true;
 
-                indices->printIndexedBuffer("indices");
+                //indices->printIndexedBuffer("indices");
 
                 std::vector<int> axis(indices->lengthOf());
                 for (int e = 0; e < indices->lengthOf(); e++) {
