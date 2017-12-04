@@ -2,7 +2,7 @@
 // Created by raver119 on 16.10.2017.
 //
 
-#include <ops/declarable/LegacyTransformOp.h>
+#include <ops/declarable/LegacyRandomOp.h>
 
 #include <NativeOpExcutioner.h>
 
@@ -10,23 +10,23 @@
 namespace nd4j {
     namespace ops {
         template <typename T>
-        LegacyTransformOp<T>::LegacyTransformOp() : LegacyOp<T>::LegacyOp(1) {
+        LegacyRandomOp<T>::LegacyRandomOp() : LegacyOp<T>::LegacyOp(1) {
             // just a no-op
         }
 
         template <typename T>
-        LegacyTransformOp<T>::LegacyTransformOp(int opNum) : LegacyOp<T>::LegacyOp(1, opNum) {
+        LegacyRandomOp<T>::LegacyRandomOp(int opNum) : LegacyOp<T>::LegacyOp(1, opNum) {
             // just a no-op
         }
 
         template <typename T>
-        Nd4jStatus LegacyTransformOp<T>::validateAndExecute(Context<T> &block) {
+        Nd4jStatus LegacyRandomOp<T>::validateAndExecute(Context<T> &block) {
             auto input = INPUT_VARIABLE(0);
             auto z = OUTPUT_VARIABLE(0);
 
             int opNum = block.opNum() < 0 ? this->_opNum : block.opNum();
 
-            NativeOpExcutioner<T>::execTransform(opNum, input->getBuffer(), input->getShapeInfo(), z->getBuffer(), z->getShapeInfo(), block.getTArguments()->data(), nullptr, nullptr);
+            //NativeOpExcutioner<T>::execTransform(opNum, input->getBuffer(), input->getShapeInfo(), z->getBuffer(), z->getShapeInfo(), block.getTArguments()->data(), nullptr, nullptr);
 
             STORE_RESULT(*z);
 
@@ -39,7 +39,7 @@ namespace nd4j {
         *
         */
         template <typename T>
-        ShapeList *LegacyTransformOp<T>::calculateOutputShape(ShapeList *inputShape, nd4j::graph::Context<T> &ctx) {
+        ShapeList *LegacyRandomOp<T>::calculateOutputShape(ShapeList *inputShape, nd4j::graph::Context<T> &ctx) {
             auto inShape = inputShape->at(0);
 
             int *newShape;
@@ -50,8 +50,8 @@ namespace nd4j {
         }
 
 
-        template class ND4J_EXPORT LegacyTransformOp<float>;
-        template class ND4J_EXPORT LegacyTransformOp<double>;
-        template class ND4J_EXPORT LegacyTransformOp<float16>;
+        template class ND4J_EXPORT LegacyRandomOp<float>;
+        template class ND4J_EXPORT LegacyRandomOp<double>;
+        template class ND4J_EXPORT LegacyRandomOp<float16>;
     }
 }

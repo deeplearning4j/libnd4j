@@ -2,7 +2,7 @@
 // Created by raver119 on 16.10.2017.
 //
 
-#include "ops/declarable/LegacyReduceOp.h"
+#include <ops/declarable/LegacyReduceOp.h>
 #include <helpers/TAD.h>
 #include <helpers/ShapeUtils.h>
 
