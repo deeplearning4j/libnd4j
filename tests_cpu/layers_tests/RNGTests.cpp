@@ -6,6 +6,7 @@
 #include <chrono>
 #include <NDArray.h>
 #include <NDArrayFactory.h>
+#include <helpers/RandomLauncher.h>
 #include <ops/declarable/CustomOperations.h>
 
 using namespace nd4j;
@@ -21,11 +22,19 @@ public:
     nd4j::random::RandomBuffer *_rngA;
     nd4j::random::RandomBuffer *_rngB;
 
+    NDArray<float>* nexp0 = new NDArray<float>('c', {10, 10});
+    NDArray<float>* nexp1 = new NDArray<float>('c', {10, 10});
+    NDArray<float>* nexp2 = new NDArray<float>('c', {10, 10});
+
     RNGTests() {
         _bufferA = new Nd4jIndex[100000];
         _bufferB = new Nd4jIndex[100000];
         _rngA = (nd4j::random::RandomBuffer *) nativeOps.initRandom(nullptr, _seed, 100000, (Nd4jPointer) _bufferA);
         _rngB = (nd4j::random::RandomBuffer *) nativeOps.initRandom(nullptr, _seed, 100000, (Nd4jPointer) _bufferB);
+
+        nexp0->assign(-1.0f);
+        nexp1->assign(-2.0f);
+        nexp2->assign(-3.0f);
     }
 
     ~RNGTests() {
@@ -33,19 +42,16 @@ public:
         nativeOps.destroyRandom(_rngB);
         delete[] _bufferA;
         delete[] _bufferB;
+
+        delete nexp0;
+        delete nexp1;
+        delete nexp2;
     }
 };
 
 TEST_F(RNGTests, Test_Dropout_1) {
     NDArray<float> x0('c', {10, 10});
     NDArray<float> x1('c', {10, 10});
-    NDArray<float> nexp0('c', {10, 10});
-    NDArray<float> nexp1('c', {10, 10});
-    NDArray<float> nexp2('c', {10, 10});
-
-    nexp0.assign(-1.0f);
-    nexp1.assign(-2.0f);
-    nexp2.assign(-3.0f);
 
     NDArrayFactory<float>::linspace(1, x0);
     NDArrayFactory<float>::linspace(1, x1);
@@ -58,21 +64,14 @@ TEST_F(RNGTests, Test_Dropout_1) {
     ASSERT_TRUE(x0.equalsTo(&x1));
 
     // this check is required to ensure we're calling wrong signature
-    ASSERT_FALSE(x0.equalsTo(&nexp0));
-    ASSERT_FALSE(x0.equalsTo(&nexp1));
-    ASSERT_FALSE(x0.equalsTo(&nexp2));
+    ASSERT_FALSE(x0.equalsTo(nexp0));
+    ASSERT_FALSE(x0.equalsTo(nexp1));
+    ASSERT_FALSE(x0.equalsTo(nexp2));
 }
 
 TEST_F(RNGTests, Test_DropoutInverted_1) {
     NDArray<float> x0('c', {10, 10});
     NDArray<float> x1('c', {10, 10});
-    NDArray<float> nexp0('c', {10, 10});
-    NDArray<float> nexp1('c', {10, 10});
-    NDArray<float> nexp2('c', {10, 10});
-
-    nexp0.assign(-1.0f);
-    nexp1.assign(-2.0f);
-    nexp2.assign(-3.0f);
 
     NDArrayFactory<float>::linspace(1, x0);
     NDArrayFactory<float>::linspace(1, x1);
@@ -85,7 +84,52 @@ TEST_F(RNGTests, Test_DropoutInverted_1) {
     ASSERT_TRUE(x0.equalsTo(&x1));
 
     // this check is required to ensure we're calling wrong signature
-    ASSERT_FALSE(x0.equalsTo(&nexp0));
-    ASSERT_FALSE(x0.equalsTo(&nexp1));
-    ASSERT_FALSE(x0.equalsTo(&nexp2));
+    ASSERT_FALSE(x0.equalsTo(nexp0));
+    ASSERT_FALSE(x0.equalsTo(nexp1));
+    ASSERT_FALSE(x0.equalsTo(nexp2));
+}
+
+
+TEST_F(RNGTests, Test_Launcher_1) {
+    NDArray<float> x0('c', {10, 10});
+    NDArray<float> x1('c', {10, 10});
+
+    RandomLauncher<float>::applyDropOut(_rngA, &x0, 0.5f);
+    RandomLauncher<float>::applyDropOut(_rngB, &x1, 0.5f);
+
+    ASSERT_TRUE(x0.equalsTo(&x1));
+
+    ASSERT_FALSE(x0.equalsTo(nexp0));
+    ASSERT_FALSE(x0.equalsTo(nexp1));
+    ASSERT_FALSE(x0.equalsTo(nexp2));
+}
+
+
+TEST_F(RNGTests, Test_Launcher_2) {
+    NDArray<float> x0('c', {10, 10});
+    NDArray<float> x1('c', {10, 10});
+
+    RandomLauncher<float>::applyInvertedDropOut(_rngA, &x0, 0.5f);
+    RandomLauncher<float>::applyInvertedDropOut(_rngB, &x1, 0.5f);
+
+    ASSERT_TRUE(x0.equalsTo(&x1));
+
+    ASSERT_FALSE(x0.equalsTo(nexp0));
+    ASSERT_FALSE(x0.equalsTo(nexp1));
+    ASSERT_FALSE(x0.equalsTo(nexp2));
+}
+
+
+TEST_F(RNGTests, Test_Launcher_3) {
+    NDArray<float> x0('c', {10, 10});
+    NDArray<float> x1('c', {10, 10});
+
+    RandomLauncher<float>::applyAlphaDropOut(_rngA, &x0, 0.5f, 0.2f, 0.1f, 0.3f);
+    RandomLauncher<float>::applyAlphaDropOut(_rngB, &x1, 0.5f, 0.2f, 0.1f, 0.3f);
+
+    ASSERT_TRUE(x0.equalsTo(&x1));
+
+    ASSERT_FALSE(x0.equalsTo(nexp0));
+    ASSERT_FALSE(x0.equalsTo(nexp1));
+    ASSERT_FALSE(x0.equalsTo(nexp2));
 }
