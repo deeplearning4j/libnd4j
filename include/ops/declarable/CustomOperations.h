@@ -67,6 +67,7 @@ namespace nd4j {
         DECLARE_OP(greater, 2, 1, true);
         DECLARE_OP(log1p, 2, 1, true);
         DECLARE_OP(toggle_bits, -1, -1, true);
+        DECLARE_OP(rint, 1, 1, true);
 
         DECLARE_OP(scatter_add, 3, 1, true);
         DECLARE_OP(scatter_sub, 3, 1, true);
@@ -122,7 +123,7 @@ namespace nd4j {
         DECLARE_CUSTOM_OP(repeat, 1, 1, true, 0, -1);   
         DECLARE_CUSTOM_OP(conv3d, 2, 1, false, 0, 7); 
         DECLARE_CUSTOM_OP(maxpool3d, 1, 2, true, 0, 13); 
-        DECLARE_CUSTOM_OP(permute, 1, 1, true, 0, -1);   
+        DECLARE_CUSTOM_OP(permute, 1, 1, true, 0, -2);   
         DECLARE_CUSTOM_OP(reshapeas, 2, 1, true, 0, 0);      
         DECLARE_CUSTOM_OP(transpose, 1, 1, true, 0, 0);
         DECLARE_CUSTOM_OP(stack, -1, 1, false, 0, 0);
@@ -151,7 +152,8 @@ namespace nd4j {
         DECLARE_CUSTOM_OP(meanSqErr, 3, 1, false, 0, 1);
         DECLARE_CUSTOM_OP(sigmCrossEntropy, 3, 1, false, 1, 1);
         DECLARE_CUSTOM_OP(softmaxCrossEntropy, 3, 1, false, 1, 1);      
-        DECLARE_CUSTOM_OP(batchnorm, 5, 1, false, 1, 2);  
+        DECLARE_CUSTOM_OP(batchnorm, 5, 1, false, 1, 2);
+        DECLARE_CUSTOM_OP(unique, 1, 2, false, 0, 0);
         DECLARE_CUSTOM_OP(lstmCell, 8, 2, false, 2, 2);
 
         // recurrent ops
@@ -189,7 +191,7 @@ namespace nd4j {
         DECLARE_CONFIGURABLE_OP(hardtanh_bp, 2, 1, true, 0, 0);
         DECLARE_CONFIGURABLE_OP(hardsigmoid_bp, 2, 1, true, 0, 0);
 
-        DECLARE_CONFIGURABLE_OP(firas_sparse, 1, 1, false, 0, -1);
+        DECLARE_CUSTOM_OP(firas_sparse, 1, 1, false, 0, -1);
 
         DECLARE_BOOLEAN_OP(lt_scalar, 2, true);
         DECLARE_BOOLEAN_OP(gt_scalar, 2, true);

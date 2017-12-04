@@ -24,11 +24,11 @@ endif()
 # -fsanitize=address
 # -fsanitize=leak
 if (APPLE)
-    set(CMAKE_CXX_FLAGS  " -fPIC -std=c++11 -fassociative-math -funsafe-math-optimizations -fmax-errors=2")
+    set(CMAKE_CXX_FLAGS  " -g -fPIC -std=c++11 -fassociative-math -funsafe-math-optimizations -fmax-errors=2")
 elseif(WIN32)    
-    set(CMAKE_CXX_FLAGS  " -fPIC -std=c++11 -fassociative-math -funsafe-math-optimizations -fmax-errors=2")
+    set(CMAKE_CXX_FLAGS  " -g -fPIC -std=c++11 -fassociative-math -funsafe-math-optimizations -fmax-errors=2")
 else()
-    set(CMAKE_CXX_FLAGS  " -fPIC -std=c++11 -fassociative-math -funsafe-math-optimizations -fmax-errors=2 -fsanitize=address")
+    set(CMAKE_CXX_FLAGS  " -g -fPIC -std=c++11 -fassociative-math -funsafe-math-optimizations -fmax-errors=2 -fsanitize=address")
 endif()
 
 
@@ -46,13 +46,13 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${ARCH_TUNE}")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
     # using Intel C++
-    SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${ARCH_TUNE} -O3 -fp-model fast")
+    SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${ARCH_TUNE} -fp-model fast")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     # using Visual Studio C++
 
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     # using GCC
-    SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -march=native -mtune=native")
+    SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS}")
 endif()
 
 
@@ -65,8 +65,9 @@ file(GLOB_RECURSE TYPES_SOURCES false ../../include/types/*.cpp ../../include/ty
 file(GLOB_RECURSE ARRAY_SOURCES false ../../include/array/*.cpp ../../include/array/*.h)
 file(GLOB_RECURSE MEMORY_SOURCES false ../../include/memory/*.cpp ../../include/memory/*.h)
 file(GLOB_RECURSE GRAPH_SOURCES false ../../include/graph/*.cpp ../../include/graph/*.h)
-file(GLOB_RECURSE CUSTOMOPS_SOURCES false ../../include/ops/declarable/*.cpp)
-file(GLOB_RECURSE OPS_SOURCES false ../../include/ops/impl/*.cpp ../../include/ops/*.h)
+file(GLOB_RECURSE CUSTOMOPS_SOURCES false ../../include/ops/declarable/generic/*.cpp)
+file(GLOB_RECURSE CUSTOMOPS_HELPERS_SOURCES false ../../include/ops/declarable/helpers/cpu/*.cpp)
+file(GLOB_RECURSE OPS_SOURCES false ../../include/ops/impl/*.cpp ../../include/ops/declarable/impl/*.cpp  ../../include/ops/*.h)
 file(GLOB_RECURSE INDEXING_SOURCES false ../../include/indexing/*.cpp ../../include/indexing/*.h)
 file(GLOB_RECURSE HELPERS_SOURCES false ../../include/helpers/*.cpp ../../include/helpers/*.h)
 file(GLOB_RECURSE LOOPS_SOURCES false ../../include/loops/*.cpp ../../include/loops/*.h)
@@ -78,7 +79,7 @@ add_library(nd4jcpu STATIC ../../blas/cpu/NativeOps.cpp ../../blas/cpu/GraphExec
         ../../blas/cpu/NativeOpExcutioner.cpp ../../blas/cpu/NDArray.cpp ../../blas/cpu/NDArrayFactory.cpp
         ../../include/cnpy/cnpy.cpp  ../../include/nd4jmemset.h ../../include/nd4jmalloc.h
         ../../blas/Environment.cpp ../../blas/Environment.h
-        ${MEMORY_SOURCES} ${GRAPH_SOURCES} ${CUSTOMOPS_SOURCES} ${INDEXING_SOURCES} ${HELPERS_SOURCES}
+        ${MEMORY_SOURCES} ${GRAPH_SOURCES} ${CUSTOMOPS_SOURCES} ${INDEXING_SOURCES} ${HELPERS_SOURCES} ${CUSTOMOPS_HELPERS_SOURCES}
         ${OPS_SOURCES} ${LOOPS_SOURCES} ${ARRAY_SOURCES} ${TYPES_SOURCES})
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND "${CMAKE_CXX_COMPILER_VERSION}" VERSION_LESS 4.9)
@@ -103,6 +104,6 @@ endif()
 
 
 # DenseLayerTests.cpp
-add_executable(runtests StashTests.cpp SessionLocalTests.cpp FlatBuffersTests.cpp ConvolutionTests.cpp DeclarableOpsTests1.cpp DeclarableOpsTests2.cpp  GraphTests.cpp HashUtilsTests.cpp NDArrayTests.cpp NDArrayTests2.cpp TadTests.cpp VariableSpaceTests.cpp VariableTests.cpp WorkspaceTests.cpp JavaInteropTests.cpp MemoryUtilsTests.cpp OpsArena.cpp OpTupleTests.cpp ParityOpsTests.cpp BooleanOpsTests.cpp SwitchTests.cpp ScopeTests.cpp ConditionalTests.cpp LegacyOpsTests.cpp ContextTests.cpp IndexingTests.cpp ShapeUtilsTests.cpp NDArrayListTests.cpp ListOperationsTests.cpp NDArrayFactoryTests.cpp BitwiseUtilsTests.cpp SanityTests.cpp PlaygroundTests.cpp BroadcastableOpsTests.cpp GraphExecutionerTests.cpp)
+add_executable(runtests StashTests.cpp SessionLocalTests.cpp FlatBuffersTests.cpp ConvolutionTests.cpp DeclarableOpsTests1.cpp DeclarableOpsTests2.cpp DeclarableOpsTests3.cpp GraphTests.cpp HashUtilsTests.cpp NDArrayTests.cpp NDArrayTests2.cpp TadTests.cpp VariableSpaceTests.cpp VariableTests.cpp WorkspaceTests.cpp JavaInteropTests.cpp MemoryUtilsTests.cpp OpsArena.cpp OpTupleTests.cpp ParityOpsTests.cpp BooleanOpsTests.cpp SwitchTests.cpp ScopeTests.cpp ConditionalTests.cpp LegacyOpsTests.cpp ContextTests.cpp IndexingTests.cpp ShapeUtilsTests.cpp NDArrayListTests.cpp ListOperationsTests.cpp NDArrayFactoryTests.cpp BitwiseUtilsTests.cpp SanityTests.cpp PlaygroundTests.cpp BroadcastableOpsTests.cpp GraphExecutionerTests.cpp)
 #add_executable(runtests CyclicTests.cpp)
 target_link_libraries(runtests nd4jcpu gtest gtest_main)
