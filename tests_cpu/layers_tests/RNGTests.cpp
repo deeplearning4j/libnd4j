@@ -215,12 +215,100 @@ TEST_F(RNGTests, Test_Binomial_1) {
 
 TEST_F(RNGTests, Test_Uniform_2) {
     NDArray<float> input('c', {1, 2}, {10, 10});
+    NDArray<float> x1('c', {10, 10});
+
+    RandomLauncher<float>::fillUniform(_rngB, &x1, 1.0f, 2.0f);
 
     auto op = new nd4j::ops::LegacyRandomOp<float>(0);
-    auto result = op->execute({&input}, {1.0f, 2.0f}, {});
+    auto result = op->execute(_rngA, {&input}, {1.0f, 2.0f}, {});
 
     ASSERT_EQ(ND4J_STATUS_OK, result->status());
 
+    auto z = result->at(0);
+
+    ASSERT_TRUE(x1.isSameShape(z));
+    ASSERT_TRUE(x1.equalsTo(z));
+
+    delete op;
+    delete result;
+}
+
+TEST_F(RNGTests, Test_Gaussian_2) {
+    NDArray<float> input('c', {1, 2}, {10, 10});
+    NDArray<float> x1('c', {10, 10});
+
+    RandomLauncher<float>::fillGaussian(_rngB, &x1, 1.0f, 2.0f);
+
+    auto op = new nd4j::ops::LegacyRandomOp<float>(6);
+    auto result = op->execute(_rngA, {&input}, {1.0f, 2.0f}, {});
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(x1.isSameShape(z));
+    ASSERT_TRUE(x1.equalsTo(z));
+
+    delete op;
+    delete result;
+}
+
+TEST_F(RNGTests, Test_LogNorm_2) {
+    NDArray<float> input('c', {1, 2}, {10, 10});
+    NDArray<float> x1('c', {10, 10});
+
+    RandomLauncher<float>::fillLogNormal(_rngB, &x1, 1.0f, 2.0f);
+
+    auto op = new nd4j::ops::LegacyRandomOp<float>(10);
+    auto result = op->execute(_rngA, {&input}, {1.0f, 2.0f}, {});
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(x1.isSameShape(z));
+    ASSERT_TRUE(x1.equalsTo(z));
+
+    delete op;
+    delete result;
+}
+
+TEST_F(RNGTests, Test_TruncatedNorm_2) {
+    NDArray<float> input('c', {1, 2}, {10, 10});
+    NDArray<float> x1('c', {10, 10});
+
+    RandomLauncher<float>::fillTruncatedNormal(_rngB, &x1, 1.0f, 2.0f);
+
+    auto op = new nd4j::ops::LegacyRandomOp<float>(11);
+    auto result = op->execute(_rngA, {&input}, {1.0f, 2.0f}, {});
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(x1.isSameShape(z));
+    ASSERT_TRUE(x1.equalsTo(z));
+
+    delete op;
+    delete result;
+}
+
+
+TEST_F(RNGTests, Test_Binomial_2) {
+    NDArray<float> input('c', {1, 2}, {10, 10});
+    NDArray<float> x1('c', {10, 10});
+
+    RandomLauncher<float>::fillBinomial(_rngB, &x1, 3, 0.5f);
+
+    auto op = new nd4j::ops::LegacyRandomOp<float>(9);
+    auto result = op->execute(_rngA, {&input}, {0.5f}, {3});
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(x1.isSameShape(z));
+    ASSERT_TRUE(x1.equalsTo(z));
 
     delete op;
     delete result;

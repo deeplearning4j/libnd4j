@@ -21,6 +21,8 @@ namespace nd4j {
 
         template <typename T>
         Nd4jStatus LegacyRandomOp<T>::validateAndExecute(Context<T> &block) {
+            REQUIRE_TRUE(block.getRNG() != nullptr, 0, "RNG should be provided for LegacyRandomOp, but got NULL instead")
+
             auto input = INPUT_VARIABLE(0);
 
             int opNum = block.opNum() < 0 ? this->_opNum : block.opNum();
@@ -42,6 +44,7 @@ namespace nd4j {
             */
             switch(opNum) {
                 case 0: {
+                    // uniform distribution
                     T from, to;
                     if (block.width() > 2) {
                         auto arg1 = INPUT_VARIABLE(1);
@@ -112,6 +115,131 @@ namespace nd4j {
                     RandomLauncher<T>::applyInvertedDropOut(block.getRNG(), z, prob);
                 }
                 break;
+                case 6: {
+                    // gaussian distribution
+                    T mean, stdev;
+                    if (block.width() > 2) {
+                        auto arg1 = INPUT_VARIABLE(1);
+                        auto arg2 = INPUT_VARIABLE(2);
+                        REQUIRE_TRUE(arg1->isScalar(), 0, "Gaussian: Second argument must be scalar");
+                        REQUIRE_TRUE(arg2->isScalar(), 0, "Gaussian: Third argument must be scalar");
+
+                        mean = arg1->getScalar(0);
+                        stdev = arg2->getScalar(0);
+                    } else if (block.getTArguments()->size() == 2) {
+                        mean = T_ARG(0);
+                        stdev = T_ARG(1);
+                    } else {
+                        REQUIRE_TRUE(false, 0, "Gaussian requires either TArgs or 3 arguments to be present");
+                    }
+
+                    REQUIRE_TRUE(input->isVector(), 0, "Gaussian requires pure shape as first argument");
+
+                    std::vector<int> shape(input->lengthOf());
+                    for (int e = 0; e < input->lengthOf(); e++)
+                        shape[e] = (int) input->getScalar(e);
+
+                    auto z = new NDArray<T>('c', shape, block.getWorkspace());
+
+                    RandomLauncher<T>::fillGaussian(block.getRNG(), z, mean, stdev);
+
+                    OVERWRITE_RESULT(z);
+                }
+                break;
+                case 9: {
+                    // BinomialEx distribution
+                    T prob;
+                    int trials;
+                    if (block.width() > 2) {
+                        auto arg1 = INPUT_VARIABLE(1);
+                        auto arg2 = INPUT_VARIABLE(2);
+                        REQUIRE_TRUE(arg1->isScalar(), 0, "Binomial: Second argument must be scalar");
+                        REQUIRE_TRUE(arg2->isScalar(), 0, "Binomial: Third argument must be scalar");
+
+                        trials = (int) arg1->getScalar(0);
+                        prob = arg2->getScalar(0);
+                    } else if (block.getTArguments()->size() == 1 && block.getIArguments()->size() == 1) {
+                        trials = INT_ARG(0);
+                        prob = T_ARG(0);
+                    } else {
+                        REQUIRE_TRUE(false, 0, "Binomial requires either TArgs/IArgs or 3 arguments to be present");
+                    }
+
+                    REQUIRE_TRUE(input->isVector(), 0, "Binomial requires pure shape as first argument");
+
+                    std::vector<int> shape(input->lengthOf());
+                    for (int e = 0; e < input->lengthOf(); e++)
+                        shape[e] = (int) input->getScalar(e);
+
+                    auto z = new NDArray<T>('c', shape, block.getWorkspace());
+
+                    RandomLauncher<T>::fillBinomial(block.getRNG(), z, trials, prob);
+
+                    OVERWRITE_RESULT(z);
+                }
+                break;
+                case 10: {
+                    // lognorm distribution
+                    T mean, stdev;
+                    if (block.width() > 2) {
+                        auto arg1 = INPUT_VARIABLE(1);
+                        auto arg2 = INPUT_VARIABLE(2);
+                        REQUIRE_TRUE(arg1->isScalar(), 0, "LogNormal: Second argument must be scalar");
+                        REQUIRE_TRUE(arg2->isScalar(), 0, "LogNormal: Third argument must be scalar");
+
+                        mean = arg1->getScalar(0);
+                        stdev = arg2->getScalar(0);
+                    } else if (block.getTArguments()->size() == 2) {
+                        mean = T_ARG(0);
+                        stdev = T_ARG(1);
+                    } else {
+                        REQUIRE_TRUE(false, 0, "LogNormal requires either TArgs or 3 arguments to be present");
+                    }
+
+                    REQUIRE_TRUE(input->isVector(), 0, "LogNormal requires pure shape as first argument");
+
+                    std::vector<int> shape(input->lengthOf());
+                    for (int e = 0; e < input->lengthOf(); e++)
+                        shape[e] = (int) input->getScalar(e);
+
+                    auto z = new NDArray<T>('c', shape, block.getWorkspace());
+
+                    RandomLauncher<T>::fillLogNormal(block.getRNG(), z, mean, stdev);
+
+                    OVERWRITE_RESULT(z);
+                }
+                break;
+                case 11: {
+                    // truncated norm distribution
+                    T mean, stdev;
+                    if (block.width() > 2) {
+                        auto arg1 = INPUT_VARIABLE(1);
+                        auto arg2 = INPUT_VARIABLE(2);
+                        REQUIRE_TRUE(arg1->isScalar(), 0, "TruncatedNormal: Second argument must be scalar");
+                        REQUIRE_TRUE(arg2->isScalar(), 0, "TruncatedNormal: Third argument must be scalar");
+
+                        mean = arg1->getScalar(0);
+                        stdev = arg2->getScalar(0);
+                    } else if (block.getTArguments()->size() == 2) {
+                        mean = T_ARG(0);
+                        stdev = T_ARG(1);
+                    } else {
+                        REQUIRE_TRUE(false, 0, "TruncatedNormal requires either TArgs or 3 arguments to be present");
+                    }
+
+                    REQUIRE_TRUE(input->isVector(), 0, "TruncatedNormal requires pure shape as first argument");
+
+                    std::vector<int> shape(input->lengthOf());
+                    for (int e = 0; e < input->lengthOf(); e++)
+                        shape[e] = (int) input->getScalar(e);
+
+                    auto z = new NDArray<T>('c', shape, block.getWorkspace());
+
+                    RandomLauncher<T>::fillTruncatedNormal(block.getRNG(), z, mean, stdev);
+
+                    OVERWRITE_RESULT(z);
+                }
+                break;
                 case 12: {
                     auto z = OUTPUT_VARIABLE(0);
 
@@ -170,6 +298,70 @@ namespace nd4j {
             return new ShapeList(newShape);
         }
 
+        template <typename T>
+        Nd4jStatus LegacyRandomOp<T>::execute(Context<T>* block) {
+            return DeclarableOp<T>::execute(block);
+        }
+
+        template <typename T>
+        nd4j::ResultSet<T>*  LegacyRandomOp<T>::execute(nd4j::random::RandomBuffer* rng, std::initializer_list<NDArray<T>*> inputs, std::initializer_list<T> tArgs, std::initializer_list<int> iArgs, bool isInplace) {
+            std::vector<NDArray<T>*> ins(inputs);
+            std::vector<T> tas(tArgs);
+            std::vector<int> ias(iArgs);
+            return this->execute(rng, ins, tas, ias, isInplace);
+        }
+
+        template <typename T>
+        nd4j::ResultSet<T>*  LegacyRandomOp<T>::execute(nd4j::random::RandomBuffer* rng, std::vector<NDArray<T>*>& inputs, std::vector<T>& tArgs, std::vector<int>& iArgs, bool isInplace) {
+            VariableSpace<T> variableSpace;
+            auto arrayList = new ResultSet<T>();
+            //ResultSet<T> arrayList;
+
+            if (isInplace)
+                arrayList->setNonRemovable();
+
+            int cnt = -1;
+            std::vector<int> in;
+            for (auto v: inputs) {
+                if (v == nullptr)
+                    continue;
+
+                auto var = new Variable<T>(v);
+                var->markRemovable(false);
+                in.push_back(cnt);
+                variableSpace.putVariable(cnt--, var);
+            }
+
+            Context<T> block(1, &variableSpace, false);
+            block.setRNG(rng);
+            block.fillInputs(in);
+            block.markInplace(isInplace);
+
+            for (int e = 0; e < tArgs.size(); e++)
+                block.getTArguments()->emplace_back(tArgs.at(e));
+
+
+            for (int e = 0; e < iArgs.size(); e++)
+                block.getIArguments()->emplace_back(iArgs.at(e));
+
+            Nd4jStatus status = this->execute(&block);
+            arrayList->setStatus(status);
+            if (status != ND4J_STATUS_OK)
+                return arrayList;
+
+
+            for (int e = 0; e < 65536; e++) {
+                std::pair<int,int> pair(1, e);
+                if (variableSpace.hasVariable(pair)) {
+                    auto var = variableSpace.getVariable(pair);
+                    var->markRemovable(false);
+                    arrayList->push_back(var->getNDArray());
+                } else
+                    break;
+            }
+
+            return arrayList;
+        }
 
         template class ND4J_EXPORT LegacyRandomOp<float>;
         template class ND4J_EXPORT LegacyRandomOp<double>;

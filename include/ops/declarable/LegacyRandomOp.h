@@ -6,6 +6,7 @@
 #define LIBND4J_LEGACYTRANSFORMOP_H
 
 
+#include <helpers/helper_random.h>
 #include <ops/declarable/LegacyOp.h>
 
 namespace nd4j {
@@ -20,6 +21,10 @@ namespace nd4j {
         public:
             LegacyRandomOp();
             LegacyRandomOp(int opNum);
+
+            nd4j::ResultSet<T>*  execute(nd4j::random::RandomBuffer* rng, std::initializer_list<NDArray<T>*> inputs, std::initializer_list<T> tArgs, std::initializer_list<int> iArgs, bool isInplace = false);
+            nd4j::ResultSet<T>*  execute(nd4j::random::RandomBuffer* rng, std::vector<NDArray<T>*>& inputs, std::vector<T>& tArgs, std::vector<int>& iArgs, bool isInplace = false);
+            Nd4jStatus execute(Context<T>* block);
 
             ShapeList* calculateOutputShape(ShapeList* inputShape, nd4j::graph::Context<T>& block);
         };
