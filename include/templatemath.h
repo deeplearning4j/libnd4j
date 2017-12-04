@@ -23,7 +23,6 @@
 #ifdef __CUDACC__
 #include <types/float16.h>
 #define math_def __host__ __device__
-#define std::isinf(x) isinf(x)
 #ifdef CUDA_9
 struct HALFS{
 			half H;
@@ -378,12 +377,12 @@ template<typename T>
 
 		template<>
         math_def inline bool nd4j_isinf<float>(float value) {
-			return std::isinf(value);
+            return value < -FLOAT_MAX_VALUE || value > FLOAT_MAX_VALUE;
 		}
 
 		template<>
         math_def inline bool nd4j_isinf<double>(double value) {
-			return std::isinf(value);
+            return value < -DOUBLE_MAX_VALUE || value > DOUBLE_MAX_VALUE;
 		}
 
 		template<>
