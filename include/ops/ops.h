@@ -911,7 +911,7 @@ namespace simdOps {
 		no_op_exec_special_cuda
 
 		op_def static T op(T d1, T *params) {
-			return isinf(d1) ? (T) 1.0f : (T) 0.0f;
+			return nd4j::math::nd4j_isinf(d1) ? (T) 1.0f : (T) 0.0f;
 		}
 	};
 
@@ -3324,7 +3324,7 @@ template<typename T>
                 else
                     return d1;
             else if (mode == 8) // is inf
-                if (isinf(d1))
+                if (nd4j::math::nd4j_isinf(d1))
                     return d2;
                 else
                     return d1;
@@ -3416,7 +3416,7 @@ template<typename T>
                 else
                     return d1;
             else if (mode == 8) // is inf
-                if (isinf(d1))
+                if (nd4j::math::nd4j_isinf(d1))
                     return set;
                 else
                     return d1;
@@ -3496,7 +3496,7 @@ template<typename T>
                 else
                     return d1;
             else if (mode == 8) // is inf
-                if (isinf(d2))
+                if (nd4j::math::nd4j_isinf(d2))
                     return d2;
                 else
                     return d1;
