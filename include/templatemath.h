@@ -23,7 +23,7 @@
 #ifdef __CUDACC__
 #include <types/float16.h>
 #define math_def __host__ __device__
-
+#define std::isinf(x) isinf(x)
 #ifdef CUDA_9
 struct HALFS{
 			half H;
