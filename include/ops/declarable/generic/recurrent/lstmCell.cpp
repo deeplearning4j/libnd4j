@@ -1,5 +1,8 @@
 //
 // implementation of operation for LSTM cell with peep hole connections:
+// http://www.bioinf.jku.at/publications/older/2604.pdf
+// S. Hochreiter and J. Schmidhuber. "Long Short-Term Memory". Neural Computation, 9(8):1735-1780, 1997.
+// and 
 // https://research.google.com/pubs/archive/43905.pdf
 // Hasim Sak, Andrew Senior, and Francoise Beaufays. "Long short-term memory recurrent neural network architectures for large scale acoustic modeling." INTERSPEECH, 2014.
 //
@@ -28,7 +31,7 @@ static NDArray<T> actvation(const NDArray<T>& arr) {
 
 //////////////////////////////////////////////////////////////////////////
 template <typename T>
-static void clipping(NDArray<T>& arr, T limit) {    
+static void clipping(NDArray<T>* arr, T limit) {    
     
     if(limit < (T)0.)
         limit *= (T)(-1.);
@@ -39,66 +42,63 @@ static void clipping(NDArray<T>& arr, T limit) {
         return value; 
     };
 
-    arr.applyLambda(clip);    
+    arr->applyLambda(clip);    
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 CUSTOM_OP_IMPL(lstmCell, 8, 2, false, 2, 2) {
 
-    NDArray<T> xt   = *INPUT_VARIABLE(0);                   // input [batchSize x inSize]
-    NDArray<T> ht_1 = *INPUT_VARIABLE(1);                   // previous cell output [batchSize x numProj],  that is at previous time step t-1
-    NDArray<T> ct_1 = *INPUT_VARIABLE(2);                   // previous cell state  [batchSize x numUnits], that is at previous time step t-1   
+    NDArray<T>* xt   = INPUT_VARIABLE(0);                   // input [batchSize x inSize]
+    NDArray<T>* ht_1 = INPUT_VARIABLE(1);                   // previous cell output [batchSize x numProj],  that is at previous time step t-1, in case of projection=false -> numProj=numUnits!!! 
+    NDArray<T>* ct_1 = INPUT_VARIABLE(2);                   // previous cell state  [batchSize x numUnits], that is at previous time step t-1   
 
-    NDArray<T> Wx   = *INPUT_VARIABLE(3);                   // input-to-hidden  weights, [inSize  x 4*numUnits] 
-    NDArray<T> Wh   = *INPUT_VARIABLE(4);                   // hidden-to-hidden weights, [numProj x 4*numUnits] 
-    NDArray<T> Wc   = *INPUT_VARIABLE(5);                   // diagonal weights for peephole connections [1 x 3*numUnits] 
-    NDArray<T> Wp   = *INPUT_VARIABLE(6);                   // projection weights [numUnits x numProj] 
-    NDArray<T> b    = *INPUT_VARIABLE(7);                   // biases, [1 x 4*numUnits] 
+    NDArray<T>* Wx   = INPUT_VARIABLE(3);                   // input-to-hidden  weights, [inSize  x 4*numUnits] 
+    NDArray<T>* Wh   = INPUT_VARIABLE(4);                   // hidden-to-hidden weights, [numProj x 4*numUnits] 
+    NDArray<T>* Wc   = INPUT_VARIABLE(5);                   // diagonal weights for peephole connections [1 x 3*numUnits] 
+    NDArray<T>* Wp   = INPUT_VARIABLE(6);                   // projection weights [numUnits x numProj] 
+    NDArray<T>* b    = INPUT_VARIABLE(7);                   // biases, [1 x 4*numUnits] 
     
-    NDArray<T> ht   = *OUTPUT_VARIABLE(0);                  // current cell output [batchSize x numProj], that is at current time step t
-    NDArray<T> ct   = *OUTPUT_VARIABLE(1);                  // current cell state  [batchSize x numUnits], that is at current time step t
+    NDArray<T>* ht   =  OUTPUT_VARIABLE(0);                  // current cell output [batchSize x numProj], that is at current time step t
+    NDArray<T>* ct   =  OUTPUT_VARIABLE(1);                  // current cell state  [batchSize x numUnits], that is at current time step t
     
     const bool peephole   = (bool)INT_ARG(0);               // if true, provide peephole connections
     const bool projection = (bool)INT_ARG(1);               // if true, then projection is performed, if false then numProj==numUnits is mandatory!!!!
     T clippingValue       = T_ARG(0);                       // clipping value, if it is not equal to zero, then cell state is clipped
     const T forgetBias    = T_ARG(1);
 
-    const int numUnits  = ct_1.sizeAt(1);
+    const int numUnits  = ct_1->sizeAt(1);
     
-    NDArray<T> z = mmul(xt, Wx) + mmul(ht_1, Wh) + b;       // [batchSize x 4*numUnits] + [batchSize x 4*numUnits] + [1 x 4*numUnits] = [batchSize x 4*numUnits]
-    
+    NDArray<T> z = mmul(*xt, *Wx) + mmul(*ht_1, *Wh) + *b;       // [batchSize x 4*numUnits] + [batchSize x 4*numUnits] + [1 x 4*numUnits] = [batchSize x 4*numUnits]    
     
     NDArray<T> zit = z({{},{0,            numUnits}});      // z for input gate,  = mmul(Wxi,xt) + mmul(Whi,ht_1) + bi    = [batchSize x numUnits]
     NDArray<T> zft = z({{},{numUnits,   2*numUnits}});      // z for forget gate, = mmul(Wxf,xt) + mmul(Whf,ht_1) + bf    = [batchSize x numUnits]
     NDArray<T> zct = z({{},{2*numUnits, 3*numUnits}});      // z for cell state,  = mmul(Wxc,xt) + mmul(Whc,ht_1) + bc    = [batchSize x numUnits]     
     NDArray<T> zot = z({{},{3*numUnits, 4*numUnits}});      // z for output gate, = mmul(Wxo,xt) + mmul(Who,ht_1) + bo    = [batchSize x numUnits] 
 
-    if(peephole) {                                             // add peephole connections: z  +  ct_1*Wc
-        zit += ct_1 * Wc({{},{0,          numUnits}});         // add peephole connections to input gate
-        zft += ct_1 * Wc({{},{numUnits, 2*numUnits}});         // add peephole connections to forget gate
+    if(peephole) {                                              // add peephole connections: z  +  ct_1*Wc
+        zit += (*ct_1) * (*Wc)({{},{0,          numUnits}});    // add peephole connections to input gate
+        zft += (*ct_1) * (*Wc)({{},{numUnits, 2*numUnits}});    // add peephole connections to forget gate
     }
 
     // current sell state = ft*ct_1 + it*actvation(mmul(Wxc,xt) + mmul(Whc,ht_1) + bc
-    ct = sigmoid<T>(zft + forgetBias) * ct_1 + sigmoid<T>(zit) * actvation<T>(zct);
+    *ct = sigmoid<T>(zft + forgetBias) * (*ct_1) + sigmoid<T>(zit) * actvation<T>(zct);
     // if clipping value is provided then cell state is clipped by this value prior to the cell output activation
     if(clippingValue != (T)0.)
         clipping(ct, clippingValue);
 
     if(peephole) 
-        zot += ct * Wc({{},{2*numUnits, 3*numUnits}});          // add peephole connections to output gate zot + ct*Wc
+        zot += (*ct) * (*Wc)({{},{2*numUnits, 3*numUnits}});            // add peephole connections to output gate zot + ct*Wc
 
     // current cell output = ot*actvation(ct)   
-    NDArray<T> htNoPeepHole = sigmoid<T>(zot) * actvation<T>(ct);                    // = [batchSize x numUnits]
+    NDArray<T> htNoPeepHole = sigmoid<T>(zot) * actvation<T>(*ct);      // = [batchSize x numUnits]
 
     // apply projection
     if(projection)
-        ht = mmul(htNoPeepHole, Wp);                                      // [batchSize x numUnits] * [ numUnits x numProj] = [batchSize x numProj]
+        *ht = mmul(htNoPeepHole, *Wp);                                  // [batchSize x numUnits] * [ numUnits x numProj] = [batchSize x numProj]
     else
-        ht.assign(&htNoPeepHole); 
-
-    STORE_2_RESULTS(ht, ct);
-
+        ht->assign(&htNoPeepHole);     
+    
 }
 
 
@@ -113,27 +113,27 @@ DECLARE_SHAPE_FN(lstmCell) {
 
     // check shapes of previous cell output and previous cell state
     for(int i = 1; i <=2; ++i)
-        if((INPUT_VARIABLE(i))->sizeAt(0) != batchSize);
+        if((INPUT_VARIABLE(i))->sizeAt(0) != batchSize)
             throw "CUSTOM_OP lstmCell: the shape[0] of previous cell output or previous cell state must be equal to batch size !";
     
     // check shape of input-to-hidden  weights
-    if(!INPUT_VARIABLE(3)->isSameShape({inSize, 4*numUnits}));
+    if(!INPUT_VARIABLE(3)->isSameShape({inSize, 4*numUnits}))
         throw "CUSTOM_OP lstmCell: the shape of input-to-hidden weights is wrong !";
 
     // check shape of hidden-to-hidden  weights
-    if(!INPUT_VARIABLE(4)->isSameShape({numProj, 4*numUnits}));
+    if(!INPUT_VARIABLE(4)->isSameShape({numProj, 4*numUnits}))
         throw "CUSTOM_OP lstmCell: the shape of hidden-to-hidden weights is wrong !";
 
     // check shape of diagonal weights
-    if(!INPUT_VARIABLE(5)->isSameShape({1, 3*numUnits}));
+    if(!INPUT_VARIABLE(5)->isSameShape({1, 3*numUnits}))
         throw "CUSTOM_OP lstmCell: the shape of diagonal weights is wrong !";
 
     // check shape of projection weights
-    if(!INPUT_VARIABLE(6)->isSameShape({numUnits, numProj}));
+    if(!INPUT_VARIABLE(6)->isSameShape({numUnits, numProj}))
         throw "CUSTOM_OP lstmCell: the shape of projection weights is wrong !";
 
     // check shape of biases
-    if(!INPUT_VARIABLE(7)->isSameShape({1, 4*numUnits}));
+    if(!INPUT_VARIABLE(7)->isSameShape({1, 4*numUnits}))
         throw "CUSTOM_OP lstmCell: the shape of biases is wrong !";
 
     if(!projection && numUnits != numProj)

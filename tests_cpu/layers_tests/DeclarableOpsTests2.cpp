@@ -3677,4 +3677,54 @@ TEST_F(DeclarableOpsTests2, softmaxCrossEntropy_test15) {
     delete results;
 }
 
+///////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests2, lstmCell_test1) {
     
+    const int batchSize = 2;
+    const int inSize    = 10;
+    const int numProj   = 4;
+    const int numUnits  = 4;
+
+    NDArray<double> xt  ('c', {batchSize, inSize});
+    NDArray<double> ht_1('c', {batchSize, numProj});
+    NDArray<double> ct_1('c', {batchSize, numUnits});
+    NDArray<double> Wx  ('c', {inSize, 4*numUnits});
+    NDArray<double> Wh  ('c', {numProj, 4*numUnits});
+    NDArray<double> Wc  ('c', {1, 3*numUnits});
+    NDArray<double> Wp  ('c', {numUnits, numProj});
+    NDArray<double> b   ('c', {1, 4*numUnits});
+
+    xt.assign(1.);
+    ht_1.assign(2.);
+    ct_1.assign(3.);
+    Wx.assign(0.5);
+    Wh.assign(0.5);
+    Wc.assign(0.5);
+    Wp.assign(0.5);
+    b.assign(0.7);
+
+    NDArray<double> expHt('c', {batchSize, numProj}, {0.99504636,0.99504636,0.99504636,0.99504636,0.99504636,0.99504636,0.99504636,0.99504636});
+    NDArray<double> expCt('c', {batchSize, numUnits},{2.9999856,2.9999856,2.9999856,2.9999856,2.9999856,2.9999856,2.9999856,2.9999856});
+
+    nd4j::ops::lstmCell<double> op;
+    nd4j::ResultSet<double>* results = op.execute({&xt, &ht_1, &ct_1, &Wx, &Wh, &Wc, &Wp, &b}, {0., 0.}, {0, 0});
+    // std::cout<<"!!!!!!!!!!!!!!   "<<results->status()<<std::endl;
+
+    // ASSERT_EQ(ND4J_STATUS_OK, results->status());    
+
+    NDArray<double> *ht = results->at(0);
+    NDArray<double> *ct = results->at(1);
+    ht->printBuffer();
+    std::cout<<"!!!!!!!!!!!!!!"<<std::endl;
+    ct->printBuffer();
+
+    ASSERT_TRUE(expHt.isSameShape(ht));
+    ASSERT_TRUE(expHt.equalsTo(ht));
+    ASSERT_TRUE(expCt.isSameShape(ct));
+    ASSERT_TRUE(expCt.equalsTo(ct));
+
+    delete results;
+}
+
+
+
