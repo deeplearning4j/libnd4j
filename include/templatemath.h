@@ -9,6 +9,7 @@
 #define TEMPLATEMATH_H_
 
 #include <math.h>
+#include <cmath>
 #include <dll.h>
 #include <pointercast.h>
 
@@ -377,12 +378,12 @@ template<typename T>
 
 		template<>
         math_def inline bool nd4j_isinf<float>(float value) {
-			return value < -FLOAT_MAX_VALUE || value > FLOAT_MAX_VALUE;
+			return std::isinf(value);
 		}
 
 		template<>
         math_def inline bool nd4j_isinf<double>(double value) {
-			return value < -DOUBLE_MAX_VALUE || value > DOUBLE_MAX_VALUE;
+			return std::isinf(value);
 		}
 
 		template<>
