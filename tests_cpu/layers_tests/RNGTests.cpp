@@ -7,6 +7,7 @@
 #include <NDArray.h>
 #include <NDArrayFactory.h>
 #include <helpers/RandomLauncher.h>
+#include <ops/declarable/LegacyRandomOp.h>
 #include <ops/declarable/CustomOperations.h>
 
 using namespace nd4j;
@@ -209,4 +210,18 @@ TEST_F(RNGTests, Test_Binomial_1) {
     ASSERT_FALSE(x0.equalsTo(nexp0));
     ASSERT_FALSE(x0.equalsTo(nexp1));
     ASSERT_FALSE(x0.equalsTo(nexp2));
+}
+
+
+TEST_F(RNGTests, Test_Uniform_2) {
+    NDArray<float> input('c', {1, 2}, {10, 10});
+
+    auto op = new nd4j::ops::LegacyRandomOp<float>(0);
+    auto result = op->execute({&input}, {1.0f, 2.0f}, {});
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+
+    delete op;
+    delete result;
 }

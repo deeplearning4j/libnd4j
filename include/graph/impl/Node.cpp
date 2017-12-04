@@ -5,6 +5,7 @@
 #include <graph/Node.h>
 #include <ops/declarable/OpRegistrator.h>
 #include <ops/declarable/LegacyTransformOp.h>
+#include <ops/declarable/LegacyRandomOp.h>
 #include <ops/declarable/LegacyScalarOp.h>
 #include <ops/declarable/LegacyReduceOp.h>
 #include <ops/declarable/LegacyIndexReduceOp.h>
