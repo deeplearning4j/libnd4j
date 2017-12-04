@@ -47,7 +47,7 @@ static void clipping(NDArray<T>* arr, T limit) {
 
 
 //////////////////////////////////////////////////////////////////////////
-CUSTOM_OP_IMPL(lstmCell, 8, 2, false, 2, 2) {
+CUSTOM_OP_IMPL(lstmCell, 8, 2, false, 3, 2) {
 
     NDArray<T>* xt   = INPUT_VARIABLE(0);                   // input [batchSize x inSize]
     NDArray<T>* ht_1 = INPUT_VARIABLE(1);                   // previous cell output [batchSize x numProj],  that is at previous time step t-1, in case of projection=false -> numProj=numUnits!!! 
@@ -64,8 +64,9 @@ CUSTOM_OP_IMPL(lstmCell, 8, 2, false, 2, 2) {
     
     const bool peephole   = (bool)INT_ARG(0);               // if true, provide peephole connections
     const bool projection = (bool)INT_ARG(1);               // if true, then projection is performed, if false then numProj==numUnits is mandatory!!!!
-    T clippingValue       = T_ARG(0);                       // clipping value, if it is not equal to zero, then cell state is clipped
-    const T forgetBias    = T_ARG(1);
+    T clippingCellValue   = T_ARG(0);                       // clipping value for ct, if it is not equal to zero, then cell state is clipped
+    T clippingProjValue   = T_ARG(1);                       // clipping value for projected ht, if it is not equal to zero, then projected cell output is clipped
+    const T forgetBias    = T_ARG(2);
 
     const int numUnits  = ct_1->sizeAt(1);
     
@@ -83,9 +84,10 @@ CUSTOM_OP_IMPL(lstmCell, 8, 2, false, 2, 2) {
 
     // current sell state = ft*ct_1 + it*actvation(mmul(Wxc,xt) + mmul(Whc,ht_1) + bc
     *ct = sigmoid<T>(zft + forgetBias) * (*ct_1) + sigmoid<T>(zit) * actvation<T>(zct);
+    
     // if clipping value is provided then cell state is clipped by this value prior to the cell output activation
-    if(clippingValue != (T)0.)
-        clipping(ct, clippingValue);
+    if(clippingCellValue != (T)0.)
+        clipping(ct, clippingCellValue);
 
     if(peephole) 
         zot += (*ct) * (*Wc)({{},{2*numUnits, 3*numUnits}});            // add peephole connections to output gate zot + ct*Wc
@@ -94,11 +96,18 @@ CUSTOM_OP_IMPL(lstmCell, 8, 2, false, 2, 2) {
     NDArray<T> htNoPeepHole = sigmoid<T>(zot) * actvation<T>(*ct);      // = [batchSize x numUnits]
 
     // apply projection
-    if(projection)
+    if(projection) {
         *ht = mmul(htNoPeepHole, *Wp);                                  // [batchSize x numUnits] * [ numUnits x numProj] = [batchSize x numProj]
+        // if clipping projection is provided then projected cell output state is clipped by this value 
+        if(clippingProjValue != (T)0.)
+            clipping(ht, clippingProjValue);
+    }
     else
         ht->assign(&htNoPeepHole);     
+
     
+
+    return ND4J_STATUS_OK;
 }
 
 
