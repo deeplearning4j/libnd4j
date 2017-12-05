@@ -281,6 +281,7 @@ TEST_F(JavaInteropTests, TestInplace_1) {
 TEST_F(JavaInteropTests, Test_Synonyms_1) {
     auto op = OpRegistrator::getInstance()->getOperationHalf("RDiv");
     auto opRef = OpRegistrator::getInstance()->getOperationHalf("reversedivide");
+    std::string nameExp("reversedivide");
 
     ASSERT_TRUE(op != nullptr);
     ASSERT_TRUE(opRef != nullptr);
@@ -288,9 +289,36 @@ TEST_F(JavaInteropTests, Test_Synonyms_1) {
     std::string name = *(op->getOpName());
     std::string nameRef = *(opRef->getOpName());
 
-    printf("name: %s\n", name.c_str());
-    printf("nameRef: %s\n", nameRef.c_str());
-
+    ASSERT_EQ(nameExp, nameRef);
     ASSERT_EQ(nameRef, name);
+}
 
+TEST_F(JavaInteropTests, Test_Synonyms_2) {
+    auto op = OpRegistrator::getInstance()->getOperationFloat("RDiv");
+    auto opRef = OpRegistrator::getInstance()->getOperationFloat("reversedivide");
+    std::string nameExp("reversedivide");
+
+    ASSERT_TRUE(op != nullptr);
+    ASSERT_TRUE(opRef != nullptr);
+
+    std::string name = *(op->getOpName());
+    std::string nameRef = *(opRef->getOpName());
+
+    ASSERT_EQ(nameExp, nameRef);
+    ASSERT_EQ(nameRef, name);
+}
+
+TEST_F(JavaInteropTests, Test_Synonyms_3) {
+    auto op = OpRegistrator::getInstance()->getOperationDouble("RDiv");
+    auto opRef = OpRegistrator::getInstance()->getOperationDouble("reversedivide");
+    std::string nameExp("reversedivide");
+
+    ASSERT_TRUE(op != nullptr);
+    ASSERT_TRUE(opRef != nullptr);
+
+    std::string name = *(op->getOpName());
+    std::string nameRef = *(opRef->getOpName());
+
+    ASSERT_EQ(nameExp, nameRef);
+    ASSERT_EQ(nameRef, name);
 }
