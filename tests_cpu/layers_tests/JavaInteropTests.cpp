@@ -288,6 +288,9 @@ TEST_F(JavaInteropTests, Test_Synonyms_1) {
     std::string name = *(op->getOpName());
     std::string nameRef = *(opRef->getOpName());
 
+    printf("name: %s\n", name.c_str());
+    printf("nameRef: %s\n", nameRef.c_str());
+
     ASSERT_EQ(nameRef, name);
 
 }
