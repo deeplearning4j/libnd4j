@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <cstdlib>
+#include <stdexcept>
 #include "Environment.h"
 
 namespace nd4j {
