@@ -157,6 +157,7 @@ namespace nd4j {
         DECLARE_CUSTOM_OP(lstmCell, 8, 2, false, 3, 2);
         DECLARE_CUSTOM_OP(sruCell, 4, 2, false, 0, 0);
         DECLARE_CUSTOM_OP(gruCell, 5, 1, false, 0, 0);
+        DECLARE_CONFIGURABLE_OP(eye, 0, 1, false, 0, 0);
 
         // recurrent ops
         DECLARE_CUSTOM_OP(sru,         5, 2, false, 0, 0);
@@ -177,6 +178,7 @@ namespace nd4j {
         DECLARE_CONFIGURABLE_OP(reverse, 1, 1, true, 0, -2);
         DECLARE_CONFIGURABLE_OP(axpy, 2, 1, false, -2, 0);
         DECLARE_CONFIGURABLE_OP(apply_sgd, 2, 1, true, -2, 0);
+        DECLARE_CONFIGURABLE_OP(invertPermutation, 1, 1, false, 0, 0);        
 
         // grad ops
         DECLARE_CONFIGURABLE_OP(sigmoid_bp, 2, 1, true, 0, 0);

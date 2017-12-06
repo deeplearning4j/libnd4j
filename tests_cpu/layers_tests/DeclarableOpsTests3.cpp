@@ -471,8 +471,60 @@ TEST_F(DeclarableOpsTests3, gruCell_test3) {
     delete results;
 }
 
+////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests3, invertPermutation_test1) {
+        
+    NDArray<double> input('c', {1, 8}, {5,2,7,4,6,3,1,0});
+    NDArray<double> expected('c', {1, 8}, {7, 6, 1, 5, 3, 0, 4, 2});
+    
+    nd4j::ops::invertPermutation<double> op;
+    nd4j::ResultSet<double>* results = op.execute({&input}, {}, {});
 
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
 
+    NDArray<double> *output = results->at(0);    
 
+    ASSERT_TRUE(expected.isSameShape(output));
+    ASSERT_TRUE(expected.equalsTo(output));
 
+    delete results;
+}
+
+///////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests3, invertPermutation_test2) {
+        
+    NDArray<double> input('c', {1, 8}, {5,2,7,4,6,3,1,0});
+    NDArray<double> expected('c', {1, 8}, {7, 6, 1, 5, 3, 0, 4, 2});
+    
+    nd4j::ops::invertPermutation<double> op;
+    nd4j::ResultSet<double>* results = op.execute({&input}, {}, {});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<double> *output = results->at(0);    
+
+    ASSERT_TRUE(expected.isSameShape(output));
+    ASSERT_TRUE(expected.equalsTo(output));
+
+    delete results;
+}
+
+///////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests3, invertPermutation_test3) {
+        
+    NDArray<double> input('c', {1, 8}, {1,2,0,4,6,3,5,7});
+    NDArray<double> expected('c', {1, 8}, {2, 0, 1, 5, 3, 6, 4, 7});
+    
+    nd4j::ops::invertPermutation<double> op;
+    nd4j::ResultSet<double>* results = op.execute({&input}, {}, {});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<double> *output = results->at(0);    
+
+    ASSERT_TRUE(expected.isSameShape(output));
+    ASSERT_TRUE(expected.equalsTo(output));
+
+    delete results;
+}
 
