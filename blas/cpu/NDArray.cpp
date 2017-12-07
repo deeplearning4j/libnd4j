@@ -155,7 +155,7 @@ template <typename T>
 }
 
 ////////////////////////////////////////////////////////////////////////
-// creates new NDArray using shape information from "shape" array, set all elements in new array to be zeros
+// creates new NDArray using shape information from "shapeInfo" array, set all elements in new array to be zeros
 template <typename T>
     NDArray<T>::NDArray(const int* shapeInfo, const bool copyStrides, nd4j::memory::Workspace* workspace) {
    

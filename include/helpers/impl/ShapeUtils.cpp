@@ -506,9 +506,36 @@ int* ShapeUtils<T>::evalTileShapeInfo(const NDArray<T>& arr, const std::vector<i
     }
 
 
+//////////////////////////////////////////////////////////////////////////
+// evaluate shapeInfo for diagonal array which is made using input arr elements as diagonal
+template<typename T>
+int* ShapeUtils<T>::evalDiagShapeInfo(const NDArray<T>& arr){    
+
+    const int rank = arr.rankOf();
+
+    int* outputShapeInfo = nullptr;
+
+    if(arr.isVector() || arr.isScalar()) {
+        ALLOCATE(outputShapeInfo, arr.getWorkspace(), shape::shapeInfoLength(rank), int);
+        outputShapeInfo[0] = rank;
+        outputShapeInfo[1] = outputShapeInfo[2] = arr.lengthOf();
+    }
+    else {
+        ALLOCATE(outputShapeInfo, arr.getWorkspace(), shape::shapeInfoLength(2*rank), int);
+        outputShapeInfo[0] = 2*rank;
+        for(int i = 0; i < rank; ++i)
+            outputShapeInfo[i + 1] = outputShapeInfo[i + 1 + rank] = arr.sizeAt(i);
+    }
+        
+    shape::updateStrides(outputShapeInfo, arr.ordering());
+
+    return outputShapeInfo;
+}
 
 template class ND4J_EXPORT ShapeUtils<float>;
 template class ND4J_EXPORT ShapeUtils<float16>;
 template class ND4J_EXPORT ShapeUtils<double>;
+
+
 }
 

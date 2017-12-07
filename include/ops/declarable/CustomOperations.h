@@ -157,7 +157,7 @@ namespace nd4j {
         DECLARE_CUSTOM_OP(lstmCell, 8, 2, false, 3, 2);
         DECLARE_CUSTOM_OP(sruCell, 4, 2, false, 0, 0);
         DECLARE_CUSTOM_OP(gruCell, 5, 1, false, 0, 0);
-        DECLARE_CONFIGURABLE_OP(eye, 0, 1, false, 0, 0);
+        DECLARE_CUSTOM_OP(diag, 1, 1, false, 0, 0);
 
         // recurrent ops
         DECLARE_CUSTOM_OP(sru,         5, 2, false, 0, 0);

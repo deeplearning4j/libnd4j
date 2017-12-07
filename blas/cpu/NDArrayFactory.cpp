@@ -615,6 +615,33 @@ NDArray<T>* NDArrayFactory<T>::simpleMMul(const NDArray<T>* a, const NDArray<T>*
     return c;
 }
 
+//////////////////////////////////////////////////////////////////////////
+// returns a diagonal tensor with diagonal values stored in arr
+template <typename T>
+NDArray<T> NDArrayFactory<T>::getDiagArr(const nd4j::NDArray<T>& arr) {
+    
+    const int inLength = arr.lengthOf();
+    NDArray<T> result(arr.ordering(),{inLength, inLength}, arr.getWorkspace());
+    
+// TODO: tune this properly
+#pragma omp parallel for if(result.lengthOf() > Environment::getInstance()->elementwiseThreshold()) schedule(static) collapse(2)
+    for(int row = 0; row < inLength; ++row) {
+        for(int col = 0; col < inLength; ++col)
+            if(row == col)
+                result(row, col) = arr(row);
+            else 
+                result(row, col) = (T)0.;
+    }
+
+    if(!arr.isVector() && !arr.isScalar()) {
+        int* resultShapeInfo = ShapeUtils<T>::evalDiagShapeInfo(arr);
+        std::vector<int> correctOutputShape(resultShapeInfo + 1, resultShapeInfo + 1 + resultShapeInfo[0]);
+        result.reshapei(result.ordering(), correctOutputShape);
+        delete []resultShapeInfo;
+    }
+
+    return result;
+}
 
 
 
