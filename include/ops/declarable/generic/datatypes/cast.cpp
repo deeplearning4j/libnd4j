@@ -11,14 +11,18 @@ namespace nd4j {
             auto input = INPUT_VARIABLE(0);
             auto output = OUTPUT_VARIABLE(0);
 
+            // TODO: once we add support for multiple dtypes - uncommend this
+            /*
             int it = INT_ARG(0);
             DataType newType = DataTypeUtils::fromInt(it);
 
             input->cast(output, newType);
+            */
             
             STORE_RESULT(output);
             return ND4J_STATUS_OK;
         }
+        DECLARE_SYN(Cast, cast);
 
         DECLARE_SHAPE_FN(cast) {
             auto inShape = inputShape->at(0);
