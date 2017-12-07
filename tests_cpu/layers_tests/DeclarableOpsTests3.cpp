@@ -125,6 +125,69 @@ TEST_F(DeclarableOpsTests3, Test_Norm_1) {
 }
 
 
+TEST_F(DeclarableOpsTests3, Test_ClipByAvgNorm_1) { 
+    NDArray<double> x('c', {2, 3}, {-3.0, 0.0, 0.0, 4.0, 0.0, 0.0});
+    NDArray<double> exp('c', {2, 3}, {-2.88, 0.0, 0.0, 3.84, 0.0, 0.0});
+
+    nd4j::ops::clipbyavgnorm<double> op;
+    auto result = op.execute({&x}, {0.8}, {});
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}
+
+TEST_F(DeclarableOpsTests3, Test_ClipByAvgNorm_2) { 
+    NDArray<double> x('c', {2, 3}, {-3.0, 0.0, 0.0, 4.0, 0.0, 0.0});
+    NDArray<double> exp('c', {2, 3}, {-3, 0.0, 0.0, 4, 0.0, 0.0});
+
+    nd4j::ops::clipbyavgnorm<double> op;
+    auto result = op.execute({&x}, {0.9}, {});
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}
+
+
+TEST_F(DeclarableOpsTests3, Test_ClipByNorm_1) { 
+    NDArray<double> x('c', {2, 3}, {-3.0, 0.0, 0.0, 4.0, 0.0, 0.0});
+    NDArray<double> exp('c', {2, 3}, {-2.4, 0.0, 0.0, 3.2, 0.0, 0.0});
+
+    nd4j::ops::clipbynorm<double> op;
+    auto result = op.execute({&x}, {4.0}, {});
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}
+
+TEST_F(DeclarableOpsTests3, Test_ClipByNorm_2) { 
+    NDArray<double> x('c', {2, 3}, {-3.0, 0.0, 0.0, 4.0, 0.0, 0.0});
+    NDArray<double> exp('c', {2, 3}, {-3.0, 0.0, 0.0, 4.0, 0.0, 0.0});
+
+    nd4j::ops::clipbynorm<double> op;
+    auto result = op.execute({&x}, {6.0}, {});
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}
+
+
+
 TEST_F(DeclarableOpsTests3, Test_Range_1) {
     NDArray<float> start('c', {1, 1}, {2});
     NDArray<float> stop('c', {1, 1}, {0});
