@@ -157,6 +157,7 @@ namespace nd4j {
         DECLARE_CUSTOM_OP(lstmCell, 8, 2, false, 3, 2);
         DECLARE_CUSTOM_OP(set_seed, -2, 1, false, 0, -2);
         DECLARE_CUSTOM_OP(get_seed, -2, 1, false, 0, 0);
+        DECLARE_CUSTOM_OP(shapes_of, -1, -1, false, 0, 0)
         DECLARE_CUSTOM_OP(sruCell, 4, 2, false, 0, 0);
         DECLARE_CUSTOM_OP(gruCell, 5, 1, false, 0, 0);
 
