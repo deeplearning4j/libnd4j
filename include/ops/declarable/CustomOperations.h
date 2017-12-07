@@ -70,6 +70,14 @@ namespace nd4j {
         DECLARE_OP(toggle_bits, -1, -1, true);
         DECLARE_OP(rint, 1, 1, true);
 
+        DECLARE_OP(to_double, 1, 1, true);
+        DECLARE_OP(to_float16, 1, 1, true);
+        DECLARE_OP(to_float32, 1, 1, true);
+        DECLARE_OP(to_int32, 1, 1, true);
+        DECLARE_OP(to_int64, 1, 1, true);
+        DECLARE_OP(to_uint32, 1, 1, true);
+        DECLARE_OP(to_uint64, 1, 1, true);
+
         DECLARE_OP(scatter_add, 3, 1, true);
         DECLARE_OP(scatter_sub, 3, 1, true);
         DECLARE_OP(scatter_mul, 3, 1, true);
