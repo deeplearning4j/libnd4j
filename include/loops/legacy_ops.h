@@ -130,7 +130,8 @@
         (87,simdOps::Rint), \
         (88,simdOps::LogSigmoid), \
         (89,simdOps::LogSigmoidDerivative) ,\
-        (90,simdOps::Erfc)
+        (90,simdOps::Erfc) ,\
+        (91,simdOps::Expm1)
 
 
 
