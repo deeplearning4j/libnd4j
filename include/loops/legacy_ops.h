@@ -207,7 +207,9 @@
         (19, simdOps::LogSumExp) ,\
         (20, simdOps::Any) ,\
         (21, simdOps::All), \
-        (22, simdOps::CountNonZero)
+        (22, simdOps::CountNonZero), \
+        (23, simdOps::NormFrobenius), \
+        (24, simdOps::NormP)
 
 
 
