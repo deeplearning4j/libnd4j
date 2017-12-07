@@ -69,13 +69,13 @@ namespace nd4j {
     }
 
     template<typename T>
-    ResultSet<T>* NDArrayFactory<T>::allTensorsAlongDimension(NDArray<T>* ndArray, const std::initializer_list<int> dimensions) {
+    ResultSet<T>* NDArrayFactory<T>::allTensorsAlongDimension(const NDArray<T>* ndArray, const std::initializer_list<int> dimensions) {
         std::vector<int> vec(dimensions);
         return allTensorsAlongDimension(ndArray, vec);
     }
 
     template<typename T>
-    ResultSet<T>* NDArrayFactory<T>::allTensorsAlongDimension(NDArray<T>* ndArray, const std::vector<int> &dimensions) {
+    ResultSet<T>* NDArrayFactory<T>::allTensorsAlongDimension(const NDArray<T>* ndArray, const std::vector<int> &dimensions) {
         auto result = new ResultSet<T>();
 
         std::vector<int> copy(dimensions);
@@ -95,7 +95,7 @@ namespace nd4j {
         std::memcpy(shapeInfo, tad->tadOnlyShapeInfo, shape::shapeInfoByteLength(tad->tadOnlyShapeInfo));
 
         for (int idx = 0; idx < numTads; idx++ ) {
-            T* buffer = ndArray->getBuffer() + tad->tadOffsets[idx];
+            T* buffer = const_cast<NDArray<T>*>(ndArray)->getBuffer() + tad->tadOffsets[idx];
             auto array = new NDArray<T>(buffer, shapeInfo);
             result->push_back(array);
         }

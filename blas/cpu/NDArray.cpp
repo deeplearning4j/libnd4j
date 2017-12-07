@@ -1580,7 +1580,7 @@ void NDArray<T>::tile(const std::vector<int>& reps, NDArray<T>& target) const {
     // evaluate true tile shapeInfo for comparison with target shapeInfo
     int* newShapeInfo = ShapeUtils<T>::evalTileShapeInfo(*this, reps);  
     if(!shape::equalsSoft(newShapeInfo, target.getShapeInfo()))  {
-        delete newShapeInfo;    
+        delete []newShapeInfo;    
         throw "NDArray::tile method - shapeInfo of target array is not suitable for tile operation !";
     }
     delete[] newShapeInfo;

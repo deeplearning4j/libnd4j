@@ -179,6 +179,7 @@ namespace nd4j {
         DECLARE_CONFIGURABLE_OP(axpy, 2, 1, false, -2, 0);
         DECLARE_CONFIGURABLE_OP(apply_sgd, 2, 1, true, -2, 0);
         DECLARE_CONFIGURABLE_OP(invertPermutation, 1, 1, false, 0, 0);        
+        DECLARE_CONFIGURABLE_OP(matrixSetDiag, 2, 1, false, 0, 0)
 
         // grad ops
         DECLARE_CONFIGURABLE_OP(sigmoid_bp, 2, 1, true, 0, 0);

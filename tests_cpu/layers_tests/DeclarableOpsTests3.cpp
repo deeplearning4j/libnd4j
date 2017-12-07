@@ -654,3 +654,95 @@ TEST_F(DeclarableOpsTests3, diag_test6) {
     delete results;
 }
 
+///////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests3, matrixSetDiag_test1) {
+        
+    NDArray<float> input('c', {4,3,2});
+    NDArray<float> diagonal('c', {4,2});
+    input.assign(0.);
+    diagonal.assign(1.);
+
+    NDArray<float> expected('c', {4,3,2}, {1,0,0,1,0,0, 1,0,0,1,0,0, 1,0,0,1,0,0, 1,0,0,1,0,0});
+
+    nd4j::ops::matrixSetDiag<float> op;
+    nd4j::ResultSet<float>* results = op.execute({&input, &diagonal}, {}, {});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<float> *output = results->at(0);
+
+    ASSERT_TRUE(expected.isSameShape(output));
+    ASSERT_TRUE(expected.equalsTo(output));
+
+    delete results;
+}
+
+///////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests3, matrixSetDiag_test2) {
+        
+    NDArray<float> input('c', {1,1,2});
+    NDArray<float> diagonal('c', {1,1});
+    input.assign(0.);
+    diagonal.assign(1.);
+
+    NDArray<float> expected('c', {1,1,2}, {1,0});
+
+    nd4j::ops::matrixSetDiag<float> op;
+    nd4j::ResultSet<float>* results = op.execute({&input, &diagonal}, {}, {});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<float> *output = results->at(0);
+
+    ASSERT_TRUE(expected.isSameShape(output));
+    ASSERT_TRUE(expected.equalsTo(output));
+
+    delete results;
+}
+
+///////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests3, matrixSetDiag_test3) {
+        
+    NDArray<float> input('c', {2,1,4});
+    NDArray<float> diagonal('c', {2,1});
+    input.assign(0.);
+    diagonal.assign(1.);
+
+    NDArray<float> expected('c', {2,1,4}, {1,0,0,0,1,0,0,0});    
+
+    nd4j::ops::matrixSetDiag<float> op;
+    nd4j::ResultSet<float>* results = op.execute({&input, &diagonal}, {}, {});
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<float> *output = results->at(0);
+
+    ASSERT_TRUE(expected.isSameShape(output));
+    ASSERT_TRUE(expected.equalsTo(output));
+
+    delete results;
+}
+
+// ///////////////////////////////////////////////////////////////////
+// TEST_F(DeclarableOpsTests3, matrixSetDiag_test4) {
+        
+//     NDArray<float> input('c', {2,1,4,1});
+//     NDArray<float> diagonal('c', {2,1,1});
+//     input.assign(0.);
+//     diagonal.assign(1.);
+
+//     NDArray<float> expected('c', {2,1,4,1}, {1,0,0,0,1,0,0,0});    
+
+//     nd4j::ops::matrixSetDiag<float> op;
+//     nd4j::ResultSet<float>* results = op.execute({&input, &diagonal}, {}, {});
+
+//     ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+//     NDArray<float> *output = results->at(0);
+
+//     ASSERT_TRUE(expected.isSameShape(output));
+//     ASSERT_TRUE(expected.equalsTo(output));
+
+//     delete results;
+// }
+
