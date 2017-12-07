@@ -18,6 +18,9 @@ namespace nd4j {
 
             input->cast(output, newType);
             */
+
+            if (!block.isInplace())
+                output->assign(input);
             
             STORE_RESULT(output);
             return ND4J_STATUS_OK;
