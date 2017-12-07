@@ -129,7 +129,8 @@
         (86,simdOps::SinhDerivative), \
         (87,simdOps::Rint), \
         (88,simdOps::LogSigmoid), \
-        (89,simdOps::LogSigmoidDerivative)
+        (89,simdOps::LogSigmoidDerivative) ,\
+        (90,simdOps::Erfc)
 
 
 
