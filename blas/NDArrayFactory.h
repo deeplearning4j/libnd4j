@@ -48,9 +48,6 @@ namespace nd4j {
 
         static NDArray<T>* simpleMMul(const nd4j::NDArray<T>* a, const nd4j::NDArray<T>* b, nd4j::NDArray<T>* c , const T alpha, const T beta);
 
-        // returns a diagonal tensor with diagonal values stored in arr
-        static NDArray<T> getDiagArr(const nd4j::NDArray<T>& arr);
-
     };
 }
 

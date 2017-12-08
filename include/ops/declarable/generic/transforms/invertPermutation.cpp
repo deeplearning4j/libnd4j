@@ -8,7 +8,7 @@ namespace nd4j {
 namespace ops {
 
 ////////////////////////////////////////////////////////////////////////
-CONFIGURABLE_OP_IMPL(invertPermutation, 1, 1, false, 0, 0) {
+CONFIGURABLE_OP_IMPL(invert_permutation, 1, 1, false, 0, 0) {
     
     NDArray<T>* input = INPUT_VARIABLE(0);
     NDArray<T>* output = this->getZ(block);
@@ -18,7 +18,8 @@ CONFIGURABLE_OP_IMPL(invertPermutation, 1, 1, false, 0, 0) {
     
     std::set<T> uniqueElems;
     const int lenght = input->lengthOf();
-        
+
+// #pragma omp parallel for if(lenght > Environment::getInstance()->elementwiseThreshold()) schedule(static)         
     for(int i = 0; i < lenght; ++i) {
         T elem  = (*input)(i);
         if(!uniqueElems.insert(elem).second)
@@ -31,7 +32,7 @@ CONFIGURABLE_OP_IMPL(invertPermutation, 1, 1, false, 0, 0) {
     return ND4J_STATUS_OK;
 }
         
-
+DECLARE_SYN(InvertPermutation, invert_permutation);
 
 
 }

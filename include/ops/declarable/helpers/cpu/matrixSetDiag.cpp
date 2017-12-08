@@ -23,7 +23,7 @@ void matrixSetDiag(const NDArray<T>* input, const NDArray<T>* diagonal, NDArray<
     ResultSet<T>* listDiag = NDArrayFactory<T>::allTensorsAlongDimension(diagonal,{diagonal->rankOf()-1});
 
     // TODO: tune this properlys
-// #pragma omp parallel for if(listOut->size() > Environment::getInstance()->elementwiseThreshold()) schedule(static)
+#pragma omp parallel for if(listOut->size() > Environment::getInstance()->elementwiseThreshold()) schedule(static)
     // condition is hold: listOut->size() == listDiag->size()
     for(int i = 0; i < listOut->size(); ++i)       
     	for(int j = 0; j < diagonal->sizeAt(-1); ++j)
