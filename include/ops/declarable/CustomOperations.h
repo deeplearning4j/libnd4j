@@ -69,6 +69,7 @@ namespace nd4j {
         DECLARE_OP(log1p, 2, 1, true);
         DECLARE_OP(toggle_bits, -1, -1, true);
         DECLARE_OP(rint, 1, 1, true);
+        DECLARE_OP(listdiff, 2, 2, false);
 
         DECLARE_OP(to_double, 1, 1, true);
         DECLARE_OP(to_float16, 1, 1, true);
