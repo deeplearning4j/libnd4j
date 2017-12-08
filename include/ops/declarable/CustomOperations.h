@@ -57,8 +57,6 @@ namespace nd4j {
         DECLARE_OP(reversedivide, 2, 1, true);
         DECLARE_OP(zeros_as, 1, 1, false);
         DECLARE_OP(ones_as, 1, 1, false);
-        DECLARE_OP(maximum, 2, 1, true);
-        DECLARE_OP(minimum, 2, 1, true);
         DECLARE_OP(square, 1, 1, true);
         DECLARE_OP(equals, 2, 1, true);
         DECLARE_OP(not_equals, 2, 1, true);
@@ -93,6 +91,10 @@ namespace nd4j {
         DECLARE_LOGIC_OP(Scope);
         DECLARE_LOGIC_OP(Conditional);
         DECLARE_LOGIC_OP(Return);
+
+        // TODO: make broadcastables separate class
+        DECLARE_OP(maximum, 2, 1, true);
+        DECLARE_CUSTOM_OP(minimum, 2, 1, true, 0, 0);
 
         DECLARE_CUSTOM_OP(testcustom, 1, 1, false, 0, -1);
         DECLARE_CUSTOM_OP(concat, -1, 1, false, 0, 1);
