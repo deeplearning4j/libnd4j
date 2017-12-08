@@ -527,7 +527,7 @@ TEST_F(ConvolutionTests, sconv2D_FF_NoBias_2) {
 
     NDArray<double> input('c', {2, 3, 10, 10});
     NDArray<double> weightsD('c', {2, 3, 5, 5});
-    NDArray<double> weightsP('c', {10, 6, 1, 1});
+    NDArray<double> weightsP('c', {6, 6, 1, 1});
 
 
     NDArrayFactory<double>::linspace(1, input);
