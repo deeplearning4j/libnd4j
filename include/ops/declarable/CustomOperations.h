@@ -35,9 +35,6 @@ namespace nd4j {
         DECLARE_OP(softmax_bp, 2, 1, true);
         DECLARE_OP(biasadd, 2, 1, true);
         DECLARE_OP(floor, 1, 1, true);
-        DECLARE_OP(floormod, 2, 1, true);
-        DECLARE_OP(floordiv, 2, 1, true)
-        DECLARE_OP(realdiv, 2, 1, true);
         DECLARE_OP(merge, -1, 1, true);         // should become custom
         DECLARE_OP(broadcastgradientargs, 2, 2, true);
         DECLARE_OP(assign, 2, 1, false);
@@ -47,14 +44,6 @@ namespace nd4j {
         DECLARE_OP(mergeavg, -1, 1, false);
         DECLARE_OP(identity, 1, 1, true);
         DECLARE_OP(identity_bp, 2, 1, true);
-        DECLARE_OP(add, 2, 1, true);
-        DECLARE_OP(subtract, 2, 1, true);
-        DECLARE_OP(reversesubtract, 2, 1, true);
-        DECLARE_OP(reversemod, 2, 1, true);
-        DECLARE_OP(squaredsubtract, 2, 1, true)
-        DECLARE_OP(multiply, 2, 1, true);
-        DECLARE_OP(divide, 2, 1, true);
-        DECLARE_OP(reversedivide, 2, 1, true);
         DECLARE_OP(zeros_as, 1, 1, false);
         DECLARE_OP(ones_as, 1, 1, false);
         DECLARE_OP(square, 1, 1, true);
@@ -93,8 +82,19 @@ namespace nd4j {
         DECLARE_LOGIC_OP(Return);
 
         // TODO: make broadcastables separate class
-        DECLARE_OP(maximum, 2, 1, true);
+        DECLARE_CUSTOM_OP(maximum, 2, 1, true, 0, 0);
         DECLARE_CUSTOM_OP(minimum, 2, 1, true, 0, 0);
+        DECLARE_CUSTOM_OP(add, 2, 1, true, 0, 0);
+        DECLARE_CUSTOM_OP(subtract, 2, 1, true, 0, 0);
+        DECLARE_CUSTOM_OP(reversesubtract, 2, 1, true, 0, 0);
+        DECLARE_CUSTOM_OP(reversemod, 2, 1, true, 0, 0);
+        DECLARE_CUSTOM_OP(squaredsubtract, 2, 1, true, 0, 0)
+        DECLARE_CUSTOM_OP(multiply, 2, 1, true, 0, 0);
+        DECLARE_CUSTOM_OP(divide, 2, 1, true, 0, 0);
+        DECLARE_CUSTOM_OP(reversedivide, 2, 1, true, 0, 0);
+        DECLARE_CUSTOM_OP(floormod, 2, 1, true, 0, 0);
+        DECLARE_CUSTOM_OP(floordiv, 2, 1, true, 0, 0)
+        DECLARE_CUSTOM_OP(realdiv, 2, 1, true, 0, 0);
 
         DECLARE_CUSTOM_OP(testcustom, 1, 1, false, 0, -1);
         DECLARE_CUSTOM_OP(concat, -1, 1, false, 0, 1);

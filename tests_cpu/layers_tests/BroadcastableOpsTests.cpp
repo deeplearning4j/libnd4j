@@ -179,6 +179,7 @@ TEST_F(BroadcastableOpsTests, Test_Shape_1) {
     auto shapeZ = shapes->at(0);
     ASSERT_TRUE(shape::shapeEquals(shapeX, shapeZ));
 
+    shapes->destroy();
     delete shapes;
 }
 
@@ -196,6 +197,7 @@ TEST_F(BroadcastableOpsTests, Test_Shape_2) {
     auto shapeZ = shapes->at(0);
     ASSERT_TRUE(shape::shapeEquals(shapeY, shapeZ));
 
+    shapes->destroy();
     delete shapes;
 }
 
@@ -214,6 +216,7 @@ TEST_F(BroadcastableOpsTests, Test_Shape_3) {
     auto shapeZ = shapes->at(0);
     ASSERT_TRUE(shape::shapeEquals(shapeX, shapeZ));
 
+    shapes->destroy();
     delete shapes;
 }
 
@@ -232,6 +235,7 @@ TEST_F(BroadcastableOpsTests, Test_Shape_4) {
     auto shapeZ = shapes->at(0);
     ASSERT_TRUE(shape::shapeEquals(shapeX, shapeZ));
 
+    shapes->destroy();
     delete shapes;
 }
 
@@ -252,5 +256,6 @@ TEST_F(BroadcastableOpsTests, Test_Shape_5) {
     auto shapeZ = shapes->at(0);
     ASSERT_TRUE(shape::shapeEquals(shapeE, shapeZ));
 
+    shapes->destroy();
     delete shapes;
 }

@@ -305,9 +305,9 @@ template <typename T>
 bool ShapeUtils<T>::areShapesBroadcastable(int *arr1, int *arr2) {
     int minRank = shape::rank(arr1) < shape::rank(arr2) ? shape::rank(arr1) : shape::rank(arr2);
        
-    for (int i = -1; i >= -minRank; --i)        
-        if (shape::shapeOf(arr1)[i] != shape::shapeOf(arr2)[i] && shape::shapeOf(arr1)[i] != 1 && shape::shapeOf(arr2)[i] != 1)
-            return false;
+    for (int i = -1; i >= -minRank; --i) {
+        if (shape::sizeAt(arr1, i) != shape::sizeAt(arr2, i) && shape::sizeAt(arr1, i) != 1 && shape::sizeAt(arr2, i) != 1) return false;
+    }
     
     return true;
 }
