@@ -181,6 +181,8 @@ namespace nd4j {
         DECLARE_CONFIGURABLE_OP(clipbyvalue, 1, 1, true, 2, 0);
         DECLARE_CONFIGURABLE_OP(clipbynorm, 1, 1, true, 1, 0);
         DECLARE_CONFIGURABLE_OP(clipbyavgnorm, 1, 1, true, 1, 0);
+        DECLARE_CONFIGURABLE_OP(cumsum, 1, 1, true, 0, -2);
+        DECLARE_CONFIGURABLE_OP(cumprod, 1, 1, true, 0, -2);
         DECLARE_CONFIGURABLE_OP(scatter_update, 2, 1, true, 0, -1);
         DECLARE_CONFIGURABLE_OP(relu, 1, 1, true, 1, 0);        
         DECLARE_CONFIGURABLE_OP(randomuniform, 1, 1, true, 2, 0);        
