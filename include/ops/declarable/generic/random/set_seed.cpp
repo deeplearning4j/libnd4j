@@ -2,7 +2,6 @@
 //  @author raver119@gmail.com
 //
 
-#include <NativeOps.h>
 #include <ops/declarable/CustomOperations.h>
 
 namespace nd4j {
@@ -28,7 +27,7 @@ namespace nd4j {
             return ND4J_STATUS_OK;
         }
 
-        DECLARE_SHAPE_FN(get_seed) {
+        DECLARE_SHAPE_FN(set_seed) {
             int *newshape;
             ALLOCATE(newshape, block.getWorkspace(), shape::shapeInfoLength(2), int);
 
