@@ -73,6 +73,10 @@ namespace nd4j {
 
             input->template applyTransform<simdOps::Im2col<T>>(col2.get(), extrasIm2Col.data());
 
+
+            nd4j_printf("i 0: [%f]; c: [%f]\n", input->getScalar(0), col2.get()->getScalar(0));
+            extrasIm2Col.size();
+
             NDArray<T>* c_ = col2.get()->permute({1, 0, 4, 5, 2, 3});
             NDArray<T>* w_ = weightsDepth->permute({1, 2, 3, 0});
 
@@ -110,6 +114,7 @@ namespace nd4j {
                 else
                     op.execute({z_, weightsPoint, bias}, {z}, {}, {1, 1, 1, 1, 0, 0, 1, 1, isSameMode ? 1 : 0});
 
+                //nd4j_printf("z_ 0: [%f]; c_ 0: [%f]; w_ 0: [%f]; z 0: [%f]; \n", z_->getScalar(0), c_->getScalar(0), w_->getScalar(0), z->getScalar(0));
 
                 delete z_;
             }

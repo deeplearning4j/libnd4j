@@ -50,6 +50,7 @@ TEST_F(JavaInteropTests, TestShapeExposure1) {
 
 
 TEST_F(JavaInteropTests, TestSconv2d_1) {
+    for (int e = 0; e < 1000; e++) {
     NDArray<float> input('c', {3, 8, 8, 8});
     NDArray<float> weightsD('c', {1, 3, 1, 1});
     NDArray<float> weightsP('c', {2, 3, 1, 1});
@@ -84,6 +85,8 @@ TEST_F(JavaInteropTests, TestSconv2d_1) {
     //output.printBuffer("output");
 
     ASSERT_NEAR(17551, output.getScalar(0), 1e-5);
+        //nd4j_printf("Iter %i passed...\n", e);
+    }
 }
 
 TEST_F(JavaInteropTests, TestSconv2d_2) {
