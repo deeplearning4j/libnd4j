@@ -48,11 +48,13 @@ namespace nd4j {
             const int inY = input->shapeOf()[2];
             const int inX = input->shapeOf()[3];
 
+            REQUIRE_TRUE(inDepth == input->sizeAt(1), 0, "Sconv2d: input number of channels shout match weightsDepth dim 1, but got %i vs %i instead", input->sizeAt(1), inDepth);
+
             if (weightsPoint != nullptr) {
-                REQUIRE_TRUE(weightsPoint->sizeAt(2) == 1  && weightsPoint->sizeAt(3) == 1, 0, "For sconv2d point-wise kernelHeight and kernelWidth should be equal to 1");
+                REQUIRE_TRUE(weightsPoint->sizeAt(2) == 1  && weightsPoint->sizeAt(3) == 1, 0, "Sconv2d: for sconv2d point-wise kernelHeight and kernelWidth should be equal to 1");
             }
 
-            REQUIRE_TRUE(weightsDepth->shapeOf()[2] == kY && weightsDepth->shapeOf()[3] == kX, 0, "Kernels should have dimensions of [%i, %i], but got [%i, %i] instead", kY, kX, weightsDepth->sizeAt(2), weightsDepth->sizeAt(3));
+            REQUIRE_TRUE(weightsDepth->shapeOf()[2] == kY && weightsDepth->shapeOf()[3] == kX, 0, "Sconv2d: kernels should have dimensions of [%i, %i], but got [%i, %i] instead", kY, kX, weightsDepth->sizeAt(2), weightsDepth->sizeAt(3));
 
             if (input->sizeAt(1) == 1) {
                 nd4j_debug("Separable conv2d for 1 channel equals to standard conv2d\n","");
@@ -72,10 +74,6 @@ namespace nd4j {
             std::vector<T> extrasIm2Col({(T) kY, (T) kX, (T) sY, (T) sX, (T) pY, (T) pX, (T) dY, (T) dX, isSameMode ? (T) 1.0f : (T) 0.0f});
 
             input->template applyTransform<simdOps::Im2col<T>>(col2.get(), extrasIm2Col.data());
-
-
-            nd4j_printf("i 0: [%f]; c: [%f]\n", input->getScalar(0), col2.get()->getScalar(0));
-            extrasIm2Col.size();
 
             NDArray<T>* c_ = col2.get()->permute({1, 0, 4, 5, 2, 3});
             NDArray<T>* w_ = weightsDepth->permute({1, 2, 3, 0});
@@ -113,8 +111,6 @@ namespace nd4j {
                     op.execute({z_, weightsPoint}, {z}, {}, {1, 1, 1, 1, 0, 0, 1, 1, isSameMode ? 1 : 0});
                 else
                     op.execute({z_, weightsPoint, bias}, {z}, {}, {1, 1, 1, 1, 0, 0, 1, 1, isSameMode ? 1 : 0});
-
-                //nd4j_printf("z_ 0: [%f]; c_ 0: [%f]; w_ 0: [%f]; z 0: [%f]; \n", z_->getScalar(0), c_->getScalar(0), w_->getScalar(0), z->getScalar(0));
 
                 delete z_;
             }

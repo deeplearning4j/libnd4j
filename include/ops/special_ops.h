@@ -513,7 +513,7 @@ namespace simdOps {
 
 			int n = samples * depth * height_col * width_col;
 
-//#pragma omp parallel for schedule(guided) proc_bind(close)
+#pragma omp parallel for schedule(guided) proc_bind(close)
 			for (int index = 0; index < n; index++) {
 				int h_index = index / width_col;
 				int h_col = h_index % height_col;
