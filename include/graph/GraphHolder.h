@@ -29,6 +29,9 @@ namespace nd4j {
             void forgetGraph(Nd4jIndex graphId);
 
             template <typename T>
+            void dropGraph(Nd4jIndex graphId);
+
+            template <typename T>
             bool hasGraph(Nd4jIndex graphId);
         };
     }

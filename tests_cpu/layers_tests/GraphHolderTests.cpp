@@ -46,3 +46,24 @@ TEST_F(GraphHolderTests, SimpleTests_2) {
 
     delete graph;
 }
+
+
+TEST_F(GraphHolderTests, SimpleTests_3) {
+    auto graph = new Graph<float>;
+    Nd4jIndex graphId = 117;
+    GraphHolder::getInstance()->registerGraph(graphId, graph);
+
+    ASSERT_TRUE(GraphHolder::getInstance()->hasGraph<float>(graphId));
+
+    auto graph2 = GraphHolder::getInstance()->pullGraph<float>(graphId);
+
+    ASSERT_TRUE(graph != graph2);
+    ASSERT_TRUE(graph2 != nullptr);
+
+    GraphHolder::getInstance()->dropGraph<float>(graphId);
+
+    ASSERT_FALSE(GraphHolder::getInstance()->hasGraph<float>(graphId));
+
+
+    delete graph2;
+}

@@ -928,7 +928,30 @@ namespace nd4j {
 
         template <typename T>
         Graph<T>* Graph<T>::clone() {
-            return nullptr;
+            auto clone = new Graph<T>();
+            delete clone->_variableSpace;
+            delete clone->_configuration;
+            
+            // varspace and configuration are cloneable
+            clone->_variableSpace = this->_variableSpace->clone();
+            clone->_configuration = this->_configuration->clone();
+            
+
+            // transfer nodes
+            for (int e = 0; e < _nodes->size(); e++)
+                clone->_nodes->emplace_back(_nodes->at(e));
+
+            // transfer outputs
+            for (auto v: _output)
+                clone->_output.emplace_back(v);
+
+            // transfer autos
+            for (auto v: _autos)
+                clone->_autos.emplace_back(v);
+
+            clone->_built.store(_built.load());
+
+            return clone;
         }
 
         template class ND4J_EXPORT Graph<float>;

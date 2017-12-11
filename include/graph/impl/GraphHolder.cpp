@@ -39,6 +39,17 @@ namespace nd4j {
             }
         }
 
+        template <typename T>
+        void GraphHolder::dropGraph(Nd4jIndex graphId) {
+            if (sizeof(T) == 4) {
+                if (this->hasGraph<float>(graphId)) {
+                    auto g = _graphF[graphId];
+                    forgetGraph<float>(graphId);
+                    delete g;
+                }
+            }
+        }
+
         template<typename T>
         bool GraphHolder::hasGraph(Nd4jIndex graphId) {
             return _graphF.count(graphId) > 0;
@@ -47,6 +58,7 @@ namespace nd4j {
 
         template bool GraphHolder::hasGraph<float>(Nd4jIndex graphId);
         template void GraphHolder::forgetGraph<float>(Nd4jIndex graphId);
+        template void GraphHolder::dropGraph<float>(Nd4jIndex graphId);
 
 
         GraphHolder* GraphHolder::_INSTANCE = 0;
