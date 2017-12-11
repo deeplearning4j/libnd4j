@@ -43,6 +43,8 @@
 #include <NDArray.h>
 #include <NDArrayFactory.h>
 #include <GraphExecutioner.h>
+#include <graph/GraphHolder.h>
+#include <graph/VariablesSet.h>
 #include <ops/declarable/OpRegistrator.h>
 #include <ops/declarable/CustomOperations.h>
 
@@ -6908,6 +6910,72 @@ static FORCEINLINE Nd4jStatus realExec(nd4j::ops::DeclarableOp<T>* op, Nd4jPoint
 
 	return ND4J_STATUS_OK;
 }
+
+int NativeOps::registerGraphFloat(Nd4jPointer *extraPointers, Nd4jIndex graphId, Nd4jPointer flatBufferPointer) {
+	auto graph = nd4j::graph::GraphExecutioner<float>::importFromFlatPointer(flatBufferPointer);
+
+	nd4j::graph::GraphHolder::getInstance()->registerGraph(graphId, graph);
+
+	return ND4J_STATUS_OK;
+}
+
+VariablesSet<float>* NativeOps::executeStoredGraphFloat(Nd4jPointer *extraPointers, Nd4jIndex graphId, Nd4jPointer *inputBuffers, Nd4jPointer *inputShapes, int* inputIndices, int numInputs) {
+
+	auto graph = nd4j::graph::GraphHolder::getInstance()->pullGraph<float>(graphId);
+	auto varSpace = graph->getVariableSpace()->clone();
+
+	std::vector<nd4j::NDArray<float> *> handles;
+
+	for (int e = 0; e < numInputs; e++) {
+		auto idx = inputIndices[e];
+
+		// we'll delete this array later, together with cloned VariableSpace
+		auto array = new nd4j::NDArray<float>((float *) inputBuffers[e], (int *) inputShapes[e]);
+		handles.emplace_back(array);
+
+
+		if (varSpace->hasVariable(idx)) {
+			auto var = varSpace->getVariable(idx);
+			if (var->hasNDArray()) {
+				delete var->getNDArray();
+			}
+
+			var->setNDArray(array);
+		} else
+			varSpace->putVariable(idx, array);
+	}
+
+	auto result = nd4j::graph::GraphExecutioner<float>::execute(graph, varSpace);
+	auto varSet = new nd4j::graph::VariablesSet<float>(result);
+
+	if (result == ND4J_STATUS_OK) {
+		// pull back results, and provide them
+		auto outputs = graph->fetchOutputs();
+		for (int e = 0; e < outputs->size(); e++) {
+			// we're only getting variable ID/Index from original grap. values will be taken from cloned workspace
+			std::pair<int, int> varId(outputs->at(e)->id(), outputs->at(e)->index());
+
+			auto var = varSpace->getVariable(varId);
+
+			//var->getNDArray()->printIndexedBuffer("var");
+			varSet->push_back(var->clone());
+		}
+
+		delete outputs;
+	}
+
+	delete varSpace;
+
+	return varSet;
+}
+
+int NativeOps::unregisterGraphFloat(Nd4jPointer *extraPointers, Nd4jIndex graphId) {
+
+	nd4j::graph::GraphHolder::getInstance()->dropGraph<float>(graphId);
+
+	return ND4J_STATUS_OK;
+}
+
 
 int NativeOps::execCustomOpFloat(Nd4jPointer* extraPointers, Nd4jIndex hash, Nd4jPointer* inputBuffers, Nd4jPointer* inputShapes, int numInputs, Nd4jPointer* outputBuffers, Nd4jPointer* outputShapes, int numOutputs, float* tArgs, int numTArgs, int *iArgs, int numIArgs, bool isInplace) {
 	auto op = nd4j::ops::OpRegistrator::getInstance()->getOperationFloat(hash);
