@@ -14,14 +14,14 @@ namespace nd4j {
             return _INSTANCE;
         };
 
-        template <typename T>
-        void GraphHolder::registerGraph(Nd4jIndex graphId, Graph<T>* graph) {
-
+        template <>
+        void GraphHolder::registerGraph(Nd4jIndex graphId, Graph<float>* graph) {
+            _graphF[graphId] = graph;
         }
             
         template <>
         Graph<float>* GraphHolder::pullGraph(Nd4jIndex graphId) {
-            if (_graphF.count(graphId) < 1) {
+            if (!this->hasGraph<float>(graphId)) {
                 nd4j_printf("GraphHolder doesn't have graph stored for [%lld]\n", graphId);
                 throw "Bad argument";
             }
@@ -32,10 +32,21 @@ namespace nd4j {
         }
 
         template <typename T>
-        void GraphHolder::unregisterGraph(Nd4jIndex graphId) {
-
+        void GraphHolder::forgetGraph(Nd4jIndex graphId) {
+            if (sizeof(T) == 4) {
+                if (this->hasGraph<float>(graphId))
+                    _graphF.erase(graphId);
+            }
         }
 
+        template<typename T>
+        bool GraphHolder::hasGraph(Nd4jIndex graphId) {
+            return _graphF.count(graphId) > 0;
+        }
+
+
+        template bool GraphHolder::hasGraph<float>(Nd4jIndex graphId);
+        template void GraphHolder::forgetGraph<float>(Nd4jIndex graphId);
 
 
         GraphHolder* GraphHolder::_INSTANCE = 0;

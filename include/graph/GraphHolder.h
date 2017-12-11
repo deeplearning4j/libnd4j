@@ -26,7 +26,10 @@ namespace nd4j {
             Graph<T>* pullGraph(Nd4jIndex graphId);
 
             template <typename T>
-            void unregisterGraph(Nd4jIndex graphId);
+            void forgetGraph(Nd4jIndex graphId);
+
+            template <typename T>
+            bool hasGraph(Nd4jIndex graphId);
         };
     }
 }
