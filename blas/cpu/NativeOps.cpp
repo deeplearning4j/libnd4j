@@ -3256,7 +3256,40 @@ int NativeOps::registerGraphFloat(Nd4jPointer *extraPointers, Nd4jIndex graphId,
 }
 
 int NativeOps::executeStoredGraphFloat(Nd4jPointer *extraPointers, Nd4jIndex graphId, Nd4jPointer *inputBuffers, Nd4jPointer *inputShapes, int* inputIndices, int numInputs) {
-    return ND4J_STATUS_OK;
+
+    auto graph = nd4j::graph::GraphHolder::getInstance()->pullGraph<float>(graphId);
+    auto varSpace = graph->getVariableSpace()->clone();
+
+    std::vector<NDArray<float> *> handles;
+
+    for (int e = 0; e < numInputs; e++) {
+        auto idx = inputIndices[e];
+
+        // we'll delete this array later, together with cloned VariableSpace
+        auto array = new NDArray<float>((float *) inputBuffers[e], (int *) inputShapes[e]);
+        handles.emplace_back(array);
+
+
+        if (varSpace->hasVariable(idx)) {
+            auto var = varSpace->getVariable(idx);
+            if (var->hasNDArray()) {
+                delete var->getNDArray();
+            }
+
+            var->setNDArray(array);
+        } else
+            varSpace->putVariable(idx, array);
+    }
+
+    auto result = nd4j::graph::GraphExecutioner<float>::execute(graph, varSpace);
+
+    if (result == ND4J_STATUS_OK) {
+        // pull back results, and provide them
+    }
+
+    delete varSpace;
+
+    return result;
 }
 
 int NativeOps::unregisterGraphFloat(Nd4jPointer *extraPointers, Nd4jIndex graphId) {

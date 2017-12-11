@@ -341,3 +341,66 @@ TEST_F(JavaInteropTests, Test_GraphReuse_1) {
 
     delete[] data;
 }
+
+TEST_F(JavaInteropTests, Test_GraphReuse_2) {
+    Environment::getInstance()->setDebug(true);
+    Environment::getInstance()->setVerbose(true);
+
+    NDArray<float> exp0('c', {3, 1}, {3, 3, 3});
+    NDArray<float> exp1('c', {3, 1}, {6, 6, 6});
+    NDArray<float> exp2('c', {3, 1}, {9, 9, 9});
+
+    NativeOps nativeOps;
+
+    uint8_t* data = nd4j::graph::readFlatBuffers("./resources/reduce_dim.fb");
+
+    ASSERT_FALSE(GraphHolder::getInstance()->hasGraph<float>(119));
+
+    nativeOps.registerGraphFloat(nullptr, 119, (Nd4jPointer) data);
+
+    ASSERT_TRUE(GraphHolder::getInstance()->hasGraph<float>(119));
+
+
+
+    // run stuff
+
+    NDArray<float> input_0('c', {3, 3});
+    input_0.assign(1.0f);
+
+    int idx[] = {1};
+
+    Nd4jPointer inputs_0[] = {(Nd4jPointer) input_0.buffer()};
+    Nd4jPointer shapes_0[] = {(Nd4jPointer) input_0.shapeInfo()};
+
+    nativeOps.executeStoredGraphFloat(nullptr, 119, inputs_0, shapes_0, idx, 1);
+
+
+
+    NDArray<float> input_1('c', {3, 3});
+    input_1.assign(2.0f);
+
+    Nd4jPointer inputs_1[] = {(Nd4jPointer) input_1.buffer()};
+    Nd4jPointer shapes_1[] = {(Nd4jPointer) input_1.shapeInfo()};
+
+    nativeOps.executeStoredGraphFloat(nullptr, 119, inputs_1, shapes_1, idx, 1);
+
+
+
+    NDArray<float> input_2('c', {3, 3});
+    input_2.assign(3.0f);
+
+    Nd4jPointer inputs_2[] = {(Nd4jPointer) input_2.buffer()};
+    Nd4jPointer shapes_2[] = {(Nd4jPointer) input_2.shapeInfo()};
+
+    nativeOps.executeStoredGraphFloat(nullptr, 119, inputs_2, shapes_2, idx, 1);
+
+
+
+    //////// clean out
+    nativeOps.unregisterGraphFloat(nullptr, 119);
+
+    ASSERT_FALSE(GraphHolder::getInstance()->hasGraph<float>(119));
+
+
+    delete[] data;
+}
