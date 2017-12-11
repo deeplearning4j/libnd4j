@@ -35,7 +35,7 @@ TEST_F(GraphHolderTests, SimpleTests_2) {
 
     ASSERT_TRUE(GraphHolder::getInstance()->hasGraph<float>(graphId));
 
-    auto graph2 = GraphHolder::getInstance()->pullGraph<float>(graphId);
+    auto graph2 = GraphHolder::getInstance()->cloneGraph<float>(graphId);
 
     ASSERT_TRUE(graph != graph2);
     ASSERT_TRUE(graph2 != nullptr);
@@ -45,6 +45,7 @@ TEST_F(GraphHolderTests, SimpleTests_2) {
     ASSERT_FALSE(GraphHolder::getInstance()->hasGraph<float>(graphId));
 
     delete graph;
+    delete graph2;
 }
 
 
@@ -55,7 +56,7 @@ TEST_F(GraphHolderTests, SimpleTests_3) {
 
     ASSERT_TRUE(GraphHolder::getInstance()->hasGraph<float>(graphId));
 
-    auto graph2 = GraphHolder::getInstance()->pullGraph<float>(graphId);
+    auto graph2 = GraphHolder::getInstance()->cloneGraph<float>(graphId);
 
     ASSERT_TRUE(graph != graph2);
     ASSERT_TRUE(graph2 != nullptr);

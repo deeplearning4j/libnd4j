@@ -20,13 +20,25 @@ namespace nd4j {
         }
             
         template <>
-        Graph<float>* GraphHolder::pullGraph(Nd4jIndex graphId) {
+        Graph<float>* GraphHolder::cloneGraph(Nd4jIndex graphId) {
             if (!this->hasGraph<float>(graphId)) {
                 nd4j_printf("GraphHolder doesn't have graph stored for [%lld]\n", graphId);
                 throw "Bad argument";
             }
 
             auto graph = _graphF[graphId]->clone();
+
+            return graph;
+        }
+
+        template <>
+        Graph<float>* GraphHolder::pullGraph(Nd4jIndex graphId) {
+            if (!this->hasGraph<float>(graphId)) {
+                nd4j_printf("GraphHolder doesn't have graph stored for [%lld]\n", graphId);
+                throw "Bad argument";
+            }
+
+            auto graph = _graphF[graphId];
 
             return graph;
         }

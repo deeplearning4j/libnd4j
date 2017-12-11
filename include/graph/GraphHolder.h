@@ -23,6 +23,9 @@ namespace nd4j {
             void registerGraph(Nd4jIndex graphId, Graph<T>* graph);
             
             template <typename T>
+            Graph<T>* cloneGraph(Nd4jIndex graphId);
+
+            template <typename T>
             Graph<T>* pullGraph(Nd4jIndex graphId);
 
             template <typename T>

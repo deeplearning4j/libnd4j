@@ -6,6 +6,7 @@
 #include <NDArray.h>
 #include <ops/declarable/CustomOperations.h>
 #include <ops/declarable/OpRegistrator.h>
+#include <graph/GraphHolder.h>
 #include "testlayers.h"
 
 using namespace nd4j;
@@ -322,4 +323,21 @@ TEST_F(JavaInteropTests, Test_Synonyms_3) {
 
     ASSERT_EQ(nameExp, nameRef);
     ASSERT_EQ(nameRef, name);
+}
+
+TEST_F(JavaInteropTests, Test_GraphReuse_1) {
+    NativeOps nativeOps;
+
+    uint8_t* data = nd4j::graph::readFlatBuffers("./resources/reduce_dim.fb");
+
+    nativeOps.registerGraphFloat(nullptr, 119, (Nd4jPointer) data);
+
+    ASSERT_TRUE(GraphHolder::getInstance()->hasGraph<float>(119));
+
+    nativeOps.unregisterGraphFloat(nullptr, 119);
+
+    ASSERT_FALSE(GraphHolder::getInstance()->hasGraph<float>(119));
+
+
+    delete[] data;
 }

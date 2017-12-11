@@ -494,6 +494,9 @@ namespace nd4j {
 
         template <typename T>
         Nd4jStatus Graph<T>::buildGraph() {
+            if (_built.load())
+                return ND4J_STATUS_OK;
+
             int buildCnt = 0;
             int buildLimit = _unmapped.size() * 2;
             while (_unmapped.size() > 0) {

@@ -11,6 +11,7 @@
 #include "../NativeOpExcutioner.h"
 #include "../NDArray.h"
 #include "../GraphExecutioner.h"
+#include <graph/GraphHolder.h>
 #include <templatemath.h>
 #include <types/float8.h>
 #include <loops/type_conversions.h>
@@ -3246,18 +3247,23 @@ int NativeOps::execCustomOpHalf(Nd4jPointer* extraPointers, Nd4jIndex hash, Nd4j
 }
 
 
-bool registerGraphFloat(Nd4jPointer *extraPointers, Nd4jIndex graphId, Nd4jPointer flatBufferPointer) {
+int NativeOps::registerGraphFloat(Nd4jPointer *extraPointers, Nd4jIndex graphId, Nd4jPointer flatBufferPointer) {
+    auto graph = nd4j::graph::GraphExecutioner<float>::importFromFlatPointer(flatBufferPointer);
 
-    return false;
+    nd4j::graph::GraphHolder::getInstance()->registerGraph(graphId, graph);
+
+    return ND4J_STATUS_OK;
 }
-    
-void executeStoredGraphFloat(Nd4jPointer *extraPointers, Nd4jIndex graphId, Nd4jPointer *inputBuffers, Nd4jPointer *inputShapes, int* inputIndices, int numInputs) {
 
+int NativeOps::executeStoredGraphFloat(Nd4jPointer *extraPointers, Nd4jIndex graphId, Nd4jPointer *inputBuffers, Nd4jPointer *inputShapes, int* inputIndices, int numInputs) {
+    return ND4J_STATUS_OK;
 }
 
-bool unregisterGraphFloat(Nd4jPointer *extraPointers, Nd4jIndex graphId) {
+int NativeOps::unregisterGraphFloat(Nd4jPointer *extraPointers, Nd4jIndex graphId) {
 
-    return false;
+    nd4j::graph::GraphHolder::getInstance()->dropGraph<float>(graphId);
+
+    return ND4J_STATUS_OK;
 }
 
 
