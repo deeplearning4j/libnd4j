@@ -5,6 +5,7 @@
 #include <graph/Graph.h>
 #include <helpers/EnumUtils.h>
 #include <graph/FlatUtils.h>
+#include <NativeOps.h>
 
 namespace nd4j {
     namespace graph {

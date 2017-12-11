@@ -2,9 +2,6 @@
 // Created by agibsonccc on 2/21/16.
 //
 
-#ifndef NATIVEOPS_CPP
-#define NATIVEOPS_CPP
-
 #define __STDC_CONSTANT_MACROS
 
 #include "../NativeOps.h"
@@ -3255,7 +3252,7 @@ int NativeOps::registerGraphFloat(Nd4jPointer *extraPointers, Nd4jIndex graphId,
     return ND4J_STATUS_OK;
 }
 
-int NativeOps::executeStoredGraphFloat(Nd4jPointer *extraPointers, Nd4jIndex graphId, Nd4jPointer *inputBuffers, Nd4jPointer *inputShapes, int* inputIndices, int numInputs) {
+VariablesSet<float>* NativeOps::executeStoredGraphFloat(Nd4jPointer *extraPointers, Nd4jIndex graphId, Nd4jPointer *inputBuffers, Nd4jPointer *inputShapes, int* inputIndices, int numInputs) {
 
     auto graph = nd4j::graph::GraphHolder::getInstance()->pullGraph<float>(graphId);
     auto varSpace = graph->getVariableSpace()->clone();
@@ -3282,14 +3279,27 @@ int NativeOps::executeStoredGraphFloat(Nd4jPointer *extraPointers, Nd4jIndex gra
     }
 
     auto result = nd4j::graph::GraphExecutioner<float>::execute(graph, varSpace);
+    auto varSet = new VariablesSet<float>(result);
 
     if (result == ND4J_STATUS_OK) {
         // pull back results, and provide them
+        auto outputs = graph->fetchOutputs();
+        for (int e = 0; e < outputs->size(); e++) {
+            // we're only getting variable ID/Index from original grap. values will be taken from cloned workspace
+            std::pair<int, int> varId(outputs->at(e)->id(), outputs->at(e)->index());
+
+            auto var = varSpace->getVariable(varId);
+
+            //var->getNDArray()->printIndexedBuffer("var");
+            varSet->push_back(var->clone());
+        }
+
+        delete outputs;
     }
 
     delete varSpace;
 
-    return result;
+    return varSet;
 }
 
 int NativeOps::unregisterGraphFloat(Nd4jPointer *extraPointers, Nd4jIndex graphId) {
@@ -3318,5 +3328,3 @@ template void shuffleGeneric<double>(double**, int**, double**, int**, int, int*
 
 
 
-
-#endif

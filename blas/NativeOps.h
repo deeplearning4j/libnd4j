@@ -49,6 +49,7 @@ bool verbose = false;
 */
 
 #include <array/ShapeList.h>
+#include <graph/VariablesSet.h>
 
 class ND4J_EXPORT NativeOps {
 
@@ -2982,7 +2983,7 @@ public:
 
     int registerGraphFloat(Nd4jPointer *extraPointers, Nd4jIndex graphId, Nd4jPointer flatBufferPointer);
 
-    int executeStoredGraphFloat(Nd4jPointer *extraPointers, Nd4jIndex graphId, Nd4jPointer *inputBuffers, Nd4jPointer *inputShapes, int* inputIndices, int numInputs);
+    nd4j::graph::VariablesSet<float>* executeStoredGraphFloat(Nd4jPointer *extraPointers, Nd4jIndex graphId, Nd4jPointer *inputBuffers, Nd4jPointer *inputShapes, int* inputIndices, int numInputs);
 
     int unregisterGraphFloat(Nd4jPointer *extraPointers, Nd4jIndex graphId);
 };

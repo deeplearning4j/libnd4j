@@ -372,8 +372,12 @@ TEST_F(JavaInteropTests, Test_GraphReuse_2) {
     Nd4jPointer inputs_0[] = {(Nd4jPointer) input_0.buffer()};
     Nd4jPointer shapes_0[] = {(Nd4jPointer) input_0.shapeInfo()};
 
-    nativeOps.executeStoredGraphFloat(nullptr, 119, inputs_0, shapes_0, idx, 1);
+    auto res_0 = nativeOps.executeStoredGraphFloat(nullptr, 119, inputs_0, shapes_0, idx, 1);
+    ASSERT_EQ(ND4J_STATUS_OK, res_0->status());
+    ASSERT_EQ(1, res_0->size());
 
+    auto z0 = res_0->at(0)->getNDArray();
+    ASSERT_TRUE(exp0.isSameShape(z0));
 
 
     NDArray<float> input_1('c', {3, 3});
@@ -382,8 +386,12 @@ TEST_F(JavaInteropTests, Test_GraphReuse_2) {
     Nd4jPointer inputs_1[] = {(Nd4jPointer) input_1.buffer()};
     Nd4jPointer shapes_1[] = {(Nd4jPointer) input_1.shapeInfo()};
 
-    nativeOps.executeStoredGraphFloat(nullptr, 119, inputs_1, shapes_1, idx, 1);
+    auto res_1 = nativeOps.executeStoredGraphFloat(nullptr, 119, inputs_1, shapes_1, idx, 1);
+    ASSERT_EQ(ND4J_STATUS_OK, res_1->status());
+    ASSERT_EQ(1, res_1->size());
 
+    auto z1 = res_1->at(0)->getNDArray();
+    ASSERT_TRUE(exp1.isSameShape(z1));
 
 
     NDArray<float> input_2('c', {3, 3});
@@ -392,8 +400,12 @@ TEST_F(JavaInteropTests, Test_GraphReuse_2) {
     Nd4jPointer inputs_2[] = {(Nd4jPointer) input_2.buffer()};
     Nd4jPointer shapes_2[] = {(Nd4jPointer) input_2.shapeInfo()};
 
-    nativeOps.executeStoredGraphFloat(nullptr, 119, inputs_2, shapes_2, idx, 1);
+    auto res_2 = nativeOps.executeStoredGraphFloat(nullptr, 119, inputs_2, shapes_2, idx, 1);
+    ASSERT_EQ(ND4J_STATUS_OK, res_1->status());
+    ASSERT_EQ(1, res_2->size());
 
+    auto z2 = res_2->at(0)->getNDArray();
+    ASSERT_TRUE(exp2.isSameShape(z2));
 
 
     //////// clean out
@@ -403,4 +415,7 @@ TEST_F(JavaInteropTests, Test_GraphReuse_2) {
 
 
     delete[] data;
+    delete res_0;
+    delete res_1;
+    delete res_2;
 }
