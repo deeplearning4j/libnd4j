@@ -3246,6 +3246,21 @@ int NativeOps::execCustomOpHalf(Nd4jPointer* extraPointers, Nd4jIndex hash, Nd4j
 }
 
 
+bool registerGraphFloat(Nd4jPointer *extraPointers, Nd4jIndex graphId, Nd4jPointer flatBufferPointer) {
+
+    return false;
+}
+    
+void executeStoredGraphFloat(Nd4jPointer *extraPointers, Nd4jIndex graphId, Nd4jPointer *inputBuffers, Nd4jPointer *inputShapes, int* inputIndices, int numInputs) {
+
+}
+
+bool unregisterGraphFloat(Nd4jPointer *extraPointers, Nd4jIndex graphId) {
+
+    return false;
+}
+
+
 template void flattenGeneric<float16>(Nd4jPointer*, int, char, float16*, int*, float16*, int*);
 template void flattenGeneric<float>(Nd4jPointer*, int, char, float*, int*, float*, int*);
 template void flattenGeneric<double>(Nd4jPointer*, int, char, double*, int*, double*, int*);;

@@ -926,6 +926,11 @@ namespace nd4j {
             return _mappedScopes.at(id);
         }
 
+        template <typename T>
+        Graph<T>* Graph<T>::clone() {
+            return nullptr;
+        }
+
         template class ND4J_EXPORT Graph<float>;
         template class ND4J_EXPORT Graph<float16>;
         template class ND4J_EXPORT Graph<double>;
