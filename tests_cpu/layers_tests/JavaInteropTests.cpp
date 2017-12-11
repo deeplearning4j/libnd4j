@@ -352,12 +352,16 @@ TEST_F(JavaInteropTests, Test_GraphReuse_2) {
 
     NativeOps nativeOps;
 
+    // we load graph from file, because we're not in java here, and dont have buffer ready
     uint8_t* data = nd4j::graph::readFlatBuffers("./resources/reduce_dim.fb");
 
+    // we ensure that there's no such a graph stored earlier
     ASSERT_FALSE(GraphHolder::getInstance()->hasGraph<float>(119));
 
+    // register the graph, to call for it later
     nativeOps.registerGraphFloat(nullptr, 119, (Nd4jPointer) data);
 
+    // and ensure we're ok
     ASSERT_TRUE(GraphHolder::getInstance()->hasGraph<float>(119));
 
 
@@ -372,6 +376,7 @@ TEST_F(JavaInteropTests, Test_GraphReuse_2) {
     Nd4jPointer inputs_0[] = {(Nd4jPointer) input_0.buffer()};
     Nd4jPointer shapes_0[] = {(Nd4jPointer) input_0.shapeInfo()};
 
+    // now we're executing stored graph and providing replacement for input variable
     auto res_0 = nativeOps.executeStoredGraphFloat(nullptr, 119, inputs_0, shapes_0, idx, 1);
     ASSERT_EQ(ND4J_STATUS_OK, res_0->status());
     ASSERT_EQ(1, res_0->size());
@@ -386,6 +391,7 @@ TEST_F(JavaInteropTests, Test_GraphReuse_2) {
     Nd4jPointer inputs_1[] = {(Nd4jPointer) input_1.buffer()};
     Nd4jPointer shapes_1[] = {(Nd4jPointer) input_1.shapeInfo()};
 
+    // doing it again
     auto res_1 = nativeOps.executeStoredGraphFloat(nullptr, 119, inputs_1, shapes_1, idx, 1);
     ASSERT_EQ(ND4J_STATUS_OK, res_1->status());
     ASSERT_EQ(1, res_1->size());
@@ -400,6 +406,7 @@ TEST_F(JavaInteropTests, Test_GraphReuse_2) {
     Nd4jPointer inputs_2[] = {(Nd4jPointer) input_2.buffer()};
     Nd4jPointer shapes_2[] = {(Nd4jPointer) input_2.shapeInfo()};
 
+    // and again
     auto res_2 = nativeOps.executeStoredGraphFloat(nullptr, 119, inputs_2, shapes_2, idx, 1);
     ASSERT_EQ(ND4J_STATUS_OK, res_1->status());
     ASSERT_EQ(1, res_2->size());
