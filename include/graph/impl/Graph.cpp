@@ -744,10 +744,13 @@ namespace nd4j {
             this->_variableSpace = new VariableSpace<T>();
             
             // creating RNG for this instance
+#ifndef __CUDABLAS__
+            // we temporary skip this random init
             NativeOps nativeOps;
             uint64_t *buffer = new uint64_t[1000000];
             nd4j::random::RandomBuffer* rng = (nd4j::random::RandomBuffer *) nativeOps.initRandom(nullptr, 119, 1000000, (Nd4jPointer) buffer); 
             this->_variableSpace->setRNG(rng);
+#endif
 
             // add 0 layer
             this->expandOnion(0);
