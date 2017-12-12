@@ -13,6 +13,8 @@ namespace nd4j {
         private:
             static GraphHolder *_INSTANCE;
             std::map<Nd4jIndex, Graph<float>*> _graphF;
+            std::map<Nd4jIndex, Graph<double>*> _graphD;
+            std::map<Nd4jIndex, Graph<float16>*> _graphH;
 
             GraphHolder() = default;
             ~GraphHolder() = default;
@@ -33,6 +35,9 @@ namespace nd4j {
 
             template <typename T>
             void dropGraph(Nd4jIndex graphId);
+
+
+            void dropGraphAny(Nd4jIndex graphId);
 
             template <typename T>
             bool hasGraph(Nd4jIndex graphId);

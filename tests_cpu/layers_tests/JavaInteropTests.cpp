@@ -334,7 +334,7 @@ TEST_F(JavaInteropTests, Test_GraphReuse_1) {
 
     ASSERT_TRUE(GraphHolder::getInstance()->hasGraph<float>(119));
 
-    nativeOps.unregisterGraphFloat(nullptr, 119);
+    nativeOps.unregisterGraph(nullptr, 119);
 
     ASSERT_FALSE(GraphHolder::getInstance()->hasGraph<float>(119));
 
@@ -416,7 +416,7 @@ TEST_F(JavaInteropTests, Test_GraphReuse_2) {
 
 
     //////// clean out
-    nativeOps.unregisterGraphFloat(nullptr, 119);
+    nativeOps.unregisterGraph(nullptr, 119);
 
     ASSERT_FALSE(GraphHolder::getInstance()->hasGraph<float>(119));
 
