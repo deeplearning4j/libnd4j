@@ -3334,6 +3334,11 @@ int NativeOps::unregisterGraph(Nd4jPointer *extraPointers, Nd4jIndex graphId) {
     return ND4J_STATUS_OK;
 }
 
+void NativeOps::deletePointerArray(Nd4jPointer pointer) {
+    Nd4jPointer *ptr = reinterpret_cast<Nd4jPointer *>(pointer);
+    delete[] ptr;
+}
+
 void NativeOps::deleteIntArray(Nd4jPointer pointer) {
     int *ptr = reinterpret_cast<int *>(pointer);
     delete[] ptr;
