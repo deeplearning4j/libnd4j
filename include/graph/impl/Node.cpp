@@ -13,6 +13,7 @@
 #include <ops/declarable/LegacyReduce3Op.h>
 #include <ops/declarable/LegacyPairwiseTransformOp.h>
 #include <ops/declarable/LegacyRandomOp.h>
+#include <ops/declarable/LegacyOp.h>
 
 namespace nd4j {
     namespace graph {
@@ -595,10 +596,22 @@ namespace nd4j {
             clone->_scope_name = _scope_name;
             clone->_layer = _layer;
 
+            for (auto v: _input)
+                clone->_input.emplace_back(v);
+            
+            for (auto v: _output)
+                clone->_output.emplace_back(v);
+
+            for (auto v: _dimensions)
+                clone->_dimensions.emplace_back(v);
+
             // op time
             if (!_isDeductable)
                 clone->_customOp = _customOp;
-            
+            else {
+                auto c = dynamic_cast<nd4j::ops::LegacyOp<T>*>(_customOp);
+                clone->_customOp = c->clone();
+            }
 
             return clone;
         }
