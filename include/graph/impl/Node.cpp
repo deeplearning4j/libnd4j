@@ -582,6 +582,10 @@ namespace nd4j {
         template <typename T>
         Node<T>* Node<T>::clone() {
             auto clone = new Node<T>(_opType, _opNum, _id);
+
+            if (clone->_protoContext != nullptr)
+                delete clone->_protoContext;
+
             clone->_dataType = _dataType;
             clone->_protoContext = _protoContext->clone();
             clone->_scalar = _scalar;
@@ -595,6 +599,9 @@ namespace nd4j {
             clone->_scope_id = _scope_id;
             clone->_scope_name = _scope_name;
             clone->_layer = _layer;
+
+            if (clone->_customOp != nullptr)
+                delete clone->_customOp;
 
             for (auto v: _input)
                 clone->_input.emplace_back(v);

@@ -258,15 +258,15 @@ namespace nd4j {
 
         template <typename T>
         Graph<T>::~Graph() {
-            for (auto v: *_mapped)
+            for (auto &v: *_mapped)
                 delete v.second;
 
-            for (auto v: _unmapped)
+            for (auto &v: _unmapped)
                 delete v.second;
 
-            for (auto v: *_onion) {
+            for (auto &v: *_onion)
                 delete v.second;
-            }
+
 
             for (auto v: _scopes)
                 delete v;
@@ -965,8 +965,9 @@ namespace nd4j {
 
             // transfer mapped nodes
             for (auto &v: *_onion) {
-                auto vec = new std::vector<Node<T>*>();
-                
+                auto vec = clone->_onion->count(v.first) > 0 ? clone->_onion->at(v.first) : new std::vector<Node<T>*>();
+
+
                 // cloning actual nodes
                 auto ovec = (*_onion)[v.first];
                 for (auto x: *(ovec)) {
@@ -975,14 +976,14 @@ namespace nd4j {
                     _handles.emplace_back(n);
                     (*clone->_mapped)[n->id()] = n;
                 }
-                
-                (*clone->_onion)[v.first] = vec;
+
+                if (clone->_onion->count(v.first) < 1)
+                    (*clone->_onion)[v.first] = vec;
             }
 
             // transfer mapped nodes
-            for (auto v: _unmapped)
+            for (auto &v: _unmapped)
                 clone->_unmapped[v.first] = v.second->clone();
-                
 
             clone->_built.store(_built.load());
 
