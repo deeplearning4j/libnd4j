@@ -973,10 +973,15 @@ namespace nd4j {
                     auto n = x->clone();
                     vec->emplace_back(n);
                     _handles.emplace_back(n);
+                    (*clone->_mapped)[n->id()] = n;
                 }
                 
                 (*clone->_onion)[v.first] = vec;
             }
+
+            // transfer mapped nodes
+            for (auto v: _unmapped)
+                clone->_unmapped[v.first] = v.second->clone();
                 
 
             clone->_built.store(_built.load());
