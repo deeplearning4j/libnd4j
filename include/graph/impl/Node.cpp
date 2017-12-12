@@ -542,7 +542,6 @@ namespace nd4j {
 
             if (_isDeductable && _customOp != nullptr)
                 delete _customOp;
-
         }
 
         template <typename T>
@@ -582,6 +581,8 @@ namespace nd4j {
         template <typename T>
         Node<T>* Node<T>::clone() {
             auto clone = new Node<T>(_opType, _opNum, _id);
+            clone->_dataType = _dataType;
+            clone->_protoContext = _protoContext->clone();
             clone->_scalar = _scalar;
             clone->_hasExternalInputs = _hasExternalInputs;
             clone->_hasExternalOutputs = _hasExternalOutputs;
@@ -592,6 +593,7 @@ namespace nd4j {
             clone->_active = _active;
             clone->_scope_id = _scope_id;
             clone->_scope_name = _scope_name;
+            clone->_layer = _layer;
 
             // op time
             if (!_isDeductable)
