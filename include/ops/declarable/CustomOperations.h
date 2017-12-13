@@ -189,8 +189,7 @@ namespace nd4j {
         DECLARE_CONFIGURABLE_OP(clipbyavgnorm, 1, 1, true, 1, 0);
         DECLARE_CONFIGURABLE_OP(cumsum, 1, 1, true, 0, -2);
         DECLARE_CONFIGURABLE_OP(cumprod, 1, 1, true, 0, -2);
-        DECLARE_CONFIGURABLE_OP(scatter_update, 2, 1, true, 0, -1);
-        DECLARE_CONFIGURABLE_OP(relu, 1, 1, true, 1, 0);        
+        DECLARE_CONFIGURABLE_OP(scatter_update, 2, 1, true, 0, -1);        
         DECLARE_CONFIGURABLE_OP(randomuniform, 1, 1, true, 2, 0);        
         // DECLARE_CONFIGURABLE_OP(batchnorm_bp, 5, 1, true, 0, 1);                
         DECLARE_CONFIGURABLE_OP(conv3d_bp, 3, 1, false, 0, 7); // TODO: to be implemented        
@@ -204,18 +203,31 @@ namespace nd4j {
         DECLARE_CONFIGURABLE_OP(betainc, 3, 1, false, 0, 0)
 
         // grad ops
+        DECLARE_CONFIGURABLE_OP(sigmoid, 1, 1, true, 0, 0);
         DECLARE_CONFIGURABLE_OP(sigmoid_bp, 2, 1, true, 0, 0);
+        DECLARE_CONFIGURABLE_OP(softsign, 1, 1, true, 0, 0);
         DECLARE_CONFIGURABLE_OP(softsign_bp, 2, 1, true, 0, 0);
+        DECLARE_CONFIGURABLE_OP(tanh, 1, 1, true, 0, 0);
         DECLARE_CONFIGURABLE_OP(tanh_bp, 2, 1, true, 0, 0);
+        DECLARE_CONFIGURABLE_OP(softplus, 1, 1, true, 0, 0);
         DECLARE_CONFIGURABLE_OP(softplus_bp, 2, 1, true, 0, 0);
+        DECLARE_CONFIGURABLE_OP(relu, 1, 1, true, 1, 0);
         DECLARE_CONFIGURABLE_OP(relu_bp, 2, 1, true, 0, 0);
+        DECLARE_CONFIGURABLE_OP(selu, 1, 1, true, 0, 0);
         DECLARE_CONFIGURABLE_OP(selu_bp, 2, 1, true, 0, 0);
+        DECLARE_CONFIGURABLE_OP(lrelu, 1, 1, true, 0, 0);
         DECLARE_CONFIGURABLE_OP(lrelu_bp, 2, 1, true, 0, 0);
+        DECLARE_CONFIGURABLE_OP(elu, 1, 1, true, 0, 0);
         DECLARE_CONFIGURABLE_OP(elu_bp, 2, 1, true, 0, 0);
+        DECLARE_CONFIGURABLE_OP(cube, 1, 1, true, 0, 0);
         DECLARE_CONFIGURABLE_OP(cube_bp, 2, 1, true, 0, 0);
+        DECLARE_CONFIGURABLE_OP(rectifiedtanh, 1, 1, true, 0, 0);
         DECLARE_CONFIGURABLE_OP(rectifiedtanh_bp, 2, 1, true, 0, 0);
+        DECLARE_CONFIGURABLE_OP(rationaltanh, 1, 1, true, 0, 0);
         DECLARE_CONFIGURABLE_OP(rationaltanh_bp, 2, 1, true, 0, 0);
+        DECLARE_CONFIGURABLE_OP(hardtanh, 1, 1, true, 0, 0);
         DECLARE_CONFIGURABLE_OP(hardtanh_bp, 2, 1, true, 0, 0);
+        DECLARE_CONFIGURABLE_OP(hardsigmoid, 1, 1, true, 0, 0);
         DECLARE_CONFIGURABLE_OP(hardsigmoid_bp, 2, 1, true, 0, 0);
 
         DECLARE_CUSTOM_OP(firas_sparse, 1, 1, false, 0, -1);

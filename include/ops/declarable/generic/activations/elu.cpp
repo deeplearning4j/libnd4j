@@ -6,6 +6,21 @@
 
 namespace nd4j {
     namespace ops {
+        /**
+         * This op is ELU activation function.
+         * Math is: x >= 0 ? x : exp(x) - 1;
+         * 
+         */
+        CONFIGURABLE_OP_IMPL(elu, 1, 1, true, 0, 0) {
+            auto input = INPUT_VARIABLE(0);
+            auto output = OUTPUT_VARIABLE(0);
+
+            input->template applyTransform<simdOps::ELU<T>>(output, nullptr);
+            STORE_RESULT(output);
+
+            return ND4J_STATUS_OK;
+        }
+
         CONFIGURABLE_OP_IMPL(elu_bp, 2, 1, true, 0, 0) {
             NDArray<T>* input = INPUT_VARIABLE(0);
             NDArray<T>* epsilon = INPUT_VARIABLE(1);
