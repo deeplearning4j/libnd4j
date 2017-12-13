@@ -8,10 +8,16 @@
 namespace nd4j {
     namespace ops {
         /**
+         * 1D temporal convolution implementation
+         * Expected input: 
+         * x: 3D array
+         * weight: 3D Array
+         * bias: optional vector
          * 
-         * Kernel
-         * Stride
-         * Padding
+         * Int args:
+         * 0: kernel
+         * 1: stride
+         * 2: padding
          */
         CUSTOM_OP_IMPL(conv1d, 2, 1, false, 0, 3) {
             auto input = INPUT_VARIABLE(0);

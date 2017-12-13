@@ -8,6 +8,20 @@
 
 namespace nd4j {
     namespace ops {
+        /**
+         * This op implements col2im algorithm, widely used in convolution neural networks
+         * Input: 6D input expected (like output of im2col op)
+         * 
+         * Int args:
+         * 0: stride height
+         * 1: stride width
+         * 2: padding height
+         * 3: padding width
+         * 4: image height
+         * 5: image width
+         * 6: dilation height
+         * 7: dilation width
+         */
         CUSTOM_OP_IMPL(col2im, 1, 1, false, 0, 9) {
             auto x = INPUT_VARIABLE(0);
             auto z = OUTPUT_VARIABLE(0);

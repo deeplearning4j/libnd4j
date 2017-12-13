@@ -8,7 +8,12 @@
 namespace nd4j {
     namespace ops {
         /**
-         * Depthwise convolution2d
+         * Depthwise convolution2d op:
+         * Expected inputs:
+         * x: 4D array, NCHW format
+         * weightsDepth: 4D array,
+         * weightsPointwise: optional, 4D array
+         * bias: optional, vector
          */
         //////////////////////////////////////////////////////////////////////////
         CUSTOM_OP_IMPL(sconv2d, 2, 1, false, 0, 9) {

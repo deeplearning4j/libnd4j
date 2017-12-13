@@ -8,7 +8,21 @@
 
 namespace nd4j {
     namespace ops {
-
+        /**
+         * This op implements im2col algorithm, widely used in convolution neural networks
+         * Input: 4D input expected
+         * 
+         * Int args:
+         * 0: kernel height
+         * 1: kernel width
+         * 2: stride height
+         * 3: stride width
+         * 4: padding height
+         * 5: padding width
+         * 6: dilation height
+         * 7: dilation width
+         * 8: isSameMode
+         */
         CUSTOM_OP_IMPL(im2col, 1, 1, false, 0, 9) {
             auto x = INPUT_VARIABLE(0);
             auto z = OUTPUT_VARIABLE(0);

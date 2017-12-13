@@ -7,7 +7,10 @@
 
 namespace nd4j {
     namespace ops {
-        //////////////////////////////////////////////////////////////////////////
+        /**
+         *  Universal pooling op, combines max/avg/pnorm pooling.
+         *  Shouldn't be used directly, consider using corresponding operations instead.
+         */
         CUSTOM_OP_IMPL(pooling2d, 1, 1, false, 0, 11) {
 
             NDArray<T> *x = INPUT_VARIABLE(0);

@@ -6,16 +6,19 @@
 
 namespace nd4j {
     namespace ops {
-        //////////////////////////////////////////////////////////////////////////
-        CONFIGURABLE_OP_IMPL(ismax, 1, 1, false, 0, -1) {
-
-            REQUIRE_OK(this->validateInputLengthMatch(block));
-            REQUIRE_OK(this->validateInputDimensionsMatch(block));
-
+        /**
+         * This op produces binary matrix wrt to target dimension.
+         * Maximum value within each TAD is replaced with 1, other values are set to true.
+         * 
+         * Int args:
+         * 0: axis
+         */
+        CONFIGURABLE_OP_IMPL(ismax, 1, 1, true, 0, -1) {
             NDArray<T>* x = INPUT_VARIABLE(0);
             NDArray<T>* z = OUTPUT_VARIABLE(0);
             std::vector<int> dimensions = *(block.getIArguments());			// argI
 
+            // FIXME: this should be moved to helpers!
             if (x->isVector()) {
                 int dimensionsLength = dimensions.size();
                 int length = x->lengthOf();

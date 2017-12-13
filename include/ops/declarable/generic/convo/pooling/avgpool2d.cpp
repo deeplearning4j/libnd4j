@@ -7,8 +7,21 @@
 
 namespace nd4j {
     namespace ops {
-        //////////////////////////////////////////////////////////////////////////
-        // avgpool2d corresponds to poolingMode=1
+        /**
+         * This op implements average pooling for convolution networks.
+         * Expected Input: 4D array, NCHW format.
+         *
+         * IntArgs:
+         * 0: kernel height
+         * 1: kernel width
+         * 2: stride height
+         * 3: stride width
+         * 4: padding height
+         * 5: padding width
+         * 6: dilation height
+         * 7: dilation width
+         * 8: same mode: 0 false, 1 true
+         */
         CUSTOM_OP_IMPL(avgpool2d, 1, 1, false, 0, 9) {
 
             NDArray<T> *x = INPUT_VARIABLE(0);
