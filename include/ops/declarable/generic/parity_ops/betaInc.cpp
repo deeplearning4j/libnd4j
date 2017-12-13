@@ -11,18 +11,20 @@ namespace nd4j {
 
 //////////////////////////////////////////////////////////////////////////
 /**
-   * This op calculates polygamma function psi^(n)(x). Implementation is based on serial representation written in 
-   * terms of the Hurwitz zeta function: polygamma = (-1)^{n+1} * n! * zeta(n+1, x).
-   * Currently the case n = 0 is not supported.
+   * This op calculates regularized incomplete beta integral Ix(a, b). 
+   * Implementation is based on two algorithms depending on input values of a and b:
+   * - when a and b are both >  maxValue (3000.), then apply Gauss-Legendre quadrature method
+   * - when a and b are both <= maxValue (3000.), then apply modified Lentz’s algorithm for continued fractions
    * 
    * Input arrays: 
-   *    0: n - define derivative order (n+1), type integer (however currently is implemented as float casted to integer)
-   *    1: x - abscissa points where to evaluate the polygamma function, type float
+   *    a: define power t^{a-1}, must be > 0, type float.
+   *    b: define power (1-t)^{b-1}, must be > 0, type float.
+   *    x: define upper limit of integration, must be within (0 <= x <= 1) range, type float.
    *
    * Output array: 
-   *    0: values of polygamma function at corresponding x, type float
+   *    0: values of  regularized incomplete beta integral that corresponds to variable upper limit x, type float
    * 
-   * Two input and one output arrays have the same shape
+   * Three input and one output arrays must have the same shape
    */      
 //////////////////////////////////////////////////////////////////////////
 CONFIGURABLE_OP_IMPL(betainc, 3, 1, false, 0, 0) {

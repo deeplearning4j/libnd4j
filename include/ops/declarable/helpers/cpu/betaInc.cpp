@@ -37,7 +37,7 @@ const double weights[18] = {0.0055657196642445571,
 ///////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////
 // modified Lentz’s algorithm for continued fractions, 
-// reference: Lentz, W.J. 1976, “Generating Bessel Functions in Mie Scattering Calculations Using Continued Fractions,” Applied Optics, vol. 15, pp. 668–671
+// reference: Lentz, W.J. 1976, “Generating Bessel Functions in Mie Scattering Calculations Using Continued Fractions,” 
 template <typename T> 
 static T continFract(const T a, const T b, const T x) {	
 
@@ -135,7 +135,7 @@ static T gausLegQuad(const T a, const T b, const T x) {
 	
 	if(result > (T)0.)
 		return (T)1. - result;
-	
+
 	return -result;
 }
 
