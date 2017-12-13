@@ -23,9 +23,10 @@ namespace nd4j {
                 for (int e = 0; e < input->rankOf(); e++)
                     reps[e] = (int) reps_vector->getScalar(e);
 
+
                 std::vector<int> shape(input->rankOf());
-                for (int e = 0; e < shape.size(); e++)
-                    shape[e] *= reps.at(e);
+                for (int e = 0; e < input->rankOf(); e++)
+                    shape[e] = input->sizeAt(e) * reps[e];
 
                 output = new NDArray<T>(input->ordering(), shape, block.getWorkspace());
 
@@ -33,7 +34,7 @@ namespace nd4j {
             } else {
                 REQUIRE_TRUE(false, 0, "Tile: this op requires input array and repeats vector, either as IArgs or second array");
             }
-
+            
             input->tile(reps, *output);
 
             if (overwrite) {
@@ -61,9 +62,9 @@ namespace nd4j {
                     shape[e] *= reps->at(e);
 
                 if (shape::order(inShape) == 'c')
-                    shape::shapeBuffer(shape::rank(inShape), shape::shapeOf(inShape), newShape);
+                    shape::shapeBuffer(shape.size(), shape.data(), newShape);
                 else
-                    shape::shapeBufferFortran(shape::rank(inShape), shape::shapeOf(inShape), newShape);
+                    shape::shapeBufferFortran(shape.size(), shape.data(), newShape);
             } else {
                 // runtime evaluation, sorry
                 REPLICATE_SHAPE(inShape, newShape);
