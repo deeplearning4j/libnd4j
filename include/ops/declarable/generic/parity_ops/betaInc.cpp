@@ -10,7 +10,21 @@ namespace nd4j {
 
 
 //////////////////////////////////////////////////////////////////////////
-// Compute the regularized incomplete beta integral Ix(a,b)
+/**
+   * This op calculates polygamma function psi^(n)(x). Implementation is based on serial representation written in 
+   * terms of the Hurwitz zeta function: polygamma = (-1)^{n+1} * n! * zeta(n+1, x).
+   * Currently the case n = 0 is not supported.
+   * 
+   * Input arrays: 
+   *    0: n - define derivative order (n+1), type integer (however currently is implemented as float casted to integer)
+   *    1: x - abscissa points where to evaluate the polygamma function, type float
+   *
+   * Output array: 
+   *    0: values of polygamma function at corresponding x, type float
+   * 
+   * Two input and one output arrays have the same shape
+   */      
+//////////////////////////////////////////////////////////////////////////
 CONFIGURABLE_OP_IMPL(betainc, 3, 1, false, 0, 0) {
 
 	NDArray<T>* a = INPUT_VARIABLE(0);
