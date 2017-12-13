@@ -37,22 +37,50 @@ namespace nd4j {
 
         template <typename T>
         nd4j::graph::Variable<T> *VariableProxy<T>::getVariable(int id) {
-            return nullptr;
+            if (_current.hasVariable(id))
+                return _current.getVariable(id);
+            
+            if (_backed->hasVariable(id))
+                return _backed->getVariable(id);
+
+            nd4j_printf("Unable to get Variable to proxy: [%i]\n", id);
+            throw "Bad arguments";
         }
 
         template <typename T>
         nd4j::graph::Variable<T> *VariableProxy<T>::getVariable(int id, int idx) {
-            return nullptr;
+            if (_current.hasVariable(id, idx))
+                return _current.getVariable(id, idx);
+            
+            if (_backed->hasVariable(id, idx))
+                return _backed->getVariable(id, idx);
+
+            nd4j_printf("Unable to get Variable to proxy: [%i:%i]\n", id, idx);
+            throw "Bad arguments";
         }
 
         template <typename T>
         nd4j::graph::Variable<T> *VariableProxy<T>::getVariable(std::pair<int,int>& pair) {
-            return nullptr;
+            if (_current.hasVariable(pair))
+                return _current.getVariable(pair);
+            
+            if (_backed->hasVariable(pair))
+                return _backed->getVariable(pair);
+
+            nd4j_printf("Unable to get Variable to proxy: [%i:%i]\n", pair.first, pair.second);
+            throw "Bad arguments";
         }
 
         template <typename T>
         nd4j::graph::Variable<T> *VariableProxy<T>::getVariable(std::string *symbol) {
-            return nullptr;
+            if (_current.hasVariable(symbol))
+                return _current.getVariable(symbol);
+            
+            if (_backed->hasVariable(symbol))
+                return _backed->getVariable(symbol);
+
+            nd4j_printf("Unable to get Variable to proxy: [%s]\n", symbol->c_str());
+            throw "Bad arguments";
         }
 
         template <typename T>

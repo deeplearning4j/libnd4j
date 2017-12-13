@@ -44,3 +44,31 @@ TEST_F(VariableProxyTests, Test_Simple_2) {
 
     ASSERT_TRUE(proxy.hasVariable(119));
 }
+
+
+TEST_F(VariableProxyTests, Test_Simple_3) {
+    auto x = new NDArray<float>('c', {2, 2}, {1, 2, 3, 4});
+    auto y = new NDArray<float>('c', {2, 2}, {4, 2, 3, 1});
+    VariableSpace<float> ref;
+
+    ref.putVariable(119, x);
+
+    ASSERT_TRUE(ref.hasVariable(119));
+
+    VariableProxy<float> proxy(&ref);
+
+    ASSERT_TRUE(proxy.hasVariable(119));
+
+    proxy.putVariable(119, y);
+
+    ASSERT_TRUE(ref.hasVariable(119));
+
+    ASSERT_TRUE(proxy.hasVariable(119));
+
+    auto z0 = ref.getVariable(119)->getNDArray();
+    auto z1 = proxy.getVariable(119)->getNDArray();
+
+    ASSERT_FALSE(z0 == z1);
+    ASSERT_TRUE(y == z1);
+    ASSERT_TRUE(x == z0);
+}
