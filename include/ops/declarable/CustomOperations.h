@@ -37,7 +37,6 @@ namespace nd4j {
         DECLARE_OP(floor, 1, 1, true);
         DECLARE_OP(merge, -1, 1, true);         // should become custom
         DECLARE_OP(broadcastgradientargs, 2, 2, true);
-        DECLARE_OP(assign, 2, 1, false);
         DECLARE_OP(mergemax, -1, 1, false);
         DECLARE_OP(mergemaxindex, -1, 1, false);
         DECLARE_OP(mergeadd, -1, 1, false);
@@ -97,6 +96,7 @@ namespace nd4j {
         DECLARE_CUSTOM_OP(realdiv, 2, 1, true, 0, 0);
 
         DECLARE_CUSTOM_OP(testcustom, 1, 1, false, 0, -1);
+        DECLARE_CUSTOM_OP(assign, 2, 1, false, 0, 0);
         DECLARE_CUSTOM_OP(concat, -1, 1, false, 0, 1);
         DECLARE_CUSTOM_OP(concat_bp, -1, -1, false, 0, 1);
         DECLARE_CUSTOM_OP(matmul, 2, 1, false, -2, 0);
