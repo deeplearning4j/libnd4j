@@ -7,6 +7,20 @@
 
 namespace nd4j {
     namespace ops {
+        /**
+         * This operation return one-hot encoded n-dimensional array
+         * Expected arguments:
+         * input: N-dimensional array
+         * 
+         * T args:
+         * 0: 'on' value
+         * 1: 'off' value
+         * 
+         * Int args:
+         * 0: depth
+         * 1: axis
+         * 
+         */
         CUSTOM_OP_IMPL(onehot, 1, 1, false, 2, 2) {
             auto input = INPUT_VARIABLE(0);
 
@@ -23,6 +37,7 @@ namespace nd4j {
             if (axis < 0)
                 axis = output->rankOf() + axis;
 
+            auto vec = ShapeUtils<T>::convertAxisToTadTarget(input->rankOf(), {axis});
             auto tads = NDArrayFactory<T>::allTensorsAlongDimension(output, {axis});
             for (int e = 0; e < tads->size(); e++) {
                 auto tad = tads->at(e);

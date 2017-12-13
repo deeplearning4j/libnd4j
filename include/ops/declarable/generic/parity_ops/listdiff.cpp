@@ -7,6 +7,13 @@
 // this op will probably never become GPU-compatible
 namespace nd4j {
     namespace ops {
+        /**
+         * This operation takes 2 arrays: original values, and values to be excluded. And returns 2 arrays: values left after exclusion, and indices in original array for surivals.
+         * Expected arguments:
+         * 0: vector with original values
+         * 1: vector with values to exclude
+         * 
+         */
         OP_IMPL(listdiff, 2, 2, false) {
             auto values = INPUT_VARIABLE(0);
             auto keep = INPUT_VARIABLE(1);
