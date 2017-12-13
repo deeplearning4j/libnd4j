@@ -7,7 +7,6 @@
 
 namespace nd4j {
     namespace ops {
-        //////////////////////////////////////////////////////////////////////////
         /**
          * tensorMmul/tensorDot operation
          * takes 2 ndarrays, and 2 sets of axes

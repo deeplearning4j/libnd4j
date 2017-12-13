@@ -6,6 +6,11 @@
 
 namespace nd4j {
     namespace ops {
+        /**
+         * This op takes 2 equally shaped arrays as input, and provides binary matrix as output.
+         * Math is: _x != _y ? (T) 1.0f : (T) 0.0f;
+         * 
+         */
         OP_IMPL(not_equals, 2, 1, true) {
             auto x = INPUT_VARIABLE(0);
             auto y = INPUT_VARIABLE(1);
@@ -13,13 +18,11 @@ namespace nd4j {
 
             REQUIRE_TRUE(x->isSameShape(y), 0, "Both inputs should have equal shape");
 
-#pragma omp parallel for simd
-            for (int e = 0; e < z->lengthOf(); e++) {
-                T v = x->getIndexedScalar(e) != y->getIndexedScalar(e) ? (T) 1.0f : (T) 0.0f;
-                z->putIndexedScalar(e, v);
-            }
+            auto lambda = LAMBDA_TT(_x, _y) {
+                return _x != _y ? (T) 1.0f : (T) 0.0f;
+            };
 
-            STORE_RESULT(z);
+            x->applyPairwiseLambda(y, lambda, z);
 
             return ND4J_STATUS_OK;
         }

@@ -7,6 +7,11 @@
 
 namespace nd4j {
     namespace ops {
+        /**
+         * This op takes 2 n-dimensional arrays as input, and return 
+         * array of the same shape, with elements, either from x or y, depending on the condition.
+         * 
+         */
         CUSTOM_OP_IMPL(Where, 1, 1, false, 0, 0) {
             auto condition = INPUT_VARIABLE(0);
 
@@ -21,7 +26,6 @@ namespace nd4j {
                 // if cond matches x/y shape - we have per-element mask
                 if (condition->isSameShape(x)) {
                     // FIXME: for perf it might be better to issue memcpy here, and fill only mismatched values from either X or Y
-#pragma omp parallel for
                     for (int e = 0; e < condition->lengthOf(); e++) {
                         T v = condition->getIndexedScalar(e);
                         T r = v == (T) 0.0f ? y->getIndexedScalar(e) : x->getIndexedScalar(e);

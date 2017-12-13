@@ -7,6 +7,11 @@
 
 namespace nd4j {
     namespace ops {
+        /**
+         * This op takes 2 n-dimensional arrays as input, and return 
+         * array of the same shape, with elements, either from x or y, depending on the condition.
+         * 
+         */
         CUSTOM_OP_IMPL(select, 3, 1, false, 0, 0) {
             auto cond = INPUT_VARIABLE(0);
             auto x = INPUT_VARIABLE(1);
@@ -27,7 +32,6 @@ namespace nd4j {
                 if (same) {
                     auto z = OUTPUT_VARIABLE(0);
 
-#pragma omp parallel for
                     for (int e = 0; e < cond->lengthOf(); e++) {
                         T v = cond->getIndexedScalar(e);
                         T r = v == (T) 0.0f ? y->getIndexedScalar(e) : x->getIndexedScalar(e);
