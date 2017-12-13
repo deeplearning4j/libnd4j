@@ -12,7 +12,7 @@ namespace helpers {
 
 
 //////////////////////////////////////////////////////////////////////////
-// implementation based on serial representation written in terms of the Hurwitz zeta function as polygamma = (-1)^{n+1} * zeta(n+1, x)
+// implementation is based on serial representation written in terms of the Hurwitz zeta function as polygamma = (-1)^{n+1} * zeta(n+1, x)
 template <typename T>
 T polyGamma(const int n, const T x) {
 	
