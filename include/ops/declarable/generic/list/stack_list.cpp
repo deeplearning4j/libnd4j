@@ -7,6 +7,9 @@
 
 namespace nd4j {
     namespace ops {
+        /**
+         * This operation concatenates given NDArrayList, and returns NDArray as result
+         */
         LIST_OP_IMPL(stack_list, 1, 1, 0, 0) {
             auto list = INPUT_LIST(0);
             //auto z = OUTPUT_VARIABLE(0);
