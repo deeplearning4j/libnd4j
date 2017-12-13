@@ -16,6 +16,41 @@ namespace nd4j {
         }
 
         template <typename T>
+        int VariableProxy<T>::numberOfPlaceholders() {
+            return _backed->numberOfPlaceholders();
+        }
+
+        template <typename T>
+        std::vector<Variable<T>*>* VariableProxy<T>::getPlaceholders() {
+            return _backed->getPlaceholders();
+        }
+
+        template <typename T>
+        nd4j::random::RandomBuffer* VariableProxy<T>::getRNG() {
+            return _current.getRNG();
+        }
+
+        template <typename T>
+        void VariableProxy<T>::setRNG(nd4j::random::RandomBuffer* rng) {
+            _current.setRNG(rng);
+        }
+        
+        template <typename T>
+        bool VariableProxy<T>::hasExternalVariable(int it) {
+            return _backed->hasExternalVariable(it);
+        }
+
+        template <typename T>
+        bool VariableProxy<T>::hasExternalVariable(std::pair<int,int>& pair) {
+            return _backed->hasExternalVariable(pair);
+        }
+
+        template <typename T>
+        bool VariableProxy<T>::hasExternalVariable(std::string *symbol) {
+            return _backed->hasExternalVariable(symbol);
+        }
+
+        template <typename T>
         bool VariableProxy<T>::hasVariable(int id) {
             return _current.hasVariable(id) || _backed->hasVariable(id);
         }
@@ -113,6 +148,30 @@ namespace nd4j {
             _current.putVariable(id, idx, array);
         }
 
+        template <typename T>
+        void VariableProxy<T>::trackList(nd4j::NDArrayList<T>* list) {
+            _current.trackList(list);
+        }
+
+        template <typename T>
+        nd4j::graph::Stash<T>* VariableProxy<T>::getStash() {
+            return _current.getStash();
+        }
+
+        template <typename T>
+        void VariableProxy<T>::setFlowPath(FlowPath* timers) {
+            _current.setFlowPath(timers);
+        }
+
+        template <typename T>
+        FlowPath* VariableProxy<T>::flowPath() {
+            return _current.flowPath();
+        }
+
+        template <typename T>
+        void VariableProxy<T>::putOutputVariable(Variable<T> *variable) {
+            _current.putOutputVariable(variable);
+        }
 
         template class ND4J_EXPORT VariableProxy<float>;
         template class ND4J_EXPORT VariableProxy<float16>;
