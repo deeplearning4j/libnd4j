@@ -6,6 +6,13 @@
 
 namespace nd4j {
     namespace ops {
+        /**
+         * This operation returns length of input array
+         * Expected arguments:
+         * input: N-dimensional array
+         * 
+         * TODO: make this operation reduction, to allow TAD -> size
+         */
         CUSTOM_OP_IMPL(size, 1, 1, false, 0, 0) {
             auto input = INPUT_VARIABLE(0);
             auto output = OUTPUT_VARIABLE(0);

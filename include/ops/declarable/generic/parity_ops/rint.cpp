@@ -6,6 +6,9 @@
 
 namespace nd4j {
     namespace ops {
+        /**
+         * This operation applies element-wise rint (round to integral value) operation
+         */
         OP_IMPL(rint, 1, 1, true) {
             auto x = INPUT_VARIABLE(0);
             auto z = OUTPUT_VARIABLE(0);

@@ -8,9 +8,12 @@
 
 namespace nd4j {
     namespace ops {
-
-
-//////////////////////////////////////////////////////////////////////////
+		/**
+		 * This operation stacks a list of rank tensors into one rank-(R+1) tensor.
+		 * Expected arguments:
+		 * 0...: N-Dimensional arrays to stack
+		 * 
+		 */
 CUSTOM_OP_IMPL(stack, -1, 1, false, 0, 1) {
 
     NDArray<T>* input = INPUT_VARIABLE(0);

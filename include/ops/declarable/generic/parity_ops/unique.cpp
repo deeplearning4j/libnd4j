@@ -6,6 +6,11 @@
 
 namespace nd4j {
     namespace ops {
+        /**
+         * This operation returns unique elements from input array as vector, and their original indices in input array
+         * Expected input:
+         * input: N-dimensional array
+         */
         // FIXME: this op badly needs perf improvements!
         CUSTOM_OP_IMPL(unique, 1, 2, false, 0, 0) {
             auto x = INPUT_VARIABLE(0);

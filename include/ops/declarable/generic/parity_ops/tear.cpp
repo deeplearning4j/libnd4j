@@ -7,6 +7,14 @@
 
 namespace nd4j {
     namespace ops {
+        /**
+         * This operation splits input NDArray into multiple TADs along given dimensions
+         * Expected arguments:
+         * input: N-dimensional array
+         * 
+         * Int args:
+         * 0..: TAD axis
+         */
         CUSTOM_OP_IMPL(tear, 1, -1, false, 0, -1) {
             auto input = INPUT_VARIABLE(0);
 

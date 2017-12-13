@@ -7,6 +7,10 @@
 
 namespace nd4j {
     namespace ops {
+        /**
+         * This operation extracts a slice from a tensor.
+         * 
+         */
         CUSTOM_OP_IMPL(slice, 1, 1, false, 0, -1) {
             auto input = INPUT_VARIABLE(0);
             auto output = OUTPUT_VARIABLE(0);

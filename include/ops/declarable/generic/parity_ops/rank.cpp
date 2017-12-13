@@ -6,6 +6,10 @@
 
 namespace nd4j {
     namespace ops {
+        /**
+         * This operation returns rank of input array as scalar value.
+         * 
+         */
         CUSTOM_OP_IMPL(rank, 1, 1, false, 0, 0) {
             auto input = INPUT_VARIABLE(0);
             auto output = OUTPUT_VARIABLE(0);
