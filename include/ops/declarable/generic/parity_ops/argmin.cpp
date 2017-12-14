@@ -28,7 +28,7 @@ namespace nd4j {
                 input->template applyIndexReduce<simdOps::IndexMin<T>>(output, axis);
 
                 OVERWRITE_RESULT(output);
-
+                RELEASE(shape, input->getWorkspace());
             } else {
                 auto output = OUTPUT_VARIABLE(0);
 
