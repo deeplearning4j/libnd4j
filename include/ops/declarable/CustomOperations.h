@@ -174,6 +174,7 @@ namespace nd4j {
         DECLARE_CUSTOM_OP(gruCell, 5, 1, false, 0, 0);
         DECLARE_CUSTOM_OP(diag, 1, 1, false, 0, 0);
         DECLARE_CUSTOM_OP(diag_part, 1, 1, false, 0, 0);
+        DECLARE_CUSTOM_OP(tile, 1, 1, false, 0, -2);
 
         // recurrent ops
         DECLARE_CUSTOM_OP(sru,         5, 2, false, 0, 0);
@@ -201,6 +202,8 @@ namespace nd4j {
         DECLARE_CONFIGURABLE_OP(invert_permutation, 1, 1, false, 0, 0);        
         DECLARE_CONFIGURABLE_OP(matrix_set_diag, 2, 1, false, 0, 0)
         DECLARE_CONFIGURABLE_OP(betainc, 3, 1, false, 0, 0)
+        DECLARE_CONFIGURABLE_OP(zeta, 2, 1, false, 0, 0)
+        DECLARE_CONFIGURABLE_OP(polygamma, 2, 1, false, 0, 0)
 
         // grad ops
         DECLARE_CONFIGURABLE_OP(sigmoid_bp, 2, 1, true, 0, 0);
