@@ -102,7 +102,7 @@ TEST_F(TadTests, TadNoAxis_1) {
 
     ASSERT_TRUE(tad.wholeThing);
 
-    ASSERT_TRUE(shape::equalsSoft(tad.tadOnlyShapeInfo, array.shapeInfo()));
+    ASSERT_TRUE(shape::equalsStrict(tad.tadOnlyShapeInfo, array.shapeInfo()));
 }
 
 TEST_F(TadTests, TadEdgeCase_1) {
