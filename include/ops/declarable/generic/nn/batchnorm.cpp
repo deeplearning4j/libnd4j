@@ -178,8 +178,7 @@ DECLARE_SHAPE_FN(batchnorm) {
     int* outShapeInfo = nullptr;
     // check whether all input shapes are mutually broadcastable 
     // if yes, evaluate output shapeInfo which is common broadcast shape for all input arrays
-    if(!ShapeUtils<T>::evalCommonBroadcastShapeInfo({INPUT_VARIABLE(0),INPUT_VARIABLE(1),INPUT_VARIABLE(2),INPUT_VARIABLE(3),INPUT_VARIABLE(4)}, outShapeInfo, block.getWorkspace()))
-        throw "CUSTOM_OP batchnorm: the shapes of input arrays are not mutually broadcastable !";
+    REQUIRE_TRUE(ShapeUtils<T>::evalCommonBroadcastShapeInfo({INPUT_VARIABLE(0),INPUT_VARIABLE(1),INPUT_VARIABLE(2),INPUT_VARIABLE(3),INPUT_VARIABLE(4)}, outShapeInfo, block.getWorkspace()), 0, "CUSTOM_OP batchnorm: the shapes of input arrays are not mutually broadcastable !");
  
     return new ShapeList(outShapeInfo);    
 

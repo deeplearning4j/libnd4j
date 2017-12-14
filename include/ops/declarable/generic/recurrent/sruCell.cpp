@@ -66,16 +66,13 @@ DECLARE_SHAPE_FN(sruCell) {
     const int inSize    = (INPUT_VARIABLE(0))->sizeAt(1);
 
     // check shape of previous cell state    
-    if((INPUT_VARIABLE(1))->sizeAt(0) != batchSize || (INPUT_VARIABLE(1))->sizeAt(1) != inSize)
-        throw "CUSTOM_OP sruCell: the shape of previous cell state is wrong !";
+    REQUIRE_TRUE(!((INPUT_VARIABLE(1))->sizeAt(0) != batchSize || (INPUT_VARIABLE(1))->sizeAt(1) != inSize),0, "CUSTOM_OP sruCell: the shape of previous cell state is wrong !");
     
     // check shape of weights
-    if((INPUT_VARIABLE(2))->sizeAt(0) != inSize || (INPUT_VARIABLE(2))->sizeAt(1) != 3*inSize)
-        throw "CUSTOM_OP sruCell: the shape of weights is wrong !";
+    REQUIRE_TRUE(!((INPUT_VARIABLE(2))->sizeAt(0) != inSize || (INPUT_VARIABLE(2))->sizeAt(1) != 3*inSize), 0, "CUSTOM_OP sruCell: the shape of weights is wrong !");
 
     // check shape of biases
-    if((INPUT_VARIABLE(3))->sizeAt(0) != 1 || (INPUT_VARIABLE(3))->sizeAt(1) != 2*inSize)
-        throw "CUSTOM_OP sruCell: the shape of biases is wrong !";    
+    REQUIRE_TRUE(!((INPUT_VARIABLE(3))->sizeAt(0) != 1 || (INPUT_VARIABLE(3))->sizeAt(1) != 2*inSize),0, "CUSTOM_OP sruCell: the shape of biases is wrong !");
 
     // evaluate output shapeInfos
     int *outShapeInfo1(nullptr), *outShapeInfo2(nullptr);

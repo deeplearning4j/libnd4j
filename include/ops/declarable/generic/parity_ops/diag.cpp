@@ -25,10 +25,10 @@ namespace nd4j {
 
 
         DECLARE_SHAPE_FN(diag) {
+            
             NDArray<T>* input = INPUT_VARIABLE(0);
 
-            if(input->rankOf() > 3)
-                throw "CUSTOM_OP diag: rank of input array must be <= 3 !";    
+            REQUIRE_TRUE(input->rankOf() <= 3, 0, "CUSTOM_OP diag: rank of input array must be <= 3 !");
 
             return new ShapeList(ShapeUtils<T>::evalDiagShapeInfo(*input));
         }

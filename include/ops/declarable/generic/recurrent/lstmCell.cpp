@@ -122,31 +122,24 @@ DECLARE_SHAPE_FN(lstmCell) {
 
     // check shapes of previous cell output and previous cell state
     for(int i = 1; i <=2; ++i)
-        if((INPUT_VARIABLE(i))->sizeAt(0) != batchSize)
-            throw "CUSTOM_OP lstmCell: the shape[0] of previous cell output or previous cell state must be equal to batch size !";
+        REQUIRE_TRUE((INPUT_VARIABLE(i))->sizeAt(0) == batchSize, 0, "CUSTOM_OP lstmCell: the shape[0] of previous cell output and previous cell state must be equal to batch size !");
     
-    // check shape of input-to-hidden  weights
-    if(!INPUT_VARIABLE(3)->isSameShape({inSize, 4*numUnits}))
-        throw "CUSTOM_OP lstmCell: the shape of input-to-hidden weights is wrong !";
+    // check shape of input-to-hidden  weights            
+    REQUIRE_TRUE(INPUT_VARIABLE(3)->isSameShape({inSize, 4*numUnits}),0,"CUSTOM_OP lstmCell: the shape of input-to-hidden weights is wrong !");
 
     // check shape of hidden-to-hidden  weights
-    if(!INPUT_VARIABLE(4)->isSameShape({numProj, 4*numUnits}))
-        throw "CUSTOM_OP lstmCell: the shape of hidden-to-hidden weights is wrong !";
+    REQUIRE_TRUE(INPUT_VARIABLE(4)->isSameShape({numProj, 4*numUnits}),0,"CUSTOM_OP lstmCell: the shape of hidden-to-hidden weights is wrong !");
 
     // check shape of diagonal weights
-    if(!INPUT_VARIABLE(5)->isSameShape({1, 3*numUnits}))
-        throw "CUSTOM_OP lstmCell: the shape of diagonal weights is wrong !";
+    REQUIRE_TRUE(INPUT_VARIABLE(5)->isSameShape({1, 3*numUnits}), 0, "CUSTOM_OP lstmCell: the shape of diagonal weights is wrong !");
 
     // check shape of projection weights
-    if(!INPUT_VARIABLE(6)->isSameShape({numUnits, numProj}))
-        throw "CUSTOM_OP lstmCell: the shape of projection weights is wrong !";
+    REQUIRE_TRUE(INPUT_VARIABLE(6)->isSameShape({numUnits, numProj}), 0, "CUSTOM_OP lstmCell: the shape of projection weights is wrong !");
 
     // check shape of biases
-    if(!INPUT_VARIABLE(7)->isSameShape({1, 4*numUnits}))
-        throw "CUSTOM_OP lstmCell: the shape of biases is wrong !";
+    REQUIRE_TRUE(INPUT_VARIABLE(7)->isSameShape({1, 4*numUnits}), 0, "CUSTOM_OP lstmCell: the shape of biases is wrong !");
 
-    if(!projection && numUnits != numProj)
-        throw "CUSTOM_OP lstmCell: projection option is switched of, and in this case output dimensionality for the projection matrices (numProj) must be equal to number of units in lstmCell !";
+    REQUIRE_TRUE(!(!projection && numUnits != numProj), 0, "CUSTOM_OP lstmCell: projection option is switched of, and in this case output dimensionality for the projection matrices (numProj) must be equal to number of units in lstmCell !");
 
     // evaluate output shapeInfos
     int *outShapeInfo1(nullptr), *outShapeInfo2(nullptr);

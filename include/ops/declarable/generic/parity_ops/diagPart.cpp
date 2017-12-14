@@ -31,12 +31,10 @@ namespace nd4j {
 
     		const int inRank = input->rankOf();
     
-    		if(inRank != 2 &&  inRank != 4 && inRank != 6)
-        		throw "CUSTOM_OP diag_part: input array must have even rank <= 6 !";    
+    		REQUIRE_TRUE(inRank == 2 ||  inRank == 4 || inRank == 6, 0, "CUSTOM_OP diag_part: input array must have even rank <= 6 !");
 
     		for(int i = 0; i < inRank-1; ++i)
-    			if(input->sizeAt(i) != input->sizeAt(i+1))
-    				throw "CUSTOM_OP diag_part: dimensions of input array must be equal !";    
+    			REQUIRE_TRUE(input->sizeAt(i) == input->sizeAt(i+1), 0, "CUSTOM_OP diag_part: dimensions of input array must be equal !");
 
     		int* outShapeInfo = nullptr;
 	

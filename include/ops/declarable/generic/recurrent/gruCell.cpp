@@ -70,22 +70,17 @@ DECLARE_SHAPE_FN(gruCell) {
     const int numUnits    = (INPUT_VARIABLE(1))->sizeAt(1);
 
     // check shapes of previous cell output 
-    if((INPUT_VARIABLE(1))->sizeAt(0) != batchSize)
-        throw "CUSTOM_OP gruCell: the shape of previous cell output is wrong !";
+    REQUIRE_TRUE((INPUT_VARIABLE(1))->sizeAt(0) == batchSize, 0, "CUSTOM_OP gruCell: the shape of previous cell output is wrong !");
     
     // check shape of input-to-hidden weights
-    if((INPUT_VARIABLE(2))->sizeAt(0) != inSize || (INPUT_VARIABLE(2))->sizeAt(1) != 3*numUnits)
-        throw "CUSTOM_OP gruCell: the shape of input-to-hidden weights is wrong !";
+    REQUIRE_TRUE(!((INPUT_VARIABLE(2))->sizeAt(0) != inSize || (INPUT_VARIABLE(2))->sizeAt(1) != 3*numUnits), 0, "CUSTOM_OP gruCell: the shape of input-to-hidden weights is wrong !");
 
     // check shape of hidden-to-hidden weights
-    if((INPUT_VARIABLE(3))->sizeAt(0) != numUnits || (INPUT_VARIABLE(3))->sizeAt(1) != 3*numUnits)
-        throw "CUSTOM_OP gruCell: the shape of hidden-to-hidden weights is wrong !";
+    REQUIRE_TRUE(!((INPUT_VARIABLE(3))->sizeAt(0) != numUnits || (INPUT_VARIABLE(3))->sizeAt(1) != 3*numUnits), 0, "CUSTOM_OP gruCell: the shape of hidden-to-hidden weights is wrong !");
     
     // check shape of biases
-    if((INPUT_VARIABLE(4))->sizeAt(0) != 1 || (INPUT_VARIABLE(4))->sizeAt(1) != 3*numUnits)
-        throw "CUSTOM_OP gruCell: the shape of biases is wrong !";
+    REQUIRE_TRUE(!((INPUT_VARIABLE(4))->sizeAt(0) != 1 || (INPUT_VARIABLE(4))->sizeAt(1) != 3*numUnits), 0, "CUSTOM_OP gruCell: the shape of biases is wrong !");
     
-
     // evaluate output shapeInfo
     int *outShapeInfo(nullptr);
     ALLOCATE(outShapeInfo, block.getWorkspace(), 8, int);

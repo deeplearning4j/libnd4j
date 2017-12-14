@@ -44,16 +44,14 @@ namespace nd4j {
 			// check whether shapes of all input array are the same	
 			const int inArrNum = (int) block.width();
 			for (int i = 0; i < inArrNum - 1; ++i)
-				if (!shape::equalsSoft(inputShape->at(i), inputShape->at(i+1)))
-					throw "CUSTOM_OP stack: the shapes of input arrays are different !";
+				REQUIRE_TRUE(shape::equalsSoft(inputShape->at(i), inputShape->at(i+1)), 0, "CUSTOM_OP stack: the shapes of input arrays are different !");
 	
 			// check whether input dimension is within rank range
 			int* inShapeInfo = inputShape->at(0);
 			int rank = inShapeInfo[0];
 			int dim = INT_ARG(0);
 			if(dim < 0 ) dim += rank;
-			if(dim >= rank)
-				throw "CUSTOM_OP stack: the input dimension is greater/equal than rank of input input arrays shapes !";
+			REQUIRE_TRUE(dim < rank, 0, "CUSTOM_OP stack: the input dimension is greater/equal than rank of input input arrays shapes !");
 
 			//the rank of output ShapeInfo is larger by one compared to input ShapeInfo
 			std::vector<int> outShape(inShapeInfo + 1, inShapeInfo + 1 + rank);

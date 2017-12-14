@@ -72,12 +72,10 @@ DECLARE_SHAPE_FN(gather) {
 
 	if(axis < 0)
 		axis += inputRank;
-	if(axis >= inputRank)
-		throw "GATHER custom operation: input axis is out of input array inputRank !";
+	REQUIRE_TRUE(axis < inputRank, 0, "GATHER custom operation: input axis is out of input array inputRank !");
 
 	for(int i = 0; i < indices->lengthOf(); ++i)
-		if((int)indices->getIndexedScalar(i) >= input->shapeOf()[axis])
-			throw "GATHER custom operation: some of input indexes is larger than corresponding shape of input array !";
+		REQUIRE_TRUE((int)indices->getIndexedScalar(i) < input->shapeOf()[axis], 0, "GATHER custom operation: some of input indexes is larger than corresponding shape of input array !");
     
     int indicesRank = indices->rankOf();
     if(indices->isVector())
