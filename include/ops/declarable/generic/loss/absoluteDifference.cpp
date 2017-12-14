@@ -16,6 +16,15 @@ CUSTOM_OP_IMPL(absolute_difference_loss, 3, 1, false, 0, 1) {
     NDArray<T>* labels     	= INPUT_VARIABLE(2);
     NDArray<T>* output      = OUTPUT_VARIABLE(0);
 
+    // input validation
+    REQUIRE_TRUE(labels->isSameShape(predictions), 0, "CUSTOM_OP loss function absolute_difference_loss: labels and predictions arrays have different shapes!")
+    // weights array can be single scalar or has the same rank as labels, and must be broadcastable to labels
+    REQUIRE_TRUE(!(!weights->isScalar() && weights->rankOf() != labels->rankOf()), 0, "CUSTOM_OP loss function absolute_difference_loss: weights array must have the same rank as labels array!");
+    // check whether broadcast operation is possible for weights array
+    if(!weights->isScalar())
+    	for (int i = 0; i < weights->rankOf(); ++i)
+        	REQUIRE_TRUE(!(weights->shapeOf()[i] != labels->shapeOf()[i] && weights->shapeOf()[i] != 1), 0, "CUSTOM_OP loss function absolute_difference_loss: shapes of weights array is not broadcastable to labels shape!");            	
+
     int reductionMode = INT_ARG(0);			// 0 - "none"; 1 - "weighted_sum";  2 - "weighted_mean";  3 - "weighted_sum_by_nonzero_weights"
     
 	// perform weights broadcasting/tile to labels if needed	
@@ -98,14 +107,6 @@ DECLARE_SHAPE_FN(absolute_difference_loss) {
 	NDArray<T>* predictions = INPUT_VARIABLE(0);
     NDArray<T>* weights 	= INPUT_VARIABLE(1);
     NDArray<T>* labels      = INPUT_VARIABLE(2);
-
-    REQUIRE_TRUE(labels->isSameShape(predictions), 0, "CUSTOM_OP loss function absolute_difference_loss: labels and predictions arrays have different shapes!")
-    // weights array can be single scalar or has the same rank as labels, and must be broadcastable to labels
-    REQUIRE_TRUE(!(!weights->isScalar() && weights->rankOf() != labels->rankOf()), 0, "CUSTOM_OP loss function absolute_difference_loss: weights array must have the same rank as labels array!");
-    // check whether broadcast operation is possible for weights array
-    if(!weights->isScalar())
-    	for (int i = 0; i < weights->rankOf(); ++i)
-        	REQUIRE_TRUE(!(weights->shapeOf()[i] != labels->shapeOf()[i] && weights->shapeOf()[i] != 1), 0, "CUSTOM_OP loss function absolute_difference_loss: shapes of weights array is not broadcastable to labels shape!");            	
 
     int* outShapeInfo = nullptr;
     if(INT_ARG(0) != 0) {			// in this case output is scalar

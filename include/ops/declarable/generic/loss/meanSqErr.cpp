@@ -18,6 +18,15 @@ CUSTOM_OP_IMPL(mean_sqerr_loss, 3, 1, false, 0, 1) {
 
     int reductionMode = INT_ARG(0);			// 0 - "none"; 1 - "weighted_sum";  2 - "weighted_mean";  3 - "weighted_sum_by_nonzero_weights"
     
+	// input validation    
+    REQUIRE_TRUE(labels->isSameShape(predictions), 0, "CUSTOM_OP loss function mean_sqerr_loss: labels and predictions arrays have different shapes!");
+    // weights array can be single scalar or has the same rank as labels, and must be broadcastable to labels
+    REQUIRE_TRUE(!(!weights->isScalar() && weights->rankOf() != labels->rankOf()), 0, "CUSTOM_OP loss function mean_sqerr_loss: weights array must have the same rank as labels array!");
+    // check whether broadcast operation is possible for weights array
+    if(!weights->isScalar())
+    	for (int i = 0; i < weights->rankOf(); ++i)
+        	REQUIRE_TRUE(!(weights->shapeOf()[i] != labels->shapeOf()[i] && weights->shapeOf()[i] != 1), 0, "CUSTOM_OP loss function mean_sqerr_loss: shapes of weights array is not broadcastable to labels shape!");
+
 	// perform weights broadcasting/tile to labels if needed	
 	NDArray<T>* weightsBroad = weights;	
 	if(!weights->isScalar() && !weights->isSameShape(predictions)) {
@@ -95,15 +104,7 @@ DECLARE_SHAPE_FN(mean_sqerr_loss) {
 	// labels and predictions must have the same shapes 
 	NDArray<T>* predictions = INPUT_VARIABLE(0);
     NDArray<T>* weights 	= INPUT_VARIABLE(1);
-    NDArray<T>* labels  	= INPUT_VARIABLE(2);
-
-    REQUIRE_TRUE(labels->isSameShape(predictions), 0, "CUSTOM_OP loss function mean_sqerr_loss: labels and predictions arrays have different shapes!");
-    // weights array can be single scalar or has the same rank as labels, and must be broadcastable to labels
-    REQUIRE_TRUE(!(!weights->isScalar() && weights->rankOf() != labels->rankOf()), 0, "CUSTOM_OP loss function mean_sqerr_loss: weights array must have the same rank as labels array!");
-    // check whether broadcast operation is possible for weights array
-    if(!weights->isScalar())
-    	for (int i = 0; i < weights->rankOf(); ++i)
-        	REQUIRE_TRUE(!(weights->shapeOf()[i] != labels->shapeOf()[i] && weights->shapeOf()[i] != 1), 0, "CUSTOM_OP loss function mean_sqerr_loss: shapes of weights array is not broadcastable to labels shape!");
+    NDArray<T>* labels  	= INPUT_VARIABLE(2); 
 
     int* outShapeInfo = nullptr;
     if(INT_ARG(0) != 0) {			// in this case output is scalar

@@ -18,7 +18,16 @@ CUSTOM_OP_IMPL(softmax_cross_entropy_loss, 3, 1, false, 1, 1) {
 
     int reductionMode = INT_ARG(0);			// 0 - "none"; 1 - "weighted_sum";  2 - "weighted_mean";  3 - "weighted_sum_by_nonzero_weights"
     T labelsSmoothing = T_ARG(0);
-    		
+    
+    // input validation    		       
+    REQUIRE_TRUE(labels->isSameShape(logits), 0, "CUSTOM_OP loss function softmax_cross_entropy_loss: labels and logits arrays have different shapes!");    
+    // weights array can be single scalar or has the same shape as output, and must be broadcastable to output shape
+    REQUIRE_TRUE(!(!weights->isScalar() && weights->rankOf() != output->rankOf() && !output->isScalar()), 0, "CUSTOM_OP loss function softmax_cross_entropy_loss: weights array must have the same rank as output array!");
+    // check whether broadcast operation is possible for weights array
+    if(!weights->isScalar())
+    	for (int i = 0; i < weights->rankOf(); ++i)
+        	REQUIRE_TRUE(!(weights->shapeOf()[i] != output->shapeOf()[i] && weights->shapeOf()[i] != 1 && !output->isScalar()), 0, "CUSTOM_OP loss function softmax_cross_entropy_loss: shapes of weights array is not broadcastable to output shape!");
+
 	// If label_smoothing is nonzero, smooth the labels towards 1/num_classes: new_onehot_labels = onehot_labels * (1 - label_smoothing) + label_smoothing / num_classes
 	NDArray<T>* newLabels = labels;
 	if(labelsSmoothing != (T)0.) {
@@ -27,7 +36,7 @@ CUSTOM_OP_IMPL(softmax_cross_entropy_loss, 3, 1, false, 1, 1) {
     	newLabels = new NDArray<T>(labels);
     	newLabels->applyLambda(smooth);  
 	}	
-
+		
 	std::vector<int> dimensions = {-1};
 	// Find the max in each batch, resulting in a tensor of shape [batch]
 	NDArray<T> logitsMax = logits->template reduceAlongDims<simdOps::Max<T>>(dimensions, true);
@@ -108,7 +117,7 @@ CUSTOM_OP_IMPL(softmax_cross_entropy_loss, 3, 1, false, 1, 1) {
     if(weightsBroad != weights)
     	delete weightsBroad;
     if(newLabels != labels)
-    	delete newLabels;
+    	delete newLabels; 
    		
     return ND4J_STATUS_OK;
 }
@@ -121,17 +130,9 @@ DECLARE_SHAPE_FN(softmax_cross_entropy_loss) {
     NDArray<T>* weights = INPUT_VARIABLE(1);
     NDArray<T>* labels  = INPUT_VARIABLE(2);
 
-    REQUIRE_TRUE(labels->isSameShape(logits), 0, "CUSTOM_OP loss function softmax_cross_entropy_loss: labels and logits arrays have different shapes!");
-
-    std::vector<int> dimensions = {-1};
+	std::vector<int> dimensions = {-1};
     int* reducedShapeInfo = ShapeUtils<T>::evalReduceShapeInfo(labels->ordering(), dimensions, labels->getShapeInfo(), false, block.getWorkspace());
-    // weights array can be single scalar or has the same shape as reducedShapeInfo, and must be broadcastable to reducedShapeInfo
-    REQUIRE_TRUE(!(!weights->isScalar() && weights->rankOf() != reducedShapeInfo[0]), 0, "CUSTOM_OP loss function softmax_cross_entropy_loss: weights array must have the same rank as output array!");
-    // check whether broadcast operation is possible for weights array
-    if(!weights->isScalar())
-    	for (int i = 0; i < weights->rankOf(); ++i)
-        	REQUIRE_TRUE(!(weights->shapeOf()[i] != reducedShapeInfo[i+1] && weights->shapeOf()[i] != 1), 0, "CUSTOM_OP loss function softmax_cross_entropy_loss: shapes of weights array is not broadcastable to output shape!");
-
+    
     // if scalar is required
     if(INT_ARG(0) != 0) {	
     	delete []reducedShapeInfo;
