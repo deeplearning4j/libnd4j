@@ -6,11 +6,6 @@
 
 namespace nd4j {
     namespace ops {
-        /**
-         * This is Softsign activation function implementation
-         * Math is: x / 1 + abs(x)
-         * 
-         */
         CONFIGURABLE_OP_IMPL(softsign, 1, 1, true, 0, 0) {
             NDArray<T> *first = INPUT_VARIABLE(0);
             auto z = this->getZ(block);

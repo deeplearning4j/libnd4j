@@ -6,11 +6,6 @@
 
 namespace nd4j {
     namespace ops {
-        /**
-         * This op is ELU activation function.
-         * Math is: x >= 0 ? x : exp(x) - 1;
-         * 
-         */
         CONFIGURABLE_OP_IMPL(elu, 1, 1, true, 0, 0) {
             auto input = INPUT_VARIABLE(0);
             auto output = OUTPUT_VARIABLE(0);

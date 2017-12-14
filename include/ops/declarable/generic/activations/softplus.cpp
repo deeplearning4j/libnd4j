@@ -6,11 +6,6 @@
 
 namespace nd4j {
     namespace ops {
-        /**
-         * This is Softplus activation function implementation
-         * Math is: log(1 + exp(x))
-         * 
-         */
         CONFIGURABLE_OP_IMPL(softplus, 1, 1, true, 0, 0) {
             NDArray<T> *first = INPUT_VARIABLE(0);
             auto z = this->getZ(block);

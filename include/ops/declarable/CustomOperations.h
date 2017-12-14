@@ -5,22 +5,7 @@
 #ifndef LIBND4J_CUSTOMOPERATIONS_H
 #define LIBND4J_CUSTOMOPERATIONS_H
 
-#include <memory>
-#include <op_boilerplate.h>
-#include <types/float16.h>
-#include <NDArray.h>
-#include <NDArrayFactory.h>
-#include <Context.h>
-#include <ops/declarable/DeclarableOp.h>
-#include <ops/declarable/BooleanOp.h>
-#include <ops/declarable/LogicOp.h>
-#include <ops/declarable/DeclarableReductionOp.h>
-#include <ops/declarable/DeclarableCustomOp.h>
-#include <ops/declarable/DeclarableListOp.h>
-#include <ops/declarable/OpRegistrator.h>
-#include <helpers/ArrayUtils.h>
-#include <helpers/ShapeUtils.h>
-#include <array/ShapeList.h>
+#include <ops/declarable/headers/activations.h>
 
 namespace nd4j {
     namespace ops {
@@ -41,8 +26,6 @@ namespace nd4j {
         DECLARE_OP(mergemaxindex, -1, 1, false);
         DECLARE_OP(mergeadd, -1, 1, false);
         DECLARE_OP(mergeavg, -1, 1, false);
-        DECLARE_OP(identity, 1, 1, true);
-        DECLARE_OP(identity_bp, 2, 1, true);
         DECLARE_OP(zeros_as, 1, 1, false);
         DECLARE_OP(ones_as, 1, 1, false);
         DECLARE_OP(square, 1, 1, true);
@@ -151,8 +134,6 @@ namespace nd4j {
         DECLARE_CUSTOM_OP(select, 3, 1, false, 0, 0);
         DECLARE_CUSTOM_OP(shape_of, 1, 1, false, 0, 0);
         DECLARE_CUSTOM_OP(gather, 2, 1, false, 0, 1);
-        DECLARE_CUSTOM_OP(crelu, 1, 1, false, 0, 0);        
-        DECLARE_CUSTOM_OP(crelu_bp, 2, 1, false, 0, 0);
         DECLARE_CUSTOM_OP(biasadd_bp, 3, 2, false, 0, 0);
         DECLARE_CUSTOM_OP(absoluteDifference, 3, 1, false, 0, 1);
         DECLARE_CUSTOM_OP(cosineDistance, 3, 1, false, 0, 2);
@@ -201,34 +182,6 @@ namespace nd4j {
         DECLARE_CONFIGURABLE_OP(invert_permutation, 1, 1, false, 0, 0);        
         DECLARE_CONFIGURABLE_OP(matrix_set_diag, 2, 1, false, 0, 0)
         DECLARE_CONFIGURABLE_OP(betainc, 3, 1, false, 0, 0)
-
-        // grad ops
-        DECLARE_CONFIGURABLE_OP(sigmoid, 1, 1, true, 0, 0);
-        DECLARE_CONFIGURABLE_OP(sigmoid_bp, 2, 1, true, 0, 0);
-        DECLARE_CONFIGURABLE_OP(softsign, 1, 1, true, 0, 0);
-        DECLARE_CONFIGURABLE_OP(softsign_bp, 2, 1, true, 0, 0);
-        DECLARE_CONFIGURABLE_OP(tanh, 1, 1, true, 0, 0);
-        DECLARE_CONFIGURABLE_OP(tanh_bp, 2, 1, true, 0, 0);
-        DECLARE_CONFIGURABLE_OP(softplus, 1, 1, true, 0, 0);
-        DECLARE_CONFIGURABLE_OP(softplus_bp, 2, 1, true, 0, 0);
-        DECLARE_CONFIGURABLE_OP(relu, 1, 1, true, 1, 0);
-        DECLARE_CONFIGURABLE_OP(relu_bp, 2, 1, true, 0, 0);
-        DECLARE_CONFIGURABLE_OP(selu, 1, 1, true, 0, 0);
-        DECLARE_CONFIGURABLE_OP(selu_bp, 2, 1, true, 0, 0);
-        DECLARE_CONFIGURABLE_OP(lrelu, 1, 1, true, 0, 0);
-        DECLARE_CONFIGURABLE_OP(lrelu_bp, 2, 1, true, 0, 0);
-        DECLARE_CONFIGURABLE_OP(elu, 1, 1, true, 0, 0);
-        DECLARE_CONFIGURABLE_OP(elu_bp, 2, 1, true, 0, 0);
-        DECLARE_CONFIGURABLE_OP(cube, 1, 1, true, 0, 0);
-        DECLARE_CONFIGURABLE_OP(cube_bp, 2, 1, true, 0, 0);
-        DECLARE_CONFIGURABLE_OP(rectifiedtanh, 1, 1, true, 0, 0);
-        DECLARE_CONFIGURABLE_OP(rectifiedtanh_bp, 2, 1, true, 0, 0);
-        DECLARE_CONFIGURABLE_OP(rationaltanh, 1, 1, true, 0, 0);
-        DECLARE_CONFIGURABLE_OP(rationaltanh_bp, 2, 1, true, 0, 0);
-        DECLARE_CONFIGURABLE_OP(hardtanh, 1, 1, true, 0, 0);
-        DECLARE_CONFIGURABLE_OP(hardtanh_bp, 2, 1, true, 0, 0);
-        DECLARE_CONFIGURABLE_OP(hardsigmoid, 1, 1, true, 0, 0);
-        DECLARE_CONFIGURABLE_OP(hardsigmoid_bp, 2, 1, true, 0, 0);
 
         DECLARE_CUSTOM_OP(firas_sparse, 1, 1, false, 0, -1);
 

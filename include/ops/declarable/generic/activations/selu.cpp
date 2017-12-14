@@ -6,10 +6,6 @@
 
 namespace nd4j {
     namespace ops {
-        /**
-         * This is SELU activation function implementation
-         * 
-         */
         CONFIGURABLE_OP_IMPL(selu, 1, 1, true, 0, 0) {
             NDArray<T> *first = INPUT_VARIABLE(0);
             auto z = this->getZ(block);

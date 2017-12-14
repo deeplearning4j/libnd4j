@@ -6,12 +6,6 @@
 
 namespace nd4j {
     namespace ops {
-        /**
-         * This is Concatenated RELU implementation.
-         * What happens inside: RELU(Concat((x, -x, {-1})))
-         * 
-         * PLEASE NOTE: Concatenation will double amount of features available in input
-         */
         CUSTOM_OP_IMPL(crelu, 1, 1, false, 0, 0) {
             auto x = INPUT_VARIABLE(0);
 

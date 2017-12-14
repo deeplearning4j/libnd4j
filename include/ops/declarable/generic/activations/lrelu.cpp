@@ -6,11 +6,6 @@
 
 namespace nd4j {
     namespace ops {
-        /**
-         * This is Leaky RELU activation function.
-         * Math is: x < 0 ?  alpha * x : x;
-         * 
-         */
         CONFIGURABLE_OP_IMPL(lrelu, 1, 1, true, 1, 0) {
             auto input = INPUT_VARIABLE(0);
             auto output = OUTPUT_VARIABLE(0);

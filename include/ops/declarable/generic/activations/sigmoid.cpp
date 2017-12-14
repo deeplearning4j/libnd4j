@@ -6,11 +6,6 @@
 
 namespace nd4j {
     namespace ops {
-        /**
-         * This is Sigmoid activation function implementation
-         * Math is: 1 / 1 + exp(-x)
-         * 
-         */
         CONFIGURABLE_OP_IMPL(sigmoid, 1, 1, true, 0, 0) {
             NDArray<T> *first = INPUT_VARIABLE(0);
             auto z = this->getZ(block);

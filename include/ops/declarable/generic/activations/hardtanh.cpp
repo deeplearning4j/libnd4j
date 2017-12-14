@@ -6,11 +6,6 @@
 
 namespace nd4j {
     namespace ops {
-        /**
-         * This is HardTanh activation function.
-         * Math is: x < -1.0 ? -1.0 : x > 1.0 ? 1.0 : x;
-         *
-         */
         CONFIGURABLE_OP_IMPL(hardtanh, 1, 1, true, 0, 0) {
             auto input = INPUT_VARIABLE(0);
             auto output = OUTPUT_VARIABLE(0);
