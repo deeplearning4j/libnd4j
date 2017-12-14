@@ -6,15 +6,6 @@
 
 namespace nd4j {
     namespace ops {
-        /**
-         * This operations selects specified indices fron NDArrayList and returns them as NDArray
-         * Expected arguments:
-         * x: non-empty list
-         * indices: optional, vector with indices
-         * 
-         * Int args:
-         * optional, indices
-         */
         LIST_OP_IMPL(pick_list, 1, 1, 0, -2) {
             auto list = INPUT_LIST(0);
 

@@ -7,14 +7,6 @@
 
 namespace nd4j {
     namespace ops {
-        /**
-         * This operation splits given NDArray into chunks, and stores them into given NDArrayList wert sizes
-         * Expected arguments:
-         * list: optional, NDArrayList. if not available - new NDArrayList will be created
-         * array: array to be split
-         * sizes: vector with sizes for each chunk
-         * 
-         */
         LIST_OP_IMPL(split_list, 2, 1, 0, -2) {
             NDArrayList<T> *list = nullptr;
             NDArray<T>* array = nullptr;

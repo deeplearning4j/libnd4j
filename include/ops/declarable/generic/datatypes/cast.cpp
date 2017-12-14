@@ -7,15 +7,6 @@
 
 namespace nd4j {
     namespace ops {
-        /**
-         * This operation casts elements of input array to specified data type
-         * 
-         * PLEASE NOTE: This op is disabled atm, and reserved for future releases.
-         * 
-         * 
-         * Int args:
-         * 0: target DataType
-         */
         CUSTOM_OP_IMPL(cast, 1, 1, false, 0, 1) {
             auto input = INPUT_VARIABLE(0);
             auto output = OUTPUT_VARIABLE(0);

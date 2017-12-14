@@ -6,13 +6,6 @@
 
 namespace nd4j {
     namespace ops {
-        /**
-         * This operation builds NDArray from NDArrayList using indices
-         * Expected arguments:
-         * x: non-empty list
-         * indices: vector with indices for gather operation
-         * 
-         */
         LIST_OP_IMPL(gather_list, 2, 1, 0, -2) {
             auto list = INPUT_LIST(0);
             auto indices = INPUT_VARIABLE(1);

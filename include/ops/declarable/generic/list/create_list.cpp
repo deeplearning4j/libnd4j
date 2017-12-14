@@ -6,9 +6,6 @@
 
 namespace nd4j {
     namespace ops {
-        /**
-         * This operation creates new empty NDArrayList
-         */
         LIST_OP_IMPL(create_list, 1, 2, 0, -2) {
             int height = 0;
             bool expandable = false;

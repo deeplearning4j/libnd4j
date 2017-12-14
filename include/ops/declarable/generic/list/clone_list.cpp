@@ -6,10 +6,6 @@
 
 namespace nd4j {
     namespace ops {
-        /**
-         * This operation clones given NDArrayList
-         * 
-         */
         LIST_OP_IMPL(clone_list, 1, 1, 0, 0) {
             auto list = INPUT_LIST(0);
 

@@ -7,11 +7,6 @@
 
 namespace nd4j {
     namespace ops {
-        /**
-         * This operation unpacks given NDArray into specified NDArrayList wrt specified indices
-         * 
-         * 
-         */
         LIST_OP_IMPL(scatter_list, 1, 1, 0, -2) {
             NDArrayList<T> *list = nullptr;
             NDArray<T>* array = nullptr;

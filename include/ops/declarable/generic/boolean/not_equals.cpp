@@ -6,11 +6,6 @@
 
 namespace nd4j {
     namespace ops {
-        /**
-         * This op takes 2 equally shaped arrays as input, and provides binary matrix as output.
-         * Math is: _x != _y ? (T) 1.0f : (T) 0.0f;
-         * 
-         */
         OP_IMPL(not_equals, 2, 1, true) {
             auto x = INPUT_VARIABLE(0);
             auto y = INPUT_VARIABLE(1);

@@ -15,24 +15,6 @@
 
 namespace nd4j {
     namespace ops {
-        /**
-         * 2D convolution implementation
-         * Expected input: 
-         * x: 4D array
-         * weight: 4D Array
-         * bias: optional vector, length of outputChannels
-         * 
-         * IntArgs:
-         * 0: kernel height
-         * 1: kernel width
-         * 2: stride height
-         * 3: stride width
-         * 4: padding height
-         * 5: padding width
-         * 6: dilation height
-         * 7: dilation width
-         * 8: same mode: 0 false, 1 true
-         */
         CUSTOM_OP_IMPL(conv2d, 2, 1, false, 0, 9) {
             // basically im2col + gemm
             NDArray<T>* input = INPUT_VARIABLE(0);

@@ -7,15 +7,6 @@
 
 namespace nd4j {
     namespace ops {
-        /**
-         * This is one of auto-broadcastable operations. It accepts 2 operands, and operation is applied based on their shapes:
-         * 1) if shapes are equal that's pairwise operation, result will have the same shape.
-         * 2) if shape X is scalar and shape Y is array - result will have shape equal to Y.
-         * 3) if shape X is array and shape Y is scalar - result will have shape equal to X.
-         * 4) if shape X and Y are both arrays, but shapes aren't equal - result shape will be broadcast result.
-         * 
-         * This operation returns Z = Subtract(X, Y) * Subtract(X, Y)
-         */
         CUSTOM_OP_IMPL(squaredsubtract, 2, 1, true, 0, 0) {
             NDArray<T> *x = INPUT_VARIABLE(0);
             NDArray<T> *y = INPUT_VARIABLE(1);

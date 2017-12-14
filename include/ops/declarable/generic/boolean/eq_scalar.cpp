@@ -6,13 +6,6 @@
 
 namespace nd4j {
     namespace ops {
-        /**
-         * This is scalar boolean op.
-         * Both operands should be scalars.
-         * 
-         * Returns true if both operands are equal.
-         * 
-         */
         BOOLEAN_OP_IMPL(eq_scalar, 2, true) {
             auto x = INPUT_VARIABLE(0);
             auto y = INPUT_VARIABLE(1);

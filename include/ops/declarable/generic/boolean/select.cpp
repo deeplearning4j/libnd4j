@@ -7,11 +7,6 @@
 
 namespace nd4j {
     namespace ops {
-        /**
-         * This op takes 2 n-dimensional arrays as input, and return 
-         * array of the same shape, with elements, either from x or y, depending on the condition.
-         * 
-         */
         CUSTOM_OP_IMPL(select, 3, 1, false, 0, 0) {
             auto cond = INPUT_VARIABLE(0);
             auto x = INPUT_VARIABLE(1);

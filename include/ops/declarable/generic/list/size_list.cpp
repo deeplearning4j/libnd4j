@@ -6,12 +6,6 @@
 
 namespace nd4j {
     namespace ops {
-        /**
-         * This operations returns scalar, with number of existing arrays within given NDArrayList
-         * Expected arguments:
-         * x: list
-         * 
-         */
         LIST_OP_IMPL(size_list, 1, 1, 0, 0) {
             auto list = INPUT_LIST(0);
 

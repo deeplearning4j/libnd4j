@@ -6,10 +6,6 @@
 
 namespace nd4j {
     namespace ops {
-        /**
-         * This operations puts given NDArray into (optionally) given NDArrayList. 
-         * If no NDArrayList was provided - new one will be created
-         */
         LIST_OP_IMPL(write_list, 2, 1, 0, -2) {
             auto list = INPUT_LIST(0);
 

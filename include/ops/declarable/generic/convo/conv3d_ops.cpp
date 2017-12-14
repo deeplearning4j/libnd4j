@@ -8,17 +8,6 @@
 
 namespace nd4j {
     namespace ops {
-        /**
-         * 3D convolution implementation
-         * 
-         * IntArgs:
-         * 0: dilation T
-         * 1: dilation W
-         * 2: dilation H
-         * 4: padding T
-         * 5: padding W
-         * 6: padding H
-         */
         CUSTOM_OP_IMPL(conv3d, 2, 1, false, 0, 7) {
             // cubic convo
 
