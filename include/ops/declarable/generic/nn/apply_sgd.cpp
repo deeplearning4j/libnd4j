@@ -6,16 +6,6 @@
 
 namespace nd4j {
     namespace ops {
-        /**
-         * This operation updates parameters with provided gradients, wrt learning rate
-         * Expected arguments:
-         * x: parameters, any shape
-         * y: gradients. same shape as x
-         * lr: optional, learning rate
-         * 
-         * T args:
-         * 0: optional, learning rate
-         */
         CONFIGURABLE_OP_IMPL(apply_sgd, 2, 1, true, -2, 0) {
             auto parameters = INPUT_VARIABLE(0);
             auto gradients = INPUT_VARIABLE(1);

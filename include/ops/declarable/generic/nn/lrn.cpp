@@ -6,18 +6,6 @@
 
 namespace nd4j {
     namespace ops {
-        /**
-         * Local response normalization implementation.
-         * Reference: http://papers.nips.cc/paper/4824-imagenet-classification-with-deep-convolutional-neural-networks
-         * Expected arguments:
-         * input: 4D array
-         * 
-         * T args:
-         * 0: alpha
-         * 1: beta
-         * 2: bias
-         * 3: depth
-         */
         CUSTOM_OP_IMPL(lrn, 1, 3, true, 4, 0) {
             // LocalResponseNormalization
 

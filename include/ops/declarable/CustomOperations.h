@@ -38,6 +38,14 @@ namespace nd4j {
         DECLARE_LOGIC_OP(Scope);
         DECLARE_LOGIC_OP(Conditional);
         DECLARE_LOGIC_OP(Return);
+
+
+        /**
+         * This operations exposes given arguments as it's own outputs, but does it only once.
+         * Subsequent calls will be served directly by this op.
+         * 
+         * PLEASE NOTE: This operation is internal graph operation, and shouldn't be used directly usually.
+         */
         DECLARE_CUSTOM_OP(expose, -1, -1, true, 0, 0);
     }
 }

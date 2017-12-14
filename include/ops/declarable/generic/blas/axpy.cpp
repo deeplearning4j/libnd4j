@@ -6,11 +6,6 @@
 
 namespace nd4j {
     namespace ops {
-        /**
-         * This op is simple implementation of BLAS AXPY method.
-         * Math is: y += a * x;
-         * 
-         */
         CONFIGURABLE_OP_IMPL(axpy, 2, 1, false, -2, 0) {
             auto x = INPUT_VARIABLE(0);
             auto y = INPUT_VARIABLE(1);

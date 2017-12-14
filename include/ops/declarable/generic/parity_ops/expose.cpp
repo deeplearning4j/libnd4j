@@ -6,13 +6,6 @@
 
 namespace nd4j {
     namespace ops {
-        /**
-         * This operations exposes given arguments as it's own outputs, but does it only once.
-         * Subsequent calls will be served directly by this op.
-         * 
-         * PLEASE NOTE: This operation is internal graph operation, and shouldn't be used directly usually.
-         * 
-         */
         CUSTOM_OP_IMPL(expose, -1, -1, true, 0, 0) {
 
             for (int e = 0; e < block.width(); e++) {

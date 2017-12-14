@@ -6,11 +6,6 @@
 
 namespace nd4j {
     namespace ops {
-        /**
-         * This is generic SoftMax implementation
-         * Expected arguments:
-         * 0: 2D array
-         */
         OP_IMPL(softmax, 1, 1, true) {
             // YaY
             auto input = INPUT_VARIABLE(0);

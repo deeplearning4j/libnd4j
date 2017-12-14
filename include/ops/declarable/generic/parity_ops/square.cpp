@@ -6,11 +6,6 @@
 
 namespace nd4j {
     namespace ops {
-        /**
-         * This operation applies element-wise pow(x, 2) to the given input
-         * Expected arguments:
-         * input: N-Dimensional array
-         */
         OP_IMPL(square, 1, 1, true) {
             auto input = INPUT_VARIABLE(0);
             auto output = OUTPUT_VARIABLE(0);

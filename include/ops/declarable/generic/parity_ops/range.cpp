@@ -11,23 +11,6 @@
  */
 namespace nd4j {
     namespace ops {
-        /**
-         * This operation generate sequences. Basically from......to, with step used as increment.
-         * Expected arguments:
-         * start: optional scalar with starting value
-         * stop: optional scalar with end value
-         * step: optional scalar witn step value
-         * 
-         * Int args: (optional)
-         * 0: optional scalar with starting value
-         * 1: optional scalar with end value
-         * 1: optional scalar witn step value
-         * 
-         * T args: (optional)
-         * 0: optional scalar with starting value
-         * 1: optional scalar with end value
-         * 1: optional scalar witn step value
-         */
         CUSTOM_OP_IMPL(range, -2, 1, false, -2, -2) {
             std::vector<T> data;
 

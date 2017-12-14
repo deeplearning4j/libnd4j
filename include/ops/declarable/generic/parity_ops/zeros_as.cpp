@@ -6,12 +6,6 @@
 
 namespace nd4j {
     namespace ops {
-        /**
-         * This operation takes input's shape, and returns new NDArray filled with zeros
-         * Expected arguments:
-         * input: N-dimensional array
-         * 
-         */
         OP_IMPL(zeros_as, 1, 1, false) {
             auto input = INPUT_VARIABLE(0);
 

@@ -6,12 +6,6 @@
 
 namespace nd4j {
     namespace ops {
-        /**
-         * This operation takes input's shape, and returns new NDArray filled with ones
-         * Expected arguments:
-         * input: N-dimensional array
-         * 
-         */
         OP_IMPL(ones_as, 1, 1, false) {
             auto output = OUTPUT_VARIABLE(0);
 

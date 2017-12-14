@@ -6,27 +6,6 @@
 
 namespace nd4j {
 namespace ops {
-
-
-/**
- * Batch normalization implementation. 
- * Reference: https://arxiv.org/abs/1502.03167v3
- * 
- * Expected arguments:
- * input: input array (any number of dimensions)
- * mean:
- * variance:
- * gamma:
- * beta:
- * 
- * Int args:
- * 0: apply scale
- * 1: apply offset
- * 
- * 
- * T args:
- * 0: epsilon
- */
 CUSTOM_OP_IMPL(batchnorm, 5, 1, false, 1, 2) {
 
     NDArray<T>* input    = INPUT_VARIABLE(0);

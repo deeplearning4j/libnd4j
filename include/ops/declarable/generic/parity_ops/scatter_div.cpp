@@ -7,13 +7,6 @@
 
 namespace nd4j {
     namespace ops {
-        /**
-         * This operation applies Divide opeartion to specific inputs wrt indices
-         * Expected arguments:
-         * input: N-dimensional array
-         * indices: either scalar, vector, or N-dimensional array
-         * updates: N-dimensional array
-         */
         OP_IMPL(scatter_div, 3, 1, true) {
             auto input = INPUT_VARIABLE(0);
             auto indices = INPUT_VARIABLE(1);

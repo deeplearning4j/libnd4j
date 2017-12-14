@@ -7,20 +7,6 @@
 
 namespace nd4j {
     namespace ops {
-        /**
-         * This operation return one-hot encoded n-dimensional array
-         * Expected arguments:
-         * input: N-dimensional array
-         * 
-         * T args:
-         * 0: 'on' value
-         * 1: 'off' value
-         * 
-         * Int args:
-         * 0: depth
-         * 1: axis
-         * 
-         */
         CUSTOM_OP_IMPL(onehot, 1, 1, false, 2, 2) {
             auto input = INPUT_VARIABLE(0);
 

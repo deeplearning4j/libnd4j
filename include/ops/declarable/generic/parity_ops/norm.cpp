@@ -6,27 +6,6 @@
 
 namespace nd4j {
     namespace ops {
-        /**
-         * This operation provides various normalization modes: 
-         * 0: frobenius
-         * 1: euclidean (norm2)
-         * 2: norm1
-         * 3: norm2
-         * 4: inf-norm
-         * 5: p-norm
-         * 
-         * Expected arguments:
-         * input: N-dimensional array
-         * 
-         * 
-         * Int args:
-         * 0...: axis
-         * 
-         * T args:
-         * 0: norm mode
-         * 1: p for p-norm
-         * 
-         */
         REDUCTION_OP_IMPL(norm, 1, 1, false, 1, -2) {
             auto input = INPUT_VARIABLE(0);
             auto output = OUTPUT_VARIABLE(0);

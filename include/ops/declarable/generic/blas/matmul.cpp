@@ -6,15 +6,6 @@
 
 namespace nd4j {
     namespace ops {
-        /**
-         * This op is general matmum implementation. Depending on inputs dimensionality output result might be different.
-         * matrix x matrix = BLAS gemm
-         * vector x matrix = BLAS gemm
-         * vector x vector = BLAS dot
-         * vector x scalar = element-wise mul
-         * scalar x vector = element-wise mul
-         * 
-         */
         CUSTOM_OP_IMPL(matmul, 2, 1, false, -2, 0) {
             // FIXME: we might want to have gemv/dot fallback here
             REQUIRE_OK(this->validateInput2D(block));

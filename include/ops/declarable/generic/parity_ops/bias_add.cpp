@@ -6,14 +6,6 @@
 
 namespace nd4j {
     namespace ops {
-        /**
-         * This operation is added for compatibility purposes mostly.
-         * PLEASE NOTE: Please consider using Add instead
-         * Expected arguments:
-         * 0: N-dimensional input
-         * 1: bias vector
-         * 
-         */
         OP_IMPL(biasadd, 2, 1, true) {
             //REQUIRE_OK(this->validateInput2D(block));
 

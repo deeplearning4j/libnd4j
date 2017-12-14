@@ -7,10 +7,6 @@
 
 namespace nd4j {
     namespace ops {
-        /**
-         * This operation extracts a strided (optionally) slice from a tensor, 
-         * 
-         */
         CUSTOM_OP_IMPL(strided_slice, 1, 1, false, 0, 5) {
             auto x = INPUT_VARIABLE(0);
 
