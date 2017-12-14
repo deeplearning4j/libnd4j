@@ -173,6 +173,42 @@ namespace nd4j {
             _current.putOutputVariable(variable);
         }
 
+        template <typename T>
+        Nd4jIndex VariableProxy<T>::externalMemory() {
+            return _backed->externalMemory() + _current.externalMemory();
+        }
+
+        template <typename T>
+        Nd4jIndex VariableProxy<T>::internalMemory() {
+            return _backed->internalMemory() + _current.internalMemory();
+        }
+
+        template <typename T>
+        Nd4jIndex VariableProxy<T>::totalMemory() {
+            return _backed->totalMemory() + _current.totalMemory();
+        }
+
+        template <typename T>
+        int VariableProxy<T>::externalEntries() {
+            return _backed->externalEntries() + _current.externalEntries();
+        }
+
+        template <typename T>
+        int VariableProxy<T>::internalEntries() {
+            return _backed->internalEntries() + _current.internalEntries();
+        }
+
+        template <typename T>
+        int VariableProxy<T>::totalEntries() {
+            return _backed->totalEntries() + _current.totalEntries();
+        }
+
+        template <typename T>
+        nd4j::graph::VariableSpace<T>* VariableProxy<T>::clone() {
+            nd4j_printf("Clone ins't supported for VariableProxy yet\n","");
+            throw "Can't clone proxy yet";
+        }
+
         template class ND4J_EXPORT VariableProxy<float>;
         template class ND4J_EXPORT VariableProxy<float16>;
         template class ND4J_EXPORT VariableProxy<double>;

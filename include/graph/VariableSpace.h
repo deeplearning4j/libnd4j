@@ -59,53 +59,53 @@ namespace nd4j {
             VariableSpace();
             ~VariableSpace();
 
-            int numberOfPlaceholders();
-            std::vector<Variable<T>*>* getPlaceholders();
-            nd4j::random::RandomBuffer* getRNG();
-            void setRNG(nd4j::random::RandomBuffer* rng);
+            virtual int numberOfPlaceholders();
+            virtual std::vector<Variable<T>*>* getPlaceholders();
+            virtual nd4j::random::RandomBuffer* getRNG();
+            virtual void setRNG(nd4j::random::RandomBuffer* rng);
 
-            bool hasExternalVariable(int it);
-            bool hasExternalVariable(std::pair<int,int>& pair);
-            bool hasExternalVariable(std::string *symbol);
+            virtual bool hasExternalVariable(int it);
+            virtual bool hasExternalVariable(std::pair<int,int>& pair);
+            virtual bool hasExternalVariable(std::string *symbol);
 
-            bool hasVariable(int id);
-            bool hasVariable(int id, int idx);
-            bool hasVariable(std::pair<int,int>& pair);
-            bool hasVariable(std::string *symbol);
+            virtual bool hasVariable(int id);
+            virtual bool hasVariable(int id, int idx);
+            virtual bool hasVariable(std::pair<int,int>& pair);
+            virtual bool hasVariable(std::string *symbol);
 
-            nd4j::graph::Variable<T> *getVariable(int id);
-            nd4j::graph::Variable<T> *getVariable(int id, int idx);
-            nd4j::graph::Variable<T> *getVariable(std::pair<int,int>& pair);
-            nd4j::graph::Variable<T> *getVariable(std::string *symbol);
+            virtual nd4j::graph::Variable<T> *getVariable(int id);
+            virtual nd4j::graph::Variable<T> *getVariable(int id, int idx);
+            virtual nd4j::graph::Variable<T> *getVariable(std::pair<int,int>& pair);
+            virtual nd4j::graph::Variable<T> *getVariable(std::string *symbol);
 
-            void putVariable(std::pair<int,int>& pair, NDArray<T> *array);
-            void putVariable(std::pair<int,int>& pair, Variable<T> *variable);
-            void putVariable(int id, Variable<T> *variable);
-            void putVariable(int id, NDArray<T> *array);
-            void putVariable(int id, int idx, NDArray<T> *array);
-            void putVariable(int id, int idx, Variable<T> *array);
+            virtual void putVariable(std::pair<int,int>& pair, NDArray<T> *array);
+            virtual void putVariable(std::pair<int,int>& pair, Variable<T> *variable);
+            virtual void putVariable(int id, Variable<T> *variable);
+            virtual void putVariable(int id, NDArray<T> *array);
+            virtual void putVariable(int id, int idx, NDArray<T> *array);
+            virtual void putVariable(int id, int idx, Variable<T> *array);
 
-            void trackList(nd4j::NDArrayList<T>* list);
+            virtual void trackList(nd4j::NDArrayList<T>* list);
 
-            void putOutputVariable(Variable<T> *variable);
+            virtual void putOutputVariable(Variable<T> *variable);
 
             // memory-related statistics
-            Nd4jIndex externalMemory();
-            Nd4jIndex internalMemory();
-            Nd4jIndex totalMemory();
+            virtual Nd4jIndex externalMemory();
+            virtual Nd4jIndex internalMemory();
+            virtual Nd4jIndex totalMemory();
 
-            int externalEntries();
-            int internalEntries();
-            int totalEntries();
+            virtual int externalEntries();
+            virtual int internalEntries();
+            virtual int totalEntries();
 
-            nd4j::graph::VariableSpace<T>* clone();
+            virtual nd4j::graph::VariableSpace<T>* clone();
 
-            nd4j::graph::Stash<T>* getStash();
+            virtual nd4j::graph::Stash<T>* getStash();
 
-            std::vector<nd4j::graph::Variable<T> *> * getExternalVariables();
+            virtual std::vector<nd4j::graph::Variable<T> *> * getExternalVariables();
 
-            void setFlowPath(FlowPath* timers);
-            FlowPath* flowPath();
+            virtual void setFlowPath(FlowPath* timers);
+            virtual FlowPath* flowPath();
         };
     }
 }
