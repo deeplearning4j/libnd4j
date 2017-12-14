@@ -30,7 +30,7 @@ namespace nd4j {
         DECLARE_OP(noop, -1, -1, true);
         DECLARE_OP(testop2i2o, 2, 2, true);
         DECLARE_OP(merge, -1, 1, true);         // should become custom
-        DECLARE_CUSTOM_OP(testcustom, 1, 1, false, 0, -1);   
+        DECLARE_CUSTOM_OP(testcustom, 1, 1, false, 0, -1);
     
         // logic ops
         DECLARE_DIVERGENT_OP(Switch, 2, 2, true);
@@ -43,7 +43,7 @@ namespace nd4j {
         /**
          * This operations exposes given arguments as it's own outputs, but does it only once.
          * Subsequent calls will be served directly by this op.
-         * 
+         *
          * PLEASE NOTE: This operation is internal graph operation, and shouldn't be used directly usually.
          */
         DECLARE_CUSTOM_OP(expose, -1, -1, true, 0, 0);
