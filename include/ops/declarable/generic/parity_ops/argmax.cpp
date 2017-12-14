@@ -27,7 +27,9 @@ namespace nd4j {
                 auto output = new NDArray<T>(shape, false, block.getWorkspace());
                 
                 input->template applyIndexReduce<simdOps::IndexMax<T>>(output, axis);
+
                 OVERWRITE_RESULT(output);
+                
             } else {
                 auto output = OUTPUT_VARIABLE(0);
 
