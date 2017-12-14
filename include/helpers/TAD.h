@@ -720,7 +720,7 @@ namespace shape {
 
 
     INLINEDEF int* TAD::shapeInfoOnlyShapeAndStride() {
-        if(wholeThing && dimensionLength == 1 && dimension[0] == MAX_DIMENSION) 
+        if(wholeThing && ((dimensionLength == 1 && dimension[0] == MAX_DIMENSION) || dimensionLength == 0)) 
             return shape::createScalarShapeInfo();
 
         //ensure tad shapes get setup right for vectors
