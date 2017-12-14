@@ -36,13 +36,18 @@ namespace nd4j {
 
             switch(mode) {
                 case 0: {
+                    REQUIRE_TRUE(dims.size() == 2 || (input->rankOf() == 2 && dims.size() == 0), 0, "Norm: Frobenius is defined for 2D matrices or TADS only");
                     // fro
                     input->template reduceAlongDimension<simdOps::NormFrobenius<T>>(output, dims);
                 }
                 break;
                 case 1: {
                     // euclidean
-                    input->template reduceAlongDimension<simdOps::Norm2<T>>(output, dims);
+                    if ((input->rankOf() == 2 && dims.size() == 0) || dims.size() == 2) {
+                        input->template reduceAlongDimension<simdOps::NormFrobenius<T>>(output, dims);
+                    } else {
+                        input->template reduceAlongDimension<simdOps::Norm2<T>>(output, dims);
+                    }
                 }
                 break;
                 case 2: {
