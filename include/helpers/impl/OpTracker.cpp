@@ -66,7 +66,6 @@ namespace nd4j {
                 }
 
                 block += ">>";
-                nd4j_printf("Block: %s\n", block.c_str());
                 _export += block;
             }
         }
