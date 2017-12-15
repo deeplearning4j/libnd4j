@@ -49,6 +49,8 @@
 #ifndef OP_BOILERPLATE_HH
 #define OP_BOILERPLATE_HH
 
+#include <helpers/OpTracker.h>
+
 #define ELEMENT_THRESHOLD nd4j::Environment::getInstance()->elementwiseThreshold()
 #define TAD_THRESHOLD nd4j::Environment::getInstance()->tadThreshold()
 
@@ -972,6 +974,7 @@ struct __registratorFloat_##NAME {\
     __registratorFloat_##NAME() {\
         OpName *ptr = new OpName(); \
         OpRegistrator::getInstance()->registerOperationFloat(ptr); \
+        OpTracker::getInstance()->storeOperation(OpType_CUSTOM, *ptr->getOpDescriptor());\
     }\
 };\
 template <typename OpName>  \
