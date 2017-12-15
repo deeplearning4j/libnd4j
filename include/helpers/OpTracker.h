@@ -7,6 +7,7 @@
 
 #include <map>
 #include <vector>
+#include <atomic>
 #include <pointercast.h>
 #include <graph/generated/utils_generated.h>
 #include <ops/declarable/OpDescriptor.h>
@@ -19,12 +20,16 @@ namespace nd4j {
     private:
         static OpTracker* _INSTANCE;        
 
+        int _operations = 0;
         std::map<OpType, std::vector<OpDescriptor>> _map;
 
         OpTracker() = default;
         ~OpTracker() = default;
     public:
         static OpTracker* getInstance();
+
+        int totalGroups();
+        int totalOperations();
 
         void storeOperation(nd4j::graph::OpType opType, const OpDescriptor& descriptor);
         void storeOperation(nd4j::graph::OpType opType, const char* opName, const Nd4jIndex opNum);

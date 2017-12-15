@@ -1015,6 +1015,7 @@ struct __registratorDouble_##NAME {\
                                                                 __registratorFloat_##NAME() { \
                                                                     OpName *ptr = new OpName(); \
                                                                     OpRegistrator::getInstance()->registerOperationFloat(ptr); \
+                                                                    OpTracker::getInstance()->storeOperation(OpType_CUSTOM, *ptr->getOpDescriptor());\
                                                                 } \
                                                             }; \
                                                             template <typename OpName>  \
@@ -1055,6 +1056,7 @@ struct __registratorDouble_##NAME {\
                                     __registratorFloat_##NAME() {\
                                         OpName *ptr = new OpName(); \
                                         OpRegistrator::getInstance()->registerOperationFloat(ptr); \
+                                        OpTracker::getInstance()->storeOperation(OpType_CUSTOM, *ptr->getOpDescriptor());\
                                     }\
                                 };\
                                 template <typename OpName>  \
@@ -1103,6 +1105,7 @@ struct __registratorFloat_##NAME {\
     __registratorFloat_##NAME() {\
         OpName *ptr = new OpName(); \
         OpRegistrator::getInstance()->registerOperationFloat(ptr); \
+        OpTracker::getInstance()->storeOperation(OpType_CUSTOM, *ptr->getOpDescriptor());\
     }\
 };\
 template <typename OpName>  \
@@ -1204,6 +1207,7 @@ struct __registratorFloat_##NAME {\
     __registratorFloat_##NAME() {\
         OpName *ptr = new OpName(); \
         OpRegistrator::getInstance()->registerOperationFloat(ptr); \
+        OpTracker::getInstance()->storeOperation(OpType_CUSTOM, *ptr->getOpDescriptor());\
     }\
 };\
 template <typename OpName>  \
@@ -1259,6 +1263,7 @@ struct __registratorFloat_##NAME {\
     __registratorFloat_##NAME() {\
         OpName *ptr = new OpName(); \
         OpRegistrator::getInstance()->registerOperationFloat(ptr); \
+        OpTracker::getInstance()->storeOperation(OpType_CUSTOM, *ptr->getOpDescriptor());\
     }\
 };\
 template <typename OpName>  \
@@ -1300,6 +1305,7 @@ struct __registratorFloat_##NAME {\
     __registratorFloat_##NAME() {\
         OpName *ptr = new OpName(); \
         OpRegistrator::getInstance()->registerOperationFloat(ptr); \
+        OpTracker::getInstance()->storeOperation(OpType_CUSTOM, *ptr->getOpDescriptor());\
     }\
 };\
 template <typename OpName>  \
@@ -1343,6 +1349,7 @@ struct __registratorFloat_##NAME {\
     __registratorFloat_##NAME() {\
         OpName *ptr = new OpName(); \
         OpRegistrator::getInstance()->registerOperationFloat(ptr); \
+        OpTracker::getInstance()->storeOperation(OpType_CUSTOM, *ptr->getOpDescriptor());\
     }\
 };\
 template <typename OpName>  \
