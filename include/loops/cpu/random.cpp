@@ -205,6 +205,12 @@ namespace functions {
             DISPATCH_BY_OPNUM(execTransform, PARAMS(state, z, zShapeBuffer, extraArguments), RANDOM_OPS)
         }
 
+        // FIXME: eventually we might want to get rid of that
+#ifndef __CLION_IDE__
+        BUILD_CALL_1(template void RandomFunction<float>::execTransform, float, (Nd4jPointer state, float *x, int *xShapeBuffer, float *y, int *yShapeBuffer, float *z, int *zShapeBuffer, float *extraArguments), RANDOM_OPS)
+        BUILD_CALL_1(template void RandomFunction<float16>::execTransform, float16, (Nd4jPointer state, float16 *x, int *xShapeBuffer, float16 *y, int *yShapeBuffer, float16 *z, int *zShapeBuffer, float16 *extraArguments), RANDOM_OPS)
+        BUILD_CALL_1(template void RandomFunction<double>::execTransform, double, (Nd4jPointer state, double *x, int *xShapeBuffer, double *y, int *yShapeBuffer, double *z, int *zShapeBuffer, double *extraArguments), RANDOM_OPS)
+#endif
 
         template class ND4J_EXPORT RandomFunction<float>;
         template class ND4J_EXPORT RandomFunction<float16>;

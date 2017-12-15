@@ -12,7 +12,7 @@
 #include <ops/random_ops.h>
 #include <ops/special_random_ops.h>
 
-#include "legacy_ops.h"
+#include <loops/legacy_ops.h>
 
 
 namespace functions {
