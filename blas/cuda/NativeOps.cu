@@ -7003,5 +7003,5 @@ void NativeOps::deleteVariablesSetDouble(Nd4jPointer pointer) {
 }
 
 const char* NativeOps::getAllOperations() {
-    return OpTracker::getInstance()->exportOperations();
+    return nd4j::OpTracker::getInstance()->exportOperations();
 }
