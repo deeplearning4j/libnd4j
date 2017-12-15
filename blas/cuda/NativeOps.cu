@@ -7001,3 +7001,7 @@ void NativeOps::deleteVariablesSetHalf(Nd4jPointer pointer) {
 void NativeOps::deleteVariablesSetDouble(Nd4jPointer pointer) {
 	deleteVariablesSetT<double>(pointer);
 }
+
+const char* NativeOps::getAllOperations() {
+    return OpTracker::getInstance()->exportOperations();
+}

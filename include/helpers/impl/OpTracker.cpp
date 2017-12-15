@@ -3,6 +3,8 @@
 //
 
 #include <helpers/OpTracker.h>
+#include <sstream>
+#include <helpers/logger.h>
 
 namespace nd4j {
     
@@ -29,8 +31,20 @@ namespace nd4j {
 
     void OpTracker::storeOperation(nd4j::graph::OpType opType, const char* opName, const Nd4jIndex opNum) {
         OpDescriptor descriptor(0, opName, false);
+        descriptor.setOpNum((int) opNum);
+        descriptor.setHash(-1);
+
         storeOperation(opType, descriptor);
     }
+
+
+    template <typename T>
+    std::string OpTracker::local_to_string(T value) {
+        std::ostringstream os ;
+        os << value ;
+        return os.str() ;
+    }
+
 
     int OpTracker::totalGroups() {
         return (int) _map.size();
@@ -38,6 +52,26 @@ namespace nd4j {
 
     int OpTracker::totalOperations() {
         return _operations;
+    }
+
+    const char* OpTracker::exportOperations() {
+        if (_export.length() == 0) {
+            for (auto &v: _map) {
+                std::string block = local_to_string(v.first) + " ";
+
+                for (auto &i: v.second) {
+                    block += local_to_string(i.getHash()) + ":";
+                    block += local_to_string(i.getOpNum()) + ":";
+                    block += *i.getOpName() + "<<";
+                }
+
+                block += ">>";
+                nd4j_printf("Block: %s\n", block.c_str());
+                _export += block;
+            }
+        }
+
+        return _export.c_str();
     }
 
     nd4j::OpTracker* nd4j::OpTracker::_INSTANCE = 0;

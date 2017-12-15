@@ -45,6 +45,10 @@ namespace nd4j {
             //
         }
 
+        void OpDescriptor::setHash(Nd4jIndex hash) {
+            _hash = hash;
+        }
+
         // default constructor
         OpDescriptor::OpDescriptor(int numInputs, int numOutputs, const char *opName, bool allowsInplace) {
             _numInputs = numInputs;

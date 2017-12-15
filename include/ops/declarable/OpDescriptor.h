@@ -119,6 +119,8 @@ namespace nd4j {
             // this method allows to set specifc opNum
             void setOpNum(int opNum);
 
+            void setHash(Nd4jIndex hash);
+
             void setInputType(InputType type);
             InputType inputType();
         };

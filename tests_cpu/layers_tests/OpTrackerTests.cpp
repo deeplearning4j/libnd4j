@@ -29,6 +29,8 @@ TEST_F(OpTrackerTests, Test_Existence_1) {
 
     ASSERT_TRUE(OpTracker::getInstance()->totalGroups() > 0);
     ASSERT_TRUE(OpTracker::getInstance()->totalOperations() > 0);
+
+    OpTracker::getInstance()->exportOperations();
 }
 
 

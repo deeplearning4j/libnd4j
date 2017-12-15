@@ -20,11 +20,16 @@ namespace nd4j {
     private:
         static OpTracker* _INSTANCE;        
 
+        std::string _export;
+
         int _operations = 0;
         std::map<OpType, std::vector<OpDescriptor>> _map;
 
         OpTracker() = default;
         ~OpTracker() = default;
+
+        template <typename T>
+        std::string local_to_string(T value);
     public:
         static OpTracker* getInstance();
 
@@ -33,6 +38,8 @@ namespace nd4j {
 
         void storeOperation(nd4j::graph::OpType opType, const OpDescriptor& descriptor);
         void storeOperation(nd4j::graph::OpType opType, const char* opName, const Nd4jIndex opNum);
+
+        const char* exportOperations();
     };
 }
 
