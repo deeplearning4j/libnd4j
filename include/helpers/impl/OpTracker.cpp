@@ -21,7 +21,10 @@ namespace nd4j {
 
         _operations++;
 
-        _map[opType].emplace_back(descriptor);
+        auto vec = _map[opType];
+
+        if (std::find(vec.begin(), vec.end(), descriptor) == vec.end())
+            _map[opType].emplace_back(descriptor);
     }
 
     void OpTracker::storeOperation(nd4j::graph::OpType opType, const char* opName, const Nd4jIndex opNum) {

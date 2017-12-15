@@ -23,6 +23,8 @@ public:
 };
 
 TEST_F(OpTrackerTests, Test_Existence_1) {
+    nd4j::_loader loader;
+
     nd4j_printf("Groups: %i; Operations: %i\n", OpTracker::getInstance()->totalGroups(), OpTracker::getInstance()->totalOperations());
 
     ASSERT_TRUE(OpTracker::getInstance()->totalGroups() > 0);
