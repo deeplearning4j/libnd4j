@@ -282,6 +282,10 @@ namespace functions {
 
             static _CUDA_D void summaryStatsReduceGeneric(const int op, T *dx, int *xShapeInfo, int xRank, T *extraParams, T *result, int *resultShapeInfo, int zRank, int *dimension, int dimensionLength, int postProcessOrNot,bool biasCorrected, int *allocationBuffer, T *reductionBuffer, int *tadOnlyShapeInfo, Nd4jIndex *tadOffsets);
             //static _CUDA_G void summaryStatsReduceT(int op, T *dx, int *xShapeInfo, int xRank, T *extraParams, T *result, int *resultShapeInfo, int zRank, int *dimension, int dimensionLength, int postProcessOrNot,bool biasCorrected,int *allocationBuffer, T *reductionBuffer, int *tadOnlyShapeInfo, Nd4jIndex *tadOffsets);
+
+            static _CUDA_H T execSummaryStatsReduceScalar(dim3& launchDims, Nd4jPointer *extraPointers, int opNum, T *x, int *xShapeInfo, T *extraParams, bool biasCorrected);
+            static _CUDA_H void execSummaryStatsReduce(dim3& launchDims, Nd4jPointer *extraPointers, int opNum, T *x, int *xShapeInfo, T *extraParams, T *result, int *resultShapeInfo,bool biasCorrected);
+            static _CUDA_H void execSummaryStatsReduce(dim3& launchDims, Nd4jPointer *extraPointers, int opNum, T *x, int *xShapeInfo, T *extraParams, T *result, int *resultShapeInfo, int *dimension, int dimensionLength,bool biasCorrected);
 #endif
 
             static T execScalar(const int opNum, const bool biasCorrected, T *x, int *xShapeInfo, T *extraParams);
