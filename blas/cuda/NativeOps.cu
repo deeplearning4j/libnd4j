@@ -1283,7 +1283,7 @@ double   NativeOps::execSummaryStatsScalarDouble(
 
     launchDims.x = nd4j::math::nd4j_min<int>(512, launchDims.x);
 
-	summaryStatsReduceDouble<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
+	functions::summarystats::summaryStatsReduceDouble<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
 			opNum,
 			x,
 			xShapeInfo, shape::rank(hostXShapeInfo),
@@ -1339,7 +1339,7 @@ void   NativeOps::execSummaryStatsDouble(
 	// we have to limit grid size here, due to limited nature of reduction/allocation pointers
     launchDims.x = nd4j::math::nd4j_min<int>(512, launchDims.x);
 
-	summaryStatsReduceDouble<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
+    functions::summarystats::summaryStatsReduceDouble<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
 			opNum,
 			x,
 			xShapeInfo, shape::rank(hostXShapeInfo),
@@ -1394,7 +1394,7 @@ void   NativeOps::execSummaryStatsDouble(
 	// we're limiting maximum grid size for summaryStats ops
     launchDims.x = nd4j::math::nd4j_min<int>(512, launchDims.x);
 
-	summaryStatsReduceDouble<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
+    functions::summarystats::summaryStatsReduceDouble<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
 			opNum,
 			x,
 			xShapeInfo, shape::rank(hostXShapeInfo),
@@ -3146,7 +3146,7 @@ float   NativeOps::execSummaryStatsScalarFloat(
 	// we limit grid size for SummaryStats calls
     launchDims.x = nd4j::math::nd4j_min<int>(512, launchDims.x);
 
-	summaryStatsReduceFloat<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
+    functions::summarystats::summaryStatsReduceFloat<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
 			opNum,
 			x,
 			xShapeInfo, shape::rank(hostXShapeInfo),
@@ -3194,7 +3194,7 @@ float   NativeOps::execSummaryStatsScalarHalf(
 
     launchDims.x = nd4j::math::nd4j_min<int>(512, launchDims.x);
 
-	summaryStatsReduceHalf<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
+    functions::summarystats::summaryStatsReduceHalf<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
 			opNum,
 					x,
 					xShapeInfo, shape::rank(hostXShapeInfo),
@@ -3253,7 +3253,7 @@ void   NativeOps::execSummaryStatsFloat(
 	// limiting number of blocks in grid, to match buffer memory size
     launchDims.x = nd4j::math::nd4j_min<int>(512, launchDims.x);
 
-	summaryStatsReduceFloat<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
+    functions::summarystats::summaryStatsReduceFloat<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
 			opNum,
 			x,
 			xShapeInfo, shape::rank(hostXShapeInfo),
@@ -3300,7 +3300,7 @@ void   NativeOps::execSummaryStatsHalf(
 	// as everywhere else, we limit maximal number of blocks for SummaryStats calls
     launchDims.x = nd4j::math::nd4j_min<int>(512, launchDims.x);
 
-	summaryStatsReduceHalf<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
+    functions::summarystats::summaryStatsReduceHalf<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
 			opNum,
 					x,
 					xShapeInfo, shape::rank(hostXShapeInfo),
@@ -3360,7 +3360,7 @@ void   NativeOps::execSummaryStatsFloat(
 	// as everywhere else, we limit maximal number of blocks for SummaryStats calls
     launchDims.x = nd4j::math::nd4j_min<int>(512, launchDims.x);
 
-	summaryStatsReduceFloat<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
+    functions::summarystats::summaryStatsReduceFloat<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
 			opNum,
 			x,
 			xShapeInfo, shape::rank(hostXShapeInfo),
@@ -3411,7 +3411,7 @@ void   NativeOps::execSummaryStatsHalf(
 	// as everywhere else, we limit maximal number of blocks for SummaryStats calls
     launchDims.x = nd4j::math::nd4j_min<int>(512, launchDims.x);
 
-	summaryStatsReduceHalf<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
+    functions::summarystats::summaryStatsReduceHalf<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
 			opNum,
 					x,
 					xShapeInfo, shape::rank(hostXShapeInfo),
@@ -4456,7 +4456,7 @@ void NativeOps::initializeDevicesAndFunctions() {
 	// FIXME
     cudaFuncGetAttributes(&funcAttributes[2], transformFloatIndexes);
 
-	cudaFuncGetAttributes(&funcAttributes[3], (void *)summaryStatsReduceFloat);
+	cudaFuncGetAttributes(&funcAttributes[3], (void *)functions::summarystats::summaryStatsReduceFloat);
 
 	//cudaFuncGetAttributes(&funcAttributes[4], (void *)scalarFloatIndexes);
 
@@ -4503,7 +4503,7 @@ void NativeOps::initializeDevicesAndFunctions() {
 	// FIXME
     cudaFuncGetAttributes(&funcAttributes[16], transformDoubleIndexes);
 
-	cudaFuncGetAttributes(&funcAttributes[17], summaryStatsReduceDouble);
+	cudaFuncGetAttributes(&funcAttributes[17], functions::summarystats::summaryStatsReduceDouble);
 
 //	cudaFuncGetAttributes(&funcAttributes[18], scalarDoubleIndexes);
 
