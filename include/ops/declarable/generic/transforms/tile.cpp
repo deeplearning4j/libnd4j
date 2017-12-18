@@ -6,7 +6,7 @@
 
 namespace nd4j {
     namespace ops {
-        CUSTOM_OP_IMPL(tile, 1, 1, false, 0, -2) {
+        CUSTOM_OP_IMPL(tile, 1, 1, false, 0, 1) {
             auto input = INPUT_VARIABLE(0);
             NDArray<T>* output;
             std::vector<int> reps(input->rankOf());
