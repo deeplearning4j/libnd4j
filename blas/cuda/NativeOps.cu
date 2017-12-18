@@ -1276,7 +1276,7 @@ double   NativeOps::execSummaryStatsScalarDouble(
 	int *allocationPointer = reinterpret_cast<int *>(extraPointers[3]);
 	double *reductionPointer = reinterpret_cast<double *>(extraPointers[4]);
 
-	dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[17], 1, sizeof(double), 8);
+	dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[1], 1, sizeof(double), 8);
 
     launchDims.x = nd4j::math::nd4j_min<int>(512, launchDims.x);
 
@@ -1316,7 +1316,7 @@ void   NativeOps::execSummaryStatsDouble(
 	int *allocationPointer = reinterpret_cast<int *>(extraPointers[3]);
 	double *reductionPointer = reinterpret_cast<double *>(extraPointers[4]);
 
-	dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[17], 1, sizeof(double), 8);
+	dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[1], 1, sizeof(double), 8);
 
 	// we have to limit grid size here, due to limited nature of reduction/allocation pointers
     launchDims.x = nd4j::math::nd4j_min<int>(512, launchDims.x);
@@ -1356,7 +1356,7 @@ void   NativeOps::execSummaryStatsDouble(
 	int *allocationPointer = reinterpret_cast<int *>(extraPointers[3]);
 	double *reductionPointer = reinterpret_cast<double *>(extraPointers[4]);
 
-	dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[17], dimensionLength, sizeof(double), 8);
+	dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[1], dimensionLength, sizeof(double), 8);
 
 	// we're limiting maximum grid size for summaryStats ops
     launchDims.x = nd4j::math::nd4j_min<int>(512, launchDims.x);
@@ -3090,7 +3090,7 @@ float   NativeOps::execSummaryStatsScalarFloat(
 
     Nd4jIndex *deviceTADOffsets = reinterpret_cast<Nd4jIndex *>(extraPointers[11]);
 
-	dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[3], 1, sizeof(float), 8);
+	dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[1], 1, sizeof(float), 8);
 
 	// we limit grid size for SummaryStats calls
     launchDims.x = nd4j::math::nd4j_min<int>(512, launchDims.x);
@@ -3118,7 +3118,7 @@ float   NativeOps::execSummaryStatsScalarHalf(
 
     Nd4jIndex *deviceTADOffsets = reinterpret_cast<Nd4jIndex *>(extraPointers[11]);
 
-	dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[3], 1, sizeof(float16), 8);
+	dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[1], 1, sizeof(float16), 8);
 
     launchDims.x = nd4j::math::nd4j_min<int>(512, launchDims.x);
 
@@ -3155,7 +3155,7 @@ void   NativeOps::execSummaryStatsFloat(
 	int *allocationPointer = reinterpret_cast<int *>(extraPointers[3]);
 	float *reductionPointer = reinterpret_cast<float *>(extraPointers[4]);
 
-	dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[3], 1, sizeof(float), 8);
+	dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[1], 1, sizeof(float), 8);
 
 	// limiting number of blocks in grid, to match buffer memory size
     launchDims.x = nd4j::math::nd4j_min<int>(512, launchDims.x);
@@ -3184,7 +3184,7 @@ void   NativeOps::execSummaryStatsHalf(
 	int *allocationPointer = reinterpret_cast<int *>(extraPointers[3]);
 	float16 *reductionPointer = reinterpret_cast<float16 *>(extraPointers[4]);
 
-	dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[3], 1, sizeof(float16), 8);
+	dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[1], 1, sizeof(float16), 8);
 
 	// as everywhere else, we limit maximal number of blocks for SummaryStats calls
     launchDims.x = nd4j::math::nd4j_min<int>(512, launchDims.x);
@@ -3226,7 +3226,7 @@ void   NativeOps::execSummaryStatsFloat(
 	int *allocationPointer = reinterpret_cast<int *>(extraPointers[3]);
 	float *reductionPointer = reinterpret_cast<float *>(extraPointers[4]);
 
-	dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[3], dimensionLength, sizeof(float), 8);
+	dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[1], dimensionLength, sizeof(float), 8);
 
 	// as everywhere else, we limit maximal number of blocks for SummaryStats calls
     launchDims.x = nd4j::math::nd4j_min<int>(512, launchDims.x);
@@ -3258,7 +3258,7 @@ void   NativeOps::execSummaryStatsHalf(
 	int *allocationPointer = reinterpret_cast<int *>(extraPointers[3]);
 	float16 *reductionPointer = reinterpret_cast<float16 *>(extraPointers[4]);
 
-	dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[3], dimensionLength, sizeof(float16), 8);
+	dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[1], dimensionLength, sizeof(float16), 8);
 
 	// as everywhere else, we limit maximal number of blocks for SummaryStats calls
     launchDims.x = nd4j::math::nd4j_min<int>(512, launchDims.x);
@@ -4296,7 +4296,7 @@ void NativeOps::initializeDevicesAndFunctions() {
 	// FIXME
     cudaFuncGetAttributes(&funcAttributes[2], transformFloatIndexes);
 
-	cudaFuncGetAttributes(&funcAttributes[3], (void *)functions::summarystats::summaryStatsReduceFloat);
+	//cudaFuncGetAttributes(&funcAttributes[3], (void *)functions::summarystats::summaryStatsReduceFloat);
 
 	//cudaFuncGetAttributes(&funcAttributes[4], (void *)scalarFloatIndexes);
 
@@ -4343,7 +4343,7 @@ void NativeOps::initializeDevicesAndFunctions() {
 	// FIXME
     cudaFuncGetAttributes(&funcAttributes[16], transformDoubleIndexes);
 
-	cudaFuncGetAttributes(&funcAttributes[17], functions::summarystats::summaryStatsReduceDouble);
+	//cudaFuncGetAttributes(&funcAttributes[17], functions::summarystats::summaryStatsReduceDouble);
 
 //	cudaFuncGetAttributes(&funcAttributes[18], scalarDoubleIndexes);
 
