@@ -117,9 +117,14 @@ namespace nd4j {
         NDArray(T *buffer, const char order, const std::vector<int> &shape , nd4j::memory::Workspace* workspace = nullptr);
 
         /**
-        * assignment operator
+        *  assignment operator
         */
         NDArray<T>& operator=(const NDArray<T>& other);
+
+        /**
+        *  assignment operator, assigns the same scalar to all array elements 
+        */
+        NDArray<T>& operator=(const T scalar);
 
         /**
         *   operators for memory allocation and deletion
@@ -314,7 +319,7 @@ namespace nd4j {
         *  extraParams - extra parameters for operation
         */  
         template<typename OpName>
-        T reduceNumber(T *extraParams = nullptr);
+        T reduceNumber(T *extraParams = nullptr) const;
 
         /**
         *  returns element index which corresponds to some condition imposed by operation
@@ -750,6 +755,12 @@ namespace nd4j {
         *  other - input array to divide on
         */
         NDArray<T> operator/(const NDArray<T>& other) const;        
+
+        /**
+        *  division operator: array / scalar
+        *  scalar - input scalar to divide each array element on
+        */
+        NDArray<T> operator/(const T scalar) const;
 
         /**
         *  pairwise division unary operator: array /= other
