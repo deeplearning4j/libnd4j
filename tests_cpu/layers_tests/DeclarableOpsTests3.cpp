@@ -483,7 +483,7 @@ TEST_F(DeclarableOpsTests3, Test_Batched_Gemm_1) {
     auto exp = NDArrayFactory<double>::mmulHelper(&x, &y);
 
     nd4j::ops::batched_gemm<double> op;
-    auto result = op.execute({&a, &b, &x, &x, &x, &y, &y, &y}, {}, {0, 0, 3, 3, 3, 3, 3, 3, 3});
+    auto result = op.execute({&a, &b, &x, &x, &x, &y, &y, &y}, {}, {111, 111, 3, 3, 3, 3, 3, 3, 3});
     ASSERT_EQ(ND4J_STATUS_OK, result->status());
 
     ASSERT_EQ(3, result->size());
@@ -491,8 +491,64 @@ TEST_F(DeclarableOpsTests3, Test_Batched_Gemm_1) {
     for (int e = 0; e < 3; e++) {
         auto z = result->at(e);
 
-        exp->printIndexedBuffer("e");
-        z->printIndexedBuffer("z");
+//        exp->printIndexedBuffer("e");
+//        z->printIndexedBuffer("z");
+
+        ASSERT_TRUE(exp->isSameShape(z));
+        ASSERT_TRUE(exp->equalsTo(z));
+    }
+
+    delete exp;
+    delete result;
+}
+
+TEST_F(DeclarableOpsTests3, Test_Batched_Gemm_2) {
+    NDArray<double> a('c', {1, 3}, {1, 1, 1});
+    NDArray<double> b('c', {1, 3}, {0, 0, 0});
+    NDArray<double> x('c', {3, 3}, {1, 2, 3, 4, 5, 6, 7, 8, 9});
+    NDArray<double> y('c', {3, 3}, {1, 2, 3, 4, 5, 6, 7, 8, 9});
+
+    auto exp = NDArrayFactory<double>::mmulHelper(&x, &y);
+
+    nd4j::ops::batched_gemm<double> op;
+    auto result = op.execute({&a, &b, &x, &x, &x, &y, &y, &y}, {}, {112, 112, 3, 3, 3, 3, 3, 3, 3});
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    ASSERT_EQ(3, result->size());
+
+    for (int e = 0; e < 3; e++) {
+        auto z = result->at(e);
+
+        //exp->printIndexedBuffer("e");
+        //z->printIndexedBuffer("z");
+
+        ASSERT_TRUE(exp->isSameShape(z));
+        ASSERT_TRUE(exp->equalsTo(z));
+    }
+
+    delete exp;
+    delete result;
+}
+
+TEST_F(DeclarableOpsTests3, Test_Batched_Gemm_3) {
+    NDArray<double> a('c', {1, 3}, {1, 1, 1});
+    NDArray<double> b('c', {1, 3}, {0, 0, 0});
+    NDArray<double> x('c', {3, 3}, {1, 2, 3, 4, 5, 6, 7, 8, 9});
+    NDArray<double> y('f', {3, 3}, {1, 2, 3, 4, 5, 6, 7, 8, 9});
+
+    auto exp = NDArrayFactory<double>::mmulHelper(&x, &y);
+
+    nd4j::ops::batched_gemm<double> op;
+    auto result = op.execute({&a, &b, &x, &x, &x, &y, &y, &y}, {}, {112, 111, 3, 3, 3, 3, 3, 3, 3});
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    ASSERT_EQ(3, result->size());
+
+    for (int e = 0; e < 3; e++) {
+        auto z = result->at(e);
+
+//        exp->printIndexedBuffer("e");
+//        z->printIndexedBuffer("z");
 
         ASSERT_TRUE(exp->isSameShape(z));
         ASSERT_TRUE(exp->equalsTo(z));

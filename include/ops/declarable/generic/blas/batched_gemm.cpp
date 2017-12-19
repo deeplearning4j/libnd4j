@@ -18,9 +18,23 @@ namespace nd4j {
             int ldC = INT_ARG(7);
             int batchSize = INT_ARG(8);
 
+
+            if (transA == 0)
+                transA = 111;
+            
+            if (transB == 0)
+                transB = 111;
+
+            if (transA == 1)
+                transA = 112;
+            
+            if (transB == 1)
+                transB = 112;
+
             // basically A+B and 2 arrays of alpha and beta
             int expectedWidth = batchSize * 2 + 2;
 
+            REQUIRE_TRUE((transA == 111 || transA == 112) && (transB == 111 || transB == 112), 0, "BatchedGemm: valid values for transA and transB are: 0/1 or 111/112, for NoTrans/Trans respectively")
             REQUIRE_TRUE(M > 0 && N > 0 && K > 0 && ldA > 0 && ldB > 0 && ldC > 0 && batchSize > 0, 0, "");
             REQUIRE_TRUE(block.width() == expectedWidth, 0, "BatchedGemm: expected number of input arrays is %i, but got %i instead", expectedWidth, block.width());
 
@@ -39,7 +53,7 @@ namespace nd4j {
 
             REQUIRE_TRUE(_A.size() == _B.size() && _A.size() == _C.size() && _A.size() == batchSize, 0, "BatchedGemm: mismatched numbers of A, B, C for unknown reason");
             
-            nd4j::ops::helpers::_bgemm<T>(_A, _B, _C, alpha, beta, M, N, K, ldA, ldB, ldC);
+            nd4j::ops::helpers::_bgemm<T>(_A, _B, _C, alpha, beta, transA, transB, M, N, K, ldA, ldB, ldC);
             
             return ND4J_STATUS_OK;
         };

@@ -15,7 +15,7 @@ namespace nd4j {
 
 
             template <typename T>
-            void _bgemm(std::vector<NDArray<T>*>& vA, std::vector<NDArray<T>*>& vB, std::vector<NDArray<T>*>& vC, NDArray<T>* alphas, NDArray<T>* betas, int M, int N, int K, int ldA, int ldB, int ldC) {
+            void _bgemm(std::vector<NDArray<T>*>& vA, std::vector<NDArray<T>*>& vB, std::vector<NDArray<T>*>& vC, NDArray<T>* alphas, NDArray<T>* betas, int transA, int transB, int M, int N, int K, int ldA, int ldB, int ldC) {
                 if (BlasHelper::getInstance()->hasBatchedGEMM<T>()) {
                     if (sizeof(T) == 8) {
                         
@@ -23,6 +23,8 @@ namespace nd4j {
 
                     }
                 } else {
+                    CBLAS_TRANSPOSE tA = (CBLAS_TRANSPOSE) transA;
+                    CBLAS_TRANSPOSE tB = (CBLAS_TRANSPOSE) transB;
 
 #pragma omp parallel for                   
                     for (int p = 0; p < vA.size(); ++p) {
@@ -37,7 +39,7 @@ namespace nd4j {
 
                                 #pragma omp simd
                                 for (int k = 0; k < K; ++k)
-                                    c_mnp += A[m + k * ldA] * B[k + n * ldB];
+                                    c_mnp += A[tA == CblasNoTrans ? (m + k * ldA) : (m * ldA + k)] * B[tB == CblasNoTrans ? (k + n * ldB) : (k * ldB + n)];
 
                                 C[m + n * ldC] = alpha * c_mnp + beta * C[m + n * ldC];
                             } 
@@ -46,9 +48,9 @@ namespace nd4j {
                 }
             };
 
-            template void _bgemm<float>(std::vector<NDArray<float>*>& vA, std::vector<NDArray<float>*>& vB, std::vector<NDArray<float>*>& vC, NDArray<float>* alphas, NDArray<float>* betas, int M, int N, int K, int ldA, int ldB, int ldC);
-            template void _bgemm<double>(std::vector<NDArray<double>*>& vA, std::vector<NDArray<double>*>& vB, std::vector<NDArray<double>*>& vC, NDArray<double>* alphas, NDArray<double>* betas, int M, int N, int K, int ldA, int ldB, int ldC);
-            template void _bgemm<float16>(std::vector<NDArray<float16>*>& vA, std::vector<NDArray<float16>*>& vB, std::vector<NDArray<float16>*>& vC, NDArray<float16>* alphas, NDArray<float16>* betas, int M, int N, int K, int ldA, int ldB, int ldC);
+            template void _bgemm<float>(std::vector<NDArray<float>*>& vA, std::vector<NDArray<float>*>& vB, std::vector<NDArray<float>*>& vC, NDArray<float>* alphas, NDArray<float>* betas, int transA, int transB, int M, int N, int K, int ldA, int ldB, int ldC);
+            template void _bgemm<double>(std::vector<NDArray<double>*>& vA, std::vector<NDArray<double>*>& vB, std::vector<NDArray<double>*>& vC, NDArray<double>* alphas, NDArray<double>* betas, int transA, int transB, int M, int N, int K, int ldA, int ldB, int ldC);
+            template void _bgemm<float16>(std::vector<NDArray<float16>*>& vA, std::vector<NDArray<float16>*>& vB, std::vector<NDArray<float16>*>& vC, NDArray<float16>* alphas, NDArray<float16>* betas, int transA, int transB, int M, int N, int K, int ldA, int ldB, int ldC);
         }
     }
 }
