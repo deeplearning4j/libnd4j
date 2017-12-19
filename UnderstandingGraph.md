@@ -5,7 +5,7 @@ libnd4j contains Directed Acyclic Graph execution engine, suited for both local 
 
 
 This basic example shows execution of graph loaded from file:
-```
+```c++
 auto graph = GraphExecutioner<float>::importFromFlatBuffers("./some_file.fb");
 GraphExecutioner<float>::execute(graph);
 ...
