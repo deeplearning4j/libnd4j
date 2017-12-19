@@ -13,10 +13,16 @@ delete graph;
 ```
 
 ### FlatBuffers schemas
-You can find scheme files [here](https://github.com/deeplearning4j/libnd4j/tree/master/include/graph/scheme)
+You can find scheme files [here](https://github.com/deeplearning4j/libnd4j/tree/master/include/graph/scheme).
+
 At this moment libnd4j repo contains compiled definitions for C++, Python, Java, and JSON, but FlatBuffers can be compiled for PHP, C#, JavaScript, TypeScript and Go as well. Please refer to `flatc` instructions to do that.
 
 Such bindings allow you to build FlatBuffers files/buffers suitable for remote execution of your graph and obtaining results back. I.e. you can use JavaScript to build graph (or just update variables/placeholders), send them to remote RPC server powered by libnd4j, and get results back.
+
+### Graph execution logic
+No matter how graph is represented on the front-end, on backend it's rather simple: topologically sorted list of operations executed sequentially if there's shared dependencies, or (optionally) in parallel, if there's no shared dependencies for current graph nodes.
+
+Each node in the graph represents single linear algebra operation applied to input(s) of the node. I.e. `z = Add(x, y)` is operation that takes 2 NDArrays as input, and produes 1 NDArray as output.
 
 
 ### Current graph limitations
