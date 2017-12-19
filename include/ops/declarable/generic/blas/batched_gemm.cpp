@@ -49,6 +49,14 @@ namespace nd4j {
                 _A[e] = INPUT_VARIABLE(e+2);
                 _B[e] = INPUT_VARIABLE(e+2+batchSize);
                 _C[e] = OUTPUT_VARIABLE(e);
+
+                REQUIRE_TRUE(_A[e]->rankOf() == 2, 0, "BatchedGemm: batch %i, rank of A should be equal to 2", e);
+                REQUIRE_TRUE(_B[e]->rankOf() == 2, 0, "BatchedGemm: batch %i, rank of B should be equal to 2", e);
+                REQUIRE_TRUE(_C[e]->rankOf() == 2, 0, "BatchedGemm: batch %i, rank of C should be equal to 2", e);
+
+                REQUIRE_TRUE(M == _A[e]->sizeAt(0), 0, "BatchedGemm: batch %i, number of A.rows() should be equal to M", e);
+                REQUIRE_TRUE(N == _B[e]->sizeAt(1), 0, "BatchedGemm: batch %i, number of B.columns() should be equal to N", e);
+                REQUIRE_TRUE(K == _A[e]->sizeAt(1) && K == _B[e]->sizeAt(0), 0, "BatchedGemm: batch %i, number of A.columns() and B.rows() should be equal to K", e);
             };
 
             REQUIRE_TRUE(_A.size() == _B.size() && _A.size() == _C.size() && _A.size() == batchSize, 0, "BatchedGemm: mismatched numbers of A, B, C for unknown reason");
