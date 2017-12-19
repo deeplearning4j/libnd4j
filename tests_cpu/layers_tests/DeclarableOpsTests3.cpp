@@ -474,6 +474,34 @@ TEST_F(DeclarableOpsTests3, Test_Range_9) {
     delete result;
 }
 
+TEST_F(DeclarableOpsTests3, Test_Batched_Gemm_1) {
+    NDArray<double> a('c', {1, 3}, {1, 1, 1});
+    NDArray<double> b('c', {1, 3}, {0, 0, 0});
+    NDArray<double> x('f', {3, 3}, {1, 2, 3, 4, 5, 6, 7, 8, 9});
+    NDArray<double> y('f', {3, 3}, {1, 2, 3, 4, 5, 6, 7, 8, 9});
+
+    auto exp = NDArrayFactory<double>::mmulHelper(&x, &y);
+
+    nd4j::ops::batched_gemm<double> op;
+    auto result = op.execute({&a, &b, &x, &x, &x, &y, &y, &y}, {}, {0, 0, 3, 3, 3, 3, 3, 3, 3});
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    ASSERT_EQ(3, result->size());
+
+    for (int e = 0; e < 3; e++) {
+        auto z = result->at(e);
+
+        exp->printIndexedBuffer("e");
+        z->printIndexedBuffer("z");
+
+        ASSERT_TRUE(exp->isSameShape(z));
+        ASSERT_TRUE(exp->equalsTo(z));
+    }
+
+    delete exp;
+    delete result;
+}
+
 TEST_F(DeclarableOpsTests3, Test_ReverseDivide_1) {
     NDArray<float> x('c', {1, 3}, {2, 2, 2});
     NDArray<float> y('c', {1, 3}, {4, 6, 8});
