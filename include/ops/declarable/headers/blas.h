@@ -35,5 +35,10 @@ namespace nd4j {
          * 
          */
         DECLARE_CONFIGURABLE_OP(axpy, 2, 1, false, -2, 0);
+
+        /**
+         * This operation implements batched matrix multiplication
+         */
+        DECLARE_CUSTOM_OP(batched_gemm, -1, -1, false, -2, 1);
     }
 }
