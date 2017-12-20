@@ -14,8 +14,16 @@ namespace nd4j {
          * vector x vector = BLAS dot
          * vector x scalar = element-wise mul
          * scalar x vector = element-wise mul
+         *
+         * Optional T arguments:
+         * 0: alpha (where applicable)
+         * 1: beta (where applicable)
+         *
+         * Optional Integer arguments:
+         * 0: transA (where applicable)
+         * 1: transB (where applicable)
          */
-        DECLARE_CUSTOM_OP(matmul, 2, 1, false, -2, 0);
+        DECLARE_CUSTOM_OP(matmul, 2, 1, false, -2, -2);
 
         /**
          * tensorMmul/tensorDot operation
@@ -32,8 +40,22 @@ namespace nd4j {
         /**
          * This op is simple implementation of BLAS AXPY method.
          * Math is: y += a * x;
-         * 
          */
         DECLARE_CONFIGURABLE_OP(axpy, 2, 1, false, -2, 0);
+
+        /**
+         * This operation implements batched matrix multiplication
+         * Expected arguments:
+         * alpha: vector of T
+         * beta: vector of T
+         * ...: A, B matrices sequentially. i.e: AAAAABBBBB
+         * 
+         * Integer arguments:
+         * transA, transB, M, N, K, ldA, ldB, ldC - usual BLAS gemm arguments
+         * batchCount - number of operations in this batch
+         * 
+         * PLEASE NOTE: M, N, K, ldA, ldB, ldC should be equal for all matrices within batch.
+         */
+        DECLARE_CUSTOM_OP(batched_gemm, -1, -1, false, 0, 9);
     }
 }
