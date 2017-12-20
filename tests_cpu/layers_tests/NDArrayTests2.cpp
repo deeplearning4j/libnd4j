@@ -66,3 +66,94 @@ TEST_F(NDArrayTest2, Test_IndexReduce_1) {
 
     ASSERT_EQ(2, idx);
 }
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest2, SetIdentity_test_1) {
+
+    NDArray<double> x('c', {1, 5});
+    NDArray<double> xExp('c', {1, 5}, {1, 0, 0, 0, 0});
+    
+    x.setIdentity();
+
+    ASSERT_TRUE(x.equalsTo(&xExp));
+}
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest2, SetIdentity_test_2) {
+
+    NDArray<double> x('f', {1, 5});
+    NDArray<double> xExp('f', {1, 5}, {1, 0, 0, 0, 0});
+    
+    x.setIdentity();
+
+    ASSERT_TRUE(x.equalsTo(&xExp));
+}
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest2, SetIdentity_test_3) {
+
+    NDArray<double> x('f', {1, 1});
+    NDArray<double> xExp('f', {1, 1}, {1});
+    
+    x.setIdentity();
+
+    ASSERT_TRUE(x.equalsTo(&xExp));
+}
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest2, SetIdentity_test_4) {
+
+    NDArray<double> x('f', {2, 1});
+    NDArray<double> xExp('f', {2, 1}, {1,0});
+    
+    x.setIdentity();
+
+    ASSERT_TRUE(x.equalsTo(&xExp));
+}
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest2, SetIdentity_test_5) {
+
+    NDArray<double> x('f', {2, 2});
+    NDArray<double> xExp('f', {2, 2}, {1,0,0,1});
+    
+    x.setIdentity();
+
+    ASSERT_TRUE(x.equalsTo(&xExp));
+}
+
+////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest2, SetIdentity_test_6) {
+
+    NDArray<double> x('c', {3, 2});
+    NDArray<double> xExp('c', {3, 2}, {1,0,0,1,0,0});
+    
+    x.setIdentity();
+
+    ASSERT_TRUE(x.equalsTo(&xExp));
+}
+
+////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest2, SetIdentity_test_7) {
+
+    NDArray<double> x('c', {3, 4});
+    NDArray<double> xExp('c', {3, 4}, {1.,0.,0.,0.,0.,1.,0.,0.,0.,0.,1.,0.});
+    
+    x.setIdentity();
+
+    ASSERT_TRUE(x.equalsTo(&xExp));
+}
+
+////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest2, SetIdentity_test_8) {
+
+    NDArray<double> x('c', {3, 3, 3});
+    NDArray<double> xExp('c', {3, 3, 3}, {1.,0.,0. ,0.,0.,0., 0.,0.,0.,   0.,0.,0. ,0.,1.,0., 0.,0.,0.,  0.,0.,0. ,0.,0.,0., 0.,0.,1.});
+    
+    x.setIdentity();
+
+    ASSERT_TRUE(x.equalsTo(&xExp));
+}
+
+
+

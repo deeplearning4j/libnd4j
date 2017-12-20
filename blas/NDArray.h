@@ -793,7 +793,14 @@ namespace nd4j {
         */
         std::vector<int8_t> asByteVector();
 
-        // default destructor
+        /**
+        *  makes array to be identity matrix (not necessarily square), that is set all diagonal elements = 1, rest = 0
+        */
+        void setIdentity();
+
+        /**
+        *  default destructor
+        */        
         ~NDArray(); 
 
         /**

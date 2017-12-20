@@ -2349,8 +2349,8 @@ bool NDArray<T>::isUnitary() {
             if (!idx[d].empty()) {
                 if (idx[d].size() != 2)
                     throw "NDArray::operator(Intervals): the interval must contain only two numbers {first, last} !";
-                first = idx[d][0] >= 0 ? idx[d][0] : idx[d][0] + this->sizeAt(d);
-                last  = idx[d][1] >= 0 ? idx[d][1] : idx[d][1] + this->sizeAt(d);
+                first = idx[d][0] >= 0 ? idx[d][0] : idx[d][0] + this->sizeAt(d) + 1;
+                last  = idx[d][1] >= 0 ? idx[d][1] : idx[d][1] + this->sizeAt(d) + 1;
                 shapeOf[d] = last - first;
                 // for offset we're taking only the first index
                 offset += first * stridesOf[d];
@@ -2600,6 +2600,36 @@ NDArray<T> NDArray<T>::operator+(const NDArray<T>& other) const {
     }
 
     ////////////////////////////////////////////////////////////////////////
+    template<typename T>
+    void NDArray<T>::setIdentity() {
+
+        this->assign((T)0.);
+
+        int  rank    = rankOf();
+        int* shape   = shapeOf();
+        int* strides = stridesOf();
+        int  minDim  = 100000000;
+        int* indices = new int[rank];        
+        Nd4jIndex offset;
+        
+        for(int i = 0; i < rank; ++i) 
+            if(minDim > shape[i])
+                minDim = shape[i];
+
+#pragma omp parallel for if(minDim > Environment::getInstance()->elementwiseThreshold()) schedule(guided) 
+        for(int i = 0; i < minDim; ++i) {            
+            
+            for(int j = 0; j < rank; ++j) 
+                indices[j] = i;
+
+            offset = shape::getOffset(0, shape, strides, indices, rank);
+            _buffer[offset] = (T)1.;
+        }
+
+        delete []indices;
+    }
+
+    ////////////////////////////////////////////////////////////////////////
     // default destructor
     template<typename T>
 
@@ -2615,9 +2645,9 @@ NDArray<T> NDArray<T>::operator+(const NDArray<T>& other) const {
 
 
 
-    template class ND4J_EXPORT NDArray<float>;
-    template class ND4J_EXPORT NDArray<float16>;
-    template class ND4J_EXPORT NDArray<double>;
+template class ND4J_EXPORT NDArray<float>;
+template class ND4J_EXPORT NDArray<float16>;
+template class ND4J_EXPORT NDArray<double>;
 
 
 #ifndef __CLION_IDE__
