@@ -97,6 +97,8 @@ if(CUDA_BLAS)
         SET(CUDA_SEPARABLE_COMPILATION OFF)
         #set(CUDA_COMPUTE_CAPABILITY "61")
         set(CUDA_COMPUTE_CAPABILITY "35")
+        # make NVCC more verbose to prevent timeouts on CI servers
+        list(APPEND CUDA_NVCC_FLAGS " -v ")
         if ("${EXPERIMENTAL}" STREQUAL "yes")
             list(APPEND CUDA_NVCC_FLAGS " -DEXPERIMENTAL ")
         endif()
