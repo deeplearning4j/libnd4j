@@ -369,8 +369,8 @@ Nd4jPointer GraphExecutioner<T>::executeFlatBuffer(Nd4jPointer pointer) {
 
         variables_vector.push_back(fv);
 
-        nd4j_printf("exporting variable [%s]:\n", var->getName()->c_str());
-        array->printIndexedBuffer(var->getName()->c_str());
+        //nd4j_printf("exporting variable [%s]:\n", var->getName()->c_str());
+        //array->printIndexedBuffer(var->getName()->c_str());
     }
 
     nd4j_debug("Returning %i variables back\n", variables_vector.size());
