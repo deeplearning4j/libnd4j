@@ -25,6 +25,9 @@ namespace nd4j {
             int dH = argI[6];
             int dW = argI[7];
             int isSameMode = argI[8];
+            bool isNCHW = true;
+            if (block.getIArguments()->size() > 9)
+                isNCHW = INT_ARG(9) == 0;
 
             int bS = input->getShapeInfo()[1];
             int iD = input->getShapeInfo()[2];
@@ -114,10 +117,15 @@ namespace nd4j {
 
             REQUIRE_TRUE(x->rankOf() == 4, 0, "Input should have rank of 4, but got %i instead", x->rankOf());
 
+            bool isNCHW = true;
+            if (block.getIArguments()->size() > 9)
+                isNCHW = INT_ARG(9) == 0;
+
             const int bSize = x->sizeAt(0);
             const int inD = x->sizeAt(1);
             const int inY = x->sizeAt(2);
             const int inX = x->sizeAt(3);
+        
 
             std::vector<int> argI = *(block.getIArguments());
             auto z = this->getZ(block);

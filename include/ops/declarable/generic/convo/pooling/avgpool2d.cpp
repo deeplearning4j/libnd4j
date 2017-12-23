@@ -23,6 +23,10 @@ namespace nd4j {
             int pY = argI[4];
             int pX = argI[5];
 
+            bool isNCHW = true;
+            if (block.getIArguments()->size() > 9)
+                isNCHW = INT_ARG(9) == 0;
+
             const bool isSameMode = INT_ARG(8) > 0;
             if (isSameMode)
                 ConvolutionUtils<T>::_calcPadding2D(pY, pX, z->sizeAt(2), z->sizeAt(3), inY, inX, argI[0], argI[1], argI[2], argI[3], argI[6], argI[7]);
@@ -57,6 +61,10 @@ namespace nd4j {
             int dH = argI[6];
             int dW = argI[7];
             int isSameMode = argI[8];
+
+            bool isNCHW = true;
+            if (block.getIArguments()->size() > 9)
+                isNCHW = INT_ARG(9) == 0;
 
             int bS = shapeOf[0];
             int iD = shapeOf[1];

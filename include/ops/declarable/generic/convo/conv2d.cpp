@@ -37,6 +37,9 @@ namespace nd4j {
             const int dY = INT_ARG(6);
             const int dX = INT_ARG(7);
             const bool isSameMode = INT_ARG(8) != 0;
+            bool isNCHW = true;
+            if (block.getIArguments()->size() > 9)
+                isNCHW = INT_ARG(9) == 0;
 
             REQUIRE_TRUE(weights->sizeAt(2) == kY, 0, "Conv2D: weights dim 2 should be equal to %i, but got %i instead. Not a NCHW?", kY, weights->sizeAt(2));
             REQUIRE_TRUE(weights->sizeAt(3) == kX, 0, "Conv2D: weights dim 3 should be equal to %i, but got %i instead. Not a NCHW?", kX, weights->sizeAt(3));
@@ -117,6 +120,10 @@ namespace nd4j {
             const int dX = INT_ARG(7);
             const bool isSameMode = INT_ARG(8) != 0;
 
+            bool isNCHW = true;
+            if (block.getIArguments()->size() > 9)
+                isNCHW = INT_ARG(9) == 0;
+
             int oY = 0;
             int oX = 0;
 
@@ -173,6 +180,14 @@ namespace nd4j {
             const int dY = INT_ARG(6);
             const int dX = INT_ARG(7);
             const bool isSameMode = INT_ARG(8) != 0;
+            bool isNCHW = true;
+            if (block.getIArguments()->size() > 9)
+                isNCHW = INT_ARG(9) == 0;
+
+            if (!isNCHW) {
+                input = input->permute({0, 3, 2, 1});
+                weights = weights->permute({2, 3, 0, 1});
+            }
 
             int oY, oX;
 
@@ -242,6 +257,11 @@ namespace nd4j {
             delete eps2d;
             delete eps6d;
             delete epsilonNext2d;
+
+            if (!isNCHW) {
+                delete input;
+                delete weights;
+            }
 
             return ND4J_STATUS_OK;
         }
