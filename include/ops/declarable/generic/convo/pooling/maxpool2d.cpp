@@ -136,6 +136,9 @@ namespace nd4j {
             int pY = argI[4];
             int pX = argI[5];
 
+            int dY = argI[6];
+            int dX = argI[7];
+
             const bool isSameMode = INT_ARG(8) > 0;
             if (isSameMode)
                 ConvolutionUtils<T>::_calcPadding2D(pY, pX, z->sizeAt(2), z->sizeAt(3), inY, inX, argI[0], argI[1], argI[2], argI[3], argI[6], argI[7]);            // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8 - same mode;

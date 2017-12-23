@@ -34,8 +34,8 @@ namespace nd4j {
             const int sX = INT_ARG(3);
             int pY = INT_ARG(4);
             int pX = INT_ARG(5);
-            const int dY = INT_ARG(6);
-            const int dX = INT_ARG(7);
+            int dY = INT_ARG(6);
+            int dX = INT_ARG(7);
             const bool isSameMode = INT_ARG(8) != 0;
             bool isNCHW = true;
             if (block.getIArguments()->size() > 9)
@@ -43,7 +43,9 @@ namespace nd4j {
 
             if (!isNCHW) {
                 input = input->permute({0, 3, 1, 2});
-                weights = weights->permute({2, 3, 0, 1});
+                input = input->dup('c');
+                weights = weights->permute({3, 2, 0, 1});
+                weights = weights->dup('c');
 
                 input->printShapeInfo("new input");
                 weights->printShapeInfo("new shape");
@@ -120,7 +122,11 @@ namespace nd4j {
                 delete weights;
 
                 output->permutei({0, 2, 3, 1});
-                output->printShapeInfo("final shape");
+                auto f = output->dup('c');
+                f->printShapeInfo("final shape");
+                OVERWRITE_RESULT(f);
+
+                f->printBuffer("conv2d output");
             }
 
             return ND4J_STATUS_OK;
@@ -148,7 +154,7 @@ namespace nd4j {
             int oX = 0;
 
             const int batchSize = shape::sizeAt(inShape, 0);
-            const int outDepth = isNCHW ? shape::sizeAt(wShape, 0) : shape::sizeAt(wShape, 2);
+            const int outDepth = isNCHW ? shape::sizeAt(wShape, 0) : shape::sizeAt(wShape, 3);
             const int inY = isNCHW ? shape::sizeAt(inShape, 2) : shape::sizeAt(inShape, 1);
             const int inX = isNCHW ? shape::sizeAt(inShape, 3) : shape::sizeAt(inShape, 2);
 

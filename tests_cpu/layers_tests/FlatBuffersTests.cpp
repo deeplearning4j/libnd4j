@@ -619,6 +619,18 @@ TEST_F(FlatBuffersTest, nhwc_conv_0) {
     auto result = GraphExecutioner<float>::execute(graph);
     ASSERT_EQ(ND4J_STATUS_OK, result);
 
+    ASSERT_TRUE(graph->getVariableSpace()->hasVariable(11));
+
+    auto z = graph->getVariableSpace()->getVariable(11)->getNDArray();
+
+    z->printShapeInfo("z buffr");
+    z->printIndexedBuffer("z shape");
+/*
+    [[2.96,  0.60],
+    [7.57,  1.50],
+    [-2.29,  -1.79],
+    [13.06,  4.28]]
+*/
     delete graph;
 }
 
