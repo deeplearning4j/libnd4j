@@ -24,8 +24,11 @@ namespace nd4j {
             int pX = argI[5];
 
             bool isNCHW = true;
-            if (block.getIArguments()->size() > 9)
-                isNCHW = INT_ARG(9) == 0;
+            if (block.getIArguments()->size() > 10)
+                isNCHW = INT_ARG(10) == 0;
+
+            if (!isNCHW)
+                x = x->permute({0, 3, 2, 1});
 
             const bool isSameMode = INT_ARG(8) > 0;
             if (isSameMode)
@@ -38,6 +41,11 @@ namespace nd4j {
             x->template applyTransform<simdOps::Pooling2D<T>>(z, argT.data());
 
             STORE_RESULT(*z);
+
+            if (!isNCHW) {
+                delete x;
+                z->permutei({0, 2, 3, 1});
+            }
 
             return ND4J_STATUS_OK;
         }
@@ -63,13 +71,13 @@ namespace nd4j {
             int isSameMode = argI[8];
 
             bool isNCHW = true;
-            if (block.getIArguments()->size() > 9)
-                isNCHW = INT_ARG(9) == 0;
+            if (block.getIArguments()->size() > 10)
+                isNCHW = INT_ARG(10) == 0;
 
             int bS = shapeOf[0];
-            int iD = shapeOf[1];
-            int iH = shapeOf[2];
-            int iW = shapeOf[3];
+            int iD = isNCHW ? shapeOf[1] : shapeOf[3];
+            int iH = isNCHW ? shapeOf[2] : shapeOf[1];
+            int iW = isNCHW ? shapeOf[3] : shapeOf[2];
 
 
             char order = shape::order(inShape); // output order must be equal to input order
