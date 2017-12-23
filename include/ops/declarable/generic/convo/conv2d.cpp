@@ -41,9 +41,24 @@ namespace nd4j {
             if (block.getIArguments()->size() > 9)
                 isNCHW = INT_ARG(9) == 0;
 
+            if (!isNCHW) {
+                input = input->permute({0, 3, 1, 2});
+                weights = weights->permute({2, 3, 0, 1});
+
+                input->printShapeInfo("new input");
+                weights->printShapeInfo("new shape");
+            }
+
+            int batchSize = input->sizeAt(0);
+
+            const int outDepth = weights->sizeAt(0);
+            const int inDepth = weights->sizeAt(1);
+            const int inY = input->shapeOf()[2];
+            const int inX = input->shapeOf()[3];
+
             REQUIRE_TRUE(weights->sizeAt(2) == kY, 0, "Conv2D: weights dim 2 should be equal to %i, but got %i instead. Not a NCHW?", kY, weights->sizeAt(2));
             REQUIRE_TRUE(weights->sizeAt(3) == kX, 0, "Conv2D: weights dim 3 should be equal to %i, but got %i instead. Not a NCHW?", kX, weights->sizeAt(3));
-            REQUIRE_TRUE(weights->sizeAt(1) == input->sizeAt(1), 0, "Conv2D: weights dim 1 should be equal to number of input channels. But got %i vs %i. Not a NCHW?", weights->sizeAt(1), input->sizeAt(1))
+            REQUIRE_TRUE(inDepth == input->sizeAt(1), 0, "Conv2D: weights dim 1 should be equal to number of input channels. But got %i vs %i. Not a NCHW?", weights->sizeAt(1), input->sizeAt(1))
 
             if (bias != nullptr) {
                 REQUIRE_TRUE(weights->sizeAt(0) == bias->lengthOf(), 0, "Conv2D: bias length should be equal to outChannels, but got %i instead", bias->lengthOf());
@@ -52,11 +67,8 @@ namespace nd4j {
             int oY = 0;
             int oX = 0;
 
-            const int batchSize = input->shapeOf()[0];
-            const int outDepth = weights->shapeOf()[0];
-            const int inDepth = weights->shapeOf()[1];
-            const int inY = input->shapeOf()[2];
-            const int inX = input->shapeOf()[3];
+
+
 
             REQUIRE_TRUE(weights->shapeOf()[2] == kY && weights->shapeOf()[3] == kX, 0, "Kernels should have dimensions of [%i, %i], but got [%i, %i] instead", kY, kX, weights->sizeAt(2), weights->sizeAt(3));
 
@@ -103,6 +115,14 @@ namespace nd4j {
 
             STORE_RESULT(*output);
 
+            if (!isNCHW) {
+                delete input;
+                delete weights;
+
+                output->permutei({0, 2, 3, 1});
+                output->printShapeInfo("final shape");
+            }
+
             return ND4J_STATUS_OK;
         }
         
@@ -127,10 +147,10 @@ namespace nd4j {
             int oY = 0;
             int oX = 0;
 
-            const int batchSize = inShape[1];
-            const int outDepth = wShape[1];
-            const int inY = inShape[3];
-            const int inX = inShape[4];
+            const int batchSize = shape::sizeAt(inShape, 0);
+            const int outDepth = isNCHW ? shape::sizeAt(wShape, 0) : shape::sizeAt(wShape, 2);
+            const int inY = isNCHW ? shape::sizeAt(inShape, 2) : shape::sizeAt(inShape, 1);
+            const int inX = isNCHW ? shape::sizeAt(inShape, 3) : shape::sizeAt(inShape, 2);
 
             ConvolutionUtils<T>::calcOutHWpool2D(oY, oX, kY, kX, sY, sX, pY, pX, dY, dX, inY, inX, isSameMode);
 

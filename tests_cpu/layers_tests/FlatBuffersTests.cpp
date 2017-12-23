@@ -594,7 +594,6 @@ TEST_F(FlatBuffersTest, expand_dims) {
     delete graph;
 }
 
-
 TEST_F(FlatBuffersTest, transpose) {
     nd4j::ops::rank<float> op1;
 
@@ -604,6 +603,21 @@ TEST_F(FlatBuffersTest, transpose) {
 
     //auto result = GraphExecutioner<float>::execute(graph);
     //ASSERT_EQ(ND4J_STATUS_OK, result);
+
+    delete graph;
+}
+
+
+
+TEST_F(FlatBuffersTest, nhwc_conv_0) {
+    nd4j::ops::rank<float> op1;
+
+    auto graph = GraphExecutioner<float>::importFromFlatBuffers("./resources/conv_0.fb");
+
+    graph->printOut();
+
+    auto result = GraphExecutioner<float>::execute(graph);
+    ASSERT_EQ(ND4J_STATUS_OK, result);
 
     delete graph;
 }
