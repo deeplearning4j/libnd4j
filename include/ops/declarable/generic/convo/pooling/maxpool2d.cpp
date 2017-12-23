@@ -26,8 +26,8 @@ namespace nd4j {
             int dW = argI[7];
             int isSameMode = argI[8];
             bool isNCHW = true;
-            if (block.getIArguments()->size() > 9)
-                isNCHW = INT_ARG(9) == 0;
+            if (block.getIArguments()->size() > 10)
+                isNCHW = INT_ARG(10) == 0;
 
             int bS = input->getShapeInfo()[1];
             int iD = input->getShapeInfo()[2];
@@ -118,8 +118,11 @@ namespace nd4j {
             REQUIRE_TRUE(x->rankOf() == 4, 0, "Input should have rank of 4, but got %i instead", x->rankOf());
 
             bool isNCHW = true;
-            if (block.getIArguments()->size() > 9)
-                isNCHW = INT_ARG(9) == 0;
+            if (block.getIArguments()->size() > 10)
+                isNCHW = INT_ARG(10) == 0;
+
+            if (!isNCHW)
+                x = x->permute({0, 3, 2, 1});
 
             const int bSize = x->sizeAt(0);
             const int inD = x->sizeAt(1);
@@ -145,7 +148,12 @@ namespace nd4j {
 
             STORE_RESULT(*z);
 
-            //z->printShapeInfo("MaxPool2D result shape");
+            z->printShapeInfo("MaxPool2D result shape");
+            
+            if (!isNCHW) {
+                delete x;
+                z->permutei({0, 2, 3, 1});
+            }
 
             return ND4J_STATUS_OK;
         }
@@ -169,10 +177,14 @@ namespace nd4j {
             int dW = argI[7];
             int isSameMode = argI[8];
 
+            bool isNCHW = true;
+            if (block.getIArguments()->size() > 10)
+                isNCHW = INT_ARG(10) == 0;
+
             int bS = shapeOf[0];
-            int iD = shapeOf[1];
-            int iH = shapeOf[2];
-            int iW = shapeOf[3];
+            int iD = isNCHW ? shapeOf[1] : shapeOf[3];
+            int iH = isNCHW ? shapeOf[2] : shapeOf[1];
+            int iW = isNCHW ? shapeOf[3] : shapeOf[2];
 
             char order = shape::order(inShape); // output order must be equal to input order
 
