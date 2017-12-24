@@ -182,132 +182,104 @@ namespace simdOps {
 				T *extraParams, int *tadShapeInfo, Nd4jIndex *tadOffsets) {
 
 
-			int kernelHeight = (int)extraParams[0];
-			int kernelWidth = (int)extraParams[1];
-			int strideY = (int)extraParams[2];
-			int strideX = (int)extraParams[3];
-			int padHeight = (int)extraParams[4];
-			int padWidth = (int)extraParams[5];
+			int kH = (int)extraParams[0];
+			int kW = (int)extraParams[1];
+			int sH = (int)extraParams[2];
+			int sW = (int)extraParams[3];
+			int pH = (int)extraParams[4];
+			int pW = (int)extraParams[5];
 			int dH = (int)extraParams[6];			//Dilation, height dimension
 			int dW = (int)extraParams[7];			//Dilation, width dimension
 			int poolingMode = (int)extraParams[9];
 			T extraParam0 = extraParams[10];
 
-			int kSize = kernelWidth * kernelHeight;
 
-			int *inShape = shape::shapeOf(xShapeBuffer);
-			int *inStride = shape::stride(xShapeBuffer);
+			int kSize = kH* kW;
 
-			int samples = inShape[0];
-			int depth = inShape[1];
-			int height = inShape[2];
-			int width = inShape[3];
+			int batchSize = shape::sizeAt(xShapeBuffer, 0);
+			int inChannels = shape::sizeAt(xShapeBuffer, 1);
+			int outH = shape::sizeAt(resultShapeBuffer, 2);
+			int outW = shape::sizeAt(resultShapeBuffer, 3);
+			int inH = shape::sizeAt(xShapeBuffer, 2);
+			int inW = shape::sizeAt(xShapeBuffer, 3);
 
-			int strideex = inStride[0];
-			int stridech = inStride[1];
-			int strideh = inStride[2];
-			int stridew = inStride[3];
+            int *strideIn = shape::stride(xShapeBuffer);
+            int *strideOut = shape::stride(resultShapeBuffer);
 
-			int outH = resultShapeBuffer[3];
-			int outW = resultShapeBuffer[4];			
-            int *im2colShapeInfo = tadShapeInfo; // we expect (or not ??) tadShape field to be used here
-			if(im2colShapeInfo==nullptr)
-				im2colShapeInfo = new int[16] {6, samples, depth, kernelHeight, kernelWidth, outH, outW, depth*kernelHeight*kernelWidth*outH*outW, kernelHeight*kernelWidth*outH*outW, kernelWidth*outH*outW, outH*outW, outW, 1, 0, 1, 99};
+//#pragma omp parallel for collapse(2)
+			for(int k = 0; k < inChannels; k++)
+			{
+				for(int p = 0; p < batchSize; p++)
+				{
+					int xx, yy;
+					/* For all output pixels... */
+					T *ptr_output = result + p * strideOut[0] + k * strideOut[1];
+					T *ptr_input = dx + p * strideIn[0] + k * strideIn[1];
+					int i;
+					//#pragma omp simd
+					//for(i = 0; i < outH * outW; i++)
+					//	ptr_output[i] = 0;
 
-            int *outShape = shape::shapeOf(im2colShapeInfo);
-            int *outStride = shape::stride(im2colShapeInfo);
+					for(yy = 0; yy < outH; yy++)
+					{
+						for(xx = 0; xx < outW; xx++)
+						{
+							/* Compute the mean of the input image... */
+							int hstart = yy * sH * dH - pH;
+							int wstart = xx * sW * dW - pW;
+							int hend = nd4j::math::nd4j_min<int>(hstart + kH, inH + pH);
+							int wend = nd4j::math::nd4j_min<int>(wstart + kW, inW + pW);
+							int pool_size = (hend - hstart) * (wend - wstart);
+							hstart = nd4j::math::nd4j_max<int>(hstart, 0);
+							wstart = nd4j::math::nd4j_max<int>(wstart, 0);
+							hend = nd4j::math::nd4j_min<int>(hend, inH);
+							wend = nd4j::math::nd4j_min<int>(wend, inW);
 
-			int height_col = outShape[4];
-			int width_col = outShape[5];
+							T sum = poolingMode == 0 ? (T) -MAX_FLOAT : (T) 0;
 
-			int n = samples * depth * height_col * width_col;
+							int divide_factor = 0;
+							if (poolingMode == 1) {
+								if ((int) extraParam0 == 0)
+									divide_factor = pool_size;
+								else
+									divide_factor = (hend - hstart) * (wend - wstart);
+							}
 
-			int _threads = omp_get_max_threads();
-			int span = (n / _threads) + 1;
+							long kx, ky;
 
+							if (poolingMode == 0) {
+#pragma omp simd reduction(maxT:sum)
+								for (ky = hstart; ky < hend; ky++) {
+									for (kx = wstart; kx < wend; kx++)
+										if (ptr_input[ky * strideIn[2] + kx * strideIn[3]] >= sum)
+											sum = ptr_input[ky * strideIn[2] + kx * strideIn[3]];
+								}
+							} else if (poolingMode == 1) {
+#pragma omp simd reduction(sumT:sum)
+								for (ky = hstart; ky < hend; ky++) {
+									for (kx = wstart; kx < wend; kx++)
+										sum += ptr_input[ky * strideIn[2] + kx * strideIn[3]];
+								}
+							} else if (poolingMode == 2) {
+#pragma omp simd reduction(sumT:sum)
+								for (ky = hstart; ky < hend; ky++) {
+									for (kx = wstart; kx < wend; kx++)
+										sum += nd4j::math::nd4j_pow<T>(nd4j::math::nd4j_abs<T>(ptr_input[ky * strideIn[2] + kx * strideIn[3]]), extraParam0);
+								}
+							}
+							/* Update output */
+							T res = sum;
 
-#pragma omp parallel num_threads(_threads) proc_bind(close)
-            {
-				int tid = omp_get_thread_num();
-				int start = span * tid;
-				int end = span * (tid + 1);
-				if (end > n) end = n;
-                T res;
+							if (poolingMode == 1)
+								res /= divide_factor;
+							else if (poolingMode == 2)
+								res = nd4j::math::nd4j_pow<T>(res, (T) 1.0f / extraParam0);
 
-                for (int index = start; index < end; index++) {
-                    int h_index = index / width_col;
-                    int h_col = h_index % height_col;
-                    int w_col = index % width_col;
-
-                    int c_im = h_index / height_col;
-                    int c_col = c_im * kSize;
-
-                    int depth_im = c_im % depth;
-                    int num_im = c_im / depth;
-                    int h_offset = h_col * strideY - padHeight;
-                    int w_offset = w_col * strideX - padWidth;
-
-                    T *data_col_ptr = result;
-
-                    int i_c = (c_col * height_col + h_col) * width_col + w_col;
-                    data_col_ptr += (c_col * height_col + h_col) * width_col + w_col;
-
-                    T *data_im_ptr = dx;
-
-                    data_im_ptr += num_im * strideex + depth_im * stridech + h_offset * strideh + w_offset * stridew;
-                    res = poolingMode == 0 ? (T) -MAX_FLOAT : (T) 0.0f;
-
-                    for (int i = 0; i < kernelHeight; ++i) {
-                        for (int j = 0; j < kernelWidth; ++j) {
-                            int h_im = h_offset + i * dH;
-                            int w_im = w_offset + j * dW;
-                            int i_f = 0;
-                            int i_c_temp = i_c;
-                            for (int dim = 5; dim >= 0; dim--) {
-                                i_f += (i_c_temp % outShape[dim]) * outStride[dim];
-                                i_c_temp = i_c_temp / outShape[dim];
-                            }
-
-                            T val;
-                            if (h_im >= 0 && w_im >= 0 && h_im < height && w_im < width)
-                                val = data_im_ptr[i * dH * strideh + j * dW * stridew];
-                            else
-                                val = (T) 0.0f;
-
-                            //kernel[i * kernelHeight + j] = val;
-                            // max
-                            if (poolingMode == 0) {
-                                if (res < val)
-                                    res = val;
-                            // avg
-                            } else if (poolingMode == 1) {
-                                res += val;
-
-                            // phorm
-                            } else if (poolingMode == 2) {
-                                res += nd4j::math::nd4j_pow<T>(nd4j::math::nd4j_abs<T>(val), extraParam0);
-                            }
-
-                            //result[i_f] = (h_im >= 0 && w_im >= 0 && h_im < height && w_im < width) ? data_im_ptr[i * strideh + j*stridew] : 0;
-                            data_col_ptr += height_col * width_col;
-                            i_c += height_col * width_col;
-                        }
-                    }
-
-                    // avg final step
-                    if (poolingMode == 1) {
-                        res /= kSize;
-
-                    // pnorm final step
-                    } else if (poolingMode == 2) {
-                        res = nd4j::math::nd4j_pow<T>(res, (T) 1.0f /  extraParam0);
-                    }
-
-                    result[index] = res;
-                }
-            }
-			if(tadShapeInfo==nullptr)
-				delete[] im2colShapeInfo;
+							*ptr_output++ += res;
+						}
+					}
+				}
+			}
 		}
 
 		op_def static T op(T d1, T *params) {

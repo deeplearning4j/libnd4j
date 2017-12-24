@@ -29,6 +29,9 @@ namespace nd4j {
             int dY = argI[6];
             int dX = argI[7];
 
+            int oY = 0;
+            int oX = 0;
+
             bool isNCHW = true;
             if (block.getIArguments()->size() > 10)
                 isNCHW = INT_ARG(10) == 0;
@@ -37,18 +40,20 @@ namespace nd4j {
             const int inX = isNCHW ? x->sizeAt(3) : x->sizeAt(2);
 
             if (!isNCHW) {
-                x->printBuffer("avgpool input");
-
                 x = x->permute({0, 3, 1, 2});
-                x = x->dup('c');
             }
 
             const bool isSameMode = INT_ARG(8) > 0;
-            if (isSameMode)
-                ConvolutionUtils<T>::_calcPadding2D(pY, pX, z->sizeAt(2), z->sizeAt(3), inY, inX, argI[0], argI[1], argI[2], argI[3], argI[6], argI[7]);
+
+            ConvolutionUtils<T>::calcOutHWpool2D(oY, oX, kY, kX, sY, sX, pY, pX, dY, dX, inY, inX, isSameMode);
+
+            if (isSameMode) {
+                ConvolutionUtils<T>::_calcPadding2D(pY, pX, oY, oX, inY, inX, argI[0], argI[1],
+                                                    argI[2], argI[3], argI[6], argI[7]);
+            }
 
             // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8,9 - poolingMode; 10 - divisor;
-            std::vector<T> argT = {(T) kY, (T) kX, (T) sY, (T) sX, (T) pY, (T) pX, (T) dY, (T)dX, (T)1.f, (T)1.f, (T)1.f};
+            std::vector<T> argT = {(T) kY, (T) kX, (T) sY, (T) sX, (T) pY, (T) pX, (T) dY, (T)dX, (T)1.f, (T)1.f, (T) argI[9], (T) oY, (T) oX};
 
 
             x->template applyTransform<simdOps::Pooling2D<T>>(z, argT.data());
@@ -60,7 +65,7 @@ namespace nd4j {
                 z->permutei({0, 2, 3, 1});
 
                 z->printShapeInfo("avg pool shape");
-                z->dup('c')->printIndexedBuffer("avg pool final");
+                z->printIndexedBuffer("avg pool final");
             }
 
             return ND4J_STATUS_OK;
