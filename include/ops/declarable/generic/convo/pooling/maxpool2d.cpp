@@ -165,14 +165,14 @@ namespace nd4j {
 
             STORE_RESULT(*z);
 
-            z->printShapeInfo("MaxPool2D result shape");
+            //z->printShapeInfo("MaxPool2D result shape");
             
             if (!isNCHW) {
                 delete x;
                 z->permutei({0, 2, 3, 1});
 
-                z->printShapeInfo("max pool shape");
-                z->printIndexedBuffer("maxpool final");
+                //z->printShapeInfo("max pool shape");
+                //z->printIndexedBuffer("maxpool final");
             }
 
             return ND4J_STATUS_OK;

@@ -63,8 +63,8 @@ namespace nd4j {
                 delete x;
                 z->permutei({0, 2, 3, 1});
 
-                z->printShapeInfo("pnorm pool shape");
-                z->printIndexedBuffer("pnorm pool final");
+                //z->printShapeInfo("pnorm pool shape");
+                //z->printIndexedBuffer("pnorm pool final");
             }
 
             return ND4J_STATUS_OK;

@@ -64,8 +64,8 @@ namespace nd4j {
                 delete x;
                 z->permutei({0, 2, 3, 1});
 
-                z->printShapeInfo("avg pool shape");
-                z->printIndexedBuffer("avg pool final");
+                //z->printShapeInfo("avg pool shape");
+                //z->printIndexedBuffer("avg pool final");
             }
 
             return ND4J_STATUS_OK;

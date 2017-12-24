@@ -43,12 +43,14 @@ namespace nd4j {
 
             if (!isNCHW) {
                 input = input->permute({0, 3, 1, 2});
-                input = input->dup('c');
-                weights = weights->permute({3, 2, 0, 1});
-                weights = weights->dup('c');
+                //input = input->dup('c');
+                auto weightsT = weights->permute({3, 2, 0, 1});
+                weights = weightsT->dup('c');
 
-                input->printShapeInfo("new input");
-                weights->printShapeInfo("new shape");
+                delete weightsT;
+
+                //input->printShapeInfo("new input");
+                //weights->printShapeInfo("new shape");
             }
 
             int batchSize = input->sizeAt(0);
@@ -122,11 +124,11 @@ namespace nd4j {
                 delete weights;
 
                 output->permutei({0, 2, 3, 1});
-                auto f = output->dup('c');
-                f->printShapeInfo("final shape");
-                OVERWRITE_RESULT(f);
+                //auto f = output->dup('c');
+                //f->printShapeInfo("final shape");
+                //OVERWRITE_RESULT(f);
 
-                f->printBuffer("conv2d output");
+                //output->printIndexedBuffer("conv2d output");
             }
 
             return ND4J_STATUS_OK;
