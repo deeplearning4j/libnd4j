@@ -790,8 +790,9 @@ TEST_F(DeclarableOpsTests3, Test_AvgPool_1) {
     NDArrayFactory<float>::linspace(1, x);
 
     nd4j::ops::avgpool2d<float> op;
-    auto result = op.execute({&x}, {}, {3, 3, 3, 3, 0, 0, 1, 1, 1, 1, 1});
-
+    //                                  kY  kX  sY  sX  pY  pX  dY  dX  M   P
+    auto result = op.execute({&x}, {}, {3,  3,  3,  3,  0,  0,  1,  1,  1,  0,  1});
+    //                                  0   1   2   3   4   5   6   7   8   9   10
     auto z = result->at(0);
 
     z->printShapeInfo("z shape");
