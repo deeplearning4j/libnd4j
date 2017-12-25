@@ -163,3 +163,21 @@ TEST_F(DeclarableOpsTests4, Test_BiasAdd_NHWC_1) {
     delete result;
 }
 
+TEST_F(DeclarableOpsTests4, Test_BiasAdd_NCHW_1) {
+    NDArray<float> x('c', {2, 2, 3, 3});
+    NDArray<float> bias('c', {1, 2}, {1, 2});
+    NDArray<float> exp('c', {2, 2, 3, 3}, {1.,  2.,  1.,  2.,  1.,  2.,  1.,  2.,  1.,  2.,  1.,  2.,  1.,  2.,  1.,  2.,  1.,  2., 1.,  2.,  1.,  2.,  1.,  2.,  1.,  2.,  1.,  2.,  1.,  2.,  1.,  2.,  1.,  2.,  1.,  2.});
+
+    nd4j::ops::biasadd<float> op;
+    auto result = op.execute({&x, &bias}, {}, {});
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}
+
