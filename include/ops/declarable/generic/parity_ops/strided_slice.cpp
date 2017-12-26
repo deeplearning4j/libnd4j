@@ -95,12 +95,16 @@ namespace nd4j {
                     else
                         indices.push_back(NDIndex::interval(start, stop, stride));
                 } else {
-                    indices.push_back(NDIndex::all());
+                    if (shrinks[e] != 0)
+                        indices.push_back(NDIndex::all());
                 }
             }
 
 
             auto sub = x->subarray(indices);
+
+            sub->printShapeInfo("sub shape");
+            sub->printIndexedBuffer("sub buffr");
 
             std::vector<int> new_axis_positions;
             if (new_axis_mask != 0) {
