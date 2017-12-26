@@ -24,6 +24,8 @@ namespace nd4j {
             std::vector<int> end;
             std::vector<int> strides;
 
+            bool isLive = false;
+
             std::vector<int> args;
 
             // statically evaluated 
@@ -36,6 +38,8 @@ namespace nd4j {
                     args.emplace_back(INT_ARG(e));
 
             } else if (block.width() >= 3) {
+                isLive = true;
+
                 auto v_begin = INPUT_VARIABLE(1);
                 auto v_end = INPUT_VARIABLE(2);
 
@@ -102,10 +106,7 @@ namespace nd4j {
 
 
             auto sub = x->subarray(indices);
-
-            sub->printShapeInfo("sub shape");
-            sub->printIndexedBuffer("sub buffr");
-
+            
             std::vector<int> new_axis_positions;
             if (new_axis_mask != 0) {
                 new_axis_positions = BitwiseUtils::valueBits(new_axis_mask);
@@ -120,10 +121,11 @@ namespace nd4j {
                 sub->reshapei(sub->ordering(), newShape);
             }
 
-            z->assign(sub);
-
-            STORE_RESULT(*z);
-            delete sub;
+            if (!isLive) {
+                z->assign(sub);
+                delete sub;
+            } else
+                OVERWRITE_RESULT(sub);
 
             return ND4J_STATUS_OK;
         }
