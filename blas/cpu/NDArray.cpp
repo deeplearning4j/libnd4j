@@ -2027,17 +2027,6 @@ bool NDArray<T>::isUnitary() {
     NDArray<T>* NDArray<T>::subarray(IndicesList& idx) const {
         // scalar subarray edge case
         if (idx.isScalar()) {
-            int *newShape;
-            ALLOCATE(newShape, _workspace, shape::shapeInfoLength(2), int);
-            newShape[0] = 2;
-            newShape[1] = 1;
-            newShape[2] = 1;
-            newShape[3] = 1;
-            newShape[4] = 1;
-            newShape[5] = 0;
-            newShape[6] = 1;
-            newShape[7] = 99;
-
             auto pnt = idx.at(0)->getIndices().at(0);
             return new NDArray<T>('c', {1, 1}, {this->getScalar(pnt)});   
         }

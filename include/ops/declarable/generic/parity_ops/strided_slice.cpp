@@ -186,20 +186,24 @@ namespace nd4j {
                 }
             }
 
+            nd4j_printv("shape before shrink: ", shape);
+
             // shape reduction part, applies only to arrays with rank > 2
             if (shrink_axis_mask != 0) {
                 std::vector<int> shrinks = BitwiseUtils::valueBits(shrink_axis_mask);
                 std::vector<int> shrinked;
                 for (int e = 0; e < shape.size(); e++) {
                     if (shrinks[e] == 1) {
-                        // noop
-                    } else {
                         shrinked.push_back(shape[e]);
+                    } else {
+                        // no-op
                     }
                 }
 
                 shape = shrinked;
             }
+
+            nd4j_printv("shape after shrink: ", shape);
 
             // we don't want shape ranks below 2
             if (shape.size() < 2)

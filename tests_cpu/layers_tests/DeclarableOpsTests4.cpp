@@ -265,3 +265,26 @@ TEST_F(DeclarableOpsTests4, Test_StridedSlice_3) {
 
     delete result;
 }
+
+
+TEST_F(DeclarableOpsTests4, Test_StridedSlice_4) {
+    NDArray<float> x('c', {1, 2}, {5, 2});
+    NDArray<float> a('c', {1, 1}, {0});
+    NDArray<float> b('c', {1, 1}, {1});
+    NDArray<float> c('c', {1, 1}, {1});
+    NDArray<float> exp('c', {1, 1}, {5.0});
+
+    nd4j::ops::strided_slice<float> op;
+    auto result = op.execute({&x, &a, &b, &c}, {}, {0, 0, 0, 0, 1, 0, 1, 1});
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    //z->printIndexedBuffer("Z");
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}
