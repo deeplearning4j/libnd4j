@@ -10,7 +10,7 @@ namespace nd4j {
             auto shapeArray = INPUT_VARIABLE(0);
             
             T scalar = 0;
-            if (block.getIArguments()->size() > 0) {
+            if (block.getTArguments()->size() > 0) {
                 scalar = T_ARG(0);
             } else if (block.width() > 1) {
                 auto scArr = INPUT_VARIABLE(1);
