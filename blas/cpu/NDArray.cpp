@@ -2475,7 +2475,18 @@ NDArray<T> NDArray<T>::operator+(const NDArray<T>& other) const {
         else
             *this = this->template applyTrueBroadcast<simdOps::Add<T>>(other);
     }
+
+
+    template<typename T>
+    void NDArray<T>::operator+=(const T other) {    
+        functions::scalar::ScalarTransform<T>::template transform<simdOps::Add<T>>(this->_buffer, this->_shapeInfo, this->_buffer, this->_shapeInfo, other, nullptr);
+    }
     
+    template<typename T>
+    void NDArray<T>::operator-=(const T other) {    
+        functions::scalar::ScalarTransform<T>::template transform<simdOps::Subtract<T>>(this->_buffer, this->_shapeInfo, this->_buffer, this->_shapeInfo, other, nullptr);
+    }
+
     ////////////////////////////////////////////////////////////////////////
     // subtraction operator array - array
     template<typename T>

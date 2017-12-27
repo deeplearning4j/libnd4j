@@ -705,6 +705,9 @@ namespace nd4j {
         *  other - input array to add
         */
         void operator+=(const NDArray<T>& other);
+
+        void operator+=(const T other);
+        void operator-=(const T other);
         
         /**
         *  subtraction operator: array - other
@@ -1159,7 +1162,7 @@ FORCEINLINE bool NDArray<T>::isRowVector() const {
 template<typename T>
 FORCEINLINE bool NDArray<T>::isScalar() const {
     
-    return this->lengthOf() == 1;
+    return shape::isScalar(this->_shapeInfo);
 }
 
 // accessing operator for matrix, i - absolute index
