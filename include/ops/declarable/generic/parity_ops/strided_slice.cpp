@@ -7,6 +7,16 @@
 
 namespace nd4j {
     namespace ops {
+
+        void _preprocess_strided_slice(IndicesList* indicesList, std::vector<int>* final_shape, std::vector<int>& input_shape, std::vector<int>& begin, std::vector<int>& end, std::vector<int>& strides, int begin_mask, int ellipsis_mask, int end_mask, int new_axis_mask, int shrink_axis_mask) {
+            std::vector<int> shrinks = BitwiseUtils::valueBits(shrink_axis_mask);
+
+            for (int e = 0; e < (int) input_shape.size(); e++) {
+
+            }
+        }
+
+
         CUSTOM_OP_IMPL(strided_slice, 1, 1, false, 0, 5) {
             auto x = INPUT_VARIABLE(0);
 
@@ -80,51 +90,20 @@ namespace nd4j {
 
             auto z = OUTPUT_VARIABLE(0);
 
-            Nd4jIndex offset = 0;
-            Nd4jIndex length = 1;
             IndicesList indices;
-            std::vector<int> shrinks = BitwiseUtils::valueBits(shrink_axis_mask);
-
-            for (int e = 0; e < x->rankOf(); e++) {
-                if (e < begin.size()) {
-                    auto start = begin[e];
-                    auto stop = end[e];
-                    auto stride = strides[e];
-                    auto elements = (stop - start) / stride;
-
-                    if (shrink_axis_mask != 0 && shrinks[e] != 0)
-                        indices.push_back(NDIndex::point(start));
-                    else
-                        indices.push_back(NDIndex::interval(start, stop, stride));
-                } else {
-                        indices.push_back(NDIndex::all());
-                }
-            }
-
+            std::vector<int> input_shape = x->getShapeAsVector();
+            _preprocess_strided_slice(&indices, nullptr, input_shape, begin, end, strides, begin_mask, ellipsis_mask, end_mask, new_axis_mask, shrink_axis_mask);
 
             auto sub = x->subarray(indices);
 
-            sub->printShapeInfo("sub shape");
-            
-            std::vector<int> new_axis_positions;
-            if (new_axis_mask != 0) {
-                new_axis_positions = BitwiseUtils::valueBits(new_axis_mask);
-
-                std::vector<int> newShape = sub->getShapeAsVector();
-
-                for (int e = 0; e < sub->rankOf(); e++) {
-                    if (new_axis_positions[e] == 1)
-                        newShape.insert(newShape.begin() + e, 1);
-                }
-
-                sub->reshapei(sub->ordering(), newShape);
+            if (!isLive)
+                z->assign(sub);
+            else {
+                auto stb = sub->dup(x->ordering());
+                OVERWRITE_RESULT(stb);
             }
 
-            if (!isLive) {
-                z->assign(sub);
-                delete sub;
-            } else
-                OVERWRITE_RESULT(sub);
+            delete sub;
 
             return ND4J_STATUS_OK;
         }
@@ -160,58 +139,18 @@ namespace nd4j {
             ShapeUtils<T>::copyVectorPart(strides, args, elements, elements * 2);
 
             int *newShape;
-
-            Nd4jIndex length = 1;
+            std::vector<int> input_shape(shape::rank(inShape));
             std::vector<int> shape;
-            // depending on existance of specific shapes - we should calculate result array shape
-            for (int e = 0; e < shape::rank(inShape); e++) {
-                if (e < begin.size()) {
-                    auto start = begin[e];
-                    auto stop = end[e];
-                    auto stride = strides[e];
 
-                    int els = 0;
-                    for (int i = start; i < stop; i += stride)
-                        els++;
+            for (int e = 0; e < shape::rank(inShape); e++)
+                input_shape[e] = shape::shapeOf(inShape)[e];
 
-                    shape.push_back(els);
-
-                    length *= els;
-                } else {
-                    int els = shape::shapeOf(inShape)[e];
-                    shape.push_back(els);
-
-                    length *= els;
-                }
-            }
-
-            nd4j_printv("shape before shrink: ", shape);
-
-            // shape reduction part, applies only to arrays with rank > 2
-            if (shrink_axis_mask != 0) {
-                std::vector<int> shrinks = BitwiseUtils::valueBits(shrink_axis_mask);
-                std::vector<int> shrinked;
-                for (int e = 0; e < shape.size(); e++) {
-                    if (shrinks[e] == 1) {
-                        shrinked.push_back(shape[e]);
-                    } else {
-                        // no-op
-                    }
-                }
-
-                shape = shrinked;
-            }
+            _preprocess_strided_slice(nullptr, &shape, input_shape, begin, end, strides, begin_mask, ellipsis_mask, end_mask, new_axis_mask, shrink_axis_mask);
 
             nd4j_printv("shape after shrink: ", shape);
 
-            // we don't want shape ranks below 2
-            if (shape.size() < 2)
-                shape.insert(shape.begin(), 1);
-
             ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(shape.size()), int);
             shape::shapeBuffer(shape.size(), shape.data(), newShape);
-
-            //shape::printShapeInfoLinear(newShape);
 
             return new ShapeList(newShape);
         }

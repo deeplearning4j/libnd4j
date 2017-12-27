@@ -319,7 +319,7 @@ TEST_F(IndexingTests, Live_Slice_1) {
 
     auto z = result->at(0);
 
-    //z->printShapeInfo("z shape");
+    z->printShapeInfo("z shape");
     
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
@@ -342,7 +342,7 @@ TEST_F(IndexingTests, Test_StridedSlice_1) {
 
     auto z = result->at(0);
 
-    //z->printIndexedBuffer("Z");
+    z->printIndexedBuffer("Z");
 
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
