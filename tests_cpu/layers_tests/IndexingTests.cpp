@@ -200,6 +200,33 @@ TEST_F(IndexingTests, MaskedSlice_0) {
 }
 
 
+TEST_F(IndexingTests, MaskedSlice_00) {
+    NDArray<float> matrix('c', {3, 5});
+    auto tads = NDArrayFactory<float>::allTensorsAlongDimension(&matrix, {1});
+    for (int e = 0; e < tads->size(); e++) {
+        tads->at(e)->assign((float) (e+1));
+    }
+
+    NDArray<float> exp('c', {1, 2}, {2, 2});
+
+
+    nd4j::ops::strided_slice<float> op;
+    auto result = op.execute({&matrix}, {}, {0,0,0,0,0,   1, 1, 2, 3, 1, 1});
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    z->printShapeInfo("z");
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+    delete tads;
+}
+
+
 TEST_F(IndexingTests, MaskedSlice_1) {
     NDArray<float> matrix('c', {3, 5});
     auto tads = NDArrayFactory<float>::allTensorsAlongDimension(&matrix, {1});

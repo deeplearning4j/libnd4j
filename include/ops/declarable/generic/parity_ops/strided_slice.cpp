@@ -105,7 +105,6 @@ namespace nd4j {
         };
 
         bool _preprocess_strided_slice(IndicesList* indicesList, std::vector<int>* final_shape, std::vector<int>& input_shape, std::vector<int>& begin, std::vector<int>& end, std::vector<int>& strides, int begin_mask, int ellipsis_mask, int end_mask, int new_axis_mask, int shrink_axis_mask, bool* is_identity, bool* is_simple_slice, bool* slice_dim0) {
-            std::vector<int> shrinks = BitwiseUtils::valueBits(shrink_axis_mask);
             std::vector<int> preshape;
 
             bool ellipsis_seen = false;
@@ -121,6 +120,20 @@ namespace nd4j {
                                         new_axis_mask,
                                         shrink_axis_mask};
 
+            for (int i = 0; i < sparse_spec.dims; i++) {
+                if (ellipsis_seen && ((1 << i) & new_axis_mask) != 0) {
+                    sparse_spec.num_add_axis_after_ellipsis++;
+                }
+                if ((1 << i) & ellipsis_mask) {
+                    ellipsis_seen = true;
+                }
+            }
+            // If no ellipsis insert one at the end
+            if (!ellipsis_seen) {
+                sparse_spec.ellipsis_mask |= (1 << sparse_spec.dims);
+                sparse_spec.dims++;  // this effects loop iteration below
+            }
+
             StridedSliceDenseSpec dense_spec = {(int) input_shape.size(), 0, 0, false, false, begin, end, strides};
             if (!dense_spec.buildDenseSpec(sparse_spec))
                 return false;
@@ -131,16 +144,18 @@ namespace nd4j {
                 int stride_idx = strides[e];
                 int size_idx = input_shape[e];
 
+                bool shrink_i = (dense_spec.shrink_axis_mask & (1 << e));
+
                 if (stride_idx == 0) {
                     nd4j_printf("Stride is 0 at index %i\n", e);
                     return false;
                 }
                 if (size_idx == -1) {
-                    preshape.emplace_back(shrinks[e] == 1 ? : - 1);
+                    preshape.emplace_back(shrink_i ? 1 : - 1);
                     continue;
                 }
 
-                const std::array<int, 2> masks = {{begin_mask & (1 << e), end_mask & (1 << e)}};
+                const std::array<int, 2> masks = {{dense_spec.begin_mask & (1 << e), dense_spec.end_mask & (1 << e)}};
                 const std::array<int, 2> valid_range = {{stride_idx > 0 ? 0 : -1, stride_idx > 0 ? size_idx : size_idx - 1}};
 
                 auto canonical = [stride_idx, e, size_idx, masks, valid_range](int x, int c) {
@@ -152,7 +167,7 @@ namespace nd4j {
                     }
                 };
 
-                if (shrinks[e] && stride_idx <= 0) {
+                if (shrink_i && stride_idx <= 0) {
                     nd4j_printf("StridedSlice: only stride 1 allowed on non-range indexing\n", e);
                     return false;
                 }
@@ -162,7 +177,7 @@ namespace nd4j {
                 const bool begin_and_end_masked = (begin_mask & (1 << e)) && (end_mask & (1 << e));
 
                 if (dense_spec.begin_valid && dense_spec.end_valid) {
-                    if (shrinks[e]) {
+                    if (shrink_i) {
                         int x_fwd = begin_idx < 0 ? size_idx + begin_idx : begin_idx;
                         begin_idx = x_fwd;
                         end_idx = begin_idx + 1;
@@ -184,7 +199,7 @@ namespace nd4j {
                 if (dense_spec.begin_valid && dense_spec.end_valid) {
                     interval_length = end_idx - begin_idx;
                     known_interval = true;
-                } else if (shrinks[e]) {
+                } else if (shrink_i) {
                     interval_length = 1;
                     known_interval = true;
                 } else if (begin_and_end_masked) {
@@ -211,6 +226,22 @@ namespace nd4j {
                     preshape.emplace_back(-1);
                 }
             }
+
+
+            std::vector<int> postshape;
+            nd4j_printv("Preshape: ", preshape);
+
+            final_shape->clear();
+            for (auto gather_index : dense_spec.final_shape_gather_indices) {
+                if (gather_index >= 0) {
+                    final_shape->emplace_back(preshape.at(gather_index));
+                } else if (gather_index == kNewAxis) {
+                    final_shape->emplace_back(1);
+                }
+            }
+
+            nd4j_printv("Preshape: ", preshape);
+            nd4j_printv("Postshape: ", *final_shape);
         }
 
 
@@ -283,10 +314,11 @@ namespace nd4j {
 
             IndicesList indices;
             std::vector<int> input_shape = x->getShapeAsVector();
+            std::vector<int> final_shape;
             bool is_identity;
             bool is_simple_slice;
             bool is_dim0;
-            REQUIRE_TRUE(_preprocess_strided_slice(&indices, nullptr, input_shape, begin, end, strides, begin_mask, ellipsis_mask, end_mask, new_axis_mask, shrink_axis_mask, &is_identity, &is_simple_slice, &is_dim0), 0, "StridedSlice: shape calculation failed");
+            REQUIRE_TRUE(_preprocess_strided_slice(&indices, &final_shape, input_shape, begin, end, strides, begin_mask, ellipsis_mask, end_mask, new_axis_mask, shrink_axis_mask, &is_identity, &is_simple_slice, &is_dim0), 0, "StridedSlice: shape calculation failed");
 
             auto sub = x->subarray(indices);
 
