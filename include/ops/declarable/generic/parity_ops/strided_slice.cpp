@@ -146,6 +146,8 @@ namespace nd4j {
             if (!dense_spec.buildDenseSpec(sparse_spec))
                 return false;
 
+            nd4j_printv("Input shape: ", input_shape);
+
             for (int e = 0; e < (int) input_shape.size(); e++) {
                 int begin_idx = begin[e];
                 int end_idx = end[e];
@@ -229,6 +231,14 @@ namespace nd4j {
                     } else {
                         size_i = interval_length / stride_idx + (interval_length % stride_idx != 0 ? 1 : 0);
                     }
+                
+                    if (indicesList != nullptr) {
+                        if (interval_length > 1)
+                            indicesList->push_back(NDIndex::interval(begin_idx, end_idx, stride_idx));
+                        else if (interval_length == 1)
+                            indicesList->push_back(NDIndex::point(begin_idx));
+                    }
+
                     preshape.emplace_back(size_i);
                 } else {
                     preshape.emplace_back(-1);
