@@ -72,6 +72,11 @@ namespace nd4j {
         NDArray(T *buffer = nullptr, int *shapeInfo = nullptr, nd4j::memory::Workspace* workspace = nullptr);
         
         /**
+         * Constructor for scalar NDArray
+         */
+        NDArray(T scalar);
+
+        /**
         *  copy constructor
         */
         NDArray(const NDArray<T>& other);

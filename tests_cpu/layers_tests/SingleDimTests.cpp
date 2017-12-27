@@ -23,6 +23,7 @@ TEST_F(SingleDimTests, Test_Create_1) {
     ASSERT_EQ(1, x.rankOf());
     ASSERT_TRUE(x.isVector());
     ASSERT_TRUE(x.isRowVector());
+    ASSERT_FALSE(x.isMatrix());
 }
 
 TEST_F(SingleDimTests, Test_Add_1) {

@@ -3199,6 +3199,9 @@ __host__ __device__
 #endif
 
     INLINEDEF Nd4jIndex length(int *shapeInfo) {
+        if (shape::rank(shapeInfo) == 0)
+            return 1L;
+
         return shape::prodLong(shape::shapeOf(shapeInfo), shape::rank(shapeInfo));
     }
 
@@ -3339,6 +3342,8 @@ __host__ __device__
 #endif
 
     INLINEDEF int isScalar(int *info) {
+        if (shape::rank(info) == 0)
+            return 1;
         if (shape::rank(info) > 2)
             return 0;
         if (shape::rank(info) == 1)
@@ -3534,6 +3539,9 @@ __host__ __device__
         if (shapeA[0] != shapeB[0])
             return false;
 
+        if (shapeA[0] == 0)
+            return true;
+
         // we do full comparison here
         int length = shape::shapeInfoLength(shapeA[0]);
 
@@ -3567,6 +3575,9 @@ __host__ __device__
     INLINEDEF bool equalsSoft(int *shapeA, int *shapeB) {
         if (shapeA[0] != shapeB[0])
             return false;
+
+        if (shapeA[0] == 0)
+            return true;
 
         // we compare only shapes, and ignoring stride & ews
         int length = shapeA[0];
