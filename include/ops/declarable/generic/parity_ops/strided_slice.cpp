@@ -319,6 +319,16 @@ namespace nd4j {
             int delta = dim_values % 3;
             int elements = dim_values / 3;
 
+            // if that's live - shape will be resolved in runtime
+            if (dim_values == 0) {
+                int *newShape;
+                std::vector<int> shape({1, 1});
+                ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(shape.size()), int);
+                shape::shapeBuffer(shape.size(), shape.data(), newShape);
+
+                return new ShapeList(newShape);
+            }
+
             int delta2 = dim_values / x_rank;
 
             std::vector<int> begin;
