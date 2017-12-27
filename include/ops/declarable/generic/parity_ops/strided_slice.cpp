@@ -104,6 +104,14 @@ namespace nd4j {
                 }
         };
 
+        void vectorize(std::vector<int>& input_shape) {
+            if (input_shape.size() == 2 && input_shape[0] == 1) {
+                int v = input_shape[1];
+                input_shape.clear();
+                input_shape.emplace_back(v);
+            }
+        }
+
         bool _preprocess_strided_slice(IndicesList* indicesList, std::vector<int>* final_shape, std::vector<int>& input_shape, std::vector<int>& begin, std::vector<int>& end, std::vector<int>& strides, int begin_mask, int ellipsis_mask, int end_mask, int new_axis_mask, int shrink_axis_mask, bool* is_identity, bool* is_simple_slice, bool* slice_dim0) {
             std::vector<int> preshape;
 
@@ -151,7 +159,7 @@ namespace nd4j {
                     return false;
                 }
                 if (size_idx == -1) {
-                    preshape.emplace_back(shrink_i ? 1 : - 1);
+                    preshape.emplace_back(shrink_i ? 1 : -1);
                     continue;
                 }
 
@@ -318,6 +326,9 @@ namespace nd4j {
             bool is_identity;
             bool is_simple_slice;
             bool is_dim0;
+
+            // FIXME: remove this method once we get 1D vectors supported
+            vectorize(input_shape);
             REQUIRE_TRUE(_preprocess_strided_slice(&indices, &final_shape, input_shape, begin, end, strides, begin_mask, ellipsis_mask, end_mask, new_axis_mask, shrink_axis_mask, &is_identity, &is_simple_slice, &is_dim0), 0, "StridedSlice: shape calculation failed");
 
             auto sub = x->subarray(indices);
@@ -385,9 +396,22 @@ namespace nd4j {
             bool is_identity;
             bool is_simple_slice;
             bool is_dim0;
+
+            // FIXME: remove this, once we bring in 1D NDArrays 
+            vectorize(input_shape);
             bool result = _preprocess_strided_slice(nullptr, &shape, input_shape, begin, end, strides, begin_mask, ellipsis_mask, end_mask, new_axis_mask, shrink_axis_mask, &is_identity, &is_simple_slice, &is_dim0);
 
             nd4j_printv("shape after shrink: ", shape);
+            
+            // scalar edge case
+            if (shape.empty()) {
+                shape.emplace_back(1);
+                shape.emplace_back(1);
+            } else if (shape.size() == 1) {
+                shape.insert(shape.begin(), 1);
+            }
+
+            nd4j_printv("shape after normalization: ", shape);
 
             ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(shape.size()), int);
             shape::shapeBuffer(shape.size(), shape.data(), newShape);
