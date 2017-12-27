@@ -260,6 +260,8 @@ namespace nd4j {
 
             nd4j_printv("Preshape: ", preshape);
             nd4j_printv("Postshape: ", *final_shape);
+
+            return true;
         }
 
 
@@ -347,6 +349,15 @@ namespace nd4j {
                 auto z = OUTPUT_VARIABLE(0);
                 z->assign(sub);
             } else {
+
+                // FIXME: yet another fix for missing 1D shapes
+                if (final_shape.size() == 1) {
+                    final_shape.insert(final_shape.begin(), 1);
+                }
+
+                if (final_shape.size() >= 2)
+                    sub->reshapei(x->ordering(), final_shape);
+
                 auto stb = sub->dup(x->ordering());
                 OVERWRITE_RESULT(stb);
             }
