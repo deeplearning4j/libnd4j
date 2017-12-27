@@ -62,7 +62,7 @@ namespace nd4j {
                                     this->final_shape_gather_indices.push_back(full_index);
                                 }
                             } else if ((1 << e) & sparse_spec.new_axis_mask) {
-                                this->final_shape_gather_indices.push_back(kNewAxis);
+                                this->final_shape_gather_indices.emplace_back(kNewAxis);
                             } else {
                                 if (full_index == this->begin.size()) {
                                     nd4j_printf("Index out of range: %i out of %i\n", full_index, this->dims);
@@ -71,7 +71,7 @@ namespace nd4j {
 
                                 // Gather slicing spec into appropriate index
                                 if (sparse_spec.begin_tensor != nullptr)
-                                    this->begin[full_index] = sparse_spec.begin_tensor->at(0);
+                                    this->begin[full_index] = sparse_spec.begin_tensor->at(e);
                                 
                                 
                                 if (sparse_spec.end_tensor != nullptr)
