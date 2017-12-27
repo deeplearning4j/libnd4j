@@ -1,6 +1,8 @@
 //
 // Created by raver119 on 12.10.2017.
 //
+
+#include <array>
 #include <ops/declarable/CustomOperations.h>
 #include <helpers/ShapeUtils.h>
 #include <helpers/BitwiseUtils.h>
@@ -8,23 +10,205 @@
 namespace nd4j {
     namespace ops {
 
-        bool _preprocess_strided_slice(IndicesList* indicesList, std::vector<int>* final_shape, std::vector<int>& input_shape, std::vector<int>& begin, std::vector<int>& end, std::vector<int>& strides, int begin_mask, int ellipsis_mask, int end_mask, int new_axis_mask, int shrink_axis_mask) {
+        constexpr int kShrinkAxis = -1, kNewAxis = -2;
+
+        struct StridedSliceSparseSpec {
+            int dims;
+            int num_add_axis_after_ellipsis;
+            const std::vector<int>* begin_tensor;
+            const std::vector<int>* end_tensor;
+            const std::vector<int>* strides_tensor;
+            const int begin_mask, end_mask;
+            int ellipsis_mask;
+            const int new_axis_mask, shrink_axis_mask;
+        };
+
+        struct StridedSliceDenseSpec {
+            const int dims;
+            int begin_mask;
+            int end_mask;
+            bool begin_valid;
+            bool end_valid;
+            std::vector<int>& begin;
+            std::vector<int>& end;
+            std::vector<int>& strides;
+            std::vector<int> final_shape_gather_indices;
+            int shrink_axis_mask;
+
+            public:
+                bool buildDenseSpec(StridedSliceSparseSpec& sparse_spec) {
+                    this->begin.resize(dims);
+                    this->end.resize(dims);
+                    this->strides.resize(dims);
+                    this->begin_mask = 0;
+                    this->end_mask = 0;
+                    this->shrink_axis_mask = 0;
+                    {
+                        int full_index = 0;
+
+                        this->begin_valid = sparse_spec.begin_tensor != nullptr;
+                        this->end_valid = sparse_spec.end_tensor != nullptr;
+
+                        for (int e = 0; e < sparse_spec.dims; e++) {
+                            if ((1 << e) & sparse_spec.ellipsis_mask) {
+                                int next_index = nd4j::math::nd4j_min<int>(this->dims - (sparse_spec.dims - e) + 1 + sparse_spec.num_add_axis_after_ellipsis, this->dims);
+                            
+                                for (; full_index < next_index; full_index++) {
+                                    // new_axis' aren't real axis so you have to skip
+                                    this->begin[full_index] = this->end[full_index] = 0;
+                                    this->strides[full_index] = 1;
+                                    this->begin_mask |= (1 << full_index);
+                                    this->end_mask |= (1 << full_index);
+                                    this->final_shape_gather_indices.push_back(full_index);
+                                }
+                            } else if ((1 << e) & sparse_spec.new_axis_mask) {
+                                this->final_shape_gather_indices.push_back(kNewAxis);
+                            } else {
+                                if (full_index == this->begin.size()) {
+                                    nd4j_printf("Index out of range: %i out of %i\n", full_index, this->dims);
+                                    return false;
+                                }
+
+                                // Gather slicing spec into appropriate index
+                                if (sparse_spec.begin_tensor != nullptr)
+                                    this->begin[full_index] = sparse_spec.begin_tensor->at(0);
+                                
+                                
+                                if (sparse_spec.end_tensor != nullptr)
+                                    this->end[full_index] = sparse_spec.end_tensor->at(e);
+                                
+                                this->strides[full_index] = sparse_spec.strides_tensor->at(e);
+                
+                                if (sparse_spec.begin_mask & (1 << e))
+                                    this->begin_mask |= (1 << full_index);
+                                
+                        
+                                if (sparse_spec.end_mask & (1 << e))
+                                    this->end_mask |= (1 << full_index);
+                                
+
+                                // If shrink, record where to get the dimensionality from (i.e.
+                                // new_axis creates a fake 1 size dimension. Also remember shrink
+                                // axis (now in dense form) so we can ignore dense->end below.
+                                if (sparse_spec.shrink_axis_mask & (1 << e)) {
+                                    this->final_shape_gather_indices.push_back(kShrinkAxis);
+                                    this->shrink_axis_mask |= (1 << full_index);
+                                } else {
+                                    this->final_shape_gather_indices.push_back(full_index);
+                                }
+                                full_index++;
+                            }
+                        }
+                    }
+                    return true;
+                }
+        };
+
+        bool _preprocess_strided_slice(IndicesList* indicesList, std::vector<int>* final_shape, std::vector<int>& input_shape, std::vector<int>& begin, std::vector<int>& end, std::vector<int>& strides, int begin_mask, int ellipsis_mask, int end_mask, int new_axis_mask, int shrink_axis_mask, bool* is_identity, bool* is_simple_slice, bool* slice_dim0) {
             std::vector<int> shrinks = BitwiseUtils::valueBits(shrink_axis_mask);
             std::vector<int> preshape;
+
+            bool ellipsis_seen = false;
+
+            StridedSliceSparseSpec sparse_spec = {(int) strides.size(),
+                                        0,
+                                        &begin,
+                                        &end,
+                                        &strides,
+                                        begin_mask,
+                                        end_mask,
+                                        ellipsis_mask,
+                                        new_axis_mask,
+                                        shrink_axis_mask};
+
+            StridedSliceDenseSpec dense_spec = {(int) input_shape.size(), 0, 0, false, false, begin, end, strides};
+            if (!dense_spec.buildDenseSpec(sparse_spec))
+                return false;
 
             for (int e = 0; e < (int) input_shape.size(); e++) {
                 int begin_idx = begin[e];
                 int end_idx = end[e];
-                int stride = strides[e];
-                int size = input_shape[e];
+                int stride_idx = strides[e];
+                int size_idx = input_shape[e];
 
-                if (stride == 0) {
+                if (stride_idx == 0) {
                     nd4j_printf("Stride is 0 at index %i\n", e);
                     return false;
                 }
-                if (size == -1) {
+                if (size_idx == -1) {
                     preshape.emplace_back(shrinks[e] == 1 ? : - 1);
                     continue;
+                }
+
+                const std::array<int, 2> masks = {{begin_mask & (1 << e), end_mask & (1 << e)}};
+                const std::array<int, 2> valid_range = {{stride_idx > 0 ? 0 : -1, stride_idx > 0 ? size_idx : size_idx - 1}};
+
+                auto canonical = [stride_idx, e, size_idx, masks, valid_range](int x, int c) {
+                    if (masks[c]) {
+                        return stride_idx > 0 ? valid_range[c] : valid_range[(c + 1) & 1];
+                    } else {
+                        int x_fwd = x < 0 ? size_idx + x : x;  // make negative indices positive
+                        return x_fwd < valid_range[0] ? valid_range[0] : x_fwd > valid_range[1] ? valid_range[1] : x_fwd;
+                    }
+                };
+
+                if (shrinks[e] && stride_idx <= 0) {
+                    nd4j_printf("StridedSlice: only stride 1 allowed on non-range indexing\n", e);
+                    return false;
+                }
+
+                (*is_simple_slice) &= stride_idx == 1;
+
+                const bool begin_and_end_masked = (begin_mask & (1 << e)) && (end_mask & (1 << e));
+
+                if (dense_spec.begin_valid && dense_spec.end_valid) {
+                    if (shrinks[e]) {
+                        int x_fwd = begin_idx < 0 ? size_idx + begin_idx : begin_idx;
+                        begin_idx = x_fwd;
+                        end_idx = begin_idx + 1;
+                        if (x_fwd < 0 || x_fwd >= size_idx) {
+                            nd4j_printf("slice index %i of dimension %i out of bounds.\n", begin_idx, e);
+                            return false;
+                        }
+                    } else {
+                        begin_idx = canonical(begin_idx, 0);
+                        end_idx = canonical(end_idx, 1);
+                    }
+                } else {
+                    (*is_identity) &= stride_idx == 1 && begin_and_end_masked;
+                    (*slice_dim0) &= (e == 0 && stride_idx == 1) || begin_and_end_masked;
+                }
+
+                int interval_length;
+                bool known_interval = false;
+                if (dense_spec.begin_valid && dense_spec.end_valid) {
+                    interval_length = end_idx - begin_idx;
+                    known_interval = true;
+                } else if (shrinks[e]) {
+                    interval_length = 1;
+                    known_interval = true;
+                } else if (begin_and_end_masked) {
+                    if (size_idx > 0) {
+                        if (stride_idx < 0) {
+                            interval_length = -size_idx;
+                        } else {
+                            interval_length = size_idx;
+                        }
+
+                        known_interval = true;
+                    }
+                }
+
+                if (known_interval) {
+                    int size_i;
+                    if (interval_length == 0 || ((interval_length < 0) != (stride_idx < 0))) {
+                        size_i = 0;
+                    } else {
+                        size_i = interval_length / stride_idx + (interval_length % stride_idx != 0 ? 1 : 0);
+                    }
+                    preshape.emplace_back(size_i);
+                } else {
+                    preshape.emplace_back(-1);
                 }
             }
         }
@@ -99,7 +283,10 @@ namespace nd4j {
 
             IndicesList indices;
             std::vector<int> input_shape = x->getShapeAsVector();
-            REQUIRE_TRUE(_preprocess_strided_slice(&indices, nullptr, input_shape, begin, end, strides, begin_mask, ellipsis_mask, end_mask, new_axis_mask, shrink_axis_mask),0, "StridedSlice: shape calculation failed");
+            bool is_identity;
+            bool is_simple_slice;
+            bool is_dim0;
+            REQUIRE_TRUE(_preprocess_strided_slice(&indices, nullptr, input_shape, begin, end, strides, begin_mask, ellipsis_mask, end_mask, new_axis_mask, shrink_axis_mask, &is_identity, &is_simple_slice, &is_dim0), 0, "StridedSlice: shape calculation failed");
 
             auto sub = x->subarray(indices);
 
@@ -153,7 +340,10 @@ namespace nd4j {
             for (int e = 0; e < shape::rank(inShape); e++)
                 input_shape[e] = shape::shapeOf(inShape)[e];
 
-            _preprocess_strided_slice(nullptr, &shape, input_shape, begin, end, strides, begin_mask, ellipsis_mask, end_mask, new_axis_mask, shrink_axis_mask);
+            bool is_identity;
+            bool is_simple_slice;
+            bool is_dim0;
+            bool result = _preprocess_strided_slice(nullptr, &shape, input_shape, begin, end, strides, begin_mask, ellipsis_mask, end_mask, new_axis_mask, shrink_axis_mask, &is_identity, &is_simple_slice, &is_dim0);
 
             nd4j_printv("shape after shrink: ", shape);
 
