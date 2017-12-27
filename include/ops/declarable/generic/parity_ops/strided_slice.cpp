@@ -8,11 +8,24 @@
 namespace nd4j {
     namespace ops {
 
-        void _preprocess_strided_slice(IndicesList* indicesList, std::vector<int>* final_shape, std::vector<int>& input_shape, std::vector<int>& begin, std::vector<int>& end, std::vector<int>& strides, int begin_mask, int ellipsis_mask, int end_mask, int new_axis_mask, int shrink_axis_mask) {
+        bool _preprocess_strided_slice(IndicesList* indicesList, std::vector<int>* final_shape, std::vector<int>& input_shape, std::vector<int>& begin, std::vector<int>& end, std::vector<int>& strides, int begin_mask, int ellipsis_mask, int end_mask, int new_axis_mask, int shrink_axis_mask) {
             std::vector<int> shrinks = BitwiseUtils::valueBits(shrink_axis_mask);
+            std::vector<int> preshape;
 
             for (int e = 0; e < (int) input_shape.size(); e++) {
+                int begin_idx = begin[e];
+                int end_idx = end[e];
+                int stride = strides[e];
+                int size = input_shape[e];
 
+                if (stride == 0) {
+                    nd4j_printf("Stride is 0 at index %i\n", e);
+                    return false;
+                }
+                if (size == -1) {
+                    preshape.emplace_back(shrinks[e] == 1 ? : - 1);
+                    continue;
+                }
             }
         }
 
@@ -47,6 +60,12 @@ namespace nd4j {
                 for (int e = 5; e < block.getIArguments()->size(); e++)
                     args.emplace_back(INT_ARG(e));
 
+                REQUIRE_TRUE(delta == 0, 0, "Number of Integer arguments should be equal to input rank x 3 = %i, but got %i instead", (x->rankOf() * 3), dim_values);
+
+                ShapeUtils<T>::copyVectorPart(begin, args, elements, 0);
+                ShapeUtils<T>::copyVectorPart(end, args, elements, elements);
+                ShapeUtils<T>::copyVectorPart(strides, args, elements, elements * 2);
+
             } else if (block.width() >= 3) {
                 isLive = true;
 
@@ -58,10 +77,10 @@ namespace nd4j {
                 REQUIRE_TRUE(v_begin->lengthOf() == v_end->lengthOf(), 0, "Length of begin/end should match, but got %i vs %i instead", (int) v_begin->lengthOf(), (int) v_end->lengthOf());
 
                 for (int e = 0; e < v_begin->lengthOf(); e++)
-                    args.emplace_back((int) v_begin->getIndexedScalar(e));
+                    begin.emplace_back((int) v_begin->getIndexedScalar(e));
 
                 for (int e = 0; e < v_end->lengthOf(); e++)
-                    args.emplace_back((int) v_end->getIndexedScalar(e));
+                    end.emplace_back((int) v_end->getIndexedScalar(e));
 
                 if (block.width() >= 4) {
                     auto v_stride = INPUT_VARIABLE(3);
@@ -69,36 +88,25 @@ namespace nd4j {
                     REQUIRE_TRUE(v_stride->lengthOf() == v_begin->lengthOf(), 0, "Length of begin/end/stride should match, but got %i vs %i vs %i instead", (int) v_begin->lengthOf(), (int) v_end->lengthOf(), (int) v_stride->lengthOf());
 
                     for (int e = 0; e < v_stride->lengthOf(); e++)
-                        args.emplace_back((int) v_stride->getIndexedScalar(e));
+                        strides.emplace_back((int) v_stride->getIndexedScalar(e));
                 } else {
                     for (int e = 0; e < v_begin->lengthOf(); e++)
-                        args.emplace_back(1);
+                        strides.emplace_back(1);
                 }
             } else {
                 REQUIRE_TRUE(false, 0, "Can't find begin/end/stride information neither in IArguments or in input arrays");
             }
 
-            REQUIRE_TRUE(delta == 0, 0, "Number of Integer arguments should be equal to input rank x 3 = %i, but got %i instead", (x->rankOf() * 3), dim_values);
-
-            int ellipsis = -1;
-            if (ellipsis_mask != 0)
-                ellipsis = BitwiseUtils::valueBit(ellipsis_mask);
-
-            ShapeUtils<T>::copyVectorPart(begin, args, elements, 0);
-            ShapeUtils<T>::copyVectorPart(end, args, elements, elements);
-            ShapeUtils<T>::copyVectorPart(strides, args, elements, elements * 2);
-
-            auto z = OUTPUT_VARIABLE(0);
-
             IndicesList indices;
             std::vector<int> input_shape = x->getShapeAsVector();
-            _preprocess_strided_slice(&indices, nullptr, input_shape, begin, end, strides, begin_mask, ellipsis_mask, end_mask, new_axis_mask, shrink_axis_mask);
+            REQUIRE_TRUE(_preprocess_strided_slice(&indices, nullptr, input_shape, begin, end, strides, begin_mask, ellipsis_mask, end_mask, new_axis_mask, shrink_axis_mask),0, "StridedSlice: shape calculation failed");
 
             auto sub = x->subarray(indices);
 
-            if (!isLive)
+            if (!isLive) {
+                auto z = OUTPUT_VARIABLE(0);
                 z->assign(sub);
-            else {
+            } else {
                 auto stb = sub->dup(x->ordering());
                 OVERWRITE_RESULT(stb);
             }
