@@ -1148,6 +1148,9 @@ FORCEINLINE bool NDArray<T>::isColumnVector() const {
 //////////////////////////////////////////////////////////////////////////
 template<typename T>
 FORCEINLINE bool NDArray<T>::isRowVector() const {
+    // 1D edge case
+    if (shape::rank(this->_shapeInfo) == 1)
+        return true;
 
     return !isScalar() && shape::isRowVector(this->_shapeInfo);
 }
