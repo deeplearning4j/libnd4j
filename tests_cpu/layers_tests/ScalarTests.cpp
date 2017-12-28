@@ -40,6 +40,32 @@ TEST_F(ScalarTests, Test_Add_1) {
     ASSERT_TRUE(exp.equalsTo(&x));
 }
 
+TEST_F(ScalarTests, Test_Add_2) {
+    NDArray<float> x(2.0f);
+    NDArray<float> y(3.0f);
+    NDArray<float> exp(5.0f);
+
+    x += y;
+
+    ASSERT_NEAR(5.0f, x.getScalar(0), 1e-5f);
+    ASSERT_TRUE(exp.isSameShape(&x));
+    ASSERT_TRUE(exp.equalsTo(&x));
+}
+
+TEST_F(ScalarTests, Test_Add_3) {
+    NDArray<float> x('c', {3}, {1, 2, 3});
+    NDArray<float> y(3.0f);
+    NDArray<float> exp('c', {3}, {4, 5, 6});
+
+    x += y;
+
+    ASSERT_TRUE(exp.isSameShape(&x));
+
+    x.printIndexedBuffer("x");
+    
+    ASSERT_TRUE(exp.equalsTo(&x));
+}
+
 TEST_F(ScalarTests, Test_EQ_1) {
     NDArray<float> x(2.0f);
     NDArray<float> y(3.0f);
