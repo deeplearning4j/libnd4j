@@ -1809,6 +1809,12 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
 
         int *stride = new int[rank];
 
+        if (rank == 1) {
+            stride[0] = 1;
+            return stride;
+        }
+
+
         if (shape::isVector(shape, rank)) {
             for (int i = 0; i < 2; i++)
                 stride[i] = 1;
@@ -1830,6 +1836,10 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
     __host__ __device__
 #endif
     INLINEDEF int * calcStrides(int *shape, int rank, int startNum, int* ret) {
+        if (rank == 1) {
+            ret[0] = 1;
+            return ret;
+        }
 
         if (shape::isVector(shape, rank)) {
             for (int i = 0; i < 2; i++)
@@ -2811,6 +2821,9 @@ __host__ __device__
 #endif
 
     INLINEDEF int isVector(int *shape, int rank) {
+        if (rank == 1)
+            return 1;
+
         if (rank > 2)
             return 0;
         else if (rank <= 2) {
@@ -4013,6 +4026,13 @@ __host__ __device__
         int rank = info->rank;
 
         ret[0] = info->rank;
+
+        if (ret[0] == 0) {
+            ret[1] = 0;
+            ret[2] = 1;
+            ret[3] = 99;
+            return ret;
+        }
 
         for (int i = 0; i < rank; i++) {
             ret[count++] = info->shape[i];

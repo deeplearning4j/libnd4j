@@ -44,7 +44,7 @@ namespace nd4j {
             // 0D scalar edge case
             if (shape::rank(inShape) == 0) {
                 int* newShape;
-                ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(inShape), int);
+                ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(1), int);
 
                 int x = 1;
                 shape::shapeBuffer(1, &x, newShape);
