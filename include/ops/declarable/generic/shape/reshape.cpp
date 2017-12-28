@@ -137,6 +137,9 @@ namespace nd4j {
 
                 shape::updateStrides(newShape, order);
 
+
+                shape::printShapeInfoLinear(newShape);
+
                 return new ShapeList(newShape);
             } else {
                 // or, with second input "as shape"

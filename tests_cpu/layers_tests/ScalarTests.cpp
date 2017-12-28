@@ -167,3 +167,20 @@ TEST_F(ScalarTests, Test_Squeeze_1) {
 
     delete result;
 }
+
+
+TEST_F(ScalarTests, Test_Reshape_1) {
+    NDArray<float> x(2.0f);
+    NDArray<float> exp('c', {1, 1, 1}, {2.0f});
+
+    nd4j::ops::reshape<float> op;
+    auto result = op.execute({&x}, {}, {99, 1, 1, 1});
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}

@@ -367,6 +367,9 @@ template <typename T>
     memcpy(_shapeInfo, other._shapeInfo, shapeLength*sizeof(int));     // copy shape information into new array
     shape::updateStrides(_shapeInfo, other.ordering());
 
+    shape::printShapeInfoLinear(_shapeInfo);
+    shape::printShapeInfoLinear(other._shapeInfo);
+
     _isBuffAlloc = true; 
     _isShapeAlloc = true;
     this->assign(&other);
