@@ -23,8 +23,8 @@ public:
     int *fShape = new int[8]{2, 2, 2, 1, 2, 0, 1, 102};
 
     FlatBuffersTest() {
-        Environment::getInstance()->setDebug(false);
-        Environment::getInstance()->setVerbose(false);
+        Environment::getInstance()->setDebug(true);
+        Environment::getInstance()->setVerbose(true);
     }
 
     ~FlatBuffersTest() {
@@ -533,15 +533,13 @@ TEST_F(FlatBuffersTest, ReduceDim_1) {
     auto x = variableSpace->getVariable(1)->getNDArray();
     auto y = variableSpace->getVariable(2)->getNDArray();
 
-    x->printShapeInfo("x shape");
-
     Nd4jStatus status = GraphExecutioner<float>::execute(graph);
 
     ASSERT_EQ(ND4J_STATUS_OK, status);
 
     ASSERT_TRUE(variableSpace->hasVariable(3));
 
-    auto result = variableSpace->getVariable(3)->getNDArray();
+    auto result = variableSpace->getVariable(4)->getNDArray();
 
     ASSERT_TRUE(exp.isSameShape(result));
     ASSERT_TRUE(exp.equalsTo(result));
