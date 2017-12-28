@@ -73,8 +73,23 @@ namespace nd4j {
             int* last = inputShape->at(inputShape->size() - 1);
 
             int elements = (int) inputShape->size();
-
             int *newShape;
+
+
+            { // special case for 0D concat
+                bool allScalars = true;
+                for (int e = 0; e < elements; e++) 
+                    allScalars &= shape::rank(inputShape->at(e)) == 0;
+
+                if (allScalars) {
+                    ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(1), int);
+
+                    shape::shapeBuffer(1, &elements, newShape);
+                    return new ShapeList(newShape);
+                }
+            }
+
+            
             ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(inp), int);
 
             if (_dimension < 0)
