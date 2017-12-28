@@ -76,15 +76,28 @@ namespace nd4j {
             int *newShape;
 
 
-            { // special case for 0D concat
+            { // special cases for 0D concat
                 bool allScalars = true;
                 for (int e = 0; e < elements; e++) 
                     allScalars &= shape::rank(inputShape->at(e)) == 0;
 
+                // all scalars
                 if (allScalars) {
                     ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(1), int);
 
                     shape::shapeBuffer(1, &elements, newShape);
+                    return new ShapeList(newShape);
+                }
+
+                // first scalar
+                if (shape::rank(inp) == 0) {
+                    ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(1), int);
+                    int length = 1;
+                    for (int i = 1; i < elements; i++) {
+                       length += shape::length(inputShape->at(i));
+                    }
+
+                    shape::shapeBuffer(1, &length, newShape);
                     return new ShapeList(newShape);
                 }
             }
