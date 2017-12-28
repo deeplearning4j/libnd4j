@@ -78,8 +78,11 @@ namespace nd4j {
 
             { // special cases for 0D concat
                 bool allScalars = true;
-                for (int e = 0; e < elements; e++) 
+                bool hasScalars = false;
+                for (int e = 0; e < elements; e++) {
                     allScalars &= shape::rank(inputShape->at(e)) == 0;
+                    hasScalars |= shape::rank(inputShape->at(e)) == 0;
+                }
 
                 // all scalars
                 if (allScalars) {
@@ -89,10 +92,10 @@ namespace nd4j {
                     return new ShapeList(newShape);
                 }
 
-                // first scalar
-                if (shape::rank(inp) == 0) {
+                // any scalar
+                if (hasScalars) {
                     ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(1), int);
-                    int length = 1;
+                    int length = shape::length(inp);
                     for (int i = 1; i < elements; i++) {
                        length += shape::length(inputShape->at(i));
                     }

@@ -88,6 +88,27 @@ TEST_F(ScalarTests, Test_Concat_2) {
 }
 
 
+TEST_F(ScalarTests, Test_Concat_3) {
+    NDArray<float> t('c', {3}, {1, 2, 3});
+    NDArray<float> u(4.0f);
+    NDArray<float> v(5.0f);
+    NDArray<float> exp('c', {5}, {1, 2, 3, 4, 5});
+
+    nd4j::ops::concat<float> op;
+    auto result = op.execute({&t, &u, &v}, {}, {0});
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    //z->printShapeInfo("z");
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}
+
 TEST_F(ScalarTests, Test_ExpandDims_1) {
     NDArray<float> x(2.0f);
     std::vector<int> vecS({1});
