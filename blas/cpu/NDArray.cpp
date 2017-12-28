@@ -604,6 +604,10 @@ void NDArray<T>::replacePointers(T *buffer, int *shapeInfo, const bool releaseEx
 // This method assigns values of given NDArray to this one, wrt order
     template<typename T>
     void NDArray<T>::assign(const NDArray<T> *other) {
+        if (this->isScalar() && other->isScalar()) {
+            this->_buffer[0] = other->_buffer[0];
+            return;
+        }
 
         if (other->lengthOf() != lengthOf()) {
             nd4j_printf("Can't assign new value to the array: this length [%i]; other length: [%i]\n", lengthOf(), other->lengthOf());
@@ -624,6 +628,10 @@ void NDArray<T>::replacePointers(T *buffer, int *shapeInfo, const bool releaseEx
 // This method assigns values of given NDArray to this one
     template<typename T>
     void NDArray<T>::assign(const NDArray<T>& other) {
+        if (this->isScalar() && other.isScalar()) {
+            this->_buffer[0] = other._buffer[0];
+            return;
+        }
 
         if (this == &other) 
             return;

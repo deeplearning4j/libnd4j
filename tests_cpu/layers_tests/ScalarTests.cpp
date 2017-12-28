@@ -61,8 +61,6 @@ TEST_F(ScalarTests, Test_Add_3) {
 
     ASSERT_TRUE(exp.isSameShape(&x));
 
-    x.printIndexedBuffer("x");
-    
     ASSERT_TRUE(exp.equalsTo(&x));
 }
 
@@ -144,6 +142,22 @@ TEST_F(ScalarTests, Test_ExpandDims_1) {
     nd4j::ops::expand_dims<float> op;
     auto result = op.execute({&x}, {}, {0});
 
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}
+
+TEST_F(ScalarTests, Test_Squeeze_1) {
+    NDArray<float> x(2.0f);
+    NDArray<float> exp(2.0f);
+
+    nd4j::ops::squeeze<float> op;
+    auto result = op.execute({&x}, {}, {});
     ASSERT_EQ(ND4J_STATUS_OK, result->status());
 
     auto z = result->at(0);
