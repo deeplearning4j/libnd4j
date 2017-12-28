@@ -80,3 +80,39 @@ TEST_F(SingleDimTests, Test_IndexReduce_1) {
 
     ASSERT_NEAR(2.0f, r, 1e-5f);
 }
+
+
+TEST_F(SingleDimTests, Test_ExpandDims_1) {
+    NDArray<float> x('c', {3}, {1, 2, 3});
+    NDArray<float> exp('c', {1, 3}, {1, 2, 3});
+
+    nd4j::ops::expand_dims<float> op;
+    auto result = op.execute({&x}, {}, {0});
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}
+
+
+TEST_F(SingleDimTests, Test_ExpandDims_2) {
+    NDArray<float> x('c', {3}, {1, 2, 3});
+    NDArray<float> exp('c', {3, 1}, {1, 2, 3});
+
+    nd4j::ops::expand_dims<float> op;
+    auto result = op.execute({&x}, {}, {1});
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}

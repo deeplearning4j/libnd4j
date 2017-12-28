@@ -22,11 +22,7 @@ namespace nd4j {
             NDArray<T> *first = INPUT_VARIABLE(0);
             NDArray<T> *output = this->getZ(block);
 
-
-
             int elements = (int) block.width();
-            if (last->isScalar() && !first->isScalar())
-                --elements;
 
             Nd4jPointer* buffers = new Nd4jPointer[elements];
             Nd4jPointer* shapes = new Nd4jPointer[elements];
@@ -77,8 +73,6 @@ namespace nd4j {
             int* last = inputShape->at(inputShape->size() - 1);
 
             int elements = (int) inputShape->size();
-            if (!shape::isScalar(inp) && shape::isScalar(last))
-                --elements;
 
             int *newShape;
             ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(inp), int);

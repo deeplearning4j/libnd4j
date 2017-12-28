@@ -47,3 +47,66 @@ TEST_F(ScalarTests, Test_EQ_1) {
     ASSERT_TRUE(y.isSameShape(&x));
     ASSERT_FALSE(y.equalsTo(&x));
 }
+
+TEST_F(ScalarTests, Test_Concat_1) {
+    NDArray<float> t(1.0f);
+    NDArray<float> u(2.0f);
+    NDArray<float> v(3.0f);
+    NDArray<float> exp('c', {3}, {1, 2, 3});
+
+    nd4j::ops::concat<float> op;
+    auto result = op.execute({&t, &u, &v}, {}, {0});
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    z->printShapeInfo("z");
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}
+
+
+TEST_F(ScalarTests, Test_Concat_2) {
+    NDArray<float> t(1.0f);
+    NDArray<float> u('c', {3}, {2, 3, 4});
+    NDArray<float> v(5.0f);
+    NDArray<float> exp('c', {5}, {1, 2, 3, 4, 5});
+
+    nd4j::ops::concat<float> op;
+    auto result = op.execute({&t, &u, &v}, {}, {0});
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    z->printShapeInfo("z");
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}
+
+
+TEST_F(ScalarTests, Test_ExpandDims_1) {
+    NDArray<float> x(2.0f);
+    std::vector<int> vecS({1});
+    std::vector<float> vecD({2.0f});
+    NDArray<float> exp('c', vecS, vecD);
+
+    nd4j::ops::expand_dims<float> op;
+    auto result = op.execute({&x}, {}, {0});
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}
