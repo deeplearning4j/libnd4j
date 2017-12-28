@@ -16,7 +16,7 @@ namespace nd4j {
                 auto input = INPUT_VARIABLE(e);
                 auto output = OUTPUT_VARIABLE(e);
 
-                if (input->rankOf() == 0) {
+                if (input->rankOf() == 0 || (input->rankOf() == 1 && input->lengthOf() == 1)) {
                     output->assign(input->buffer()[0]);
                     continue;
                 }
@@ -45,8 +45,9 @@ namespace nd4j {
                 int* newShape;
                 auto in = inputShape->at(e);
                 auto rank = shape::rank(in);
+                auto length = shape::length(in);
 
-                if (rank == 0) {
+                if (rank == 0 || (rank == 1 && length == 1)) {
                     ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(0), int);
                     newShape[0] = 0;
                     newShape[1] = 0;
