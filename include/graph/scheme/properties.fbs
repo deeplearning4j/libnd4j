@@ -11,4 +11,4 @@ table FlatProperties {
     a:[FlatArray]; // array properties
 }
 
-root_type FlatProperies;
+root_type FlatProperties;
