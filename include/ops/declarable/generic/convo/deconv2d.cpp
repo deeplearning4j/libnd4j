@@ -164,7 +164,7 @@ namespace nd4j {
             // epsilon for deconv2d is FF conv pass
 
             nd4j::ops::conv2d<T> op;
-            Nd4jStatus r1 = op.execute({epsilonNext, weights}, {epsilon}, {}, {kY, kX, sY, sX, pY, pX, dY, dX, INT_ARG(8)});
+            Nd4jStatus r1 = op.execute({epsilonNext, weights}, {epsilon}, {}, {kY, kX, sY, sX, pY, pX, dY, dX, INT_ARG(8), 0});
             if (r1 != ND4J_STATUS_OK)
                 return r1;
 
