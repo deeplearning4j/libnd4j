@@ -184,3 +184,20 @@ TEST_F(ScalarTests, Test_Reshape_1) {
 
     delete result;
 }
+
+
+TEST_F(ScalarTests, Test_Permute_1) {
+    NDArray<float> x(3.0f);
+    NDArray<float> exp(3.0f);
+
+    nd4j::ops::permute<float> op;
+    auto result = op.execute({&x}, {}, {0});
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}

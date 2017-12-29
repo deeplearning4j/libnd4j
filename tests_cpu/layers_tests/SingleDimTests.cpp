@@ -184,3 +184,20 @@ TEST_F(SingleDimTests, Test_Reshape_2) {
 
     delete result;
 }
+
+
+TEST_F(SingleDimTests, Test_Permute_1) {
+    NDArray<float> x('c', {3}, {1, 2, 3});
+    NDArray<float> exp('c', {3}, {1, 2, 3});
+
+    nd4j::ops::permute<float> op;
+    auto result = op.execute({&x}, {}, {0});
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}
