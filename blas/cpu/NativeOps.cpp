@@ -3118,7 +3118,7 @@ void NativeOps::deleteShapeList(Nd4jPointer shapeList) {
 template<typename T>
 nd4j::ShapeList* _calculateOutputShapes(Nd4jPointer* extraPointers, nd4j::ops::DeclarableOp<T>* op, Nd4jPointer* inputBuffers, Nd4jPointer* inputShapes, int numInputShapes, T* tArgs, int numTArgs, int *iArgs, int numIArgs) {
     VariableSpace<T> varSpace;
-    Context<T> block(2);
+    Context<T> block(2, &varSpace);
     nd4j::ShapeList inShapes;
 
     for (int e = 0; e < numIArgs; e++)
@@ -3130,7 +3130,7 @@ nd4j::ShapeList* _calculateOutputShapes(Nd4jPointer* extraPointers, nd4j::ops::D
     for (int e = 0; e < numInputShapes; e++) {
         auto shape_ = (int *) inputShapes[e];
         auto buffer_ = (T *) inputBuffers[e];
-        auto array = new NDArray<T>(shape_, buffer_);
+        auto array = new NDArray<T>(buffer_, shape_);
         array->triggerAllocationFlag(false, false);
 
         // block should contain references to proper variable

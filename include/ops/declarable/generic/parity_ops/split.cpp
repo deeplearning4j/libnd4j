@@ -64,6 +64,7 @@ namespace ops {
         
         // this op assumes we have sizes defined
         auto sizes = INPUT_VARIABLE(1);
+        
         auto length = sizes->lengthOf();
         int pos = 0;
         for (int e = 0; e < length; e++) {
