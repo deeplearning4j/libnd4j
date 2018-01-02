@@ -10,7 +10,7 @@ namespace nd4j {
 namespace ops {
 namespace helpers {
     template <typename T>
-    FORCEINLINE void rgb_to_hsv(T r, T g, T b, T* h, T* s, T* v) {
+    static FORCEINLINE void rgb_to_hsv(T r, T g, T b, T* h, T* s, T* v) {
         T vv = nd4j::math::nd4j_max<T>(r, nd4j::math::nd4j_max<T>(g, b));
         T range = vv - nd4j::math::nd4j_min<T>(r, nd4j::math::nd4j_min<T>(g, b));
         if (vv > 0) {
@@ -27,10 +27,10 @@ namespace helpers {
         } else {
             hh = norm * (r - g) + 4.0 / 6.0;
         }
-        if (range <= 0.0) {
+        if (range <= (T) 0.0) {
             hh = 0;
         }
-        if (hh < 0.0) {
+        if (hh < (T) 0.0) {
             hh = hh + 1;
         }
         *v = vv;
@@ -38,20 +38,20 @@ namespace helpers {
     }
 
     template <typename T>
-    FORCEINLINE void hsv_to_rgb(T h, T s, T v, T* r, T* g, T* b) {
+    static FORCEINLINE void hsv_to_rgb(T h, T s, T v, T* r, T* g, T* b) {
         T c = s * v;
         T m = v - c;
         T dh = h * 6;
         T rr, gg, bb;
         int h_category = static_cast<int>(dh);
         T fmodu = dh;
-        while (fmodu <= 0)
-            fmodu += 2.0f;
+        while (fmodu <= (T) 0)
+            fmodu += (T) 2.0f;
         
-        while (fmodu >= 2.0f)
-            fmodu -= 2.0f;
+        while (fmodu >= (T) 2.0f)
+            fmodu -= (T) 2.0f;
         
-        T x = c * (1 - nd4j::math::nd4j_abs<T>(fmodu - 1));
+        T x = c * ((T) 1 - nd4j::math::nd4j_abs<T>(fmodu - 1));
         switch (h_category) {
             case 0:
                 rr = c;

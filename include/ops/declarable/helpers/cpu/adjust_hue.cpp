@@ -30,11 +30,11 @@ namespace helpers {
                 helpers::rgb_to_hv(i[0], i[1], i[2], &h, &v_min, &v_max);
 
                 h += delta * kChannelRange;
-                while (h < 0)
-                    h += kChannelRange;
+                while (h < (T) 0.)
+                    h += (T) kChannelRange;
               
-                while (h >= kChannelRange)
-                    h -= kChannelRange;
+                while (h >= (T) kChannelRange)
+                    h -= (T) kChannelRange;
 
                 helpers::hv_to_rgb(h, v_min, v_max, o, o + 1, o + 2);
             }
@@ -64,11 +64,11 @@ namespace helpers {
                 helpers::rgb_to_hv(_ri[0], _gi[0], _bi[0], &h, &v_min, &v_max);
 
                 h += delta * kChannelRange;
-                while (h < 0)
-                    h += kChannelRange;
+                while (h < (T) 0)
+                    h += (T) kChannelRange;
               
-                while (h >= kChannelRange)
-                    h -= kChannelRange;
+                while (h >= (T) kChannelRange)
+                    h -= (T) kChannelRange;
 
                 helpers::hv_to_rgb(h, v_min, v_max, _ro, _go, _bo);
             }
@@ -95,6 +95,10 @@ namespace helpers {
             _adjust_hue_single(array, output, delta, isNHWC);
         }
     }
+
+    template void _adjust_hue<float>(NDArray<float> *array, NDArray<float> *output, float delta, bool isNHWC);
+    template void _adjust_hue<float16>(NDArray<float16> *array, NDArray<float16> *output, float16 delta, bool isNHWC);
+    template void _adjust_hue<double>(NDArray<double> *array, NDArray<double> *output, double delta, bool isNHWC);
 }
 }
 }

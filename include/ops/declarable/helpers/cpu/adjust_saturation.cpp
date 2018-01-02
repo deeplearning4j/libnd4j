@@ -10,7 +10,7 @@ namespace ops {
 namespace helpers {
 
     template <typename T>
-    static FORCEINLINE void _adjust_saturation_single(NDArray<T> *array, NDArray<T> *output, T delta, bool isNHWC) {
+    FORCEINLINE void _adjust_saturation_single(NDArray<T> *array, NDArray<T> *output, T delta, bool isNHWC) {
         // we're 100% sure it's 3
         const int numChannels = 3;
         int tuples = array->lengthOf() /  numChannels;
@@ -56,7 +56,7 @@ namespace helpers {
 
                 T h, s, v;
                 // Convert the RGB color to Hue/V-range.
-                helpers::rgb_to_hsv(_ri, _gi, _bi, &h, &s, &v);
+                helpers::rgb_to_hsv(_ri[0], _gi[0], _bi[0], &h, &s, &v);
                 s = nd4j::math::nd4j_min<T>((T) 1.0f, nd4j::math::nd4j_max<T>((T) 0.0f, s * delta));
                 // Convert the hue and v-range back into RGB.
                 helpers::hsv_to_rgb(h, s, v, _ro, _go, _bo);
@@ -84,6 +84,10 @@ namespace helpers {
             _adjust_saturation_single(array, output, delta, isNHWC);
         }
     }
+
+    template void _adjust_saturation<float>(NDArray<float> *array, NDArray<float> *output, float delta, bool isNHWC);
+    template void _adjust_saturation<float16>(NDArray<float16> *array, NDArray<float16> *output, float16 delta, bool isNHWC);
+    template void _adjust_saturation<double>(NDArray<double> *array, NDArray<double> *output, double delta, bool isNHWC);
 }
 }
 }
