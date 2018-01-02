@@ -2,7 +2,7 @@
 //  @author raver119@gmail.com
 //
 
-#include <ops/declarable/helpers/adjust_hue.h>
+#include <ops/declarable/helpers/adjust_saturation.h>
 #include <NDArrayFactory.h>
 
 namespace nd4j {
@@ -10,7 +10,7 @@ namespace ops {
 namespace helpers {
 
     template <typename T>
-    static FORCEINLINE void _adjust_hue_single(NDArray<T> *array, NDArray<T> *output, T delta, bool isNHWC) {
+    static FORCEINLINE void _adjust_saturation_single(NDArray<T> *array, NDArray<T> *output, T delta, bool isNHWC) {
         // we're 100% sure it's 3
         const int numChannels = 3;
         int tuples = array->lengthOf() /  numChannels;
@@ -18,7 +18,6 @@ namespace helpers {
         auto bOut = output->buffer();
         static const int kChannelRange = 6;
 
-        int stridesDim = isNHWC ? 2 : 0;
         if (isNHWC) {
             // for NHWC our rgb values are stored one by one
             #pragma omp parallel for simd
@@ -26,17 +25,12 @@ namespace helpers {
                 auto i = bIn + e * numChannels;
                 auto o = bOut + e * numChannels;
 
-                T h, v_min, v_max;
-                helpers::rgb_to_hv(i[0], i[1], i[2], &h, &v_min, &v_max);
-
-                h += delta * kChannelRange;
-                while (h < 0)
-                    h += kChannelRange;
-              
-                while (h >= kChannelRange)
-                    h -= kChannelRange;
-
-                helpers::hv_to_rgb(h, v_min, v_max, o, o + 1, o + 2);
+                T h, s, v;
+                // Convert the RGB color to Hue/V-range.
+                helpers::rgb_to_hsv(i[0], i[1], i[2], &h, &s, &v);
+                s = nd4j::math::nd4j_min<T>((T) 1.0f, nd4j::math::nd4j_max<T>((T) 0.0f, s * delta));
+                // Convert the hue and v-range back into RGB.
+                helpers::hsv_to_rgb(h, s, v, o, o + 1, o + 2);
             }
         } else {
             auto tadsChannelsIn = NDArrayFactory<T>::allTensorsAlongDimension(array, {0});
@@ -60,17 +54,12 @@ namespace helpers {
                 auto _go = outputG + e;
                 auto _bo = outputB + e;
 
-                T h, v_min, v_max;
-                helpers::rgb_to_hv(_ri[0], _gi[0], _bi[0], &h, &v_min, &v_max);
-
-                h += delta * kChannelRange;
-                while (h < 0)
-                    h += kChannelRange;
-              
-                while (h >= kChannelRange)
-                    h -= kChannelRange;
-
-                helpers::hv_to_rgb(h, v_min, v_max, _ro, _go, _bo);
+                T h, s, v;
+                // Convert the RGB color to Hue/V-range.
+                helpers::rgb_to_hsv(_ri, _gi, _bi, &h, &s, &v);
+                s = nd4j::math::nd4j_min<T>((T) 1.0f, nd4j::math::nd4j_max<T>((T) 0.0f, s * delta));
+                // Convert the hue and v-range back into RGB.
+                helpers::hsv_to_rgb(h, s, v, _ro, _go, _bo);
             }
 
             delete tadsChannelsIn;
@@ -79,20 +68,20 @@ namespace helpers {
     }
 
     template <typename T>
-    void _adjust_hue(NDArray<T> *array, NDArray<T> *output, T delta, bool isNHWC) {
+    void _adjust_saturation(NDArray<T> *array, NDArray<T> *output, T delta, bool isNHWC) {
         if (array->rankOf() == 4) {
             auto tadsIn = NDArrayFactory<T>::allTensorsAlongDimension(array, {0});
             auto tadsOut = NDArrayFactory<T>::allTensorsAlongDimension(output, {0});
 
 #pragma omp parallel for
             for (int e = 0; e < tadsIn->size(); e++)
-                _adjust_hue_single(tadsIn->at(e), tadsOut->at(e), delta, isNHWC);
+                _adjust_saturation_single(tadsIn->at(e), tadsOut->at(e), delta, isNHWC);
             
 
             delete tadsIn;
             delete tadsOut;
         } else {
-            _adjust_hue_single(array, output, delta, isNHWC);
+            _adjust_saturation_single(array, output, delta, isNHWC);
         }
     }
 }

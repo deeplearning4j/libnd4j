@@ -348,5 +348,19 @@ namespace nd4j {
          * 0 - optional argument, isNHWC. false by default.
          */
         DECLARE_CONFIGURABLE_OP(adjust_hue, 1, 1, true, -2, -2);
+
+        /**
+         * This operation adjusts image saturation by delta
+         * Input arrays:
+         * 0 - 1D or 3D input array, must have 3 channels.
+         * 1 - optional scalar, delta value
+         * 
+         * T arguments:
+         * 0 - optional delta value
+         * 
+         * Int arguments:
+         * 0 - optional argument, isNHWC. false by default.
+         */
+        DECLARE_CONFIGURABLE_OP(adjust_saturation, 1, 1, true, -2, -2);
     }
 }
