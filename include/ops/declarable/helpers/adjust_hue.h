@@ -3,6 +3,7 @@
 //
 
 #include <op_boilerplate.h>
+#include <NDArray.h>
 
 namespace nd4j {
 namespace ops {
@@ -110,6 +111,9 @@ namespace helpers {
                 *b = v_mid;
         }
     }
+
+    template <typename T>
+    void _adjust_hue(NDArray<T> *input, NDArray<T> *output, T delta, bool isNHWC);
 }
 }
 }
