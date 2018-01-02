@@ -27,7 +27,6 @@ BiDiagonalUp<T>::BiDiagonalUp(const NDArray<T>& matrix): _HHmatrix(NDArray<T>(ma
 
 }
 
-
 //////////////////////////////////////////////////////////////////////////
 template <typename T>
 void BiDiagonalUp<T>::evalData() {
@@ -83,12 +82,37 @@ void BiDiagonalUp<T>::evalData() {
 	Householder<T>::evalHHmatrixData(*column, *tail, _HHmatrix(cols-1,cols-1), _HHbidiag(cols-1,cols-1)); 
 	delete column;
 	delete tail;
-
-
-
 }
 
+//////////////////////////////////////////////////////////////////////////
+template <typename T>
+HHsequence<T> BiDiagonalUp<T>::getUsequence() const {
 
+    const int diagSize = _HHbidiag.sizeAt(0);
+    NDArray<T> colOfCoeffs(diagSize, 1, _HHmatrix.ordering(),  _HHmatrix.getWorkspace());
+
+    for(int i = 0; i < diagSize; ++i)
+        colOfCoeffs(i) = _HHmatrix(i,i);
+    
+    return HHsequence<T>(_HHmatrix, colOfCoeffs, 'u');
+}
+
+//////////////////////////////////////////////////////////////////////////
+template <typename T>
+HHsequence<T> BiDiagonalUp<T>::getVsequence() const {
+
+    const int diagUpSize = _HHbidiag.sizeAt(0) - 1;
+	NDArray<T> colOfCoeffs(diagUpSize, 1, _HHmatrix.ordering(),  _HHmatrix.getWorkspace());
+
+    for(int i = 0; i < diagUpSize; ++i)
+        colOfCoeffs(i) = _HHmatrix(i,i+1);
+            
+    HHsequence<T> result(_HHmatrix, colOfCoeffs, 'v');
+    result._length = diagUpSize;
+    result._shift  = 1;
+
+    return result;
+}
 
 
 

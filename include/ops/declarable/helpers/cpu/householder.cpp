@@ -26,8 +26,8 @@ NDArray<T> Householder<T>::evalHHmatrix(const NDArray<T>& x) {
 	
 	if(normX*normX - x(0)*x(0) <= min) {
 
-		coeff = (T)0.;
 		normX = x(0); 
+		coeff = (T)0.;		
 		w = (T)0.;
 		
 	} 	
