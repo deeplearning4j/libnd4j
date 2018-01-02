@@ -8,8 +8,8 @@ namespace nd4j {
 namespace ops {
 namespace helpers {
     template <typename T>
-    FORCEINLINE void rgb_to_hsv(T r, T g, T b, T* h, T* v_min, T* v_max) {
-        float v_mid;
+    static FORCEINLINE void rgb_to_hv(T r, T g, T b, T* h, T* v_min, T* v_max) {
+        T v_mid;
         int h_category;
         // According to the figures in:
         // https://en.wikipedia.org/wiki/HSL_and_HSV#Hue_and_chroma
@@ -64,6 +64,51 @@ namespace helpers {
         auto ratio = (v_mid - *v_min) / (*v_max - *v_min);
         bool increase = ((h_category & 0x1) == 0);
         *h = h_category + (increase ? ratio : (1 - ratio));
+    }
+
+    template <typename T>
+    static FORCEINLINE void hv_to_rgb(T h, T v_min, T v_max, T* r, T* g, T* b) {
+        int h_category = static_cast<int>(h);
+        T ratio = h - h_category;
+        bool increase = ((h_category & 0x1) == 0);
+        if (!increase)
+            ratio = 1 - ratio;
+        
+        T v_mid = v_min + ratio * (v_max - v_min);
+        // According to the figures in:
+        // https://en.wikipedia.org/wiki/HSL_and_HSV#Hue_and_chroma
+        switch (h_category) {
+            case 0:
+                *r = v_max;
+                *g = v_mid;
+                *b = v_min;
+            break;
+            case 1:
+                *r = v_mid;
+                *g = v_max;
+                *b = v_min;
+            break;
+            case 2:
+                *r = v_min;
+                *g = v_max;
+                *b = v_mid;
+            break;
+            case 3:
+                *r = v_min;
+                *g = v_mid;
+                *b = v_max;
+            break;
+            case 4:
+                *r = v_mid;
+                *g = v_min;
+                *b = v_max;
+            break;
+            case 5:
+            default:
+                *r = v_max;
+                *g = v_min;
+                *b = v_mid;
+        }
     }
 }
 }
