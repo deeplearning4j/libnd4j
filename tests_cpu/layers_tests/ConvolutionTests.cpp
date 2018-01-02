@@ -972,5 +972,26 @@ TEST_F(ConvolutionTests, Test_Conv1D_ff_2) {
     delete result;
 }
 
+TEST_F(ConvolutionTests, Test_Conv2D_4_1) {
+    NDArray<double> input('c', {1, 1, 1, 4});
+    NDArray<double> weights('c', {4, 1, 1, 1});
+
+    weights.assign(2.0);
+    NDArrayFactory<double>::linspace(1, input);
+    //NDArrayFactory<double>::linspace(1, weights);
+
+    nd4j::ops::conv2d<double> op;
+    auto result = op.execute({&input, &weights}, {}, {1, 1, 1, 1, 0, 0, 1, 1, 0, 0});
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    z->printShapeInfo("z shape");
+    z->printIndexedBuffer("z");
+    z->printBuffer("z raw");
+
+    delete result;
+}
+
 
 #endif //LIBND4J_CONVOLUTIONTESTS_H

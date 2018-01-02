@@ -971,8 +971,9 @@ template <typename T>
             printf("%s: [", msg);
         else
             printf("[");
+
         for (Nd4jIndex e = 0; e < limit; e++) {
-            printf("%f", (float) this->getScalar(e));
+            printf("%f", (float) this->_buffer[e]);
             if (e < limit - 1)
                 printf(", ");
         }
