@@ -570,6 +570,9 @@ namespace nd4j {
         */
 		bool reshapei(const char order, const std::initializer_list<int>& shape);		
 		bool reshapei(const char order, const std::vector<int>& shape);
+
+        bool reshapei(const std::initializer_list<int>& shape);		
+		bool reshapei(const std::vector<int>& shape);
 	
         /**
         *  creates new array with corresponding order and shape, new array will point on _buffer of this array

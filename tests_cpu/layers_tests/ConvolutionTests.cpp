@@ -973,7 +973,7 @@ TEST_F(ConvolutionTests, Test_Conv1D_ff_2) {
 }
 
 TEST_F(ConvolutionTests, Test_Conv2D_4_1) {
-    NDArray<double> input('c', {1, 1, 1, 4});
+    NDArray<double> input('c', {1, 1, 1, 3});
     NDArray<double> weights('c', {4, 1, 1, 1});
 
     weights.assign(2.0);

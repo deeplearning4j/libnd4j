@@ -128,7 +128,7 @@ namespace nd4j {
                 output->addiRowVector(bias);
             }
 
-            output->reshapei('f', {oX, oY, input->sizeAt(0),outDepth});
+            output->reshapei('c', {oX, oY, input->sizeAt(0),outDepth});
 
             output->printShapeInfo("output 15");
 

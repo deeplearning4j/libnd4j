@@ -1373,37 +1373,16 @@ template <typename T>
     bool NDArray<T>::reshapei(const char order, const std::initializer_list<int>& shape) {
         std::vector<int> vShape(shape);
         return reshapei(order, vShape);
-/*
-    int rank = shape.size();
-    int arrLength = 1;
-    for(const auto& item : shape)
-        arrLength *= item;
+}
 
-    if(_buffer==nullptr || arrLength != lengthOf())
-        return false;
+template <typename T>
+bool NDArray<T>::reshapei(const std::initializer_list<int>& shape) {
+    return reshapei('c', shape);
+}	
 
-    int shapeLength = rank*2 + 4;
-    // remember old values
-
-    int elemWiseStride = _shapeInfo[rankOf()*2 + 2];
-    // if rank is different then delete and resize _shapeInfo appropriately
-    // also check if current object is _shapeInfo owner
-    if(rank != rankOf() || !_isShapeAlloc) {
-        if(_isShapeAlloc)
-            delete []_shapeInfo;
-        _shapeInfo = new int[shapeLength];
-        _shapeInfo[0] = rank;
-        _isShapeAlloc = true;
-    }
-    // copy new dimensions to _shapeInfo
-    int i = 1;
-    for(const auto& item : shape)
-        _shapeInfo[i++] = item;                 // exclude first element -> rank
-    // set strides in correspondence to dimensions and order
-	updateStrides(order);
-
-    return true;
-        */
+template <typename T>
+bool NDArray<T>::reshapei(const std::vector<int>& shape) {
+    return reshapei('c', shape);
 }
 
 

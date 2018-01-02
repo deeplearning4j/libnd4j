@@ -201,3 +201,15 @@ TEST_F(ShapeTests, Test_Transpose_4) {
 
     ASSERT_TRUE(shape::equalsStrict(exp, shape));
 }
+
+TEST_F(ShapeTests, Test_Edge_1) {
+    NDArray<float> x('c', {1, 4, 1, 4});
+
+    x.reshapei('f', {4, 4});
+
+    x.printShapeInfo("reshape0");
+
+    x.reshapei('f', {4, 1, 1, 4});
+
+    x.printShapeInfo("reshape1");
+}
