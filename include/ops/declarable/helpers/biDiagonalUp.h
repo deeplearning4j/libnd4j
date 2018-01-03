@@ -42,13 +42,10 @@ class BiDiagonalUp {
 
         /**
         *  this method evaluates product of Householder sequence matrices (transformations) acting on columns
+        *  
+        *  type - type of sequence, type = 'u' (acting on columns) or type = 'v' (acting on rows)
         */                   
-        HHsequence<T> getUsequence() const;
-
-        /**
-        *  this method evaluates product of Householder sequence matrices (transformations) acting on columns
-        */                   
-        HHsequence<T> getVsequence() const;
+        HHsequence<T> makeHHsequence(const char type) const;
 
 };
 

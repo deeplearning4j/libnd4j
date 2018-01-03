@@ -38,7 +38,7 @@ class HHsequence {
     */
     int _shift;        
 
-    /*
+    /* 
     *  type of sequence, type = 'u' (acting on columns) or type = 'v' (acting on rows)
     */
     int _type;        

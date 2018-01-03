@@ -2,6 +2,7 @@
 #include <ops/declarable/helpers/householder.h>
 #include <ops/declarable/helpers/biDiagonalUp.h>
 #include <ops/declarable/helpers/hhSequence.h>
+#include <ops/declarable/helpers/svd.h>
 
 
 using namespace nd4j;
@@ -170,8 +171,8 @@ TEST_F(HelpersTests1, HHsequence_test1) {
     NDArray<double> coeffsVseqExp('c', {3,1}, {1.37012,1.66979,0});      
         
     ops::helpers::BiDiagonalUp<double> object(matrix);    
-    ops::helpers::HHsequence<double> uSeq = object.getUsequence();
-    ops::helpers::HHsequence<double> vSeq = object.getVsequence();
+    ops::helpers::HHsequence<double> uSeq = object.makeHHsequence('u');
+    ops::helpers::HHsequence<double> vSeq = object.makeHHsequence('v');
 
     ASSERT_TRUE(uSeq._vectors.isSameShapeStrict(&vectorsUseqExp));
     ASSERT_TRUE(vSeq._vectors.isSameShapeStrict(&vectorsVseqExp));
@@ -194,8 +195,8 @@ TEST_F(HelpersTests1, HHsequence_test2) {
     NDArray<double> coeffsVseqExp('c', {3,1}, {1.37012,1.59666,0});      
         
     ops::helpers::BiDiagonalUp<double> object(matrix);    
-    ops::helpers::HHsequence<double> uSeq = object.getUsequence();
-    ops::helpers::HHsequence<double> vSeq = object.getVsequence();
+    ops::helpers::HHsequence<double> uSeq = object.makeHHsequence('u');
+    ops::helpers::HHsequence<double> vSeq = object.makeHHsequence('v');
 
     ASSERT_TRUE(uSeq._vectors.isSameShapeStrict(&vectorsUseqExp));
     ASSERT_TRUE(vSeq._vectors.isSameShapeStrict(&vectorsVseqExp));
@@ -218,8 +219,8 @@ TEST_F(HelpersTests1, HHsequence_test3) {
     NDArray<double> coeffsVseqExp('c', {3,1}, {1.75682,1.02929, 0});
         
     ops::helpers::BiDiagonalUp<double> object(matrix);    
-    ops::helpers::HHsequence<double> uSeq = object.getUsequence();
-    ops::helpers::HHsequence<double> vSeq = object.getVsequence();
+    ops::helpers::HHsequence<double> uSeq = object.makeHHsequence('u');
+    ops::helpers::HHsequence<double> vSeq = object.makeHHsequence('v');
 
     ASSERT_TRUE(uSeq._vectors.isSameShapeStrict(&vectorsUseqExp));
     ASSERT_TRUE(vSeq._vectors.isSameShapeStrict(&vectorsVseqExp));
@@ -239,7 +240,7 @@ TEST_F(HelpersTests1, HHsequence_test4) {
     NDArray<double> exp   ('c', {4,4}, {2.49369, 2.62176, 5.88386, 7.69905, -16.0588,-18.7319,-9.15007,-12.6164, 4.7247, 3.46252, 1.02038, -1.4533, 2.9279,-2.29178, 1.90139,-0.66187});
         
     ops::helpers::BiDiagonalUp<double> object(matrix);    
-    ops::helpers::HHsequence<double> uSeq = object.getUsequence();
+    ops::helpers::HHsequence<double> uSeq = object.makeHHsequence('u');
     uSeq.mulLeft(matrix);
     
     ASSERT_TRUE(matrix.equalsTo(&exp));
@@ -253,7 +254,7 @@ TEST_F(HelpersTests1, HHsequence_test5) {
     NDArray<double> exp   ('c', {5,4}, {4.52891, 8.09473,-2.73704,-13.0302, -11.0752, 7.41549,-3.75125,0.815252, -7.76818,-15.9102,-9.90869,-11.8677, 1.63942,-17.0312,-9.05102,-4.49088, -9.63311,0.540226,-1.52764, 5.79111});
             
     ops::helpers::BiDiagonalUp<double> object(matrix);    
-    ops::helpers::HHsequence<double> uSeq = object.getUsequence();
+    ops::helpers::HHsequence<double> uSeq = object.makeHHsequence('u');
     uSeq.mulLeft(matrix);
     
     ASSERT_TRUE(matrix.equalsTo(&exp));
@@ -268,7 +269,7 @@ TEST_F(HelpersTests1, HHsequence_test6) {
     NDArray<double> exp   ('c', {6,4}, {9,-1,3,9, -4.43019,-15.1713, -3.2854,-7.65743, -9.39162,-7.03599, 8.03827, 9.48453, -2.97785, -16.424, 5.35265,-20.1171, -0.0436177, -13.118,-8.37287,-17.3012, -1.14074, 4.18282,-10.0914,-5.69014});
 
     ops::helpers::BiDiagonalUp<double> object(matrix);    
-    ops::helpers::HHsequence<double> uSeq = object.getUsequence();
+    ops::helpers::HHsequence<double> uSeq = object.makeHHsequence('u');
     uSeq.mulLeft(matrix2);
     
     ASSERT_TRUE(matrix2.equalsTo(&exp));
@@ -282,7 +283,7 @@ TEST_F(HelpersTests1, HHsequence_test7) {
     NDArray<double> exp   ('c', {4,4}, {9,13,3,6,-5.90424,-2.30926,-0.447417, 3.05712, -10.504,-9.31339, -8.85493,-10.8886, -8.29494,-10.6737, -5.94895,-7.55591});
         
     ops::helpers::BiDiagonalUp<double> object(matrix);    
-    ops::helpers::HHsequence<double> vSeq = object.getVsequence();
+    ops::helpers::HHsequence<double> vSeq = object.makeHHsequence('v');
     vSeq.mulLeft(matrix);    
     
     ASSERT_TRUE(matrix.equalsTo(&exp));
@@ -295,7 +296,7 @@ TEST_F(HelpersTests1, HHsequence_test8) {
     NDArray<double> exp   ('c', {5,4}, {9,     -13,        3,       6, 13,      11,        7,      -6, -6.90831,-5.01113, 0.381677,0.440128, -0.80107,0.961605,-0.308019,-1.96153, -0.795985, 18.6538,  12.0731, 16.9988});
 
     ops::helpers::BiDiagonalUp<double> object(matrix);    
-    ops::helpers::HHsequence<double> vSeq = object.getVsequence();
+    ops::helpers::HHsequence<double> vSeq = object.makeHHsequence('v');
     vSeq.mulLeft(matrix);    
 
     ASSERT_TRUE(matrix.equalsTo(&exp));        
@@ -308,7 +309,7 @@ TEST_F(HelpersTests1, HHsequence_test9) {
     NDArray<double> exp   ('c', {6,4}, {9,     -13,        3,       6, 13,      11,        7,      -6, 3,       7,        4,       7, 3.77597, 18.6226,-0.674868, 4.61365, 5.02738,-14.1486, -2.22877,-8.98245, -0.683766, 1.73722,  14.9859, 12.0843});
 
     ops::helpers::BiDiagonalUp<double> object(matrix);    
-    ops::helpers::HHsequence<double> vSeq = object.getVsequence();
+    ops::helpers::HHsequence<double> vSeq = object.makeHHsequence('v');
     vSeq.mulLeft(matrix);    
 
     ASSERT_TRUE(matrix.equalsTo(&exp));        
@@ -322,7 +323,7 @@ TEST_F(HelpersTests1, HHsequence_test10) {
     NDArray<double> exp   ('c', {6,4}, {9,      -1,       3,        9, 10,      11,      -7,       -5, 3,       2,       4,        7, 2.58863, 11.0295,-4.17483,-0.641012, -1.21892,-16.3151, 6.12049, -20.0239, -0.901799,-15.0389,-12.4944, -20.2394});
 
     ops::helpers::BiDiagonalUp<double> object(matrix);    
-    ops::helpers::HHsequence<double> vSeq = object.getVsequence();
+    ops::helpers::HHsequence<double> vSeq = object.makeHHsequence('v');
     vSeq.mulLeft(matrix2);
     
     ASSERT_TRUE(matrix2.equalsTo(&exp));        
@@ -336,7 +337,7 @@ TEST_F(HelpersTests1, HHsequence_test11) {
     NDArray<double> exp   ('c', {6,4}, {9,      -1,       3,       9, 10,      11,      -7,      -5, 3,       2,       4,       7, 1.14934, 4.40257, 8.70127,-1.18824, 1.5132,0.220419,-11.6285,-11.7549, 2.32148, 24.3838,0.256531, 25.9116});
 
     ops::helpers::BiDiagonalUp<double> object(matrix);    
-    ops::helpers::HHsequence<double> vSeq = object.getVsequence();
+    ops::helpers::HHsequence<double> vSeq = object.makeHHsequence('v');
     vSeq.mulLeft(matrix2);
     
     ASSERT_TRUE(matrix2.equalsTo(&exp));        
@@ -350,7 +351,7 @@ TEST_F(HelpersTests1, HHsequence_test12) {
     NDArray<double> exp   ('c', {6,4}, {9,      -1,       3,       9, 10,      11,      -7,      -5, 3,       2,       4,       7, -1,       6,       7,      19, -2.62252,-22.2914, 4.76743,-19.6689, -1.05943,-9.00514,-11.8013,-7.94571});
 
     ops::helpers::BiDiagonalUp<double> object(matrix);    
-    ops::helpers::HHsequence<double> vSeq = object.getVsequence();
+    ops::helpers::HHsequence<double> vSeq = object.makeHHsequence('v');
     vSeq.mulLeft(matrix2);
     
     ASSERT_TRUE(matrix2.equalsTo(&exp));        
@@ -364,7 +365,7 @@ TEST_F(HelpersTests1, HHsequence_test13) {
     NDArray<double> exp   ('c', {6,4}, {9 ,     -1 ,      3 ,      9, -4.65167, 3.44652, 7.83593, 22.6899, -9.48514, -21.902, 5.66559,-13.0533, -0.343184, 15.2895,  7.2888, 14.0489, 0.289638,-1.87752,   3.944,-1.49707, -2.48845, 3.18285,-10.6685,0.406502});
 
     ops::helpers::BiDiagonalUp<double> object(matrix);    
-    ops::helpers::HHsequence<double> uSeq = object.getUsequence();
+    ops::helpers::HHsequence<double> uSeq = object.makeHHsequence('u');
     uSeq.mulLeft(matrix2);
     
     ASSERT_TRUE(matrix2.equalsTo(&exp));        
@@ -378,7 +379,7 @@ TEST_F(HelpersTests1, HHsequence_test14) {
     NDArray<double> exp   ('c', {5,5}, {1.78958,  8.06962,-6.13687, 4.36267, 1.06472, -14.9578,  -8.1522, 1.30442,-18.3343,-13.2578, 13.5536,  5.50764, 15.7859, 7.60831, 11.7871, -1.3626,-0.634986, 7.60934, -2.1841, 5.62694, -13.0577,  15.1554, -7.6511, 3.76365,-5.87368});
 
     ops::helpers::BiDiagonalUp<double> object(matrix);    
-    ops::helpers::HHsequence<double> uSeq = object.getUsequence();
+    ops::helpers::HHsequence<double> uSeq = object.makeHHsequence('u');
     uSeq.mulLeft(matrix2);
     
     ASSERT_TRUE(matrix2.equalsTo(&exp));        
@@ -393,8 +394,123 @@ TEST_F(HelpersTests1, HHsequence_test15) {
     NDArray<double> exp   ('c', {5,5}, {9,      -1,       3,       9,      10, 11,      -7,      -5,       3,       2, 4,       7,      -1,       6,       7, -9.26566,-16.4298, 1.64125,-17.3243,-7.70257, -16.7077, 4.80216,-19.1652,-2.42279,-13.0258});
 
     ops::helpers::BiDiagonalUp<double> object(matrix);    
-    ops::helpers::HHsequence<double> vSeq = object.getVsequence();
+    ops::helpers::HHsequence<double> vSeq = object.makeHHsequence('v');
     vSeq.mulLeft(matrix2);
     
     ASSERT_TRUE(matrix2.equalsTo(&exp));        
 }
+
+///////////////////////////////////////////////////////////////////
+TEST_F(HelpersTests1, SVD_test1) {
+            
+    NDArray<double> matrix ('c', {5,5}, {-17 ,14 ,9 ,-12 ,-12 ,5 ,-4 ,-19 ,-7 ,-12 ,15 ,16 ,17 ,-6 ,8 ,-10 ,14 ,-15 ,6 ,-10 ,-14 ,12 ,-1 ,-16 ,3});
+    NDArray<double> matrix2('c', {5,5}, {18 ,3 ,2 ,7 ,-11 ,7 ,7 ,10 ,-13 ,-8 ,13 ,20 ,-4 ,-16 ,-9 ,-17 ,-5 ,-7 ,-19 ,-8 ,-9 ,9 ,6 ,14 ,-11});
+    NDArray<double> expM   ('c', {5,5}, {-17,14,9,-12,-12, 5,-4,    -19, -7,-12, 15,16,17.0294, -6,  8, -10,14,    -15,  6,-10, -14,12,      0,-16,  0});
+    NDArray<double> expU   ('c', {5,5}, {18,3, 2,7,-11, 7, 7.75131,10,-12.5665, -8, 13,  20.905,-4,-14.7979, -9, -17,-3.87565,-7,-19.2608, -8, -9,       9, 6,      14,-11});
+
+    ops::helpers::SVD<double> svd(matrix, true, true, true);    
+    svd._M = matrix;
+    svd._U = matrix2;
+    svd.deflation1(1,1,2,2);    
+
+    ASSERT_TRUE(expM.equalsTo(&svd._M));        
+    ASSERT_TRUE(expU.equalsTo(&svd._U));
+}
+
+///////////////////////////////////////////////////////////////////
+TEST_F(HelpersTests1, SVD_test2) {
+            
+    NDArray<double> matrix ('c', {5,5}, {-17 ,14 ,9 ,-12 ,-12 ,5 ,-4 ,-19 ,-7 ,-12 ,15 ,16 ,17 ,-6 ,8 ,-10 ,14 ,-15 ,6 ,-10 ,-14 ,12 ,-1 ,-16 ,3});
+    NDArray<double> matrix2('c', {5,5}, {18 ,3 ,2 ,7 ,-11 ,7 ,7 ,10 ,-13 ,-8 ,13 ,20 ,-4 ,-16 ,-9 ,-17 ,-5 ,-7 ,-19 ,-8 ,-9 ,9 ,6 ,14 ,-11});
+    NDArray<double> expM   ('c', {5,5}, {22.6716,14,  9,-12,-12, 5,-4,-19, -7,-12, 0,16,  0, -6,  8, -10,14,-15,  6,-10, -14,12, -1,-16,  3});
+    NDArray<double> expU   ('c', {5,5}, {-12.1738, 3, -13.4089,  7,-11, 1.36735, 7, -12.1297,-13, -8, -12.3944,20, -5.60173,-16, -9, -17,-5,-7,-19, -8, -9, 9, 6, 14,-11});
+
+    ops::helpers::SVD<double> svd(matrix, true, true, true);    
+    svd._M = matrix;
+    svd._U = matrix2;
+    svd.deflation1(0,0,2,2);    
+        
+    ASSERT_TRUE(expM.equalsTo(&svd._M));        
+    ASSERT_TRUE(expU.equalsTo(&svd._U));
+}
+
+///////////////////////////////////////////////////////////////////
+TEST_F(HelpersTests1, SVD_test3) {
+            
+    NDArray<double> matrix ('c', {5,5}, {-17 ,14 ,9 ,-12 ,-12 ,5 ,-4 ,-19 ,-7 ,-12 ,15 ,16 ,17 ,-6 ,8 ,-10 ,14 ,-15 ,6 ,-10 ,-14 ,12 ,-1 ,-16 ,3});
+    NDArray<double> matrix2('c', {2,6}, {18 ,3 ,2 ,7 ,-11 ,7 ,7 ,10 ,-13 ,-8 ,13 ,20});
+    NDArray<double> expM   ('c', {5,5}, {-17,14,9,-12,-12, 5,-4,    -19, -7,-12, 15,16,17.0294, -6,  8, -10,14,    -15,  6,-10, -14,12,      0,-16,  0});
+    NDArray<double> expU   ('c', {2,6}, {18, 2.58377,   2,  7.16409,-11,  7, 7 ,10.4525 ,-13, -7.39897 ,13 ,20});
+
+    ops::helpers::SVD<double> svd(matrix, false, true, true);    
+    svd._M = matrix;
+    svd._U = matrix2;
+    svd.deflation1(1,1,2,2);    
+        
+    ASSERT_TRUE(expM.equalsTo(&svd._M));        
+    ASSERT_TRUE(expU.equalsTo(&svd._U));
+}
+
+///////////////////////////////////////////////////////////////////
+TEST_F(HelpersTests1, SVD_test4) {
+            
+    NDArray<double> matrix1('c', {6,5}, {12 ,20 ,19 ,-18 ,-6 ,3 ,6 ,2 ,-7 ,-7 ,14 ,8 ,18 ,-17 ,18 ,-14 ,-15 ,1 ,2 ,2 ,-3 ,-18 ,8 ,-17 ,-19 ,12 ,18 ,6 ,-2 ,-17});
+    NDArray<double> matrix2('c', {6,6}, {-10 ,-16 ,-20 ,13 ,20 ,-10 ,-9 ,-1 ,-7 ,-20 ,-4 ,20 ,-11 ,19 ,-5 ,-18 ,12 ,-19 ,18 ,-18 ,17 ,-10 ,-19 ,14 ,-2 ,-7 ,-17 ,-14 ,-4 ,-16 ,18 ,-6 ,-18 ,1 ,-15 ,-12});
+    NDArray<double> matrix3('c', {5,5}, {-18 ,1 ,19 ,-7 ,1 ,2 ,-18 ,-13 ,14 ,2 ,-2 ,-11 ,8 ,2 ,-6 ,-3 ,-8 ,8 ,-2 ,7 ,16 ,15 ,-3 ,7 ,0});
+    NDArray<double> expM   ('c', {6,5}, {12, 20,     19,-18, -6, 3,  6,      2, -7, -7, 14,  8,     18,-17, 18, -14,-15,8.06226,  2,  2, -3,-18,      0,-17,  2, 12, 18,      6, -2,-17});
+    NDArray<double> expU   ('c', {6,6}, {-10,-16,     -20,     13, 20,-10, -9, -1,-20.7138,4.46525, -4, 20, -11, 19,-18.4812,2.72876, 12,-19, 18,-18,      17,    -10,-19, 14, -2, -7,     -17,    -14, -4,-16, 18, -6,     -18,      1,-15,-12});
+    NDArray<double> expV   ('c', {5,5}, {-18,  1,     19,      -7, 1, 2,-18,    -13,      14, 2, -2,-11,2.97683,-7.69015,-6, -3, -8,      8,      -2, 7, 16, 15,     -3,       7, 0});
+
+    ops::helpers::SVD<double> svd(matrix3, true, true, true);    
+    svd._M = matrix1;
+    svd._U = matrix2;
+    svd._V = matrix3;
+    svd.deflation2(1, 2, 2, 1, 1, 2, 1);    
+        
+    ASSERT_TRUE(expM.equalsTo(&svd._M));        
+    ASSERT_TRUE(expU.equalsTo(&svd._U));
+    ASSERT_TRUE(expV.equalsTo(&svd._V));
+}
+
+///////////////////////////////////////////////////////////////////
+TEST_F(HelpersTests1, SVD_test5) {
+            
+    NDArray<double> matrix1('c', {6,5}, {12 ,20 ,19 ,-18 ,-6 ,3 ,6 ,2 ,-7 ,-7 ,14 ,8 ,18 ,-17 ,18 ,-14 ,-15 ,1 ,2 ,2 ,-3 ,-18 ,8 ,-17 ,-19 ,12 ,18 ,6 ,-2 ,-17});
+    NDArray<double> matrix2('c', {6,6}, {-10 ,-16 ,-20 ,13 ,20 ,-10 ,-9 ,-1 ,-7 ,-20 ,-4 ,20 ,-11 ,19 ,-5 ,-18 ,12 ,-19 ,18 ,-18 ,17 ,-10 ,-19 ,14 ,-2 ,-7 ,-17 ,-14 ,-4 ,-16 ,18 ,-6 ,-18 ,1 ,-15 ,-12});
+    NDArray<double> matrix3('c', {5,5}, {-18 ,1 ,19 ,-7 ,1 ,2 ,-18 ,-13 ,14 ,2 ,-2 ,-11 ,8 ,2 ,-6 ,-3 ,-8 ,8 ,-2 ,7 ,16 ,15 ,-3 ,7 ,0});
+    NDArray<double> expM   ('c', {6,5}, {18.4391, 20,     19,-18, -6, 3,  6,      2, -7, -7, 0,  8,18.4391,-17, 18, -14,-15,      1,  2,  2, -3,-18,      8,-17,-19, 12, 18,      6, -2,-17});
+    NDArray<double> expU   ('c', {6,6}, {-10,-16,-20,13, 20,-10, -9,-15.8359, -7,-12.2566, -4, 20, -11,-1.30158, -5,-26.1401, 12,-19, 18,-19.3068, 17, 7.15871,-19, 14, -2,      -7,-17,     -14, -4,-16, 18,      -6,-18,       1,-15,-12});
+    NDArray<double> expV   ('c', {5,5}, {-18,       1, 19,     -7, 1, 2,-1.08465,-13,22.7777, 2, -2,-5.64019,  8,9.65341,-6, -3,      -8,  8,     -2, 7, 16,      15, -3,      7, 0});
+
+    ops::helpers::SVD<double> svd(matrix3, true, true, true);    
+    svd._M = matrix1;
+    svd._U = matrix2;
+    svd._V = matrix3;
+    svd.deflation2(1, 0, 1, 1, 0, 2, 2);    
+        
+    ASSERT_TRUE(expM.equalsTo(&svd._M));        
+    ASSERT_TRUE(expU.equalsTo(&svd._U));
+    ASSERT_TRUE(expV.equalsTo(&svd._V));
+}
+
+///////////////////////////////////////////////////////////////////
+TEST_F(HelpersTests1, SVD_test6) {
+            
+    NDArray<double> matrix1('c', {6,5}, {12 ,20 ,19 ,-18 ,-6 ,3 ,6 ,2 ,-7 ,-7 ,14 ,8 ,18 ,-17 ,18 ,-14 ,-15 ,1 ,2 ,2 ,-3 ,-18 ,8 ,-17 ,-19 ,12 ,18 ,6 ,-2 ,-17});
+    NDArray<double> matrix2('c', {2,6}, {-10 ,-16 ,-20 ,13 ,20 ,-10 ,-9 ,-1 ,-7 ,-20 ,-4 ,20});
+    NDArray<double> matrix3('c', {5,5}, {-18 ,1 ,19 ,-7 ,1 ,2 ,-18 ,-13 ,14 ,2 ,-2 ,-11 ,8 ,2 ,-6 ,-3 ,-8 ,8 ,-2 ,7 ,16 ,15 ,-3 ,7 ,0});
+    NDArray<double> expM   ('c', {6,5}, {18.4391, 20,     19,-18, -6, 3,  6,      2, -7, -7, 0,  8,18.4391,-17, 18, -14,-15,      1,  2,  2, -3,-18,      8,-17,-19, 12, 18,      6, -2,-17});
+    NDArray<double> expU   ('c', {2,6}, {-10, -0.542326,-20, 20.6084,20,-10, -9,  -15.8359, -7,-12.2566,-4, 20});
+    NDArray<double> expV   ('c', {5,5}, {-18,       1, 19,     -7, 1, 2,-1.08465,-13,22.7777, 2, -2,-5.64019,  8,9.65341,-6, -3,      -8,  8,     -2, 7, 16,      15, -3,      7, 0});
+
+    ops::helpers::SVD<double> svd(matrix3, false, true, true);    
+    svd._M = matrix1;
+    svd._U = matrix2;
+    svd._V = matrix3;
+    svd.deflation2(1, 0, 1, 1, 0, 2, 2);    
+        
+    ASSERT_TRUE(expM.equalsTo(&svd._M));        
+    ASSERT_TRUE(expU.equalsTo(&svd._U));
+    ASSERT_TRUE(expV.equalsTo(&svd._V));
+}
+      
