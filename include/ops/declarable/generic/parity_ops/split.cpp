@@ -8,6 +8,57 @@
 namespace nd4j {
 namespace ops {
     CUSTOM_OP_IMPL(split, 1, -1, false, 0, 1) {
+        NDArray<T> *input = nullptr;
+        int num_splits = INT_ARG(0);
+
+        // axis is 0 by default
+        int axis = 0;
+
+        if (block.width() == 1) {
+            input = INPUT_VARIABLE(0);
+        } else {
+            auto a = INPUT_VARIABLE(0);
+            auto b = INPUT_VARIABLE(1);
+
+            if (a->isScalar()) {
+                // axis goes first
+                axis = a->getScalar(0);
+                input = b;
+            } else if (b->isScalar()) {
+                axis = b->getScalar(0);
+                input = a;
+            }
+        }
+
+        if (block.numI() == 2)
+            axis = INT_ARG(1);
+
+        REQUIRE_TRUE(input->sizeAt(axis) % num_splits == 0, 0, "Split: num_splits has wrong value, remainder of division should be 0, but it's %i", input->sizeAt(axis) % num_splits);
+
+        int pos = 0;
+        int split = input->sizeAt(axis) / num_splits;
+        for (int e = 0; e < num_splits; e++) {
+            auto out = OUTPUT_VARIABLE(e);
+
+            IndicesList indices;
+            for (int d = 0; d < input->rankOf(); d++) {
+                if (d == axis)
+                    indices.push_back(NDIndex::interval(pos, pos + split));
+                else 
+                    indices.push_back(NDIndex::all());
+            }
+
+            auto sub = input->subarray(indices);
+            
+            out->assign(sub);
+
+            delete sub;
+
+            pos += split;
+        }
+
+
+
         return ND4J_STATUS_OK;
     }
 

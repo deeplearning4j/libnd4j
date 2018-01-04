@@ -440,9 +440,6 @@ TEST_F(DeclarableOpsTests4, Test_Split_2) {
     auto z2 = result->at(2);
     auto z3 = result->at(3);
 
-    z0->printShapeInfo("z0");
-    sub0->printShapeInfo("e0");
-
     ASSERT_TRUE(sub0->isSameShape(z0));
     ASSERT_TRUE(sub1->isSameShape(z1));
     ASSERT_TRUE(sub2->isSameShape(z2));
