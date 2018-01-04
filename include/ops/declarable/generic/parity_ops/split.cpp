@@ -3,6 +3,7 @@
 //
 
 #include <ops/declarable/headers/parity_ops.h>
+#include <array>
 
 namespace nd4j {
 namespace ops {
@@ -11,7 +12,58 @@ namespace ops {
     }
 
     DECLARE_SHAPE_FN(split) {
-        return new ShapeList();
+        int num_splits = INT_ARG(0);
+        int *input = nullptr;
+
+        // axis is 0 by default
+        int axis = 0;
+
+        if (inputShape->size() == 1)
+            input = inputShape->at(0);
+        else {
+            auto shape0 = inputShape->at(0);
+            auto shape1 = inputShape->at(1);
+
+            if (shape::isScalar(shape0)) {
+                input = shape1;
+                auto _a = INPUT_VARIABLE(0);
+                axis = _a->getScalar(0);
+            } else if (shape::isScalar(shape1)) {
+                input = shape0;
+                auto _a = INPUT_VARIABLE(1);
+                axis = _a->getScalar(0);
+            }
+        }
+
+        if (block.numI() == 2)
+            axis = INT_ARG(1);
+
+        if (axis < 0)
+            axis += shape::rank(input);
+
+        std::vector<int> shape(shape::rank(input));
+
+        for (int e = 0; e < shape::rank(input); e++)
+            if (e == axis)
+                shape[e] = shape::sizeAt(input, e) / num_splits;
+            else 
+                shape[e] = shape::sizeAt(input, e);
+
+        auto shapes = new ShapeList();
+
+        for (int e = 0; e < num_splits; e++) {
+            int *newShape;
+            ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(input), int);
+
+            if (shape::order(input) == 'c')
+                shape::shapeBuffer(shape.size(), shape.data(), newShape);
+            else
+                shape::shapeBufferFortran(shape.size(), shape.data(), newShape);
+
+            shapes->push_back(newShape);
+        }
+
+        return shapes;
     }
 }
 }
