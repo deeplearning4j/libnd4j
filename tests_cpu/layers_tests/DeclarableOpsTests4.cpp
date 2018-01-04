@@ -383,7 +383,7 @@ TEST_F(DeclarableOpsTests4, Test_Split_1) {
     sub2->assign(2.0f);
 
 
-    nd4j::ops::split<float> op;
+    nd4j::ops::split_v<float> op;
     auto result = op.execute({&x, &sizes}, {}, {1});
 
     ASSERT_EQ(ND4J_STATUS_OK, result->status());
@@ -402,6 +402,48 @@ TEST_F(DeclarableOpsTests4, Test_Split_1) {
 
     ASSERT_TRUE(sub2->isSameShape(z2));
     ASSERT_TRUE(sub2->equalsTo(z2));
+
+    delete sub0;
+    delete sub1;
+    delete sub2;
+
+    delete result;
+}
+
+// special test for TF mode, when axis goes first
+TEST_F(DeclarableOpsTests4, Test_Split_2) {
+    NDArray<float> x('c', {5, 12});
+    NDArray<float> axis('c', {1, 1}, {1.f});
+
+    IndicesList list0({NDIndex::all(), NDIndex::interval(0, 4)});
+    IndicesList list1({NDIndex::all(), NDIndex::interval(4, 7)});
+    IndicesList list2({NDIndex::all(), NDIndex::interval(7, 12)});
+
+    auto sub0 = x.subarray(list0);
+    auto sub1 = x.subarray(list1);
+    auto sub2 = x.subarray(list2);
+
+    sub0->assign(0.0f);
+    sub1->assign(1.0f);
+    sub2->assign(2.0f);
+
+
+    nd4j::ops::split<float> op;
+    auto result = op.execute({&axis, &x}, {}, {4});
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z0 = result->at(0);
+    auto z1 = result->at(1);
+    auto z2 = result->at(2);
+
+    ASSERT_TRUE(sub0->isSameShape(z0));
+    ASSERT_TRUE(sub1->isSameShape(z1));
+    ASSERT_TRUE(sub2->isSameShape(z2));
+
+    ASSERT_TRUE(sub0->equalsTo(z0));
+    ASSERT_TRUE(sub1->equalsTo(z1));
+    ASSERT_TRUE(sub2->equalsTo(z2));
+
 
     delete sub0;
     delete sub1;
