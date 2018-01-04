@@ -818,6 +818,19 @@ namespace nd4j {
         void setIdentity();
 
         /**
+        *  swaps the contents of tow arrays, 
+        *  PLEASE NOTE: method doesn't take into account the shapes of arrays, shapes may be different except one condition: arrays lengths must be the same 
+        */
+        void swapUnsafe(NDArray<T>& other);
+
+        /**
+        *  return vector with buffer which points on corresponding diagonal elements of array
+        *
+        *  type - means of vector to be returned: column ('c') or row ('r')
+        */
+        NDArray<T>* diagonal(const char type ) const;
+
+        /**
         *  default destructor
         */        
         ~NDArray(); 

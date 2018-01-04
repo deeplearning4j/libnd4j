@@ -30,7 +30,7 @@ class SVD {
     bool _calcV;
     bool _fullUV;
 
-    /*
+    /**
     *  constructor
     */
     SVD(const NDArray<T>& matrix, const bool calcV, const bool calcU, const bool fullUV);
@@ -39,7 +39,7 @@ class SVD {
     
     void deflation2(int col1U , int col1M, int row1W, int col1W, int ind1, int ind2, int size);
     
-
+    void deflation(int col1, int col2, int ind, int row1W, int col1W, int shift);
 
 
 };

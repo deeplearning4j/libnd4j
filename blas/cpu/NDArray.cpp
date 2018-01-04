@@ -2700,9 +2700,99 @@ NDArray<T> NDArray<T>::operator+(const NDArray<T>& other) const {
     }
 
     ////////////////////////////////////////////////////////////////////////
+    template<typename T>
+    void NDArray<T>::swapUnsafe(NDArray<T>& other) {
+        
+        if(_buffer == nullptr || other._buffer == nullptr)
+            throw "NDArray::swapUnsafe method: input array should not be empty!";
+
+        if(lengthOf() != other.lengthOf())
+            throw "NDArray::swapUnsafe method: input arrays should have the same length!";
+
+        T temp;
+#pragma omp parallel for simd schedule(static) private(temp)
+        for (int i = 0; i < lengthOf(); ++i) {
+            temp = _buffer[i];
+            _buffer[i] = other._buffer[i];
+            other._buffer[i] = temp;            
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////
+    template<typename T>
+    NDArray<T>* NDArray<T>::diagonal(const char type) const {        
+
+        int *outShapeInfo;
+        ALLOCATE(outShapeInfo, _workspace, 8, int);
+        outShapeInfo[0] = 2;
+        outShapeInfo[5] = 0;
+
+        if(isVector() || isScalar()) {
+            outShapeInfo[1] = outShapeInfo[2] = outShapeInfo[3] = outShapeInfo[4] = 1;            
+            outShapeInfo[6] = 1;
+            outShapeInfo[7] = _shapeInfo[2*rankOf()+3];
+        }
+        else {
+            
+            int diagSize  = 100000000;        
+            // int step = 0;
+            
+        
+            for(int i = 0; i < rankOf(); ++i) {    
+                if(diagSize > shapeOf()[i])
+                    diagSize = shapeOf()[i];            
+                
+                // step += stridesOf()[i];                
+            }
+
+            bool allDimsSame = true;
+            for(int i = 0; i < rankOf() - 1; ++i) {
+                if(shapeOf()[i] != shapeOf()[i+1]) {
+                    allDimsSame = false;
+                    break;
+                }
+            }
+            int* indices = new int[rankOf()];        
+            for(int i = 0; i < rankOf(); ++i)
+                indices[i] = 1;
+
+            int step = (int)shape::getOffset(0, shapeOf(), stridesOf(), indices, rankOf());
+            std::cout<<step<<std::endl;
+            delete []indices;
+            if(allDimsSame )
+                --step;
+
+            if(type == 'c') {
+                outShapeInfo[1] = diagSize;
+                outShapeInfo[2] = 1;                
+            }
+            else {
+                outShapeInfo[1] = 1;
+                outShapeInfo[2] = diagSize;                            
+            }         
+            shape::updateStrides(outShapeInfo, ordering());
+            
+            if(ordering() == 'c') {
+                outShapeInfo[3] *= step;
+                outShapeInfo[4] *= step;            
+            }
+            else {
+                outShapeInfo[3] *= step;
+                outShapeInfo[4] *= step;   
+            }
+            
+            outShapeInfo[6] =-1;
+            
+        }
+
+        NDArray<T>* result = new NDArray<T>(this->_buffer, outShapeInfo, this->_workspace);
+        result->_isShapeAlloc = true;
+        return result;
+    }
+
+    ////////////////////////////////////////////////////////////////////////
     // default destructor
     template<typename T>
-
     NDArray<T>::~NDArray() {
         if (_isBuffAlloc && _workspace == nullptr && _buffer != nullptr)
             delete[] _buffer;

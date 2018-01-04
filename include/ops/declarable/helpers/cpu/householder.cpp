@@ -22,7 +22,7 @@ NDArray<T> Householder<T>::evalHHmatrix(const NDArray<T>& x) {
 
 	T coeff;
 	T normX = x.template reduceNumber<simdOps::Norm2<T>>();	
-	const T min = DataTypeUtils::min<T>();		
+	const T min = DataTypeUtils::min<T>();
 	
 	if(normX*normX - x(0)*x(0) <= min) {
 

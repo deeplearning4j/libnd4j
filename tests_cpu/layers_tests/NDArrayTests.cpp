@@ -2329,3 +2329,102 @@ TEST_F(NDArrayTest, Test_Lambda_3) {
     ASSERT_TRUE(exp.equalsTo(&x));
 }
 
+//////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest, Test_swapUnsafe_1) {
+    
+    NDArray<double> x('c', {2, 2}, {1, 2, 3, 4});
+    NDArray<double> y('c', {1, 4}, {5, 6, 7, 8});
+    NDArray<double> expX('c', {2, 2}, {5, 6, 7, 8});
+    NDArray<double> expY('c', {1, 4}, {1, 2, 3, 4});
+
+    x.swapUnsafe(y);
+
+    ASSERT_TRUE(expX.equalsTo(&x));
+    ASSERT_TRUE(expY.equalsTo(&y));
+}
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest, Test_diagonal_1) {
+    
+    NDArray<double> x('c', {2, 2}, {1, 2, 3, 4});
+    NDArray<double> exp('c', {1, 2}, {1, 3});    
+
+    NDArray<double>* diag = x.diagonal('r');    
+
+    ASSERT_TRUE(exp.isSameShape(diag));
+    ASSERT_TRUE(exp.equalsTo(diag));
+    
+    delete diag;
+}
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest, Test_diagonal_2) {
+    
+    NDArray<double> x('c', {2, 3}, {1, 2, 3, 4, 5, 6});
+    NDArray<double> exp('c', {1, 2}, {1, 5});    
+
+    NDArray<double>* diag = x.diagonal('r');
+    
+    ASSERT_TRUE(exp.isSameShape(diag));
+    ASSERT_TRUE(exp.equalsTo(diag));
+    
+    delete diag;
+}
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest, Test_diagonal_3) {
+    
+    NDArray<double> x('c', {2, 2}, {1, 2, 3, 4});
+    NDArray<double> exp('c', {2, 1}, {1, 3});    
+
+    NDArray<double>* diag = x.diagonal('c');    
+
+    ASSERT_TRUE(exp.isSameShape(diag));
+    ASSERT_TRUE(exp.equalsTo(diag));
+    
+    delete diag;
+}
+
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest, Test_diagonal_4) {
+    
+    NDArray<double> x('c', {2, 3}, {1, 2, 3, 4, 5, 6});
+    NDArray<double> exp('c', {2, 1}, {1, 5});    
+
+    NDArray<double>* diag = x.diagonal('c');
+    
+    ASSERT_TRUE(exp.isSameShape(diag));
+    ASSERT_TRUE(exp.equalsTo(diag));
+    
+    delete diag;
+}
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest, Test_diagonal_5) {
+    
+    NDArray<double> x('f', {2, 2}, {1, 2, 3, 4});
+    NDArray<double> exp('f', {2, 1}, {1, 3});    
+
+    NDArray<double>* diag = x.diagonal('c');    
+
+    ASSERT_TRUE(exp.isSameShape(diag));
+    ASSERT_TRUE(exp.equalsTo(diag));
+    
+    delete diag;
+}
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest, Test_diagonal_6) {
+    
+    NDArray<double> x('f', {2, 3}, {1, 2, 3, 4, 5, 6});
+    NDArray<double> exp('f', {2, 1}, {1, 5});    
+
+    NDArray<double>* diag = x.diagonal('c');
+    diag->printBuffer();
+    
+    ASSERT_TRUE(exp.isSameShape(diag));
+    ASSERT_TRUE(exp.equalsTo(diag));
+    
+    delete diag;
+}
