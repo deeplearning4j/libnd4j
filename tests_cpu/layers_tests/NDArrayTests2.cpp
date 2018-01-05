@@ -248,3 +248,18 @@ TEST_F(NDArrayTest2, Test_Streamline_1) {
     ASSERT_FALSE(x.isSameShapeStrict(&y));
 }
 
+
+TEST_F(NDArrayTest2, Test_Streamline_2) {
+    NDArray<float> x('c', {3, 4, 6});
+    NDArray<float> y('f', {3, 4, 6});
+    NDArrayFactory<float>::linspace(1, x);
+    NDArrayFactory<float>::linspace(1, y);
+
+    ASSERT_TRUE(x.isSameShape(&y));
+    ASSERT_TRUE(x.equalsTo(&y));
+    
+    y.streamline('c');
+
+    ASSERT_TRUE(x.isSameShape(&y));
+    ASSERT_TRUE(x.equalsTo(&y));
+}
