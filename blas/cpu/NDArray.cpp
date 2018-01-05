@@ -1353,7 +1353,7 @@ template <typename T>
             _shapeInfo[j+1] = _shapeInfo[j]*_shapeInfo[j-rank];
     }
 	// set last 3 elements in _shapeInfo
-	_shapeInfo[doubleRank + 1] = 0;                  
+	_shapeInfo[doubleRank + 1] = 0;
     _shapeInfo[doubleRank + 2] = 1;
     _shapeInfo[doubleRank + 3] = (int)order;
 }
@@ -2679,24 +2679,19 @@ NDArray<T> NDArray<T>::operator+(const NDArray<T>& other) const {
         int* shape   = shapeOf();
         int* strides = stridesOf();
         int  minDim  = 100000000;
-        int* indices = new int[rank];        
-        Nd4jIndex offset;
+        int indices[MAX_RANK];
+        for(int j = 0; j < rank; ++j) 
+                indices[j] = 1;
+        
+        Nd4jIndex offset = shape::getOffset(0, shape, strides, indices, rank);
         
         for(int i = 0; i < rank; ++i) 
             if(minDim > shape[i])
                 minDim = shape[i];
 
 #pragma omp parallel for if(minDim > Environment::getInstance()->elementwiseThreshold()) schedule(guided) 
-        for(int i = 0; i < minDim; ++i) {            
-            
-            for(int j = 0; j < rank; ++j) 
-                indices[j] = i;
-
-            offset = shape::getOffset(0, shape, strides, indices, rank);
-            _buffer[offset] = (T)1.;
-        }
-
-        delete []indices;
+        for(int i = 0; i < minDim; ++i)
+            _buffer[i*offset] = (T)1.;                
     }
 
     ////////////////////////////////////////////////////////////////////////
@@ -2721,46 +2716,81 @@ NDArray<T> NDArray<T>::operator+(const NDArray<T>& other) const {
     ////////////////////////////////////////////////////////////////////////
     template<typename T>
     NDArray<T>* NDArray<T>::diagonal(const char type) const {        
-
+        
+        const char order = ordering();
+        const int  rank  = rankOf();
         int *outShapeInfo;
         ALLOCATE(outShapeInfo, _workspace, 8, int);
         outShapeInfo[0] = 2;
         outShapeInfo[5] = 0;
 
         if(isVector() || isScalar()) {
-            outShapeInfo[1] = outShapeInfo[2] = outShapeInfo[3] = outShapeInfo[4] = 1;            
+            outShapeInfo[1] = outShapeInfo[2] = outShapeInfo[3] = outShapeInfo[4] = 1;
             outShapeInfo[6] = 1;
-            outShapeInfo[7] = _shapeInfo[2*rankOf()+3];
+            outShapeInfo[7] = _shapeInfo[2*rank + 3];
         }
-        else {
-            
+        else {            
             int diagSize  = 100000000;        
-            // int step = 0;
-            
-        
-            for(int i = 0; i < rankOf(); ++i) {    
+            int indices[MAX_RANK];     
+            int shapeSum = 0;
+                    
+            for(int i = 0; i < rank; ++i) {    
                 if(diagSize > shapeOf()[i])
-                    diagSize = shapeOf()[i];            
-                
-                // step += stridesOf()[i];                
-            }
-
-            bool allDimsSame = true;
-            for(int i = 0; i < rankOf() - 1; ++i) {
-                if(shapeOf()[i] != shapeOf()[i+1]) {
-                    allDimsSame = false;
-                    break;
-                }
-            }
-            int* indices = new int[rankOf()];        
-            for(int i = 0; i < rankOf(); ++i)
+                    diagSize = shapeOf()[i];
                 indices[i] = 1;
+                shapeSum = shapeOf()[i];
+            }
 
-            int step = (int)shape::getOffset(0, shapeOf(), stridesOf(), indices, rankOf());
-            std::cout<<step<<std::endl;
-            delete []indices;
-            if(allDimsSame )
-                --step;
+            int step ;
+            // TODO: very bad implantation of evaluation of c-strides from f-strides
+            if(order == 'f') {                
+                int* tempShapeInfo = nullptr;
+                ALLOCATE(tempShapeInfo, _workspace, shape::shapeInfoLength(rank), int);                
+                memcpy(tempShapeInfo, _shapeInfo, shape::shapeInfoByteLength(rank));
+                shape::updateStrides(tempShapeInfo, 'f');                
+                int* factors = nullptr;
+                ALLOCATE(factors, _workspace, rank, int);                
+                for(int i=0; i<rank; ++i)
+                    factors[i] = stridesOf()[i]/shape::stride(tempShapeInfo)[i];
+                shape::updateStrides(tempShapeInfo, 'c');
+                for(int i=0; i<rank; ++i)
+                    shape::stride(tempShapeInfo)[i] *= factors[i];
+                tempShapeInfo[2*rank + 2] = _shapeInfo[2*rank + 2];
+                step = (int)shape::getOffset(0, shape::shapeOf(tempShapeInfo), shape::stride(tempShapeInfo), indices, rank);
+
+                for(int i=0; i<2*rank+4; ++i)
+                   std::cout<<tempShapeInfo[i]<<" ";
+                std::cout<<std::endl<<step<<std::endl; 
+                RELEASE(tempShapeInfo, _workspace);
+                RELEASE(factors, _workspace);
+            }
+            else {
+                step = (int)shape::getOffset(0, shapeOf(), stridesOf(), indices, rank);
+                this->printShapeInfo();
+                std::cout<<step<<std::endl; 
+            }
+            
+            // int step = (int)shape::getOffset(0, shapeOf(), stridesOf(), indices, rank);
+                        
+            // bool allDimsSame = true;            
+            // for(int i = 0; i < rank - 1; ++i) {    
+            //     if(shapeOf()[i] != shapeOf()[i+1]) {
+            //         allDimsSame = false;            
+            //         break;    
+            //     }                
+            // }                        
+            
+            if(shapeSum%2 == 0 && diagSize%2 == 0) {
+            // if(diagSize%2 == 0) {
+                // std::cout<<diagSize<<std::endl;
+            // if(diagSize%2 == 0 || step%2 != 0) {
+            // if(step > diagSize) {
+                --step;                
+            }
+
+            // else if(order == 'f')
+            //     ++step;
+
 
             if(type == 'c') {
                 outShapeInfo[1] = diagSize;
@@ -2769,20 +2799,15 @@ NDArray<T> NDArray<T>::operator+(const NDArray<T>& other) const {
             else {
                 outShapeInfo[1] = 1;
                 outShapeInfo[2] = diagSize;                            
-            }         
-            shape::updateStrides(outShapeInfo, ordering());
-            
-            if(ordering() == 'c') {
-                outShapeInfo[3] *= step;
-                outShapeInfo[4] *= step;            
             }
-            else {
-                outShapeInfo[3] *= step;
-                outShapeInfo[4] *= step;   
-            }
-            
-            outShapeInfo[6] =-1;
-            
+            shape::updateStrides(outShapeInfo, order);
+                        
+            outShapeInfo[3] *= step;
+            outShapeInfo[4] *= step;
+            outShapeInfo[6] =  -1;
+            for(int i=0; i<8; ++i)
+                std::cout<<outShapeInfo[i]<<" ";
+            std::cout<<std::endl; 
         }
 
         NDArray<T>* result = new NDArray<T>(this->_buffer, outShapeInfo, this->_workspace);
