@@ -111,13 +111,10 @@ namespace nd4j {
             std::unique_ptr<NDArray<T>> permutedW(weights->permute({3, 2, 1, 0}));
             std::unique_ptr<NDArray<T>> reshapedW(permutedW.get()->reshape('f', {kX * kY * inDepth, outDepth}));
 
-            output->printShapeInfo("output 5");
-
-            output->reshapei('f', {im2col2d.get()->rows(), reshapedW.get()->columns()});
+            //output->reshapei('f', {im2col2d.get()->rows(), reshapedW.get()->columns()});
+            output->enforce({im2col2d.get()->rows(), reshapedW.get()->columns()}, 'f');
 
             NDArrayFactory<T>::mmulHelper(im2col2d.get(), reshapedW.get(), output, 1.0, 0.0);
-
-            output->printShapeInfo("output 10");
 
             // bias addition is optional
             if (bias != nullptr) {
@@ -128,13 +125,9 @@ namespace nd4j {
                 output->addiRowVector(bias);
             }
 
-            output->reshapei('c', {oX, oY, input->sizeAt(0),outDepth});
-
-            output->printShapeInfo("output 15");
+            output->reshapei('f', {oX, oY, batchSize, outDepth});
 
             output->permutei({2, 3, 1, 0});
-
-            output->printShapeInfo("output 20");
 
             if (nd4j::Environment::getInstance()->isDebugAndVerbose())
                 output->printShapeInfo("Conv2D result shape");
@@ -198,8 +191,6 @@ namespace nd4j {
                 std::vector<int> shape({batchSize, oY, oX, outDepth});
                 shape::shapeBuffer(4, shape.data(), newShape);
             }
-
-            shape::printShapeInfoLinear(newShape);
 
             return new ShapeList(newShape);
         }

@@ -1385,6 +1385,30 @@ bool NDArray<T>::reshapei(const std::vector<int>& shape) {
     return reshapei('c', shape);
 }
 
+    template <typename T>
+    void NDArray<T>::enforce(const std::initializer_list<int> &dimensions, char order) {
+        std::vector<int> dims(dimensions);
+        enforce(dims, order);
+    }
+
+    template <typename T>
+    void NDArray<T>::enforce(std::vector<int> &dimensions, char o) {
+        int *newShape;
+        ALLOCATE(newShape, _workspace, shape::shapeInfoLength(dimensions.size()), int);
+
+        char order = o == 'a' ? this->ordering() : o;
+
+        if (o == 'c')
+            shape::shapeBuffer(dimensions.size(), dimensions.data(), newShape);
+        else
+            shape::shapeBufferFortran(dimensions.size(), dimensions.data(), newShape);
+
+        if (_isShapeAlloc)
+            RELEASE(_shapeInfo, _workspace);
+
+        _shapeInfo = newShape;
+        _isShapeAlloc = true;
+    }
 
 //////////////////////////////////////////////////////////////////////////
 // set new order and shape in case of suitable array length 
