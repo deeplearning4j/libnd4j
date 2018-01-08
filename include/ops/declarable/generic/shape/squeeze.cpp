@@ -17,11 +17,23 @@ namespace nd4j {
             std::vector<int> axis;
 
             if (block.numI() > 0)
-                axis = *block.getIArguments();
+                for (int e = 0; e < block.numI(); e++) {
+                    int _a = INT_ARG(e);
+                    if (_a < 0)
+                        _a += input->rankOf();
+                        
+                    axis.emplace_back(_a);
+                }
             else if (block.width() > 1) {
                 auto a = INPUT_VARIABLE(1);
-                for (int e = 0; e < a->lengthOf(); e++)
-                    axis.emplace_back((int) a->getScalar(e));
+                for (int e = 0; e < a->lengthOf(); e++) {
+                    int _a = (int) a->getScalar(e);
+                    
+                    if (_a < 0)
+                        _a += input->rankOf();
+
+                    axis.emplace_back(_a);
+                }
             }
 
             if (input->rankOf() == 0 || (input->rankOf() == 1 && input->lengthOf() == 1)) {
@@ -76,11 +88,24 @@ namespace nd4j {
             std::vector<int> axis;
 
             if (block.numI() > 0)
-                axis = *block.getIArguments();
+                for (int e = 0; e < block.numI(); e++) {
+                    int _a = INT_ARG(e);
+                    if (_a < 0)
+                        _a += rank;
+                        
+                    axis.emplace_back(_a);
+                }
             else if (block.width() > 1) {
                 auto a = INPUT_VARIABLE(1);
-                for (int e = 0; e < a->lengthOf(); e++)
-                    axis.emplace_back((int) a->getScalar(e));
+                for (int e = 0; e < a->lengthOf(); e++) {
+                    int _a = (int) a->getScalar(e);
+                    
+                    if (_a < 0)
+                        _a += rank;
+
+                    axis.emplace_back(_a);
+                }
+                
             }
 
             auto order = shape::order(in);
