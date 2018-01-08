@@ -521,7 +521,7 @@ TEST_F(HelpersTests1, SVD_test7) {
     NDArray<double> matrix2('c', {6,6}, {-10 ,-16 ,-20 ,13 ,20 ,-10 ,-9 ,-1 ,-7 ,-20 ,-4 ,20 ,-11 ,19 ,-5 ,-18 ,12 ,-19 ,18 ,-18 ,17 ,-10 ,-19 ,14 ,-2 ,-7 ,-17 ,-14 ,-4 ,-16 ,18 ,-6 ,-18 ,1 ,-15 ,-12});
     NDArray<double> matrix3('c', {5,5}, {-18 ,1 ,19 ,-7 ,1 ,2 ,-18 ,-13 ,14 ,2 ,-2 ,-11 ,8 ,2 ,-6 ,-3 ,-8 ,8 ,-2 ,7 ,16 ,15 ,-3 ,7 ,0});
 
-    NDArray<double> expM   ('c', {6,5}, {12, 20,     19,-18, -6, 3,  6,      2, -7, -7, 14,  8,19.6977,-17, 18, 14,-15,      1,  2,  2, -3,-18,      0,-17,  0, 12, 18,      6, -2,-17});
+    NDArray<double> expM   ('c', {6,5}, {12, 20,     19,-18, -6, 3,  6,      2, -7, -7, 14,  8,19.6977,-17, 18, -14,-15,      1,  2,  2, -3,-18,      0,-17,  0, 12, 18,      6, -2,-17});
     NDArray<double> expU   ('c', {6,6}, {-10,     -16,-20,      13, 20,-10, -9,-9.03658, -7,-17.8701, -4, 20, -11, 10.0519, -5,-24.1652, 12,-19, 18,  -20.51, 17,-1.82762,-19, 14, -2,-12.0826,-17,-9.95039, -4,-16, 18,      -6,-18,       1,-15,-12});
     NDArray<double> expV   ('c', {5,5}, {-18,  1, 19,-7, 1, 2,-18,-13,14, 2, -2,-11,  8, 2,-6, -3, -8,  8,-2, 7, 16, 15, -3, 7, 0});
 
@@ -530,19 +530,60 @@ TEST_F(HelpersTests1, SVD_test7) {
     svd._U = matrix2;
     svd._V = matrix3;
     svd.deflation(1, 3, 1, 1, 2, 1);
-    // deflation(int col1, int col2, int ind, int row1W, int col1W, int shift)
-
-    svd._M.printBuffer();
 
     ASSERT_TRUE(expM.equalsTo(&svd._M));        
-    // ASSERT_TRUE(expU.equalsTo(&svd._U));
-    // ASSERT_TRUE(expV.equalsTo(&svd._V));
+    ASSERT_TRUE(expU.equalsTo(&svd._U));
+    ASSERT_TRUE(expV.equalsTo(&svd._V));
+}
+
+///////////////////////////////////////////////////////////////////
+TEST_F(HelpersTests1, SVD_test8) {
+            
+    NDArray<double> matrix1('c', {6,5}, {12 ,20 ,19 ,-18 ,-6 ,3 ,6 ,2 ,-7 ,-7 ,14 ,8 ,18 ,-17 ,18 ,-14 ,-15 ,1 ,2 ,2 ,-3 ,-18 ,8 ,-17 ,-19 ,12 ,18 ,6 ,-2 ,-17});
+    NDArray<double> matrix2('c', {6,6}, {-10 ,-16 ,-20 ,13 ,20 ,-10 ,-9 ,-1 ,-7 ,-20 ,-4 ,20 ,-11 ,19 ,-5 ,-18 ,12 ,-19 ,18 ,-18 ,17 ,-10 ,-19 ,14 ,-2 ,-7 ,-17 ,-14 ,-4 ,-16 ,18 ,-6 ,-18 ,1 ,-15 ,-12});
+    NDArray<double> matrix3('c', {5,5}, {-18 ,1 ,19 ,-7 ,1 ,2 ,-18 ,-13 ,14 ,2 ,-2 ,-11 ,8 ,2 ,-6 ,-3 ,-8 ,8 ,-2 ,7 ,16 ,15 ,-3 ,7 ,0});
+
+    NDArray<double> expM   ('c', {6,5}, {12, 20,19,-18, -6, 3,  6, 2, -7, -7, 14,-15, 2,-17, 18, -14,  8, 1, 18,  2, -3,-18, 8,-17,-19, 12, 18, 6, -2,-17});
+    NDArray<double> expU   ('c', {6,6}, {-10,-20,-16, 13, 20,-10, -9, -7, -1,-20, -4, 20, -11, -5, 19,-18, 12,-19, 18, 17,-18,-10,-19, 14, -2, -7,-17,-14, -4,-16, 18, -6,-18,  1,-15,-12});                                        
+    NDArray<double> expV   ('c', {5,5}, {-18,  1, 19,-7, 1, 2,-18,-13, 2,14, -2,-11,  8,-6, 2, -3, -8,  8, 7,-2, 16, 15, -3, 7, 0});                                        
+
+    ops::helpers::SVD<double> svd(matrix3, true, true, true);    
+    svd._M = matrix1;
+    svd._U = matrix2;
+    svd._V = matrix3;
+    svd.deflation(0, 2, 2, 1, 2, 1);     
+
+    svd._U.printIndexedBuffer();
+
+    ASSERT_TRUE(expM.equalsTo(&svd._M));        
+    ASSERT_TRUE(expU.equalsTo(&svd._U));
+    ASSERT_TRUE(expV.equalsTo(&svd._V));
 }
 
 
-// 12 , 20 , 19 ,-18 ,-6 ,
-// 3 ,   6 , 2  ,-7  ,-7 
-// 14 ,  8 , 18 ,-17 ,18 ,
-// -14 -15 , 1 ,  2 , 2 ,
-// -3 ,-18 , 8 ,-17 ,-19 ,
-// 12 , 18 , 6 ,-2 , -17
+
+
+///////////////////////////////////////////////////////////////////
+// TEST_F(HelpersTests1, SVD_test9) {
+            
+//     NDArray<double> col0  ('c', {10,1}, {12 ,20 ,19 ,-18 ,-6 ,3 ,6 ,2 ,-7 ,14});
+//     NDArray<double> diag  ('c', {10,1}, {-18 ,1 ,19 ,-7 ,1 ,2 ,-18 ,-13 ,14 ,2});
+//     NDArray<double> permut('c', {1,10}, {8 ,1 ,4 ,0, 5 ,2 ,9 ,3 ,7 ,6});
+//     NDArray<double> matrix3('c', {5,5}, {-18 ,1 ,19 ,-7 ,1 ,2 ,-18 ,-13 ,14 ,2 ,-2 ,-11 ,8 ,2 ,-6 ,-3 ,-8 ,8 ,-2 ,7 ,16 ,15 ,-3 ,7 ,0});
+
+//     NDArray<double> expSingVals('c', {10,1}, {-2, 12.862, 11.2, -1, 1.73489, -12, -15.3043, -12.862, 5.6, 41.4039});
+//     NDArray<double> expShifts  ('c', {10,1}, {1, 19, 19, 1, 2, -18, -18, -13, 2, 2});
+//     NDArray<double> expMus     ('c', {10,1}, {-3, -6.13805, -7.8, -2, -0.265108, 6, 2.69568, 0.138048, 3.6, 39.4039});
+
+//     NDArray<double> singVals('c', {10,1});
+//     NDArray<double> shifts  ('c', {10,1});
+//     NDArray<double> mus     ('c', {10,1});
+
+//     ops::helpers::SVD<double> svd(matrix3, true, true, true);        
+//     svd.calcSingVals(col0, diag, permut, singVals, shifts, mus);
+
+//     ASSERT_TRUE(expSingVals.equalsTo(&singVals));        
+//     ASSERT_TRUE(expShifts.equalsTo(&shifts));
+//     ASSERT_TRUE(expMus.equalsTo(&mus));
+// }
+

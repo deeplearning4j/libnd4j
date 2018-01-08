@@ -39,8 +39,11 @@ class SVD {
     
     void deflation2(int col1U , int col1M, int row1W, int col1W, int ind1, int ind2, int size);
     
-    void deflation(int col1, int col2, int ind, int row1W, int col1W, int shift);
+    void deflation(int col1, int col2, int ind, int row1W, int col1W, int shift);    
+    
+    T secularEq(const T diff, const NDArray<T>& col0, const NDArray<T>& diag, const NDArray<T> &permut, const NDArray<T>& diagShifted, const T shift);
 
+    void calcSingVals(const NDArray<T>& col0, const NDArray<T>& diag, const NDArray<T>& permut, NDArray<T>& singVals, NDArray<T>& shifts, NDArray<T>& mus);
 
 };
 

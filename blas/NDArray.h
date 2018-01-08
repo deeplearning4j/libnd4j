@@ -109,7 +109,7 @@ namespace nd4j {
         /**
         *  this constructor creates new array using shape information contained in vector argument    
         */
-        NDArray(const char order, const std::vector<int> &shape , nd4j::memory::Workspace* workspace = nullptr);
+        NDArray(const char order, const std::vector<int> &shape, nd4j::memory::Workspace* workspace = nullptr);
 
         /**
         *  this constructor creates new array with elements copied from data and using shape information stored in shape

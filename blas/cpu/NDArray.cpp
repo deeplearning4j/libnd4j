@@ -2705,7 +2705,8 @@ NDArray<T> NDArray<T>::operator+(const NDArray<T>& other) const {
             throw "NDArray::swapUnsafe method: input arrays should have the same length!";
 
         T temp;
-#pragma omp parallel for simd schedule(static) private(temp)
+// NOTE: parallelization of following loop would be wrong in case of _buffer and other._buffer have identical addresses 
+// #pragma omp parallel for simd schedule(static) private(temp)
         for (int i = 0; i < lengthOf(); ++i) {
             temp = _buffer[i];
             _buffer[i] = other._buffer[i];
@@ -2725,76 +2726,27 @@ NDArray<T> NDArray<T>::operator+(const NDArray<T>& other) const {
         outShapeInfo[5] = 0;
 
         if(isVector() || isScalar()) {
+            
             outShapeInfo[1] = outShapeInfo[2] = outShapeInfo[3] = outShapeInfo[4] = 1;
             outShapeInfo[6] = 1;
-            outShapeInfo[7] = _shapeInfo[2*rank + 3];
+            outShapeInfo[7] = (int)order;
         }
         else {            
+            
             int diagSize  = 100000000;        
             int indices[MAX_RANK];     
-            int shapeSum = 0;
                     
             for(int i = 0; i < rank; ++i) {    
                 if(diagSize > shapeOf()[i])
                     diagSize = shapeOf()[i];
                 indices[i] = 1;
-                shapeSum = shapeOf()[i];
-            }
-
-            int step ;
-            // TODO: very bad implantation of evaluation of c-strides from f-strides
-            if(order == 'f') {                
-                int* tempShapeInfo = nullptr;
-                ALLOCATE(tempShapeInfo, _workspace, shape::shapeInfoLength(rank), int);                
-                memcpy(tempShapeInfo, _shapeInfo, shape::shapeInfoByteLength(rank));
-                shape::updateStrides(tempShapeInfo, 'f');                
-                int* factors = nullptr;
-                ALLOCATE(factors, _workspace, rank, int);                
-                for(int i=0; i<rank; ++i)
-                    factors[i] = stridesOf()[i]/shape::stride(tempShapeInfo)[i];
-                shape::updateStrides(tempShapeInfo, 'c');
-                for(int i=0; i<rank; ++i)
-                    shape::stride(tempShapeInfo)[i] *= factors[i];
-                tempShapeInfo[2*rank + 2] = _shapeInfo[2*rank + 2];
-                step = (int)shape::getOffset(0, shape::shapeOf(tempShapeInfo), shape::stride(tempShapeInfo), indices, rank);
-
-                for(int i=0; i<2*rank+4; ++i)
-                   std::cout<<tempShapeInfo[i]<<" ";
-                std::cout<<std::endl<<step<<std::endl; 
-                RELEASE(tempShapeInfo, _workspace);
-                RELEASE(factors, _workspace);
-            }
-            else {
-                step = (int)shape::getOffset(0, shapeOf(), stridesOf(), indices, rank);
-                this->printShapeInfo();
-                std::cout<<step<<std::endl; 
             }
             
-            // int step = (int)shape::getOffset(0, shapeOf(), stridesOf(), indices, rank);
+            int step = (int)shape::getOffset(0, shapeOf(), stridesOf(), indices, rank);            
                         
-            // bool allDimsSame = true;            
-            // for(int i = 0; i < rank - 1; ++i) {    
-            //     if(shapeOf()[i] != shapeOf()[i+1]) {
-            //         allDimsSame = false;            
-            //         break;    
-            //     }                
-            // }                        
-            
-            if(shapeSum%2 == 0 && diagSize%2 == 0) {
-            // if(diagSize%2 == 0) {
-                // std::cout<<diagSize<<std::endl;
-            // if(diagSize%2 == 0 || step%2 != 0) {
-            // if(step > diagSize) {
-                --step;                
-            }
-
-            // else if(order == 'f')
-            //     ++step;
-
-
             if(type == 'c') {
                 outShapeInfo[1] = diagSize;
-                outShapeInfo[2] = 1;                
+                outShapeInfo[2] = 1;
             }
             else {
                 outShapeInfo[1] = 1;
@@ -2805,9 +2757,6 @@ NDArray<T> NDArray<T>::operator+(const NDArray<T>& other) const {
             outShapeInfo[3] *= step;
             outShapeInfo[4] *= step;
             outShapeInfo[6] =  -1;
-            for(int i=0; i<8; ++i)
-                std::cout<<outShapeInfo[i]<<" ";
-            std::cout<<std::endl; 
         }
 
         NDArray<T>* result = new NDArray<T>(this->_buffer, outShapeInfo, this->_workspace);
