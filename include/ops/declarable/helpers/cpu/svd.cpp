@@ -451,6 +451,41 @@ void SVD<T>::calcSingVals(const NDArray<T>& col0, const NDArray<T>& diag, const 
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+template <typename T> 
+void SVD<T>::perturb(const NDArray<T>& col0, const NDArray<T>& diag, const NDArray<T>& permut, const VectorType& singVals,  const NDArray<T>& shifts, const NDArray<T>& mus, NDArray<T>& zhat) {    
+    
+    int n = col0.lengthOf();
+    int m = permut.lengthOf();
+    if(m==0) {
+        zhat.assign(0.);
+        return;
+    }
+    
+    int last = permut(m-1);
+  
+    for (int k = 0; k < n; ++k) {
+        
+        if (col0(k) == (T)0.)     
+            zhat(k) = (T)0.;
+        else {            
+            T dk   = diag(k);
+            T prod = (singVals(last) + dk) * (mus(last) + (shifts(last) - dk));
+
+            for(int l = 0; l<m; ++l) {
+                int i = permut(l);
+                if(i!=k) {
+                    int j = i<k ? i : permut(l-1);
+                    prod *= ((singVals(j)+dk) / ((diag(i)+dk))) * ((mus(j)+(shifts(j)-dk)) / ((diag(i)-dk)));
+                }
+            }
+        T tmp = math::nd4j_sqrt<T>(prod);
+        zhat(k) = col0(k) > (T)0. ? tmp : -tmp;
+        }  
+    }
+}
+
+
 
 template class ND4J_EXPORT SVD<float>;
 template class ND4J_EXPORT SVD<float16>;

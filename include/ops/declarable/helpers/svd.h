@@ -45,6 +45,8 @@ class SVD {
 
     void calcSingVals(const NDArray<T>& col0, const NDArray<T>& diag, const NDArray<T>& permut, NDArray<T>& singVals, NDArray<T>& shifts, NDArray<T>& mus);
 
+    void perturb(const NDArray<T>& col0, const NDArray<T>& diag, const NDArray<T>& permut, const VectorType& singVals,  const NDArray<T>& shifts, const NDArray<T>& mus, NDArray<T>& zhat);
+
 };
 
     
