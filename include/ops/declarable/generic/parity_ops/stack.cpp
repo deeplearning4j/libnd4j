@@ -14,7 +14,7 @@ namespace nd4j {
 
     		int dim = INT_ARG(0);
     		if(dim < 0)
-    			dim += input->rankOf();             
+    			dim += input->rankOf() +1;
 
 			// input validation
 			// check whether shapes of all input array are the same				
@@ -53,7 +53,7 @@ namespace nd4j {
 			int* inShapeInfo = inputShape->at(0);
 			int rank = inShapeInfo[0];
 			int dim = INT_ARG(0);
-			if(dim < 0 ) dim += rank;			
+			if(dim < 0 ) dim += rank + 1;
 
 			//the rank of output ShapeInfo is larger by one compared to input ShapeInfo
 			std::vector<int> outShape(inShapeInfo + 1, inShapeInfo + 1 + rank);
