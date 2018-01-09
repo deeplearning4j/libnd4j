@@ -252,26 +252,28 @@ void SVD<T>::deflation(int col1, int col2, int ind, int row1W, int col1W, int sh
       
             NDArray<T>* temp1 = nullptr, *temp2 = nullptr;
             if (_calcU) {
-                // temp1 = _U.subarray({{col1, col1+len+1},{col1+i,   col1+i+1}});
-                // temp2 = _U.subarray({{col1, col1+len+1},{col1+jac, col1+jac+1}});                     
-                NDArray<T> temp3 = _U({{col1, col1+len+1},{col1+i,   col1+i+1}});
-                NDArray<T> temp4 = _U({{col1, col1+len+1},{col1+jac, col1+jac+1}});
-                temp4.swapUnsafe(temp3);
-                _U({{col1, col1+len+1},{col1+i,   col1+i+1}}).assign(&temp3);
-                _U({{col1, col1+len+1},{col1+jac, col1+jac+1}}).assign(&temp4);
+                temp1 = _U.subarray({{col1, col1+len+1},{col1+i,   col1+i+1}});
+                temp2 = _U.subarray({{col1, col1+len+1},{col1+jac, col1+jac+1}});                     
+                NDArray<T> temp3 = *temp1;                
+                temp1->assign(temp2);
+                temp2->assign(temp3);                
             }        
             else {
-                // temp1 = _U.subarray({{0, 2},{col1+i,   col1+i+1}});
-                // temp2 = _U.subarray({{0, 2},{col1+jac, col1+jac+1}});                
-            }
-            // temp1->swapUnsafe(*temp2);
+                temp1 = _U.subarray({{0, 2},{col1+i,   col1+i+1}});
+                temp2 = _U.subarray({{0, 2},{col1+jac, col1+jac+1}});                
+                NDArray<T> temp3 = *temp1;                
+                temp1->assign(temp2);
+                temp2->assign(temp3);                
+            }            
             delete temp1;
             delete temp2;
 
             if(_calcV) {
                 temp1 = _V.subarray({{row1W, row1W+len},{col1W+i,   col1W+i+1}});
                 temp2 = _V.subarray({{row1W, row1W+len},{col1W+jac, col1W+jac+1}});               
-                temp1->swapUnsafe(*temp2);
+                NDArray<T> temp3 = *temp1;                
+                temp1->assign(temp2);
+                temp2->assign(temp3);
                 delete temp1;
                 delete temp2;                
             }
@@ -282,7 +284,7 @@ void SVD<T>::deflation(int col1, int col2, int ind, int row1W, int col1W, int sh
             tInd[jac] = tI;
             tInd[i] = ki;
         }
-        
+
         RELEASE(permut, _M.getWorkspace());
     }
     
@@ -347,7 +349,7 @@ void SVD<T>::calcSingVals(const NDArray<T>& col0, const NDArray<T>& diag, const 
         T right;
     
         if(k==curLen-1)
-            T right = diag(curLen-1) + col0.template reduceNumber<simdOps::Norm2<T>>();
+            right = diag(curLen-1) + col0.template reduceNumber<simdOps::Norm2<T>>();
         else {
       
             int l = k+1;
@@ -409,13 +411,13 @@ void SVD<T>::calcSingVals(const NDArray<T>& col0, const NDArray<T>& diag, const 
             if (math::nd4j_abs<T>(fCur) > math::nd4j_abs<T>(fPrev)) 
                 useBisection = true;
         }
-    
+                    
         if (useBisection) {
 
             T leftShifted, rightShifted;
             if (shift == left) {
                 leftShifted = DataTypeUtils::min<T>();
-                rightShifted = (k==curLen-1) ? right : ((right - left) * T(0.6)); 
+                rightShifted = (k==curLen-1) ? right : ((right - left) * (T)0.6); 
             }
             else {
            
@@ -424,9 +426,9 @@ void SVD<T>::calcSingVals(const NDArray<T>& col0, const NDArray<T>& diag, const 
             }
       
             T fLeft  = secularEq(leftShifted,  col0, diag, permut, diagShifted, shift);
-            T fRight = secularEq(rightShifted, col0, diag, permut, diagShifted, shift);
-            if(fLeft * fRight >= (T)0.)
-                throw "ops::helpers::SVD::calcSingVals method: fLeft * fRight >= (T)0. !";        
+            T fRight = secularEq(rightShifted, col0, diag, permut, diagShifted, shift);            
+            // if(fLeft * fRight >= (T)0.)
+                // throw "ops::helpers::SVD::calcSingVals method: fLeft * fRight >= (T)0. !";        
       
             while (rightShifted - leftShifted > (T)2. * DataTypeUtils::eps<T>() * math::nd4j_max<T>(math::nd4j_abs<T>(leftShifted), math::nd4j_abs<T>(rightShifted))) {
             
@@ -440,12 +442,12 @@ void SVD<T>::calcSingVals(const NDArray<T>& col0, const NDArray<T>& diag, const 
                 }
             }
             muCur = (leftShifted + rightShifted) / (T)2.;
-        }
-      
+        }        
         singVals(k) = shift + muCur;
         shifts(k) = shift;
-        mus(k) = muCur;
+        mus(k) = muCur;        
     }
+
 }
 
 
