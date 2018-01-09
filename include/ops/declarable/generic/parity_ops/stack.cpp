@@ -14,21 +14,34 @@ namespace nd4j {
 
     		int dim = INT_ARG(0);
     		if(dim < 0)
-    			dim += input->rankOf() +1;
+    			dim += input->rankOf();             
 
 			// input validation
 			// check whether shapes of all input array are the same				
 			for (int i = 0; i < (int) block.width() - 1; ++i)
 				REQUIRE_TRUE(shape::equalsSoft((INPUT_VARIABLE(i))->getShapeInfo(), (INPUT_VARIABLE(i+1))->getShapeInfo()), 0, "CUSTOM_OP stack: the shapes of input arrays are different !");
-   			if(input->rankOf() != 1)
+
+   			if(input->rankOf() > 1)
    				REQUIRE_TRUE(dim < input->rankOf(), 0, "CUSTOM_OP stack: the input dimension is greater/equal than rank of input arrays shapes !");
 
-			std::vector<int> dimsToExclude = ShapeUtils<T>::evalDimsToExclude(output->rankOf(), {dim});	
-			ResultSet<T>* list = NDArrayFactory<T>::allTensorsAlongDimension(output, dimsToExclude);		// list.size() == block.width()
+			if(input->rankOf() == 0) {
+				for(int i=0; i < block.width(); ++i)
+					(*output)(i) = (*INPUT_VARIABLE(i))(0);
 
-			for(int i=0; i<list->size(); ++i)
-				list->at(i)->assign(INPUT_VARIABLE(i));
-	
+				STORE_RESULT(*output);
+			}
+			else {
+
+				std::vector<int> dimsToExclude = ShapeUtils<T>::evalDimsToExclude(output->rankOf(), {dim});	
+				ResultSet<T>* list = NDArrayFactory<T>::allTensorsAlongDimension(output, dimsToExclude);		// list.size() == block.width()
+
+				for(int i=0; i<list->size(); ++i)
+					list->at(i)->assign(INPUT_VARIABLE(i));
+
+				STORE_RESULT(*output);
+
+				delete list;
+			}
 			// remove unity from output shape if input arrays are vectors 
 			// if(input->isVector())	{
 			// 	std::vector<int> outShape(output->shapeOf(), output->shapeOf() + output->rankOf());		
@@ -39,9 +52,6 @@ namespace nd4j {
 			// 	output->getShapeInfo()[output->rankOf()*2 + 2] = 1;		
 			// }
 	
-
-    		STORE_RESULT(*output);
-			delete list;
     		return ND4J_STATUS_OK;
 		}
 		DECLARE_SYN(pack, stack);
@@ -53,7 +63,19 @@ namespace nd4j {
 			int* inShapeInfo = inputShape->at(0);
 			int rank = inShapeInfo[0];
 			int dim = INT_ARG(0);
-			if(dim < 0 ) dim += rank + 1;
+			if(dim < 0 ) dim += rank;			
+
+			if(rank == 0) {
+				int* outShapeInfo = nullptr;
+    			ALLOCATE(outShapeInfo, block.getWorkspace(), shape::shapeInfoLength(1), int);
+    			outShapeInfo[0] = 1;
+    			outShapeInfo[1] = block.width();
+    			outShapeInfo[2] = 1;
+    			outShapeInfo[3] = 1;
+    			outShapeInfo[4] = 0;
+    			outShapeInfo[5] = (int)shape::order(inShapeInfo);
+    			return new ShapeList(outShapeInfo);
+			}
 
 			//the rank of output ShapeInfo is larger by one compared to input ShapeInfo
 			std::vector<int> outShape(inShapeInfo + 1, inShapeInfo + 1 + rank);
