@@ -3222,6 +3222,7 @@ __host__ __device__
         if (rank == 1)
             return shapeInfo[1];
 
+
         return shape::prodLong(shape::shapeOf(shapeInfo), rank);
     }
 
