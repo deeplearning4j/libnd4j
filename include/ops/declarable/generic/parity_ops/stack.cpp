@@ -14,7 +14,7 @@ namespace nd4j {
 
     		int dim = INT_ARG(0);
     		if(dim < 0)
-    			dim += input->rankOf();             
+    			dim += input->rankOf() + 1;
 
 			// input validation
 			// check whether shapes of all input array are the same				
@@ -63,7 +63,7 @@ namespace nd4j {
 			int* inShapeInfo = inputShape->at(0);
 			int rank = inShapeInfo[0];
 			int dim = INT_ARG(0);
-			if(dim < 0 ) dim += rank;			
+			if(dim < 0 ) dim += rank + 1;
 
 			if(rank == 0) {
 				int* outShapeInfo = nullptr;
