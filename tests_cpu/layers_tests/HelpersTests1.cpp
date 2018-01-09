@@ -583,28 +583,25 @@ TEST_F(HelpersTests1, SVD_test9) {
 }
 
 ///////////////////////////////////////////////////////////////////
-TEST_F(HelpersTests1, SVD_test9) {
+TEST_F(HelpersTests1, SVD_test10) {
             
-    NDArray<double> col0  ('c', {10,1}, {12 ,20 ,19 ,-18 ,-6 ,3 ,6 ,2 ,-7 ,14});
-    NDArray<double> diag  ('c', {10,1}, {-18 ,1 ,19 ,-7 ,1 ,2 ,-18 ,-13 ,14 ,2});
-    NDArray<double> permut('c', {1,10}, {0 ,1 ,2 ,1, 2 ,1 ,2 ,1 ,2 ,1});    
-    NDArray<double> mus   ('c', {10,1}, {3,4,6,1,8,3,9,4,6,0});    
-    NDArray<double> shifts('c', {10,1}, {1,4,3,2,2,1,0,5,6,2});    
+    NDArray<double> singVals('c', {4,1}, {1 ,1 ,1 ,1});
+    NDArray<double> col0  ('c', {4,1}, {1 ,1 ,1 ,1});
+    NDArray<double> diag  ('c', {4,1}, {5 ,7 ,-13 ,14});
+    NDArray<double> permut('c', {1,4}, {0 ,2 ,3 ,1 });    
+    NDArray<double> mus   ('c', {4,1}, {4,1,4,6});    
+    NDArray<double> shifts('c', {4,1}, {4,2,5,6});    
     NDArray<double> matrix3('c', {5,5}, {-18 ,1 ,19 ,-7 ,1 ,2 ,-18 ,-13 ,14 ,2 ,-2 ,-11 ,8 ,2 ,-6 ,-3 ,-8 ,8 ,-2 ,7 ,16 ,15 ,-3 ,7 ,0});
-
-    NDArray<double> expSingVals('c', {10,1}, {-2, 12.862, 11.2, -1, 1.73489, -12, -15.3043, -12.862, 5.6, 41.4039});
-    NDArray<double> expShifts  ('c', {10,1}, {1, 19, 19, 1, 2, -18, -18, -13, 2, 2});
-    NDArray<double> expMus     ('c', {10,1}, {-3, -6.13805, -7.8, -2, -0.265108, 6, 2.69568, 0.138048, 3.6, 39.4039});
-
-    NDArray<double> singVals('c', {10,1});
     
-    
+    NDArray<double> expZhat('c', {4,1}, {0, 0.278208, 72.502, 0});
+
+    NDArray<double> zhat('c', {4,1});    
 
     ops::helpers::SVD<double> svd(matrix3, true, true, true);        
-    svd.calcSingVals(col0, diag, permut, singVals, shifts, mus);    
+    svd.perturb(col0, diag, permut, singVals, shifts,  mus, zhat);
+    zhat.printBuffer();
 
-    ASSERT_TRUE(expSingVals.equalsTo(&singVals));        
-    ASSERT_TRUE(expShifts.equalsTo(&shifts));
-    ASSERT_TRUE(expMus.equalsTo(&mus));
+    ASSERT_TRUE(expZhat(1) = zhat(1));        
+    ASSERT_TRUE(expZhat(2) = zhat(2));        
 }
 

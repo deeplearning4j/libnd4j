@@ -453,7 +453,7 @@ void SVD<T>::calcSingVals(const NDArray<T>& col0, const NDArray<T>& diag, const 
 
 //////////////////////////////////////////////////////////////////////////
 template <typename T> 
-void SVD<T>::perturb(const NDArray<T>& col0, const NDArray<T>& diag, const NDArray<T>& permut, const VectorType& singVals,  const NDArray<T>& shifts, const NDArray<T>& mus, NDArray<T>& zhat) {    
+void SVD<T>::perturb(const NDArray<T>& col0, const NDArray<T>& diag, const NDArray<T>& permut, const NDArray<T>& singVals,  const NDArray<T>& shifts, const NDArray<T>& mus, NDArray<T>& zhat) {    
     
     int n = col0.lengthOf();
     int m = permut.lengthOf();
@@ -475,7 +475,7 @@ void SVD<T>::perturb(const NDArray<T>& col0, const NDArray<T>& diag, const NDArr
             for(int l = 0; l<m; ++l) {
                 int i = permut(l);
                 if(i!=k) {
-                    int j = i<k ? i : permut(l-1);
+                    int j = i<k ? i : (int)permut(l-1);
                     prod *= ((singVals(j)+dk) / ((diag(i)+dk))) * ((mus(j)+(shifts(j)-dk)) / ((diag(i)-dk)));
                 }
             }
