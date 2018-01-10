@@ -598,10 +598,40 @@ TEST_F(HelpersTests1, SVD_test10) {
     NDArray<double> zhat('c', {4,1});    
 
     ops::helpers::SVD<double> svd(matrix3, true, true, true);        
-    svd.perturb(col0, diag, permut, singVals, shifts,  mus, zhat);
-    zhat.printBuffer();
+    svd.perturb(col0, diag, permut, singVals, shifts,  mus, zhat);    
 
     ASSERT_TRUE(expZhat(1) = zhat(1));        
     ASSERT_TRUE(expZhat(2) = zhat(2));        
 }
 
+
+///////////////////////////////////////////////////////////////////
+TEST_F(HelpersTests1, SVD_test11) {
+            
+    NDArray<double> singVals('c', {4,1}, {1 ,1 ,1 ,1});
+    NDArray<double> zhat    ('c', {4,1}, {2 ,1 ,2 ,1});
+    NDArray<double> diag  ('c', {4,1}, {5 ,7 ,-13 ,14});
+    NDArray<double> permut('c', {1,4}, {0 ,2 ,3 ,1 });    
+    NDArray<double> mus   ('c', {4,1}, {4,1,4,6});    
+    NDArray<double> shifts('c', {4,1}, {4,2,5,6});    
+    NDArray<double> matrix3('c', {5,5}, {-18 ,1 ,19 ,-7 ,1 ,2 ,-18 ,-13 ,14 ,2 ,-2 ,-11 ,8 ,2 ,-6 ,-3 ,-8 ,8 ,-2 ,7 ,16 ,15 ,-3 ,7 ,0});
+    
+    NDArray<double> expU('c', {5,5}, {-0.662161, 0.980399,-0.791469,-0.748434, 0, -0.744931, 0.183825,-0.593602,-0.392928, 0, 0.0472972, 0.061275,0.0719517, 0.104781, 0, 0.0662161,0.0356509, 0.126635, 0.523904, 0, 0,        0,        0,        0, 1});
+    NDArray<double> expV('c', {4,4}, {-0.745259,-0.965209, -0.899497, -0.892319, -0.652102,  0.21114,  -0.39353, -0.156156, -0.0768918,-0.130705,-0.0885868,-0.0773343, 0.115929,0.0818966,  0.167906,  0.416415});
+    NDArray<double> U('c', {5,5});
+    NDArray<double> V('c', {4,4});
+    
+
+    ops::helpers::SVD<double> svd(matrix3, true, true, true);        
+    svd.calcSingVecs(zhat, diag,permut, singVals, shifts, mus, U, V);
+
+    ASSERT_TRUE(expU.equalsTo(&U));        
+    ASSERT_TRUE(expV.equalsTo(&V));
+    
+}
+
+
+
+
+
+ 

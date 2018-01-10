@@ -59,7 +59,7 @@ template <typename T>
 void SVD<T>::deflation1(int col1, int shift, int ind, int size) {
 
     if(ind <= 0)
-        throw "ops::helpers::SVD::deflation1 method: input index must satisfy condition ind > 0 !";
+        throw "ops::helpers::SVD::deflation1 method: input int must satisfy condition ind > 0 !";
 
     int first = col1 + shift;    
     T cos = _M(first, first);
@@ -104,7 +104,7 @@ template <typename T>
 void SVD<T>::deflation2(int col1U , int col1M, int row1W, int col1W, int ind1, int ind2, int size) {
   
     if(ind1 >= ind2)
-        throw "ops::helpers::SVD::deflation2 method: input indexes must satisfy condition ind1 < ind2 !";
+        throw "ops::helpers::SVD::deflation2 method: input intes must satisfy condition ind1 < ind2 !";
 
     if(size <= 0)
         throw "ops::helpers::SVD::deflation2 method: input size must satisfy condition size > 0 !";
@@ -485,6 +485,61 @@ void SVD<T>::perturb(const NDArray<T>& col0, const NDArray<T>& diag, const NDArr
     }
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+template <typename T>
+void SVD<T>::calcSingVecs(const NDArray<T>& zhat, const NDArray<T>& diag, const NDArray<T>& perm, const NDArray<T>& singVals,
+                             const NDArray<T>& shifts, const NDArray<T>& mus, NDArray<T>& U, NDArray<T>& V) {
+  
+    int n = zhat.lengthOf();
+    int m = perm.lengthOf();
+  
+    for (int k = 0; k < n; ++k) {
+        
+        NDArray<T>* colU = U.subarray({{},{k, k+1}});
+        *colU = 0.;
+        NDArray<T>* colV = nullptr;
+        
+        if (_calcV) {
+            colV = V.subarray({{},{k, k+1}});
+            *colV = 0.;
+        }
+
+        if (zhat(k) == (T)0.) {
+            (*colU)(k) = 1.;            
+            
+            if (_calcV)            
+                (*colV)(k) = 1.;
+        }
+        else {
+      
+            for(int l = 0; l < m; ++l) {
+                int i = (int)perm(l);
+                U(i,k) = zhat(i)/(((diag(i) - shifts(k)) - mus(k)) )/( (diag(i) + singVals(k)));
+            }
+            U(n,k) = 0.;            
+            *colU /= colU->template reduceNumber<simdOps::Norm2<T>>();            
+    
+            if (_calcV) {
+        
+                for(int l = 1; l < m; ++l){
+                    int i = (int)perm(l);
+                    V(i,k) = diag(i) * zhat(i) / (((diag(i) - shifts(k)) - mus(k)) )/( (diag(i) + singVals(k)));
+                }
+                V(0,k) = -1.;
+                *colV /= colV->template reduceNumber<simdOps::Norm2<T>>();                
+            }
+        }
+        delete colU;  
+        if (_calcV)    
+            delete colV;
+    }
+    
+    NDArray<T>* colU = U.subarray({{},{n, n+1}});
+    *colU = 0.;
+    (*colU)(n) = 1.;
+    delete colU;    
+}
 
 
 template class ND4J_EXPORT SVD<float>;
