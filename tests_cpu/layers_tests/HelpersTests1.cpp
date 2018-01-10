@@ -630,8 +630,31 @@ TEST_F(HelpersTests1, SVD_test11) {
     
 }
 
+///////////////////////////////////////////////////////////////////
+TEST_F(HelpersTests1, SVD_test12) {
+            
+    NDArray<double> matrix1('c', {6,5}, {-2 ,-3 ,2 ,1 ,0 ,0 ,-4 ,5 ,-2 ,-3 ,-4 ,0 ,5 ,-1 ,-5 ,-3 ,-5 ,3 ,3 ,3 ,-5 ,5 ,-5 ,0 ,2 ,-2 ,-3 ,-4 ,-5 ,-3});
+    NDArray<double> matrix2('c', {6,6}, {-10 ,-16 ,-20 ,13 ,20 ,-10 ,-9 ,-1 ,-7 ,-20 ,-4 ,20 ,-11 ,19 ,-5 ,-18 ,12 ,-19 ,18 ,-18 ,17 ,-10 ,-19 ,14 ,-2 ,-7 ,-17 ,-14 ,-4 ,-16 ,18 ,-6 ,-18 ,1 ,-15 ,-12});
+    NDArray<double> matrix3('c', {5,5}, {-18 ,1 ,19 ,-7 ,1 ,2 ,-18 ,-13 ,14 ,2 ,-2 ,-11 ,8 ,2 ,-6 ,-3 ,-8 ,8 ,-2 ,7 ,16 ,15 ,-3 ,7 ,0});
+    NDArray<double> matrix4('c', {5,5}, {3 ,-8 ,5 ,7 ,-8 ,4 ,-19 ,-12 ,-4 ,-5 ,-11 ,19 ,-2 ,-7 ,1 ,16 ,-5 ,10 ,19 ,-19 ,0 ,-20 ,0 ,-8 ,-13});
 
+    NDArray<double> expSingVals('c', {4,1}, {8.43282, 5, 2.3, 1.10167});
+    NDArray<double> expU   ('c', {5,5}, {0.401972,0, 0.206791, 0.891995,0, 0,1,        0,        0,0, 0.816018,0,-0.522818,-0.246529,0, -0.415371,0,-0.826982, 0.378904,0, 0,0,        0,        0,1});
+    NDArray<double> expV   ('c', {4,4}, {-0.951851,0,-0.133555,-0.275939, 0,1,        0,        0, 0.290301,0,-0.681937,-0.671333, -0.098513,0,-0.719114, 0.687873});
 
+    ops::helpers::SVD<double> svd(matrix4, true, true, true);    
+    svd._M = matrix1;
+    svd._U = matrix2;
+    svd._V = matrix3;
+    NDArray<double> U, singVals, V;
+    svd.calcBlockSVD(1, 4, U, singVals, V);
 
+    ASSERT_TRUE(expSingVals.equalsTo(&singVals));
+    ASSERT_TRUE(expU.equalsTo(&U));
+    ASSERT_TRUE(expV.equalsTo(&V));
 
- 
+    ASSERT_TRUE(expSingVals.isSameShapeStrict(&singVals));
+    ASSERT_TRUE(expU.isSameShapeStrict(&U));
+    ASSERT_TRUE(expV.isSameShapeStrict(&V));
+}
+

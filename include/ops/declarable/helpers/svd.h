@@ -49,6 +49,8 @@ class SVD {
 
     void calcSingVecs(const NDArray<T>& zhat, const NDArray<T>& diag, const NDArray<T>& perm, const NDArray<T>& singVals, const NDArray<T>& shifts, const NDArray<T>& mus, NDArray<T>& U, NDArray<T>& V);
 
+    void calcBlockSVD(int firstCol, int size, NDArray<T>& U, NDArray<T>& singVals, NDArray<T>& V);
+
 };
 
     

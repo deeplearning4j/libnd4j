@@ -2702,7 +2702,7 @@ NDArray<T> NDArray<T>::operator+(const NDArray<T>& other) const {
             throw "NDArray::swapUnsafe method: input array should not be empty!";
 
         if(_buffer == other._buffer)
-            throw "NDArray::swapUnsafe method: the buffers of input arrays point on the same address!";
+            throw "NDArray::swapUnsafe method: the buffers of input arrays should not point on the same address!";
 
         if(lengthOf() != other.lengthOf())
             throw "NDArray::swapUnsafe method: input arrays should have the same length!";

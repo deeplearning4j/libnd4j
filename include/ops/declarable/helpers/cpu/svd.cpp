@@ -542,6 +542,101 @@ void SVD<T>::calcSingVecs(const NDArray<T>& zhat, const NDArray<T>& diag, const 
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+template <typename T>
+void SVD<T>::calcBlockSVD(int firstCol, int size, NDArray<T>& U, NDArray<T>& singVals, NDArray<T>& V) {  
+    
+    const T almostZero = DataTypeUtils::min<T>();
+    NDArray<T> col0 = _M({{firstCol, firstCol+size},{firstCol, firstCol+1}});
+    NDArray<T>* diagP = _M({{firstCol, firstCol+size},{firstCol, firstCol+size}}).diagonal('c');
+    NDArray<T> diag = *diagP;
+    delete diagP;
+
+    diag(0) = 0.;
+    singVals = NDArray<T>(size, 1, _M.ordering(), _M.getWorkspace());
+    U = NDArray<T>(size+1, size+1, _U.ordering(), _U.getWorkspace());
+    if (_calcV) 
+        V = NDArray<T>(size, size, _V.ordering(), _V.getWorkspace());
+    
+    int curSize = size;
+    while(curSize > 1 && diag(curSize-1) == (T)0.) 
+        --curSize;
+    
+    int m = 0; 
+    std::vector<T> indices;
+    for(int k = 0; k < curSize; ++k)
+        if(math::nd4j_abs<T>(col0(k)) > almostZero)
+            indices.push_back((T)k);            
+  
+    NDArray<T> permut(_M.ordering(), {1, (int)indices.size()}, indices, _M.getWorkspace());
+    NDArray<T> shifts(size, 1, _M.ordering(), _M.getWorkspace());
+    NDArray<T> mus(size, 1, _M.ordering(), _M.getWorkspace());
+    NDArray<T> zhat(size, 1, _M.ordering(), _M.getWorkspace());
+          
+    calcSingVals(col0, diag, permut, singVals, shifts, mus);
+    perturb(col0, diag, permut, singVals, shifts, mus, zhat);
+    calcSingVecs(zhat, diag, permut, singVals, shifts, mus, U, V);      
+        
+    for(int i=0; i<curSize-1; ++i) {        
+        
+        if(singVals(i) > singVals(i+1)) {        
+            math::nd4j_swap<T>(singVals(i),singVals(i+1));            
+            NDArray<T>* temp1 = U.subarray({{},{i,i+1}});
+            NDArray<T>* temp2 = U.subarray({{},{i+1,i+2}});                     
+            NDArray<T> temp3 = *temp1;
+            temp1->assign(temp2);
+            temp2->assign(temp3);            
+            delete temp1;
+            delete temp2;
+            
+            if(_calcV) {
+                NDArray<T>* temp1 = V.subarray({{},{i,i+1}});
+                NDArray<T>* temp2 = V.subarray({{},{i+1,i+2}});                     
+                NDArray<T> temp3 = *temp1;
+                temp1->assign(temp2);
+                temp2->assign(temp3);            
+                delete temp1;
+                delete temp2;                    
+            }
+        }
+    }
+    
+    NDArray<T>* temp1 = singVals.subarray({{0, curSize},{}});
+    for (int e = 0; e < curSize / 2; ++e) {
+        T tmp = (*temp1)(e);
+        (*temp1)(e) = (*temp1)(curSize-1-e);
+        (*temp1)(curSize-1-e) = tmp;
+    }
+    delete temp1;
+    
+    NDArray<T>* temp2 = U.subarray({{},{0, curSize}});
+    for(int i = 0; i < curSize/2; ++i) {
+        NDArray<T>* temp3 = temp2->subarray({{},{i,i+1}});
+        NDArray<T>* temp4 = temp2->subarray({{},{curSize-1-i,curSize-i}});
+        NDArray<T>  temp5 = *temp3;
+        temp3->assign(temp4);
+        temp4->assign(temp5);        
+        delete temp3;
+        delete temp4;
+    }
+    delete temp2;
+    
+    if (_calcV) {
+        NDArray<T>* temp2 = V.subarray({{},{0, curSize}});
+        for(int i = 0; i < curSize/2; ++i) {
+            NDArray<T>* temp3 = temp2->subarray({{}, {i,i+1}});
+            NDArray<T>* temp4 = temp2->subarray({{}, {curSize-1-i,curSize-i}});
+            NDArray<T>  temp5 = *temp3;
+            temp3->assign(temp4);
+            temp4->assign(temp5);        
+            delete temp3;
+            delete temp4;
+        }
+        delete temp2;
+    }     
+}
+
+
 template class ND4J_EXPORT SVD<float>;
 template class ND4J_EXPORT SVD<float16>;
 template class ND4J_EXPORT SVD<double>;
