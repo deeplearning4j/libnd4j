@@ -51,6 +51,8 @@ class SVD {
 
     void calcBlockSVD(int firstCol, int size, NDArray<T>& U, NDArray<T>& singVals, NDArray<T>& V);
 
+    void DivideAndConquer(int col1, int col2, int row1W, int col1W, int shift);
+
 };
 
     

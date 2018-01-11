@@ -41,7 +41,7 @@ class HHsequence {
     /* 
     *  type of sequence, type = 'u' (acting on columns) or type = 'v' (acting on rows)
     */
-    int _type;        
+    char _type;        
 
     /*
     *  constructor

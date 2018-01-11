@@ -544,11 +544,11 @@ void SVD<T>::calcSingVecs(const NDArray<T>& zhat, const NDArray<T>& diag, const 
 
 //////////////////////////////////////////////////////////////////////////
 template <typename T>
-void SVD<T>::calcBlockSVD(int firstCol, int size, NDArray<T>& U, NDArray<T>& singVals, NDArray<T>& V) {  
+void SVD<T>::calcBlockSVD(int col1, int size, NDArray<T>& U, NDArray<T>& singVals, NDArray<T>& V) {  
     
     const T almostZero = DataTypeUtils::min<T>();
-    NDArray<T> col0 = _M({{firstCol, firstCol+size},{firstCol, firstCol+1}});
-    NDArray<T>* diagP = _M({{firstCol, firstCol+size},{firstCol, firstCol+size}}).diagonal('c');
+    NDArray<T> col0 = _M({{col1, col1+size},{col1, col1+1}});
+    NDArray<T>* diagP = _M({{col1, col1+size},{col1, col1+size}}).diagonal('c');
     NDArray<T> diag = *diagP;
     delete diagP;
 
@@ -635,6 +635,122 @@ void SVD<T>::calcBlockSVD(int firstCol, int size, NDArray<T>& U, NDArray<T>& sin
         delete temp2;
     }     
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+template<typename T>
+void SVD<T>::DivideAndConquer(int col1, int col2, int row1W, int col1W, int shift) {
+    
+    // requires rows = cols + 1;
+    const int n = col2 - col1 + 1;
+    const int k = n/2;
+    const T almostZero = DataTypeUtils::min<T>();
+    T alphaK;
+    T betaK; 
+    T r0; 
+    T lambda, phi, c0, s0;
+    NDArray<T> l, f;
+    
+
+    if(n==2) { // if(n < 16)
+            
+        // for small matrices it is more efficient to use another algorithm Jacobi SVD
+        return;
+    }
+      
+    alphaK = _M(col1 + k, col1 + k);
+    betaK  = _M(col1 + k + 1, col1 + k);
+  
+    DivideAndConquer(k + 1 + col1, col2, k + 1 + row1W, k + 1 + col1W, shift);
+    DivideAndConquer(col1, k - 1 + col1, row1W, col1W + 1, shift + 1);
+
+    if (_calcU) {
+        lambda = _U(col1 + k, col1 + k);
+        phi    = _U(col1 + k + 1, col2 + 1);
+    } 
+    else {
+        lambda = _U(1, col1 + k);
+        phi    = _U(0, col2 + 1);
+    }
+    
+    r0 = math::nd4j_sqrt<T>((math::nd4j_abs<T>(alphaK * lambda) * math::nd4j_abs<T>(alphaK * lambda)) + math::nd4j_abs<T>(betaK * phi) * math::nd4j_abs<T>(betaK * phi));
+    
+    if (_calcU) {
+        l = _U({{col1+k, col1+k+1},{col1, col1+k}});        
+        f = _U({{col1+k+1, col1+k+2},{col1+k+1, col1+n}});        
+    } 
+    else {        
+        l = _U({{1, 2},{col1, col1+k}});
+        f = _U({{0, 1},{col1+k+1, col1+n}});
+    }
+    
+    if (_calcV) 
+        _V(row1W+k, col1W) = 1.;
+  
+    if (r0 < almostZero){
+        c0 = 1.;
+        s0 = 0.;
+    }
+    else {
+        c0 = alphaK * lambda / r0;
+        s0 = betaK * phi / r0;
+    }
+  
+    if (_calcU) {
+    
+        NDArray<T> q1 = _U({{col1, col1+k+1},{col1+k, col1+k+1}});        
+        
+        for (int i = col1 + k - 1; i >= col1; --i) 
+            _U({{col1, col1+k+1}, {i+1, i+2}}).assign(_U({{col1, col1+k+1}, {i, i+1}}));
+    
+        _U({{col1, col1+k+1}, {col1, col1+1}}).assign(q1 * c0);
+        _U({{col1, col1+k+1}, {col2+1, col2+2}}).assign(q1 * (-s0));
+        _U({{col1+k+1, col1+n+1}, {col1, col1+1}}).assign(_U({{col1+k+1, col1+n+1}, {col2+1, col2+2}}) * s0);
+        _U({{col1+k+1, col1+n+1}, {col2+1, col2+2}}) *= c0;        
+    } 
+    else  {
+    
+        T q1 = _U(0, col1 + k);    
+    
+        for (int i = col1 + k - 1; i >= col1; --i) 
+            _U(0, i+1) = _U(0, i);
+    
+        _U(0, col1) = q1 * c0;    
+        _U(0, col2+1) = -q1*s0;    
+        _U(1, col1) = _U(1, col2+1) * s0;     
+        _U(1, col2 + 1) *= c0;
+        _U({{1, 2}, {col1+1, col1+k+1}}) = 0.;
+        _U({{0, 1}, {col1+k+1, col1+n}}) = 0.;    
+    }
+    
+    _M(col1 + shift, col1 + shift) = r0;
+    _M({{col1+shift+1, col1+shift+k+1}, {col1+shift, col1+shift+1}}).assign(l*alphaK);
+    _M({{col1+shift+k+1, col1+shift+n}, {col1+shift, col1+shift+1}}).assign(f*betaK);    
+
+    deflation(col1, col2, k, row1W, col1W, shift);
+      
+    NDArray<T> UofSVD, VofSVD, singVals;  
+    calcBlockSVD(col1 + shift, n, UofSVD, singVals, VofSVD);
+    
+    if(_calcU)        
+        _U({{col1, col1+n+1},{col1, col1+n+1}}).assign(mmul(_U({{col1, col1+n+1},{col1, col1+n+1}}), UofSVD));
+    else 
+        _U({{}, {col1, col1+n+1}}).assign(mmul(_U({{}, {col1, col1+n+1}}), UofSVD));
+  
+    if (_calcV)  
+        _V({{row1W, row1W+n},{row1W, row1W+n}}).assign(mmul(_V({{row1W, row1W+n},{row1W, row1W+n}}), VofSVD));
+        
+    
+    NDArray<T>* blockM = _M.subarray({{col1+shift, col1+shift+n},{col1+shift, col1+shift+n}});
+    *blockM = 0.;
+    NDArray<T>* diag = blockM->diagonal('c');        
+    diag->assign(singVals);
+    delete diag;
+    delete blockM;
+
+}
+
+
 
 
 template class ND4J_EXPORT SVD<float>;
