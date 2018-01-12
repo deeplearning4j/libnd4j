@@ -721,3 +721,21 @@ TEST_F(DeclarableOpsTests4, Test_Cross_2) {
     
     delete result;
 }
+
+
+TEST_F(DeclarableOpsTests4, Test_Cross_3) {
+    NDArray<float> a('c', {3, 3}, {1, 2, 3, 4, 5, 6, 7, 8, 9});
+    NDArray<float> b('c', {3, 3}, {2, 3, 4, 7, 6, 5, 6, 3, 2});
+    NDArray<float> exp('c', {3, 3}, { -1,   2,  -1, -11,  22, -11, -11,  40, -27});
+
+    nd4j::ops::cross<float> op;
+    auto result = op.execute({&a, &b}, {}, {});
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+    
+    delete result;
+}
