@@ -685,3 +685,16 @@ TEST_F(DeclarableOpsTests4, Test_DepthToSpace_2) {
 
     delete result;
 }
+
+
+TEST_F(DeclarableOpsTests4, Test_Cross_1) {
+    NDArray<float> a('c', {3}, {1, 2, 3});
+    NDArray<float> b('c', {3}, {6, 7, 8});
+    NDArray<float> exp('c', {3}, {-5, 10, -5});
+
+    nd4j::ops::cross<float> op;
+    auto result = op.execute({&a, &b}, {}, {});
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    
+    delete result;
+}
