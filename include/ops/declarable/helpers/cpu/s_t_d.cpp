@@ -9,15 +9,6 @@ namespace ops {
 namespace helpers {
     template <typename T>
     void _spaceTodepth(NDArray<T> *input, NDArray<T> *output, int block_size, bool isNHWC) {
-        /*
-        const int32 nthreads, const dtype* input_ptr,
-                         const int block_size, const int batch_size,
-                         const int input_height, const int input_width,
-                         const int input_depth, const int output_height,
-                         const int output_width, const int output_depth,
-                         dtype* output_ptr
-                         */
-
             T *input_ptr = input->buffer();
             T *output_ptr = output->buffer();
 
@@ -27,8 +18,8 @@ namespace helpers {
             const int input_width = isNHWC ? input->sizeAt(2) : input->sizeAt(3);
 
             const int output_depth = isNHWC ? output->sizeAt(3) : output->sizeAt(1);
-            const int output_height = isNHWC ? output->sizeAt(3) : output->sizeAt(1);
-            const int output_width = isNHWC ? output->sizeAt(3) : output->sizeAt(1);
+            const int output_height = isNHWC ? output->sizeAt(1) : output->sizeAt(2);
+            const int output_width = isNHWC ? output->sizeAt(2) : output->sizeAt(3);
 
             const int input_depth_by_output_height = input_depth * output_height;
 
@@ -38,6 +29,8 @@ namespace helpers {
             const int total_count = batch_size * output_depth_by_output_area;
             
         if (isNHWC) {
+
+            #pragma omp parallel for simd schedule(static)
             for (int inp_idx = 0; inp_idx < total_count; inp_idx++){
                 // inp_idx = d + input_depth * (w + input_width * (h + input_height * b))
                 const int d = inp_idx % input_depth;
@@ -58,6 +51,7 @@ namespace helpers {
                 *(output_ptr + out_idx) = *(input_ptr + inp_idx);
             }
         } else {
+            #pragma omp parallel for simd schedule(static)
             for (int inp_idx = 0; inp_idx < total_count; inp_idx++) {
                 const int n_iC_oY_bY_oX = inp_idx / block_size;
                 const int bX = inp_idx - n_iC_oY_bY_oX * block_size;

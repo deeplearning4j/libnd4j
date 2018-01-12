@@ -24,7 +24,9 @@ namespace ops {
 
         auto output = OUTPUT_VARIABLE(0);
 
-        helpers::_depthToSpace(input, output, block_size, isNHWC);        
+        helpers::_depthToSpace(input, output, block_size, isNHWC);   
+
+        STORE_RESULT(output);     
 
         return ND4J_STATUS_OK;
     }
@@ -53,7 +55,7 @@ namespace ops {
             shape = {{bS, oD, oH, oW }};
 
         shape::shapeBuffer(4, shape.data(), newShape);
-
+        
         return new ShapeList(newShape);
     }
 }
