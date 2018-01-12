@@ -185,6 +185,9 @@ namespace simdOps {
 			int poolingMode = (int)extraParams[9];
 			T extraParam0 = extraParams[10];
 
+			int kHEff = kH + (kH-1)*(dH-1);
+			int kWEff = kW + (kW-1)*(dW-1);
+
 			int batchSize = shape::sizeAt(xShapeBuffer, 0);
 			int inChannels = shape::sizeAt(xShapeBuffer, 1);
 			int outH = shape::sizeAt(resultShapeBuffer, 2);
@@ -210,13 +213,21 @@ namespace simdOps {
 						for(xx = 0; xx < outW; xx++)
 						{
 							/* Compute the mean of the input image... */
-							int hstart = yy * sH * dH - pH;
-							int wstart = xx * sW * dW - pW;
-							int hend = nd4j::math::nd4j_min<int>(hstart + kH, inH + pH);
-							int wend = nd4j::math::nd4j_min<int>(wstart + kW, inW + pW);
-							int pool_size = (hend - hstart) * (wend - wstart);
-							hstart = nd4j::math::nd4j_max<int>(hstart, 0);
-							wstart = nd4j::math::nd4j_max<int>(wstart, 0);
+							int hstart = yy * sH - pH;
+							int wstart = xx * sW - pW;
+							int hend = nd4j::math::nd4j_min<int>(hstart + kHEff, inH + pH);
+							int wend = nd4j::math::nd4j_min<int>(wstart + kWEff, inW + pW);
+							int pool_size = ((hend - hstart)/dH+1) * ((wend - wstart)/dW+1);	//Accounts for dilation
+							if(hstart < 0){
+								int n = (int)nd4j::math::nd4j_ceil<float>(-hstart / ((double)dH));
+								hstart += n * dH;
+							}
+							if(wstart < 0){
+								int n = (int)nd4j::math::nd4j_ceil<float>(-wstart / ((double)dW));
+								wstart += n * dW;
+							}
+							//hstart = nd4j::math::nd4j_max<int>(hstart, 0);
+							//wstart = nd4j::math::nd4j_max<int>(wstart, 0);
 							hend = nd4j::math::nd4j_min<int>(hend, inH);
 							wend = nd4j::math::nd4j_min<int>(wend, inW);
 
@@ -228,7 +239,7 @@ namespace simdOps {
 								if ((int) extraParam0 == 0)
 									divide_factor = pool_size;
 								else if ((int) extraParam0 == 1)
-									divide_factor = (hend - hstart) * (wend - wstart);
+									divide_factor = ((hend - hstart)/dH+1) * ((wend - wstart)/dW+1);
                                 else if ((int) extraParam0 == 2)
                                     divide_factor = kH * kW;
 							}
@@ -237,21 +248,21 @@ namespace simdOps {
 
 							if (poolingMode == 0) {
 #pragma omp simd reduction(maxT:sum)
-								for (ky = hstart; ky < hend; ky++) {
-									for (kx = wstart; kx < wend; kx++)
+								for (ky = hstart; ky < hend; ky += dH) {
+									for (kx = wstart; kx < wend; kx += dW)
 										if (ptr_input[ky * strideIn[2] + kx * strideIn[3]] >= sum)
 											sum = ptr_input[ky * strideIn[2] + kx * strideIn[3]];
 								}
 							} else if (poolingMode == 1) {
 #pragma omp simd reduction(sumT:sum)
-								for (ky = hstart; ky < hend; ky++) {
-									for (kx = wstart; kx < wend; kx++)
+								for (ky = hstart; ky < hend; ky += dH) {
+									for (kx = wstart; kx < wend; kx += dW)
 										sum += ptr_input[ky * strideIn[2] + kx * strideIn[3]];
 								}
 							} else if (poolingMode == 2) {
 #pragma omp simd reduction(sumT:sum)
-								for (ky = hstart; ky < hend; ky++) {
-									for (kx = wstart; kx < wend; kx++)
+								for (ky = hstart; ky < hend; ky += dH) {
+									for (kx = wstart; kx < wend; kx += dW)
 										sum += nd4j::math::nd4j_pow<T>(nd4j::math::nd4j_abs<T>(ptr_input[ky * strideIn[2] + kx * strideIn[3]]), extraParam0);
 								}
 							}
