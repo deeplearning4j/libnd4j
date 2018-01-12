@@ -26,10 +26,10 @@ namespace helpers {
             const int output_area = output_width * output_height;
             const int output_depth_by_output_area = output_depth * output_area;
 
-            const int total_count = batch_size * output_depth_by_output_area;
             
         if (isNHWC) {
-
+            const int total_count = batch_size * input_height * input_width * input_depth;
+            
             #pragma omp parallel for simd schedule(static)
             for (int inp_idx = 0; inp_idx < total_count; inp_idx++){
                 // inp_idx = d + input_depth * (w + input_width * (h + input_height * b))
@@ -51,6 +51,7 @@ namespace helpers {
                 *(output_ptr + out_idx) = *(input_ptr + inp_idx);
             }
         } else {
+            const int total_count = batch_size * output_depth_by_output_area;
             #pragma omp parallel for simd schedule(static)
             for (int inp_idx = 0; inp_idx < total_count; inp_idx++) {
                 const int n_iC_oY_bY_oX = inp_idx / block_size;
