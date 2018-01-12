@@ -4,6 +4,7 @@
 
 #include <ops/declarable/headers/parity_ops.h>
 #include <ops/declarable/helpers/d_t_s.h>
+#include <array>
 
 namespace nd4j {
 namespace ops {
@@ -55,7 +56,7 @@ namespace ops {
             shape = {{bS, oD, oH, oW }};
 
         shape::shapeBuffer(4, shape.data(), newShape);
-        
+
         return new ShapeList(newShape);
     }
 }
