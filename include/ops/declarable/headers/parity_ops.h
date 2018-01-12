@@ -380,13 +380,13 @@ namespace nd4j {
          * 
          *
          */
-        DECLARE_CUSTOM_OP(depth_to_space, 1, 1, false, 0, -2);
+        DECLARE_CUSTOM_OP(depth_to_space, 1, 1, false, 0, 2);
 
         /**
          * 
          * 
          *
          */
-        DECLARE_CUSTOM_OP(space_to_depth, 1, 1, false, 0, -2);
+        DECLARE_CUSTOM_OP(space_to_depth, 1, 1, false, 0, 2);
     }
 }

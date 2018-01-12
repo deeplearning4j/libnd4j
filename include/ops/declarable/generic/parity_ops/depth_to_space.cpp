@@ -6,7 +6,7 @@
 
 namespace nd4j {
 namespace ops {
-    CUSTOM_OP_IMPL(depth_to_space, 1, 1, false, 0, -2) {
+    CUSTOM_OP_IMPL(depth_to_space, 1, 1, false, 0, 2) {
         return ND4J_STATUS_OK;
     }
     
