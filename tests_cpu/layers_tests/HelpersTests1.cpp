@@ -3,6 +3,7 @@
 #include <ops/declarable/helpers/biDiagonalUp.h>
 #include <ops/declarable/helpers/hhSequence.h>
 #include <ops/declarable/helpers/svd.h>
+#include <ops/declarable/helpers/hhColPivQR.h>
 
 
 using namespace nd4j;
@@ -49,14 +50,13 @@ TEST_F(HelpersTests1, evalHHmatrix_test2) {
 TEST_F(HelpersTests1, evalHHmatrixData_test1) {
             
     NDArray<double> x('c', {1,4}, {14,17,3,1});            
-    NDArray<double> tail('c', {1,3});            
+    NDArray<double> tail('c', {1,3});        
     NDArray<double> expTail('c', {1,3}, {0.468984, 0.0827618, 0.0275873});
     const double normXExpected = -22.2486;
     const double coeffExpected = 1.62925;
 
     double normX, coeff;
-    ops::helpers::Householder<double>::evalHHmatrixData(x, tail, coeff, normX);
-    // expTail.printShapeInfo();
+    ops::helpers::Householder<double>::evalHHmatrixData(x, tail, coeff, normX);    
 
     ASSERT_NEAR(normX, normXExpected, 1e-5);
     ASSERT_NEAR(coeff, coeffExpected, 1e-5);
@@ -658,32 +658,96 @@ TEST_F(HelpersTests1, SVD_test12) {
     ASSERT_TRUE(expV.isSameShapeStrict(&V));
 }
 
-
 ///////////////////////////////////////////////////////////////////
 TEST_F(HelpersTests1, SVD_test13) {
             
-    NDArray<double> matrix1('c', {6,5}, {-2 ,-3 ,2 ,1 ,0 ,0 ,-4 ,5 ,-2 ,-3 ,-4 ,0 ,5 ,-1 ,-5 ,-3 ,-5 ,3 ,3 ,3 ,-5 ,5 ,-5 ,0 ,2 ,-2 ,-3 ,-4 ,-5 ,-3});
-    NDArray<double> matrix2('c', {6,6}, {-10 ,-16 ,-20 ,13 ,20 ,-10 ,-9 ,-1 ,-7 ,-20 ,-4 ,20 ,-11 ,19 ,-5 ,-18 ,12 ,-19 ,18 ,-18 ,17 ,-10 ,-19 ,14 ,-2 ,-7 ,-17 ,-14 ,-4 ,-16 ,18 ,-6 ,-18 ,1 ,-15 ,-12});
-    NDArray<double> matrix3('c', {5,5}, {-18 ,1 ,19 ,-7 ,1 ,2 ,-18 ,-13 ,14 ,2 ,-2 ,-11 ,8 ,2 ,-6 ,-3 ,-8 ,8 ,-2 ,7 ,16 ,15 ,-3 ,7 ,0});
-    NDArray<double> matrix4('c', {5,5}, {3 ,-8 ,5 ,7 ,-8 ,4 ,-19 ,-12 ,-4 ,-5 ,-11 ,19 ,-2 ,-7 ,1 ,16 ,-5 ,10 ,19 ,-19 ,0 ,-20 ,0 ,-8 ,-13});
+    NDArray<double> matrix1('c', {6,5}, {12 ,20 ,19 ,-18 ,-6 ,3 ,6 ,2 ,-7 ,-7 ,14 ,8 ,18 ,-17 ,18 ,-14 ,-15 ,1 ,2 ,2 ,-3 ,-18 ,8 ,-17 ,-19 ,12 ,18 ,6 ,-2 ,-17});
 
-    NDArray<double> expM('c', {6,5}, {-2,     -3,      2,      1,      0, 0,12.1676,      0,      0,      0, -4,      0,7.49514,      0,      0, -3,      0,      0,5.00951,      0, -5,      0,      0,      0,1.63594, -2,      0,      0,      0,      0});
-    NDArray<double> expU('c', {6,6}, {0.295543,-0.238695, 0.262095,-0.231772, -0.85631,-10, 0.519708,0.0571492,-0.368706,-0.727615, 0.247527, 20, 0.313717,-0.561567,-0.602941, 0.469567,0.0468295,-19, 0.474589,-0.372165, 0.656962, 0.124776, 0.434845, 14, -0.564717,-0.697061,0.0150082,  -0.4252, 0.119081,-16, 18,       -6,      -18,        1,      -15,-12});
-    NDArray<double> expV('c', {5,5}, {-18,         1,        19,        -7,        1, 2,-0.0366659,  0.977361,-0.0316106, 0.205967, -2, -0.670795, -0.151697, -0.503288, 0.523185, -3,  0.740124,-0.0841435, -0.486714, 0.456339, 16, 0.0300945, -0.121135,   0.71331, 0.689645});
+    NDArray<double> expQR('c', {6,5}, {-37.054 ,  0.323852 , 8.04231 , -22.9395 ,-13.089, 0.105164,    32.6021,  6.42277, -0.262898,-1.58766, 0.140218,  -0.485058,  29.2073,  -9.92301,-23.7111, -0.262909,-0.00866538, 0.103467,   8.55831,-1.86455, -0.315491,   0.539207,  0.40754,-0.0374124,-7.10401, 0.315491,   0.385363,-0.216459, -0.340008,0.628595});
+    NDArray<double> expCoeffs('c', {1,5}, {1.53975, 1.19431, 1.63446, 1.7905, 1.43356});
+    NDArray<double> expPermut('c', {5,5}, {0,0,0,1,0, 1,0,0,0,0, 0,0,0,0,1, 0,0,1,0,0, 0,1,0,0,0});
 
-    ops::helpers::SVD<double> svd(matrix4, true, true, true);    
-    svd._M = matrix1;
-    svd._U = matrix2;
-    svd._V = matrix3;
+    ops::helpers::HHcolPivQR<double> qr(matrix1);    
     
-    svd.DivideAndConquer(0, 3, 1, 1, 1);
+    // qr._coeffs.printIndexedBuffer();    
+    ASSERT_TRUE(expQR.equalsTo(&qr._qr));
+    ASSERT_TRUE(expCoeffs.equalsTo(&qr._coeffs));
+    ASSERT_TRUE(expPermut.equalsTo(&qr._permut));
 
-    ASSERT_TRUE(expM.equalsTo(&svd._M));
-    ASSERT_TRUE(expU.equalsTo(&svd._U));
-    ASSERT_TRUE(expV.equalsTo(&svd._V));
-
-    ASSERT_TRUE(expM.isSameShapeStrict(&svd._M));
-    ASSERT_TRUE(expU.isSameShapeStrict(&svd._U));
-    ASSERT_TRUE(expV.isSameShapeStrict(&svd._V));
+    ASSERT_TRUE(expQR.isSameShapeStrict(&qr._qr));
+    ASSERT_TRUE(expCoeffs.isSameShapeStrict(&qr._coeffs));
+    ASSERT_TRUE(expPermut.isSameShapeStrict(&qr._permut));
 }
+
+///////////////////////////////////////////////////////////////////
+TEST_F(HelpersTests1, SVD_test14) {
+            
+    NDArray<double> matrix1('c', {5,6}, {12 ,20 ,19 ,-18 ,-6 ,3 ,6 ,2 ,-7 ,-7 ,14 ,8 ,18 ,-17 ,18 ,-14 ,-15 ,1 ,2 ,2 ,-3 ,-18 ,8 ,-17 ,-19 ,12 ,18 ,6 ,-2 ,-17});
+
+    NDArray<double> expQR('c', {5,6}, {-32.665, -4.95944,  -8.26574,  7.22487, 16.5927, 11.7251, -0.135488, -29.0586,   10.9776, -14.6886, 4.18841, 20.7116, 0.348399, 0.323675,   25.5376,  1.64324, 9.63959, -9.0238, -0.0580664,0.0798999,-0.0799029,  19.5281,-4.97736, 16.0969, 0.348399,-0.666783, 0.0252425,0.0159188, 10.6978,-4.69198});
+    NDArray<double> expCoeffs('c', {1,5}, {1.58166, 1.28555, 1.98605, 1.99949, 0});
+    NDArray<double> expPermut('c', {6,6}, {0,1,0,0,0,0, 0,0,1,0,0,0, 1,0,0,0,0,0, 0,0,0,0,0,1, 0,0,0,0,1,0, 0,0,0,1,0,0});
+
+    ops::helpers::HHcolPivQR<double> qr(matrix1);    
+        
+    ASSERT_TRUE(expQR.equalsTo(&qr._qr));
+    ASSERT_TRUE(expCoeffs.equalsTo(&qr._coeffs));
+    ASSERT_TRUE(expPermut.equalsTo(&qr._permut));
+
+    ASSERT_TRUE(expQR.isSameShapeStrict(&qr._qr));
+    ASSERT_TRUE(expCoeffs.isSameShapeStrict(&qr._coeffs));
+    ASSERT_TRUE(expPermut.isSameShapeStrict(&qr._permut));
+}
+
+
+///////////////////////////////////////////////////////////////////
+TEST_F(HelpersTests1, SVD_test15) {
+            
+    NDArray<double> matrix1('c', {6,6}, {-10 ,-16 ,-20 ,13 ,20 ,-10 ,-9 ,-1 ,-7 ,-20 ,-4 ,20 ,-11 ,19 ,-5 ,-18 ,12 ,-19 ,18 ,-18 ,17 ,-10 ,-19 ,14 ,-2 ,-7 ,-17 ,-14 ,-4 ,-16 ,18 ,-6 ,-18 ,1 ,-15 ,-12});
+
+    NDArray<double> expQR('c', {6,6}, {38.1707, -3.03898, 5.16103,  23.0805, -7.57126, -13.885, -0.41519,  34.3623, 3.77403,  2.62327, -8.17784, 9.10312, 0.394431, 0.509952,-30.2179, -6.78341,  12.8421, 28.5491, -0.290633, 0.111912,0.450367,  28.1139,  15.5195, 2.60562, 0.332152, 0.405161,0.308163,0.0468127,   22.294,-2.94931, 0.249114,0.0627956,0.657873,  0.76767,-0.752594,-7.46986});
+    NDArray<double> expCoeffs('c', {1,6}, {1.26198, 1.38824, 1.15567, 1.25667, 1.27682, 0});
+    NDArray<double> expPermut('c', {6,6}, {0,0,1,0,0,0, 0,0,0,0,1,0, 0,0,0,1,0,0, 0,1,0,0,0,0, 0,0,0,0,0,1, 1,0,0,0,0,0});
+
+    ops::helpers::HHcolPivQR<double> qr(matrix1);    
+        
+    ASSERT_TRUE(expQR.equalsTo(&qr._qr));
+    ASSERT_TRUE(expCoeffs.equalsTo(&qr._coeffs));
+    ASSERT_TRUE(expPermut.equalsTo(&qr._permut));
+
+    ASSERT_TRUE(expQR.isSameShapeStrict(&qr._qr));
+    ASSERT_TRUE(expCoeffs.isSameShapeStrict(&qr._coeffs));
+    ASSERT_TRUE(expPermut.isSameShapeStrict(&qr._permut));
+}
+
+
+
+
+// ///////////////////////////////////////////////////////////////////
+// TEST_F(HelpersTests1, SVD_test13) {
+            
+//     NDArray<double> matrix1('c', {6,5}, {-2 ,-3 ,2 ,1 ,0 ,0 ,-4 ,5 ,-2 ,-3 ,-4 ,0 ,5 ,-1 ,-5 ,-3 ,-5 ,3 ,3 ,3 ,-5 ,5 ,-5 ,0 ,2 ,-2 ,-3 ,-4 ,-5 ,-3});
+//     NDArray<double> matrix2('c', {6,6}, {-10 ,-16 ,-20 ,13 ,20 ,-10 ,-9 ,-1 ,-7 ,-20 ,-4 ,20 ,-11 ,19 ,-5 ,-18 ,12 ,-19 ,18 ,-18 ,17 ,-10 ,-19 ,14 ,-2 ,-7 ,-17 ,-14 ,-4 ,-16 ,18 ,-6 ,-18 ,1 ,-15 ,-12});
+//     NDArray<double> matrix3('c', {5,5}, {-18 ,1 ,19 ,-7 ,1 ,2 ,-18 ,-13 ,14 ,2 ,-2 ,-11 ,8 ,2 ,-6 ,-3 ,-8 ,8 ,-2 ,7 ,16 ,15 ,-3 ,7 ,0});
+//     NDArray<double> matrix4('c', {5,5}, {3 ,-8 ,5 ,7 ,-8 ,4 ,-19 ,-12 ,-4 ,-5 ,-11 ,19 ,-2 ,-7 ,1 ,16 ,-5 ,10 ,19 ,-19 ,0 ,-20 ,0 ,-8 ,-13});
+
+//     NDArray<double> expM('c', {6,5}, {-2,     -3,      2,      1,      0, 0,12.1676,      0,      0,      0, -4,      0,7.49514,      0,      0, -3,      0,      0,5.00951,      0, -5,      0,      0,      0,1.63594, -2,      0,      0,      0,      0});
+//     NDArray<double> expU('c', {6,6}, {0.295543,-0.238695, 0.262095,-0.231772, -0.85631,-10, 0.519708,0.0571492,-0.368706,-0.727615, 0.247527, 20, 0.313717,-0.561567,-0.602941, 0.469567,0.0468295,-19, 0.474589,-0.372165, 0.656962, 0.124776, 0.434845, 14, -0.564717,-0.697061,0.0150082,  -0.4252, 0.119081,-16, 18,       -6,      -18,        1,      -15,-12});
+//     NDArray<double> expV('c', {5,5}, {-18,         1,        19,        -7,        1, 2,-0.0366659,  0.977361,-0.0316106, 0.205967, -2, -0.670795, -0.151697, -0.503288, 0.523185, -3,  0.740124,-0.0841435, -0.486714, 0.456339, 16, 0.0300945, -0.121135,   0.71331, 0.689645});
+
+//     ops::helpers::SVD<double> svd(matrix4, true, true, true);    
+//     svd._M = matrix1;
+//     svd._U = matrix2;
+//     svd._V = matrix3;
+    
+//     svd.DivideAndConquer(0, 3, 1, 1, 1);
+
+//     ASSERT_TRUE(expM.equalsTo(&svd._M));
+//     ASSERT_TRUE(expU.equalsTo(&svd._U));
+//     ASSERT_TRUE(expV.equalsTo(&svd._V));
+
+//     ASSERT_TRUE(expM.isSameShapeStrict(&svd._M));
+//     ASSERT_TRUE(expU.isSameShapeStrict(&svd._U));
+//     ASSERT_TRUE(expV.isSameShapeStrict(&svd._V));
+// }
 

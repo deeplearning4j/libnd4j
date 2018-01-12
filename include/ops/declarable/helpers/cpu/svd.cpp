@@ -628,7 +628,7 @@ void SVD<T>::calcBlockSVD(int col1, int size, NDArray<T>& U, NDArray<T>& singVal
             NDArray<T>* temp4 = temp2->subarray({{}, {curSize-1-i,curSize-i}});
             NDArray<T>  temp5 = *temp3;
             temp3->assign(temp4);
-            temp4->assign(temp5);        
+            temp4->assign(temp5);
             delete temp3;
             delete temp4;
         }

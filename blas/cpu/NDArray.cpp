@@ -150,6 +150,7 @@ template <typename T>
     delete[] shapeOf;
 
     _shapeInfo[6] = 1;
+
     _isBuffAlloc = true; 
     _isShapeAlloc = true;
 }
@@ -521,6 +522,8 @@ void NDArray<T>::replacePointers(T *buffer, int *shapeInfo, const bool releaseEx
 		_isBuffAlloc = true;
 		_isShapeAlloc = true;
 
+        shape::updateStrides(_shapeInfo, order);
+
         delete[] shapeOf;
     }
 
@@ -562,6 +565,8 @@ void NDArray<T>::replacePointers(T *buffer, int *shapeInfo, const bool releaseEx
 		_isBuffAlloc = true; 
 		_isShapeAlloc = true;
 
+        shape::updateStrides(_shapeInfo, order);
+        
         delete[] shapeOf;
     }
 

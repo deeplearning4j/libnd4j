@@ -33,6 +33,8 @@ class JacobiSVD {
         bool _calcV;
         bool _fullUV;
 
+        JacobiSVD(const NDArray<T>& matrix, const bool calcU, const bool calcV, const bool fullUV);
+
 };
 
 

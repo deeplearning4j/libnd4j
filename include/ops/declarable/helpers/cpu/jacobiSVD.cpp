@@ -12,7 +12,7 @@ namespace helpers {
 
 //////////////////////////////////////////////////////////////////////////
 template <typename T>
-SVD<T>::JacobiSVD(const NDArray<T>& matrix, const bool calcU, const bool calcV, const bool fullUV) {
+JacobiSVD<T>::JacobiSVD(const NDArray<T>& matrix, const bool calcU, const bool calcV, const bool fullUV) {
 
     if(matrix.rankOf() != 2 || matrix.isScalar())
         throw "ops::helpers::JacobiSVD constructor: input array must be 2D matrix !";

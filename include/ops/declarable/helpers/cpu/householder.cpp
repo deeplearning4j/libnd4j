@@ -88,6 +88,19 @@ void Householder<T>::evalHHmatrixData(const NDArray<T>& x, NDArray<T>& tail, T& 
 
 //////////////////////////////////////////////////////////////////////////
 template <typename T>
+void Householder<T>::evalHHmatrixDataI(const NDArray<T>& x, T& coeff, T& normX) {
+
+	NDArray<T> tail((int)x.lengthOf()-1, 1, x.ordering(), x.getWorkspace());
+	evalHHmatrixData(x, tail, coeff, normX);
+	
+	if(x.isRowVector())
+		x({{}, {1, -1}}).assign(tail);
+	else
+		x({{1, -1}, {}}).assign(tail);
+}
+
+//////////////////////////////////////////////////////////////////////////
+template <typename T>
 void Householder<T>::mulLeft(NDArray<T>& matrix, const NDArray<T>& tail, const T coeff) {
 	
 	if(matrix.rankOf() != 2)

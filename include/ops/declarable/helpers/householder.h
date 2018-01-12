@@ -49,6 +49,8 @@ class Householder {
     */                       
     static void evalHHmatrixData(const NDArray<T>& x, NDArray<T>& tail, T& coeff, T& normX);
 
+    static void evalHHmatrixDataI(const NDArray<T>& x, T& coeff, T& normX);
+
     /**
     *  this method mathematically multiplies input matrix on Householder from the left P * matrix
     * 
