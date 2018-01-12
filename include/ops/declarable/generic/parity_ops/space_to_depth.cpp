@@ -14,6 +14,8 @@ namespace ops {
 
         auto input = INPUT_VARIABLE(0);
 
+        REQUIRE_TRUE(input->rankOf() == 4, 0, "SpaceToDepth: input should be 4D array, but got %f instead", input->rankOf());
+
         int bS = input->sizeAt(0);
         int iD = isNHWC ? input->sizeAt(3) : input->sizeAt(1);
         int iH = isNHWC ? input->sizeAt(1) : input->sizeAt(2);
