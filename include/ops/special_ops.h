@@ -114,11 +114,12 @@ namespace simdOps {
     			const int ph = (index / outW) % outH;
     			const int c = (index / outW / outH) % inChannels;
     			const int n = index / outW / outH / inChannels;
-    			int hstart = ph * sH * dH - pH;
-    			int wstart = pw * sW * dW - pW;
+    			int hstart = ph * dH - pH;
+    			int wstart = pw * dW - pW;
     			int hend = nd4j::math::nd4j_min<int>(hstart + kH, inH + pH);
     			int wend = nd4j::math::nd4j_min<int>(wstart + kW, inW + pW);
-    			int pool_size = (hend - hstart) * (wend - wstart);
+    			int pool_size = (int)(nd4j::math::nd4j_ceil<float>((hend-inH)/((double)dH))
+                                                  * (int)nd4j::math::nd4j_ceil<float>((wend-inW)/((double)dW)));	//Accounts for dilation
     			hstart = nd4j::math::nd4j_max<int>(hstart, 0);
     			wstart = nd4j::math::nd4j_max<int>(wstart, 0);
     			hend = nd4j::math::nd4j_min<int>(hend, inH);
@@ -128,22 +129,22 @@ namespace simdOps {
 
     			T *input_slice = dx + (n * strideB + c * strideC);
     			if (poolingMode == 0) {
-    			    for (int h = hstart; h < hend; ++h) {
-      				    for (int w = wstart; w < wend; ++w) {
+    			    for (int h = hstart; h < hend; h += dH) {
+      				    for (int w = wstart; w < wend; w += dW) {
         				    T v = input_slice[h * strideY + w * strideX];
         				    if (v > sum)
         				        sum = v;
       				    }
     			    }
     			} else if (poolingMode == 1) {
-    			    for (int h = hstart; h < hend; ++h) {
-      				    for (int w = wstart; w < wend; ++w) {
+    			    for (int h = hstart; h < hend; h += dH) {
+      				    for (int w = wstart; w < wend; w += dW) {
         				    sum += input_slice[h * strideY + w * strideX];
       				    }
     			    }
     			} else if (poolingMode == 2) {
-    			    for (int h = hstart; h < hend; ++h) {
-      				    for (int w = wstart; w < wend; ++w) {
+    			    for (int h = hstart; h < hend; d += dH) {
+      				    for (int w = wstart; w < wend; w += dW) {
         				    sum += nd4j::math::nd4j_pow<T>(nd4j::math::nd4j_abs<T>(input_slice[h * strideY + w * strideX]), extraParam0);
       				    }
     			    }
@@ -155,7 +156,8 @@ namespace simdOps {
     			    int divide_factor = pool_size;
 
     			    if ((int) extraParam0 == 1)
-					    divide_factor = (hend - hstart) * (wend - wstart);
+					    divide_factor = (int)(nd4j::math::nd4j_ceil<float>((hend-inH)/((double)dH))
+                                                          * (int)nd4j::math::nd4j_ceil<float>((wend-inW)/((double)dW)));
 
     			    result[index] = sum / divide_factor;
     			} else if (poolingMode == 2) {
@@ -217,6 +219,8 @@ namespace simdOps {
 							int wstart = xx * sW - pW;
 							int hend = nd4j::math::nd4j_min<int>(hstart + kHEff, inH + pH);
 							int wend = nd4j::math::nd4j_min<int>(wstart + kWEff, inW + pW);
+							int pool_size = (int)(nd4j::math::nd4j_ceil<float>((hend-inH)/((double)dH))
+                                                  * (int)nd4j::math::nd4j_ceil<float>((wend-inW)/((double)dW)));	//Accounts for dilation
 							if(hstart < 0){
 								int n = (int)nd4j::math::nd4j_ceil<float>(-hstart / ((double)dH));
 								hstart += n * dH;
@@ -225,11 +229,6 @@ namespace simdOps {
 								int n = (int)nd4j::math::nd4j_ceil<float>(-wstart / ((double)dW));
 								wstart += n * dW;
 							}
-                            int pool_size = ((hend - hstart)/dH+1) * ((wend - wstart)/dW+1);	//Accounts for dilation
-							//hstart = nd4j::math::nd4j_max<int>(hstart, 0);
-							//wstart = nd4j::math::nd4j_max<int>(wstart, 0);
-//							hend = nd4j::math::nd4j_min<int>(hend, inH);
-//							wend = nd4j::math::nd4j_min<int>(wend, inW);
                             if(hend > inH){
                                 int n = (int)nd4j::math::nd4j_ceil<float>((hend-inH)/((double)dH));
                                 hend -= n * dH;
@@ -247,7 +246,8 @@ namespace simdOps {
 								if ((int) extraParam0 == 0)
 									divide_factor = pool_size;
 								else if ((int) extraParam0 == 1)
-									divide_factor = ((hend - hstart)/dH+1) * ((wend - wstart)/dW+1);
+									divide_factor = (int)(nd4j::math::nd4j_ceil<float>((hend-inH)/((double)dH))
+                                                          * (int)nd4j::math::nd4j_ceil<float>((wend-inW)/((double)dW)));
                                 else if ((int) extraParam0 == 2)
                                     divide_factor = kH * kW;
 							}
