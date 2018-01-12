@@ -695,6 +695,29 @@ TEST_F(DeclarableOpsTests4, Test_Cross_1) {
     nd4j::ops::cross<float> op;
     auto result = op.execute({&a, &b}, {}, {});
     ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}
+
+
+TEST_F(DeclarableOpsTests4, Test_Cross_2) {
+    NDArray<float> a('c', {2, 3}, {1, 2, 3, 1, 2, 3});
+    NDArray<float> b('c', {2, 3}, {6, 7, 8, 6, 7, 8});
+    NDArray<float> exp('c', {2, 3}, {-5, 10, -5, -5, 10, -5});
+
+    nd4j::ops::cross<float> op;
+    auto result = op.execute({&a, &b}, {}, {});
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
     
     delete result;
 }
