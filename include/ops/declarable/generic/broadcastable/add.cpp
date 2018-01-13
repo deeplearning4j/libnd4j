@@ -64,6 +64,7 @@ namespace nd4j {
 
         CUSTOM_OP_IMPL(add_bp, 3, 2, false, 0, 0) {
 
+            return Status::OK();
         }
 
         DECLARE_SHAPE_FN(add_bp) {
