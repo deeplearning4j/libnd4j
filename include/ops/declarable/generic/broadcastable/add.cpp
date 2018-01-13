@@ -81,7 +81,7 @@ namespace nd4j {
                 eps->assign(epsNext);
             } else {
                 // broadcast case
-                auto sum = epsNext->template reduceAlongDimension<simdOps::Sum<T>>();
+                auto sum = epsNext->template reduceAlongDimension<simdOps::Sum<T>>({1});
                 grad->assign(sum);
                 delete sum;
             }
