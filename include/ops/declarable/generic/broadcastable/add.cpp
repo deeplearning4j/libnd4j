@@ -61,5 +61,13 @@ namespace nd4j {
 
             return shapeList;
         }
+
+        CUSTOM_OP_IMPL(add_bp, 3, 2, false, 0, 0) {
+
+        }
+
+        DECLARE_SHAPE_FN(add_bp) {
+            return nullptr;
+        }
     }
 }
