@@ -116,14 +116,26 @@ namespace simdOps {
     			const int n = index / outW / outH / inChannels;
     			int hstart = ph * dH - pH;
     			int wstart = pw * dW - pW;
-    			int hend = nd4j::math::nd4j_min<int>(hstart + kH, inH + pH);
-    			int wend = nd4j::math::nd4j_min<int>(wstart + kW, inW + pW);
-    			int pool_size = (int)(nd4j::math::nd4j_ceil<float>((hend-inH)/((double)dH))
-                                                  * (int)nd4j::math::nd4j_ceil<float>((wend-inW)/((double)dW)));	//Accounts for dilation
-    			hstart = nd4j::math::nd4j_max<int>(hstart, 0);
-    			wstart = nd4j::math::nd4j_max<int>(wstart, 0);
-    			hend = nd4j::math::nd4j_min<int>(hend, inH);
-    			wend = nd4j::math::nd4j_min<int>(wend, inW);
+    			int hend = hstart + kH;
+    			int wend = wstart + kW;
+    			if(hstart < 0){
+                    int n = (int)nd4j::math::nd4j_ceil<float>(-hstart / ((double)dH));
+                    hstart += n * dH;
+                }
+                if(wstart < 0){
+                    int n = (int)nd4j::math::nd4j_ceil<float>(-wstart / ((double)dW));
+                    wstart += n * dW;
+                }
+                if(hend > inH){
+                    int n = (int)nd4j::math::nd4j_ceil<float>((hend-inH)/((double)dH));
+                    hend -= n * dH;
+                }
+                if(wend > inW){
+                    int n = (int)nd4j::math::nd4j_ceil<float>((wend-inW)/((double)dW));
+                    wend -= n * dW;
+                }
+    			int pool_size = (int)(nd4j::math::nd4j_ceil<float>((hend-hstart)/((double)dH))
+                                                  * (int)nd4j::math::nd4j_ceil<float>((wend-wstart)/((double)dW)));	//Accounts for dilation
 
     			T sum = poolingMode == 0 ? (T) -MAX_FLOAT : (T) 0;
 
@@ -153,11 +165,9 @@ namespace simdOps {
     			if (poolingMode == 0) {
                     result[index] = sum;
     			} else if (poolingMode == 1) {
-    			    int divide_factor = pool_size;
-
-    			    if ((int) extraParam0 == 1)
-					    divide_factor = (int)(nd4j::math::nd4j_ceil<float>((hend-inH)/((double)dH))
-                                                          * (int)nd4j::math::nd4j_ceil<float>((wend-inW)/((double)dW)));
+    			    int divide_factor = pool_size;  //Case 0: exclude padding
+    			    if ((int) extraParam0 == 1)     //Case 1: include padding
+					    divide_factor = kH * kW;
 
     			    result[index] = sum / divide_factor;
     			} else if (poolingMode == 2) {
@@ -217,10 +227,8 @@ namespace simdOps {
 							/* Compute the mean of the input image... */
 							int hstart = yy * sH - pH;
 							int wstart = xx * sW - pW;
-							int hend = nd4j::math::nd4j_min<int>(hstart + kHEff, inH + pH);
-							int wend = nd4j::math::nd4j_min<int>(wstart + kWEff, inW + pW);
-							int pool_size = (int)(nd4j::math::nd4j_ceil<float>((hend-inH)/((double)dH))
-                                                  * (int)nd4j::math::nd4j_ceil<float>((wend-inW)/((double)dW)));	//Accounts for dilation
+                            int hend = hstart + kHEff;
+                            int wend = wstart + kWEff;
 							if(hstart < 0){
 								int n = (int)nd4j::math::nd4j_ceil<float>(-hstart / ((double)dH));
 								hstart += n * dH;
@@ -237,18 +245,17 @@ namespace simdOps {
                                 int n = (int)nd4j::math::nd4j_ceil<float>((wend-inW)/((double)dW));
                                 wend -= n * dW;
                             }
+                            int pool_size = (int)(nd4j::math::nd4j_ceil<float>((hend-hstart)/((double)dH))
+                                                  * (int)nd4j::math::nd4j_ceil<float>((wend-wstart)/((double)dW)));	//Accounts for dilation
 
 							T sum = poolingMode == 0 ? (T) -MAX_FLOAT : (T) 0;
 
 							// we need this only for avg pooling
 							int divide_factor = 0;
 							if (poolingMode == 1) {
-								if ((int) extraParam0 == 0)
+								if ((int) extraParam0 == 0)         //Exclude padding
 									divide_factor = pool_size;
-								else if ((int) extraParam0 == 1)
-									divide_factor = (int)(nd4j::math::nd4j_ceil<float>((hend-inH)/((double)dH))
-                                                          * (int)nd4j::math::nd4j_ceil<float>((wend-inW)/((double)dW)));
-                                else if ((int) extraParam0 == 2)
+								else if ((int) extraParam0 == 1)    //Include padding
                                     divide_factor = kH * kW;
 							}
 
