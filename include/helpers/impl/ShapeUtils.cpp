@@ -590,7 +590,13 @@ std::vector<int> ShapeUtils<T>::evalBroadcastBackwardAxis(int *operand, int *res
     int maxRank = nd4j::math::nd4j_max<int>(xRank, zRank);
 
     if (xRank == zRank) {
+        for (int e = -1; e > -minRank; e--) {
+            int o = shape::sizeAt(operand, e);
+            int r = shape::sizeAt(result, e);
 
+            if (o != r)
+                axis.emplace_back(e + maxRank);
+        } 
     } else if (xRank < zRank) {
         for (int e = -1; e > -minRank; e--) {
             int o = shape::sizeAt(operand, e);
@@ -604,7 +610,7 @@ std::vector<int> ShapeUtils<T>::evalBroadcastBackwardAxis(int *operand, int *res
         for (int e = 0; e < zRank - xRank; e++) 
             axis.emplace_back(e);
     } else {
-
+        // this isn't possible
     }
 
     // FIXME: eventually we'd like to get rid of sort 

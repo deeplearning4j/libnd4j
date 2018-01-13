@@ -81,9 +81,22 @@ namespace nd4j {
                 eps->assign(epsNext);
             } else {
                 // broadcast case
-                auto sum = epsNext->template reduceAlongDimension<simdOps::Sum<T>>({1});
-                grad->assign(sum);
-                delete sum;
+                auto axisX = ShapeUtils<T>::evalBroadcastBackwardAxis(x->shapeInfo(), epsNext->shapeInfo());
+                auto axisY = ShapeUtils<T>::evalBroadcastBackwardAxis(y->shapeInfo(), epsNext->shapeInfo());
+
+                if (axisX.size() > 0) {
+                    auto sum = epsNext->template reduceAlongDimension<simdOps::Sum<T>>(axisX);
+                    eps->assign(sum);
+                    delete sum;
+                } else 
+                    eps->assign(epsNext);
+
+                if (axisY.size() > 0) {
+                    auto sum = epsNext->template reduceAlongDimension<simdOps::Sum<T>>(axisY);
+                    grad->assign(sum);
+                    delete sum;
+                } else
+                    grad->assign(epsNext);
             }
 
             return Status::OK();
