@@ -155,7 +155,7 @@ namespace simdOps {
       				    }
     			    }
     			} else if (poolingMode == 2) {
-    			    for (int h = hstart; h < hend; d += dH) {
+    			    for (int h = hstart; h < hend; h += dH) {
       				    for (int w = wstart; w < wend; w += dW) {
         				    sum += nd4j::math::nd4j_pow<T>(nd4j::math::nd4j_abs<T>(input_slice[h * strideY + w * strideX]), extraParam0);
       				    }
