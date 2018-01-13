@@ -87,5 +87,32 @@ namespace nd4j {
 
             return shapeList;
         }
+
+
+        CUSTOM_OP_IMPL(realdiv_bp, 3, 2, false, 0, 0) {
+
+            return Status::ERROR("Not implemented yet!");
+        }
+
+        DECLARE_SHAPE_FN(realdiv_bp) {
+            auto x = inputShape->at(0);
+            auto y = inputShape->at(1);
+            auto e = inputShape->at(2);
+
+            // eps always has shape of x
+            // grad always has shape of y
+
+            int *shapeE;
+            int *shapeG;
+            ALLOCATE(shapeE, block.getWorkspace(), shape::shapeInfoLength(x), int);
+            ALLOCATE(shapeG, block.getWorkspace(), shape::shapeInfoLength(y), int);
+
+            REPLICATE_SHAPE(x, shapeE);
+            REPLICATE_SHAPE(y, shapeG);
+
+            auto shapeList = new ShapeList({shapeE, shapeG});
+
+            return shapeList;
+        }
     }
 }
