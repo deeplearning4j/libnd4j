@@ -13,9 +13,16 @@ namespace nd4j {
             return ND4J_STATUS_OK;
         };
 
-        static FORCEINLINE Nd4jStatus Code(Nd4jStatus code, const char *message) {
+        static FORCEINLINE Nd4jStatus CODE(Nd4jStatus code, const char *message) {
             nd4j_printf("%s\n", message);
             return code;
+        }
+
+        static FORCEINLINE Nd4jStatus ERROR(const char *message = nullptr) {
+            if (message != nullptr) {
+                nd4j_printf("%s\n", message);
+            }
+            return ND4J_STATUS_KERNEL_FAILURE;
         }
     };
 }

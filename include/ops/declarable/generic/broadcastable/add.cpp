@@ -63,6 +63,28 @@ namespace nd4j {
         }
 
         CUSTOM_OP_IMPL(add_bp, 3, 2, false, 0, 0) {
+            auto x = INPUT_VARIABLE(0);
+            auto y = INPUT_VARIABLE(1);
+            auto epsNext = INPUT_VARIABLE(2);
+
+            auto eps = OUTPUT_VARIABLE(0);
+            auto grad = OUTPUT_VARIABLE(1);
+
+            if (x->isSameShape(y)) {
+                // PWT case case
+                grad->assign(epsNext);
+                eps->assign(epsNext);
+            } else if (y->isScalar()) {
+                // scalar case
+                auto tmp = epsNext->template reduceNumber<simdOps::Sum<T>>();
+                grad->assign(tmp);
+                eps->assign(epsNext);
+            } else {
+                // broadcast case
+                auto sum = epsNext->template reduceAlongDimension<simdOps::Sum<T>>();
+                grad->assign(sum);
+                delete sum;
+            }
 
             return Status::OK();
         }
