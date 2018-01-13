@@ -68,7 +68,24 @@ namespace nd4j {
         }
 
         DECLARE_SHAPE_FN(add_bp) {
-            return nullptr;
+            auto x = inputShape->at(0);
+            auto y = inputShape->at(1);
+            auto e = inputShape->at(2);
+
+            // eps always has shape of x
+            // grad always has shape of y
+
+            int *shapeE;
+            int *shapeG;
+            ALLOCATE(shapeE, block.getWorkspace(), shape::shapeInfoLength(x), int);
+            ALLOCATE(shapeG, block.getWorkspace(), shape::shapeInfoLength(y), int);
+
+            REPLICATE_SHAPE(x, shapeE);
+            REPLICATE_SHAPE(y, shapeG);
+
+            auto shapeList = new ShapeList({shapeE, shapeG});
+
+            return shapeList;
         }
     }
 }
