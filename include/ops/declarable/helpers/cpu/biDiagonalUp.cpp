@@ -107,7 +107,7 @@ HHsequence<T> BiDiagonalUp<T>::makeHHsequence(const char type) const {
         	colOfCoeffs(i) = _HHmatrix(i,i+1);
             
     	HHsequence<T> result(_HHmatrix, colOfCoeffs, type);
-    	result._length = diagUpSize;
+    	result._diagSize = diagUpSize;
     	result._shift  = 1;
 
     	return result;	

@@ -2772,6 +2772,44 @@ NDArray<T> NDArray<T>::operator+(const NDArray<T>& other) const {
     }
 
     ////////////////////////////////////////////////////////////////////////
+    template<typename T>
+    void NDArray<T>::setZeros(const char* block) {
+
+        if(rankOf() != 2)
+            throw "NDArray::setZeros method: input array must have rank = 2 !";
+
+        const int rows = sizeAt(0);
+        const int cols = sizeAt(1);
+        
+        if(!strcmp(block, "trianUp")) {
+            
+            for(int i = 0; i < rows; ++i)
+                for(int j = i+1; j < cols; ++j)                                      
+                    (*this)(i, j) = 0.;
+        }
+        else if(!strcmp(block, "trianUpD")) {
+
+            for(int i = 0; i < rows; ++i)
+                for(int j = i; j < cols; ++j)                                      
+                    (*this)(i, j) = 0.;
+        }
+        else if(!strcmp(block, "trianLow")) {
+
+            for(int i = 0; i < rows; ++i)
+                for(int j = 0; j < i; ++j)                                      
+                    (*this)(i, j) = 0.;
+        }
+        else if(!strcmp(block, "trianLowD")) {
+
+            for(int i = 0; i < rows; ++i)
+                for(int j = 0; j <= i; ++j)                                      
+                    (*this)(i, j) = 0.;
+        }
+        else 
+            throw "NDArray::setZeros method: wrong argument !";            
+    }
+
+    ////////////////////////////////////////////////////////////////////////
     // default destructor
     template<typename T>
     NDArray<T>::~NDArray() {

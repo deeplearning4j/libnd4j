@@ -831,6 +831,18 @@ namespace nd4j {
         NDArray<T>* diagonal(const char type ) const;
 
         /**
+        *  set zeros in specified array block, works only with 2D matrix
+        *
+        *  block - block of array where to put zeros. Possible values are:
+        *      "trianUp"   - upper triangular block excluding diagonal 
+        *      "trianUpD"  - upper triangular block including diagonal 
+        *      "trianLow"  - lower triangular block excluding diagonal
+        *      "trianLowD" - lower triangular block including diagonal
+        */
+        void setZeros(const char* block);
+        
+
+        /**
         *  default destructor
         */        
         ~NDArray(); 

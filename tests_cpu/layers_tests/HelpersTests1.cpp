@@ -179,7 +179,7 @@ TEST_F(HelpersTests1, HHsequence_test1) {
     ASSERT_TRUE(uSeq._vectors.equalsTo(&vectorsUseqExp));
     ASSERT_TRUE(vSeq._vectors.equalsTo(&vectorsVseqExp));
 
-    ASSERT_TRUE(vSeq._length == uSeq._length - 1);    
+    ASSERT_TRUE(vSeq._diagSize == uSeq._diagSize - 1);    
     ASSERT_TRUE(vSeq._shift == 1);    
     ASSERT_TRUE(uSeq._shift == 0);    
         
@@ -203,7 +203,7 @@ TEST_F(HelpersTests1, HHsequence_test2) {
     ASSERT_TRUE(uSeq._vectors.equalsTo(&vectorsUseqExp));
     ASSERT_TRUE(vSeq._vectors.equalsTo(&vectorsVseqExp));
 
-    ASSERT_TRUE(vSeq._length == uSeq._length - 1);    
+    ASSERT_TRUE(vSeq._diagSize == uSeq._diagSize - 1);    
     ASSERT_TRUE(vSeq._shift == 1);    
     ASSERT_TRUE(uSeq._shift == 0);    
         
@@ -227,7 +227,7 @@ TEST_F(HelpersTests1, HHsequence_test3) {
     ASSERT_TRUE(uSeq._vectors.equalsTo(&vectorsUseqExp));
     ASSERT_TRUE(vSeq._vectors.equalsTo(&vectorsVseqExp));
 
-    ASSERT_TRUE(vSeq._length == uSeq._length - 1);    
+    ASSERT_TRUE(vSeq._diagSize == uSeq._diagSize - 1);    
     ASSERT_TRUE(vSeq._shift == 1);    
     ASSERT_TRUE(uSeq._shift == 0);    
         
@@ -396,6 +396,66 @@ TEST_F(HelpersTests1, HHsequence_test15) {
     ops::helpers::BiDiagonalUp<double> object(matrix);    
     ops::helpers::HHsequence<double> vSeq = object.makeHHsequence('v');
     vSeq.mulLeft(matrix2);
+    
+    ASSERT_TRUE(matrix2.equalsTo(&exp));        
+}
+
+///////////////////////////////////////////////////////////////////
+TEST_F(HelpersTests1, HHsequence_test16) {
+            
+    NDArray<double> matrix('c', {5,5}, {9,-1,3,9,10,  11,-7,-5,3, 2,  4,7,-1,6,7,  19,2,17,9,15, 2,17,-9,15,2});
+    NDArray<double> matrix2('c', {10,10});
+    matrix2 = 100.;
+    NDArray<double> exp('c',{5,5}, {-0.372742, 0.295145, 0.325359, 0.790947,   0.20615, -0.455573,-0.824221,-0.239444, 0.216163,-0.0951492, -0.165663, 0.285319, -0.18501, 0.130431, -0.916465, -0.7869, 0.245393, 0.116952,-0.541267,  0.117997, -0.0828315, 0.303191,-0.888202, 0.133021,    0.3076});
+
+    ops::helpers::BiDiagonalUp<double> object(matrix);    
+    ops::helpers::HHsequence<double> uSeq = object.makeHHsequence('u');
+    uSeq.applyTo(matrix2);
+    
+    ASSERT_TRUE(matrix2.equalsTo(&exp));        
+}
+
+///////////////////////////////////////////////////////////////////
+TEST_F(HelpersTests1, HHsequence_test17) {
+            
+    NDArray<double> matrix('c', {5,5}, {9,-1,3,9,10,  11,-7,-5,3, 2,  4,7,-1,6,7,  19,2,17,9,15, 2,17,-9,15,2});
+    NDArray<double> matrix2('c', {10,10});
+    matrix2 = 100.;
+    NDArray<double> exp('c',{5,5}, {1,        0,        0,         0,        0, 0,-0.022902, 0.986163, 0.0411914, 0.158935, 0, -0.44659, 0.021539,  0.797676,-0.404731, 0,-0.554556, 0.103511, -0.600701, -0.56649, 0,-0.701784,-0.127684,-0.0342758, 0.700015});
+
+    ops::helpers::BiDiagonalUp<double> object(matrix);    
+    ops::helpers::HHsequence<double> vSeq = object.makeHHsequence('v');
+    vSeq.applyTo(matrix2);
+    
+    ASSERT_TRUE(matrix2.equalsTo(&exp));        
+}
+
+///////////////////////////////////////////////////////////////////
+TEST_F(HelpersTests1, HHsequence_test18) {
+            
+    NDArray<double> matrix ('c',{6,4}, {9,-1,3,9, 10,11,-7,-5, 3,2,4,7, -1,6,7,19, 2,17,9,15, 2,17,-9,15});
+    NDArray<double> matrix2('c', {10,10});
+    matrix2 = 100.;
+    NDArray<double> exp('c',{6,6}, {-0.637993,  0.190621,-0.524821,-0.312287, 0.407189, 0.133659, -0.708881, 0.0450803,  0.47462, 0.232701,-0.204602,-0.417348, -0.212664,-0.0405892,-0.297123,0.0240276,-0.821557, 0.435099, 0.0708881, -0.432466, -0.49252,-0.145004,-0.199312,-0.710367, -0.141776,  -0.56468,-0.180549, 0.706094, 0.274317, 0.233707, -0.141776, -0.673865, 0.368567,-0.572848,0.0490246, 0.243733});
+
+    ops::helpers::BiDiagonalUp<double> object(matrix);    
+    ops::helpers::HHsequence<double> uSeq = object.makeHHsequence('u');
+    uSeq.applyTo(matrix2);
+    
+    ASSERT_TRUE(matrix2.equalsTo(&exp));        
+}
+
+///////////////////////////////////////////////////////////////////
+TEST_F(HelpersTests1, HHsequence_test19) {
+            
+    NDArray<double> matrix ('c',{6,4}, {9,-1,3,9, 10,11,-7,-5, 3,2,4,7, -1,6,7,19, 2,17,9,15, 2,17,-9,15});
+    NDArray<double> matrix2('c', {10,10});
+    matrix2 = 100.;
+    NDArray<double> exp('c',{4,4}, {1,        0,        0,        0, 0,-0.859586,  0.28601, -0.42345, 0,  0.19328,-0.585133,-0.787567, 0,-0.473027,-0.758826, 0.447693});
+
+    ops::helpers::BiDiagonalUp<double> object(matrix);    
+    ops::helpers::HHsequence<double> vSeq = object.makeHHsequence('v');
+    vSeq.applyTo(matrix2);
     
     ASSERT_TRUE(matrix2.equalsTo(&exp));        
 }

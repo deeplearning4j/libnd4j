@@ -14,7 +14,7 @@ namespace helpers {
 template <typename T>
 HHsequence<T>::HHsequence(const NDArray<T>& vectors, const NDArray<T>& coeffs, const char type): _vectors(vectors), _coeffs(coeffs) {
 	
-	_length = nd4j::math::nd4j_min(_vectors.sizeAt(0), _vectors.sizeAt(1));
+	_diagSize = nd4j::math::nd4j_min(_vectors.sizeAt(0), _vectors.sizeAt(1));
 	_shift = 0;    
 	_type  = type;
 }
@@ -29,7 +29,7 @@ void HHsequence<T>::mulLeft(NDArray<T>& matrix) const {
 
 	NDArray<T>* block(nullptr);
 
-	for(int i = _length - 1; i >= 0; --i) {		
+	for(int i = _diagSize - 1; i >= 0; --i) {		
     	
     	if(_type == 'u') {
     		
@@ -46,6 +46,41 @@ void HHsequence<T>::mulLeft(NDArray<T>& matrix) const {
     }
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+template <typename T>
+NDArray<T> HHsequence<T>::getTail(const int idx) const {
+
+    
+    int first = idx + 1 + _shift;
+    
+    if(_type == 'u')
+        return _vectors({{first, -1},{idx, idx+1}});
+    else
+        return _vectors({{idx, idx+1},{first, -1}});    
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+template <typename T>
+void HHsequence<T>::applyTo(NDArray<T>& dest) const{
+    
+    int size = _type == 'u' ? _vectors.sizeAt(0) : _vectors.sizeAt(1);
+
+    if(dest.rankOf() != 2 || (dest.sizeAt(0) != size && dest.sizeAt(1) != size))
+        dest = NDArray<T>(size, size, dest.ordering(), dest.getWorkspace());
+    dest.setIdentity();
+    
+    for(int k = _diagSize - 1; k >= 0; --k) {
+        
+        int curNum = size - k - _shift;
+        if(curNum < 1 || (k + 1 + _shift) >= size )
+            continue;
+        NDArray<T>* block = dest.subarray({{dest.sizeAt(0)-curNum, dest.sizeAt(0)},{dest.sizeAt(1)-curNum, dest.sizeAt(1)}});
+        Householder<T>::mulLeft(*block, getTail(k), _coeffs(k));      
+        delete block;
+    }  
+}
 
 
 template class ND4J_EXPORT HHsequence<float>;

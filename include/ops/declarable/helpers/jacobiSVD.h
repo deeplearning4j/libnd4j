@@ -35,6 +35,8 @@ class JacobiSVD {
 
         JacobiSVD(const NDArray<T>& matrix, const bool calcU, const bool calcV, const bool fullUV);
 
+        void evalData(const NDArray<T>& matrix);
+
 };
 
 

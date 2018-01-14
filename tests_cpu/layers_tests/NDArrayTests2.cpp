@@ -230,3 +230,54 @@ TEST_F(NDArrayTest2, mmul_test3) {
 
 }
 
+////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest2, setZeros_test1) {
+
+    NDArray<float> x  ('c', {4, 4}, {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16});
+    NDArray<float> exp('c', {4, 4}, {1,0,0,0,5,6,0,0,9,10,11,0 ,13,14,15,16});
+
+    x.setZeros("trianUp");
+
+    ASSERT_TRUE(exp.isSameShape(&x));
+    ASSERT_TRUE(exp.equalsTo(&x));    
+
+}
+
+////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest2, setZeros_test2) {
+
+    NDArray<float> x  ('c', {4, 4}, {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16});
+    NDArray<float> exp('c', {4, 4}, {0,0,0,0,5,0,0,0,9,10,0 ,0 ,13,14,15,0});
+
+    x.setZeros("trianUpD");
+
+    ASSERT_TRUE(exp.isSameShape(&x));
+    ASSERT_TRUE(exp.equalsTo(&x));    
+
+}
+
+////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest2, setZeros_test3) {
+
+    NDArray<float> x  ('c', {4, 4}, {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16});
+    NDArray<float> exp('c', {4, 4}, {1,2,3,4,0,6,7,8,0,0 ,11,12,0 ,0 , 0,16});
+
+    x.setZeros("trianLow");
+
+    ASSERT_TRUE(exp.isSameShape(&x));
+    ASSERT_TRUE(exp.equalsTo(&x));    
+
+}
+
+////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest2, setZeros_test4) {
+
+    NDArray<float> x  ('c', {4, 4}, {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16});
+    NDArray<float> exp('c', {4, 4}, {0,2,3,4,0,0,7,8,0,0 , 0,12, 0, 0, 0, 0});
+
+    x.setZeros("trianLowD");
+
+    ASSERT_TRUE(exp.isSameShape(&x));
+    ASSERT_TRUE(exp.equalsTo(&x));    
+
+}

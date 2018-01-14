@@ -31,12 +31,12 @@ class HHsequence {
     /*
     *  shift of the Householder sequence 
     */
-    int _length;
+    int _shift;
 
     /*
     *  length of the Householder sequence
     */
-    int _shift;        
+    int _diagSize;        
 
     /* 
     *  type of sequence, type = 'u' (acting on columns) or type = 'v' (acting on rows)
@@ -55,8 +55,9 @@ class HHsequence {
     */                       
     void mulLeft(NDArray<T>& matrix) const;
 
-    
+    NDArray<T> getTail(const int idx) const;
 
+    void applyTo(NDArray<T>& dest) const;
 
 
 };

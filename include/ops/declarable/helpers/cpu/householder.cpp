@@ -183,7 +183,7 @@ void Householder<T>::mulRight(NDArray<T>& matrix, const NDArray<T>& tail, const 
 	}
 }
 
-
+      
 template class ND4J_EXPORT Householder<float>;
 template class ND4J_EXPORT Householder<float16>;
 template class ND4J_EXPORT Householder<double>;
