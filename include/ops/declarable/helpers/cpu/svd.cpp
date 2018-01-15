@@ -78,8 +78,12 @@ void SVD<T>::deflation1(int col1, int shift, int ind, int size) {
     _M(first,first) = denom;  
     _M(first+ind, first) = 0.;
     _M(first+ind, first+ind) = 0.;
-    
-    NDArray<T> rotation(_M.ordering(), {2,2}, {cos, -sin, sin, cos}, _M.getWorkspace());
+        
+    NDArray<T> rotation(2, 2, _M.ordering(), _M.getWorkspace());
+    rotation(0,0) = cos;
+    rotation(0,1) = -sin;
+    rotation(1,0) = sin;
+    rotation(1,1) = cos;
 
     NDArray<T>* temp(nullptr);
     

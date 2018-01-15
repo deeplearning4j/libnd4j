@@ -51,13 +51,73 @@ JacobiSVD<T>::JacobiSVD(const NDArray<T>& matrix, const bool calcU, const bool c
     evalData(matrix);
 }
 
+//////////////////////////////////////////////////////////////////////////
+typename <typename T>
+bool JacobiSVD<T>::isBlock2x2NotDiag(NDArray<T>& block, int p, int q, T& maxElem) {
+    
+    Scalar z;
+    NDArray<T> rotation(2, 2, _M.ordering(), _M.getWorkspace());
+    JacobiRotation<Scalar> rotation;
+    T n = math::nd4j_sqrt<T>(block(p,p)*block(p,p) + block(q,p)*block(q,p));
+
+    const T almostZero = DataTypeUtils::min<T>();
+    const T precision = DataTypeUtils::epsilon<T>();
+
+    if(n==0)      
+        block(p,p) = block(q,p) = 0.;
+    else {
+
+        rotation(0,0) =  rotation(1,1) = block(p,p) / n;
+        rotation(0,1) = block(q,p) / n;
+        rotation(1,0) = -rotation(0,1);
+        
+        IndicesList indices({NDIndex::interval(p, q+1, q-p), NDIndex::all()});
+        NDArray<T>* temp = block.subarray(indices);
+        temp->assign(mmul(rotation, *temp));
+        delete temp;
+
+        if(_calcU) {
+            IndicesList indices({NDIndex::all(), NDIndex::interval(p, q+1, q-p)});
+            NDArray<T>* temp1 = _U.subarray(indices);
+            NDArray<T>* temp2 = rotation.transpose();
+            temp1->assign(mmul(*temp1, *temp2));
+            delete temp1;
+            delete temp2;
+        }
+    }
+
+    
+      
+      
+      if(svd.computeU()) svd.m_matrixU.applyOnTheRight(p,q,rotation.adjoint());
+      if(abs(numext::imag(block.coeff(p,q)))>considerAsZero)
+      {
+        z = abs(block.coeff(p,q)) / block.coeff(p,q);
+        block.col(q) *= z;
+        if(svd.computeV()) svd.m_matrixV.col(q) *= z;
+      }
+      if(abs(numext::imag(block.coeff(q,q)))>considerAsZero)
+      {
+        z = abs(block.coeff(q,q)) / block.coeff(q,q);
+        block.row(q) *= z;
+        if(svd.computeU()) svd.m_matrixU.col(q) *= conj(z);
+      }
+    }
+
+    // update largest diagonal entry
+    maxElem = numext::maxi<T>(maxElem,numext::maxi<T>(abs(block.coeff(p,p)), abs(block.coeff(q,q))));
+    // and check whether the 2x2 block is already diagonal
+    T threshold = numext::maxi<T>(considerAsZero, precision * maxElem);
+    return abs(block.coeff(p,q))>threshold || abs(block.coeff(q,p)) > threshold;
+  }
+};
 
 //////////////////////////////////////////////////////////////////////////
 template <typename T>
 void JacobiSVD<T>::evalData(const NDArray<T>& matrix) {
 
     const T precision  = (T)2. * DataTypeUtils::eps<T>();  
-    const T almostZero = DataTypeUtils::eps<T>();
+    const T almostZero = DataTypeUtils::min<T>();
 
     T scale = matrix.template reduceNumber<simdOps::AMax<T>>();
     if(scale== (T)0.) 
@@ -106,6 +166,13 @@ void JacobiSVD<T>::evalData(const NDArray<T>& matrix) {
     }
     else {
 
+        _M.assign(matrix({{0 _diagSize}, {0,_diagSize}})/scale);
+
+        if(calcU) 
+            _U.setIdentity();
+
+        if(calcV) 
+            _V.setIdentity();
     }
 
 }
