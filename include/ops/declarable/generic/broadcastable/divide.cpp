@@ -97,7 +97,7 @@ namespace nd4j {
             auto gradY = OUTPUT_VARIABLE(1);
 
             auto lambdaX = LAMBDA_TT(_e, _y) {
-                return _e * (T) 1. / _y;
+                return _e / _y;
             };
 
             auto lambdaY = LAMBDA_TTT(_e, _x, _y) {
@@ -123,7 +123,7 @@ namespace nd4j {
             } else {
                 // broadcast case
 
-                auto preX = *epsNext * (T) 1. / *y;
+                auto preX = *epsNext / *y;
 
                 NDArray<T> negX(*x);
                 x->template applyTransform<simdOps::Neg<T>>(&negX);
