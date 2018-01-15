@@ -116,7 +116,7 @@ TEST_F(DeclarableOpsTests4, Test_Pooling_Parity_5) {
     
 
     nd4j::ops::avgpool2d<float> op;
-    auto result = op.execute({&x}, {}, {2, 2, 2, 2, 0, 0, 1, 1, 1, 1, 1});
+    auto result = op.execute({&x}, {}, {2, 2, 2, 2, 0, 0, 1, 1, 1, 0, 1});
 
     ASSERT_EQ(ND4J_STATUS_OK, result->status());
 
@@ -175,7 +175,7 @@ TEST_F(DeclarableOpsTests4, Test_Pooling_Parity_8) {
 
 
     nd4j::ops::avgpool2d<float> op;
-    auto result = op.execute({&x}, {}, {2, 2, 2, 2, 1, 1, 1, 1, 0, 1, 0});
+    auto result = op.execute({&x}, {}, {2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0});
 
     ASSERT_EQ(ND4J_STATUS_OK, result->status());
 
@@ -196,7 +196,7 @@ TEST_F(DeclarableOpsTests4, Test_Pooling_Parity_9) {
 
 
     nd4j::ops::avgpool2d<float> op;
-    auto result = op.execute({&x}, {}, {2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0});
+    auto result = op.execute({&x}, {}, {2, 2, 2, 2, 1, 1, 1, 1, 0, 1, 0});
 
     ASSERT_EQ(ND4J_STATUS_OK, result->status());
 
@@ -737,5 +737,95 @@ TEST_F(DeclarableOpsTests4, Test_Cross_3) {
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
     
+    delete result;
+}
+
+TEST_F(DeclarableOpsTests4, Test_Matmul_YATS_1) {
+    NDArray<float> a('c', {3, 4}, {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12});
+    NDArray<float> b('c', {4}, {1, 2, 3, 4});
+    NDArray<float> exp('c', {3}, {30, 70, 110,});
+
+    nd4j::ops::matmul<float> op;
+    auto result = op.execute({&a, &b}, {}, {});
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+    
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}
+
+TEST_F(DeclarableOpsTests4, Test_Matmul_YATS_2) {
+    NDArray<float> a('c', {4}, {1, 2, 3, 4});
+    NDArray<float> b('c', {4, 3}, {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12});
+    NDArray<float> exp('c', {1, 3}, {70, 80, 90});
+
+    nd4j::ops::matmul<float> op;
+    auto result = op.execute({&a, &b}, {}, {});
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    z->printShapeInfo("z");
+    
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}
+
+TEST_F(DeclarableOpsTests4, Test_Matmul_YATS_3) {
+    NDArray<float> a('c', {1, 4}, {1, 2, 3, 4});
+    NDArray<float> b('c', {4, 3}, {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12});
+    NDArray<float> exp('c', {1, 3}, {70, 80, 90});
+
+    nd4j::ops::matmul<float> op;
+    auto result = op.execute({&a, &b}, {}, {});
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+    
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}
+
+TEST_F(DeclarableOpsTests4, Test_Add_119) {
+    NDArray<float> a('c', {1, 4}, {1, 2, 3, 4});
+    NDArray<float> b('c', {4}, {1, 2, 3, 4});
+    NDArray<float> exp('c', {1, 4}, {2, 4, 6, 8});
+
+    nd4j::ops::add<float> op;
+    auto result = op.execute({&a, &b}, {}, {});
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_EQ(2, z->rankOf());
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}
+
+TEST_F(DeclarableOpsTests4, Test_Reshape_Negative_1) {
+    NDArray<float> x('c', {2, 2, 2}, {1, 2, 3, 4, 5, 6, 7, 8});
+    NDArray<float> shape('c', {2}, {-1, 2});
+    NDArray<float> exp('c', {4, 2}, {1, 2, 3, 4, 5, 6, 7, 8});
+
+    nd4j::ops::reshape<float> op;
+    auto result = op.execute({&x, &shape}, {}, {});
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
     delete result;
 }
