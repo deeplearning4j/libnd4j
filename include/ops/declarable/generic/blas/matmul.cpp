@@ -46,8 +46,18 @@ namespace nd4j {
                 transB = 112;
 
             REQUIRE_TRUE((transA == 111 || transA == 112) && (transB == 111 || transB == 112), 0, "BatchedGemm: valid values for transA and transB are: 0/1 or 111/112, for NoTrans/Trans respectively")
+            if (x->rankOf() == 1 && y->isMatrix()) {
+                NDArray<T> *_x = x->reshape(x->ordering(), {1, (int) x->lengthOf()});
+                NDArray<T> *_y = transB == 111 ? y : y->transpose();
 
-            if (x->isMatrix() && y->isVector()) {
+                // gemm
+                nd4j::NDArrayFactory<T>::mmulHelper(_x, _y, z, alpha, beta);
+
+                delete _x;
+
+                if (transB == 112)
+                    delete _y;
+            } else if (x->isMatrix() && y->isVector()) {
                 NDArray<T> *_x = transA == 111 ? x : x->transpose();
                 NDArray<T> *_y = transB == 111 ? y : y->transpose();
                 // gemv
@@ -157,7 +167,14 @@ namespace nd4j {
             if (transB == 112)
                 shape::transposeInplace(tmpB);
 
-            if (shape::isScalar(tmpA) && shape::isScalar(tmpB)) {
+            if (shape::rank(tmpA) == 1 && shape::isMatrix(tmpB)) {
+                // special case here
+                int *newShape;
+                ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(2), int);
+                ShapeBuilder::shapeVector(tmpB[2], newShape);
+                shape::printShapeInfoLinear(newShape);
+                return new ShapeList(newShape);
+            } else if (shape::isScalar(tmpA) && shape::isScalar(tmpB)) {
                 // just scalar vs scalar
                 shape[0] = 1;
                 shape[1] = 1;
