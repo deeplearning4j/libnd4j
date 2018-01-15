@@ -767,6 +767,8 @@ TEST_F(DeclarableOpsTests4, Test_Matmul_YATS_2) {
     ASSERT_EQ(ND4J_STATUS_OK, result->status());
 
     auto z = result->at(0);
+
+    z->printShapeInfo("z");
     
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
@@ -785,6 +787,26 @@ TEST_F(DeclarableOpsTests4, Test_Matmul_YATS_3) {
 
     auto z = result->at(0);
     
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}
+
+TEST_F(DeclarableOpsTests4, Test_Add_119) {
+    NDArray<float> a('c', {1, 4}, {1, 2, 3, 4});
+    NDArray<float> b('c', {4}, {1, 2, 3, 4});
+    NDArray<float> exp('c', {1, 4}, {2, 4, 6, 8});
+
+    nd4j::ops::add<float> op;
+    auto result = op.execute({&a, &b}, {}, {});
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_EQ(2, z->rankOf());
+
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
 
