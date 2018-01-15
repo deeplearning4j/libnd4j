@@ -4,6 +4,7 @@
 #include <ops/declarable/helpers/hhSequence.h>
 #include <ops/declarable/helpers/svd.h>
 #include <ops/declarable/helpers/hhColPivQR.h>
+#include <ops/declarable/helpers/jacobiSVD.h>
 
 
 using namespace nd4j;
@@ -778,6 +779,49 @@ TEST_F(HelpersTests1, SVD_test15) {
     ASSERT_TRUE(expQR.isSameShapeStrict(&qr._qr));
     ASSERT_TRUE(expCoeffs.isSameShapeStrict(&qr._coeffs));
     ASSERT_TRUE(expPermut.isSameShapeStrict(&qr._permut));
+}
+
+
+///////////////////////////////////////////////////////////////////
+TEST_F(HelpersTests1, JacobiSVD_test1) {
+            
+    NDArray<double> matrix3('c', {5,5}, {-18 ,1 ,19 ,-7 ,1 ,2 ,-18 ,-13 ,14 ,2 ,-2 ,-11 ,8 ,2 ,-6 ,-3 ,-8 ,8 ,-2 ,7 ,16 ,15 ,-3 ,7 ,0});
+    NDArray<double> left('c',  {2,2});
+    NDArray<double> right('c', {2,2});
+
+    NDArray<double> expLeft('c', {2,2}, {0.972022, 0.23489, -0.23489, 0.972022});
+    NDArray<double> expRight('c', {2,2}, {0.827657, 0.561234, -0.561234, 0.827657});
+    
+    ops::helpers::JacobiSVD<double>::svd2x2(matrix3, 1, 3, left, right);    
+
+    ASSERT_TRUE(expLeft.equalsTo(&left));
+    ASSERT_TRUE(expRight.equalsTo(&right));    
+}
+
+///////////////////////////////////////////////////////////////////
+TEST_F(HelpersTests1, JacobiSVD_test2) {
+            
+    NDArray<double> matrix3('c', {5,5}, {-18 ,1 ,19 ,-7 ,1 ,2 ,-18 ,-13 ,14 ,2 ,-2 ,-11 ,8 ,2 ,-6 ,-3 ,-8 ,8 ,-2 ,7 ,16 ,15 ,-3 ,7 ,0});
+    NDArray<double> matrix4('c', {5,5}, {12 ,20 ,19 ,-18 ,-6 ,3 ,6 ,2 ,-7 ,-7 ,14 ,8 ,18 ,-17 ,18 ,-14 ,-15 ,1 ,2 ,2 ,-3 ,-18 ,8 ,-17 ,-19});
+    NDArray<double> matrix5('c', {5,5}, {3 ,-8 ,5 ,7 ,-8 ,4 ,-19 ,-12 ,-4 ,-5 ,-11 ,19 ,-2 ,-7 ,1 ,16 ,-5 ,10 ,19 ,-19 ,0 ,-20 ,0 ,-8 ,-13});
+
+    NDArray<double> exp3('c', {5,5}, {-18,      1,      19,      -7,       1, -0.609208,19.6977, 8.63044,-11.9811,-4.67059, -2,    -11,       8,       2,      -6, 3.55371,      0,-12.5903, 7.51356, -5.5844, 16,     15,      -3,       7,       0});
+    NDArray<double> exp4('c', {5,5}, {12, -10.9657,19,24.5714, -6, 3,  -2.6399, 2,8.83351, -7, 14,-0.406138,18,18.7839, 18, -14,  12.8949, 1,-7.9197,  2, -3,   23.353, 8, 8.2243,-19});
+    NDArray<double> exp5('c', {5,5}, {3 ,-8 ,5 ,7 ,-8 ,4 ,-19 ,-12 ,-4 ,-5 ,-11 ,19 ,-2 ,-7 ,1 ,16 ,-5 ,10 ,19 ,-19 ,0 ,-20 ,0 ,-8 ,-13});
+
+    ops::helpers::JacobiSVD<double> jac(matrix3, true, true, true);        
+    jac._M = matrix3;
+    jac._U = matrix4;
+    jac._V = matrix5;
+
+    double maxElem;
+    bool result = jac.isBlock2x2NotDiag(matrix3, 1, 3, maxElem);    
+    
+    ASSERT_TRUE(result);
+    ASSERT_NEAR(maxElem, 19.69772, 1e-5);
+    ASSERT_TRUE(exp3.equalsTo(&matrix3));
+    ASSERT_TRUE(exp4.equalsTo(&jac._U));
+    ASSERT_TRUE(exp5.equalsTo(&jac._V));
 }
 
 

@@ -48,22 +48,20 @@ JacobiSVD<T>::JacobiSVD(const NDArray<T>& matrix, const bool calcU, const bool c
     
     _M = NDArray<T>(_diagSize, _diagSize, matrix.ordering(), matrix.getWorkspace());
     
-    evalData(matrix);
+    // evalData(matrix);
 }
 
 //////////////////////////////////////////////////////////////////////////
-typename <typename T>
+template <typename T>
 bool JacobiSVD<T>::isBlock2x2NotDiag(NDArray<T>& block, int p, int q, T& maxElem) {
-    
-    Scalar z;
-    NDArray<T> rotation(2, 2, _M.ordering(), _M.getWorkspace());
-    JacobiRotation<Scalar> rotation;
+        
+    NDArray<T> rotation(2, 2, _M.ordering(), _M.getWorkspace());    
     T n = math::nd4j_sqrt<T>(block(p,p)*block(p,p) + block(q,p)*block(q,p));
 
     const T almostZero = DataTypeUtils::min<T>();
-    const T precision = DataTypeUtils::epsilon<T>();
+    const T precision = DataTypeUtils::eps<T>();
 
-    if(n==0)      
+    if(n == (T)0.)      
         block(p,p) = block(q,p) = 0.;
     else {
 
@@ -77,6 +75,7 @@ bool JacobiSVD<T>::isBlock2x2NotDiag(NDArray<T>& block, int p, int q, T& maxElem
         delete temp;
 
         if(_calcU) {
+
             IndicesList indices({NDIndex::all(), NDIndex::interval(p, q+1, q-p)});
             NDArray<T>* temp1 = _U.subarray(indices);
             NDArray<T>* temp2 = rotation.transpose();
@@ -85,97 +84,144 @@ bool JacobiSVD<T>::isBlock2x2NotDiag(NDArray<T>& block, int p, int q, T& maxElem
             delete temp2;
         }
     }
-
     
-      
-      
-      if(svd.computeU()) svd.m_matrixU.applyOnTheRight(p,q,rotation.adjoint());
-      if(abs(numext::imag(block.coeff(p,q)))>considerAsZero)
-      {
-        z = abs(block.coeff(p,q)) / block.coeff(p,q);
-        block.col(q) *= z;
-        if(svd.computeV()) svd.m_matrixV.col(q) *= z;
-      }
-      if(abs(numext::imag(block.coeff(q,q)))>considerAsZero)
-      {
-        z = abs(block.coeff(q,q)) / block.coeff(q,q);
-        block.row(q) *= z;
-        if(svd.computeU()) svd.m_matrixU.col(q) *= conj(z);
-      }
-    }
-
-    // update largest diagonal entry
-    maxElem = numext::maxi<T>(maxElem,numext::maxi<T>(abs(block.coeff(p,p)), abs(block.coeff(q,q))));
-    // and check whether the 2x2 block is already diagonal
-    T threshold = numext::maxi<T>(considerAsZero, precision * maxElem);
-    return abs(block.coeff(p,q))>threshold || abs(block.coeff(q,p)) > threshold;
-  }
-};
+    maxElem = math::nd4j_max<T>(maxElem, math::nd4j_max<T>(math::nd4j_abs<T>(block(p,p)), math::nd4j_abs<T>(block(q,q))));
+    T threshold = math::nd4j_max<T>(almostZero, precision * maxElem);
+ 
+    return math::nd4j_abs<T>(block(p,q)) > threshold || math::nd4j_abs<T>(block(q,p)) > threshold;
+}
 
 //////////////////////////////////////////////////////////////////////////
 template <typename T>
-void JacobiSVD<T>::evalData(const NDArray<T>& matrix) {
+bool JacobiSVD<T>::createJacobiRotation(const T& x, const T& y, const T& z, NDArray<T>& rotation) {
+  
+    T denom = 2.* math::nd4j_abs<T>(y);
 
-    const T precision  = (T)2. * DataTypeUtils::eps<T>();  
-    const T almostZero = DataTypeUtils::min<T>();
-
-    T scale = matrix.template reduceNumber<simdOps::AMax<T>>();
-    if(scale== (T)0.) 
-        scale = 1.;
-
-    if(_rows > _cols) {
+    if(denom < DataTypeUtils::min<T>()) {
         
-        HHcolPivQR<T> qr(matrix / scale);
-        _M.assign(qr._qr({{0, _cols},{0, _cols}}));
-        _M.setZeros("trianLow");
-            
-        HHsequence<T>  hhSeg(qr._qr, qr._coeffs, 'u');
-
-        if(_fullUV)
-            hhSeg.applyTo(_U);             
-        else if(_calcU) {            
-            _U.setIdentity();
-            hhSeg.mulLeft(_U);
-        }
-        
-        if(_calcV)
-            _V.assign(qr._permut);
-    }    
-    else if(_rows < _cols) {
-
-        NDArray<T>* matrixT = matrix.transpose();
-        HHcolPivQR<T> qr(*matrixT / scale);
-        _M.assign(qr._qr({{0, _rows},{0, _rows}}));
-        _M.setZeros("trianLow");
-        _M.transposei();
-    
-        HHsequence<T>  hhSeg(qr._qr, qr._coeffs, 'u');          // type = 'u' is not mistake here !
-
-        if(_fullUV)
-            hhSeg.applyTo(_V);             
-        else if(_calcV) {            
-            _V.setIdentity();
-            hhSeg.mulLeft(_V);        
-        }
-                        
-        if(_calcU)
-            _U.assign(qr._permut);
-        
-        delete matrixT;
-      
-    }
+        rotation(0,0) = rotation(1,1) = 1.;
+        rotation(0,1) = rotation(1,0) = 0.;
+        return false;
+    } 
     else {
+        
+        T tau = (x-z)/denom;
+        T w = math::nd4j_sqrt<T>(tau*tau + 1.);
+        T t;
+  
+        if(tau > (T)0.)
+            t = 1. / (tau + w);
+        else
+            t = 1. / (tau - w);
+  
+        T sign = t > (T)0. ? 1. : -1.;
+        T n = 1. / math::nd4j_sqrt<T>(t*t + 1.);
+        rotation(0,0) = rotation(1,1) = n;
+        rotation(0,1) = -sign * (y / math::nd4j_abs<T>(y)) * math::nd4j_abs<T>(t) * n;
+        rotation(1,0) = -rotation(0,1);
 
-        _M.assign(matrix({{0 _diagSize}, {0,_diagSize}})/scale);
-
-        if(calcU) 
-            _U.setIdentity();
-
-        if(calcV) 
-            _V.setIdentity();
+        return true;
     }
-
 }
+
+//////////////////////////////////////////////////////////////////////////
+template <typename T>
+void JacobiSVD<T>::svd2x2(const NDArray<T>& block, int p, int q, NDArray<T>& left, NDArray<T>& right) {
+    
+    NDArray<T> m(block.ordering(), {2,2}, {block(p,p), block(p,q), block(q,p), block(q,q)}, block.getWorkspace());
+  
+    NDArray<T> rotation(2, 2, block.ordering(), block.getWorkspace());
+    T t = m(0,0) + m(1,1);
+    T d = m(1,0) - m(0,1);
+
+    if(math::nd4j_abs<T>(d) < DataTypeUtils::min<T>()) {
+    
+        rotation(0,0) = rotation(1,1) = 1.;
+        rotation(0,1) = rotation(1,0) = 0.;
+    }
+    else {    
+    
+        T u = t / d;
+        T tmp = math::nd4j_sqrt<T>(1. + u*u);
+        rotation(0,0) = rotation(1,1) = u / tmp;
+        rotation(0,1) = 1./tmp;
+        rotation(1,0) = -rotation(0,1);        
+    }
+              
+    m.assign(mmul(rotation, m));
+    createJacobiRotation(m(0,0), m(0,1), m(1,1), right);
+
+    NDArray<T> *temp = right.transpose();
+    left.assign(mmul(rotation, *temp));
+    delete temp;
+    
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// template <typename T>
+// void JacobiSVD<T>::evalData(const NDArray<T>& matrix) {
+
+//     const T precision  = (T)2. * DataTypeUtils::eps<T>();  
+//     const T almostZero = DataTypeUtils::min<T>();
+
+//     T scale = matrix.template reduceNumber<simdOps::AMax<T>>();
+//     if(scale== (T)0.) 
+//         scale = 1.;
+
+//     if(_rows > _cols) {
+        
+//         HHcolPivQR<T> qr(matrix / scale);
+//         _M.assign(qr._qr({{0, _cols},{0, _cols}}));
+//         _M.setZeros("trianLow");
+            
+//         HHsequence<T>  hhSeg(qr._qr, qr._coeffs, 'u');
+
+//         if(_fullUV)
+//             hhSeg.applyTo(_U);             
+//         else if(_calcU) {            
+//             _U.setIdentity();
+//             hhSeg.mulLeft(_U);
+//         }
+        
+//         if(_calcV)
+//             _V.assign(qr._permut);
+//     }    
+//     else if(_rows < _cols) {
+
+//         NDArray<T>* matrixT = matrix.transpose();
+//         HHcolPivQR<T> qr(*matrixT / scale);
+//         _M.assign(qr._qr({{0, _rows},{0, _rows}}));
+//         _M.setZeros("trianLow");
+//         _M.transposei();
+    
+//         HHsequence<T>  hhSeg(qr._qr, qr._coeffs, 'u');          // type = 'u' is not mistake here !
+
+//         if(_fullUV)
+//             hhSeg.applyTo(_V);             
+//         else if(_calcV) {            
+//             _V.setIdentity();
+//             hhSeg.mulLeft(_V);        
+//         }
+                        
+//         if(_calcU)
+//             _U.assign(qr._permut);
+        
+//         delete matrixT;
+      
+//     }
+//     else {
+
+//         _M.assign(matrix({{0 _diagSize}, {0,_diagSize}})/scale);
+
+//         if(calcU) 
+//             _U.setIdentity();
+
+//         if(calcV) 
+//             _V.setIdentity();
+//     }
+
+// }
 
 
 
