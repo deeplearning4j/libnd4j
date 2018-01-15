@@ -49,11 +49,13 @@ namespace nd4j {
             if (x->rankOf() == 1 && y->isMatrix()) {
                 NDArray<T> *_x = x->reshape(x->ordering(), {1, (int) x->lengthOf()});
                 NDArray<T> *_y = transB == 111 ? y : y->transpose();
-
+                NDArray<T> *_z = z->reshape(z->ordering(), {1, (int) z->lengthOf()});
+        
                 // gemm
-                nd4j::NDArrayFactory<T>::mmulHelper(_x, _y, z, alpha, beta);
+                nd4j::NDArrayFactory<T>::mmulHelper(_x, _y, _z, alpha, beta);
 
                 delete _x;
+                delete _z;
 
                 if (transB == 112)
                     delete _y;
@@ -172,7 +174,6 @@ namespace nd4j {
                 int *newShape;
                 ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(2), int);
                 ShapeBuilder::shapeVector(tmpB[2], newShape);
-                shape::printShapeInfoLinear(newShape);
                 return new ShapeList(newShape);
             } else if (shape::isScalar(tmpA) && shape::isScalar(tmpB)) {
                 // just scalar vs scalar
