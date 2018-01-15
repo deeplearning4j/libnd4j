@@ -8,16 +8,11 @@
 namespace nd4j {
     namespace ops {
         CUSTOM_OP_IMPL(matmul, 2, 1, false, -2, -2) {
-            // FIXME: we might want to have gemv/dot fallback here
-            REQUIRE_OK(this->validateInput2D(block));
-
-
             NDArray<T> *x = INPUT_VARIABLE(0);
             NDArray<T> *y = INPUT_VARIABLE(1);
             NDArray<T> *z = OUTPUT_VARIABLE(0);
 
-            //x->printShapeInfo("x shape");
-            //y->printShapeInfo("y shape");
+            REQUIRE_TRUE(x->rankOf() <= 2 && y->rankOf() <= 2 && z->rankOf() <= 2, 0, "MatMul: Input and Output NDArrays should have rank less or equal to 2");
 
             int iSize = (int) block.getIArguments()->size();
             int transA = 0;
@@ -168,8 +163,16 @@ namespace nd4j {
                 shape[1] = 1;
             }  else if (shape::isMatrix(tmpA) && shape::isVector(tmpB)) {
                 // gemv case
-                shape[0] = tmpA[1];
-                shape[1] = tmpB[2];
+                if (shape::rank(tmpB) == 2) {
+                    shape[0] = tmpA[1];
+                    shape[1] = tmpB[2];
+                } else {
+                    // we have new 1D shape here
+                    int *newShape;
+                    ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(2), int);
+                    ShapeBuilder::shapeVector(tmpA[1], newShape);
+                    return new ShapeList(newShape);
+                }
             } else if ((shape::isMatrix(tmpA) && shape::isMatrix(tmpB)) || (shape::isVector(tmpA) && shape::isMatrix(tmpB)) || (shape::isColumnVector(tmpA) && shape::isVector(tmpB))) {
                 // gemm case
                 shape[0] = tmpA[1];
