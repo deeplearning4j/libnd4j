@@ -137,14 +137,14 @@ namespace nd4j {
                     gradX->assign(sum);
                     delete sum;
                 } else 
-                    epsNext->applyPairwiseLambda(y, lambdaX, gradX);
+                    gradX->assign(preX);
 
                 if (axisY.size() > 0) {
                     auto sum = preY.template reduceAlongDimension<simdOps::Sum<T>>(axisY);
                     gradY->assign(sum);
                     delete sum;
                 } else
-                    epsNext->applyTriplewiseLambda(x, y, lambdaY, gradY);
+                    gradY->assign(preY);
             }
 
             return Status::OK();
