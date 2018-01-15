@@ -103,28 +103,37 @@ namespace nd4j {
             } else {
                 // broadcast case
 
-                auto preX = *epsNext / *y;
+                auto preX = x->dup();
+                auto preY = y->dup();
 
-                NDArray<T> negX(*x);
-                x->template applyTransform<simdOps::Neg<T>>(&negX);
-                auto preY = *epsNext * negX / ((*y) * (*y));
+                auto targetShape = epsNext->getShapeAsVector();
+
+                preX->tileToShape(targetShape);
+                preY->tileToShape(targetShape);
+
+                epsNext->applyTriplewiseLambda(preX, preY, lambdaX, preX);
+                epsNext->applyTriplewiseLambda(preX, preY, lambdaY, preY);
 
                 auto axisX = ShapeUtils<T>::evalBroadcastBackwardAxis(x->shapeInfo(), epsNext->shapeInfo());
                 auto axisY = ShapeUtils<T>::evalBroadcastBackwardAxis(y->shapeInfo(), epsNext->shapeInfo());
 
                 if (axisX.size() > 0) {
-                    auto sum = preX.template reduceAlongDimension<simdOps::Sum<T>>(axisX);
+                    auto sum = preX->template reduceAlongDimension<simdOps::Sum<T>>(axisX);
                     gradX->assign(sum);
                     delete sum;
                 } else 
                     gradX->assign(preX);
 
                 if (axisY.size() > 0) {
-                    auto sum = preY.template reduceAlongDimension<simdOps::Sum<T>>(axisY);
+                    auto sum = preY->template reduceAlongDimension<simdOps::Sum<T>>(axisY);
                     gradY->assign(sum);
                     delete sum;
                 } else
                     gradY->assign(preY);
+
+
+                delete preX;
+                delete preY;
             }
 
             return Status::OK();
