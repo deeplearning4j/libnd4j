@@ -1562,6 +1562,7 @@ struct __registratorDouble_##NAME {\
 
 #define LAMBDA_T(X, ...) [__VA_ARGS__] (T X) -> T
 #define LAMBDA_TT(X, Y, ...) [__VA_ARGS__] (T X, T Y) -> T
+#define LAMBDA_TTT(t, u, v, ...) [__VA_ARGS__] (T t, T u, T v) -> T
 
 
 #endif
