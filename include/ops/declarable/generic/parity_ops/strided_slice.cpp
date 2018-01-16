@@ -26,7 +26,7 @@ namespace nd4j {
         struct StridedSliceSparseSpec {
             int dims;
             int num_add_axis_after_ellipsis;
-            const std::vector<int>* begin_tensor;
+            std::vector<int>* begin_tensor;
             const std::vector<int>* end_tensor;
             const std::vector<int>* strides_tensor;
             const int begin_mask, end_mask;
@@ -79,6 +79,10 @@ namespace nd4j {
                                     nd4j_printf("Index out of range: %i out of %i\n", full_index, this->dims);
                                     return false;
                                 }
+
+                                nd4j_printf("this->begin: %i\n", this->begin.size());
+                                nd4j_printf("sparse->begin: %i\n", sparse_spec.begin_tensor->size());
+                                nd4j_printv("sparse->begin", *sparse_spec.begin_tensor);
 
                                 // Gather slicing spec into appropriate index
                                 if (sparse_spec.begin_tensor != nullptr)
@@ -421,6 +425,10 @@ namespace nd4j {
             int *newShape;
             std::vector<int> input_shape(shape::rank(inShape));
             std::vector<int> shape;
+
+            nd4j_printv("begin:", begin);
+            nd4j_printv("end:", end);
+            nd4j_printv("strides:", strides);
 
             for (int e = 0; e < shape::rank(inShape); e++)
                 input_shape[e] = shape::shapeOf(inShape)[e];
