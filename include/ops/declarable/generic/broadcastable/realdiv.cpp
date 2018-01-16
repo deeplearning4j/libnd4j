@@ -90,8 +90,65 @@ namespace nd4j {
 
 
         CUSTOM_OP_IMPL(realdiv_bp, 3, 2, false, 0, 0) {
+            auto x = INPUT_VARIABLE(0);
+            auto y = INPUT_VARIABLE(1);
+            auto epsNext = INPUT_VARIABLE(2);
 
-            return Status::ERROR("Not implemented yet!");
+            auto gradX = OUTPUT_VARIABLE(0);
+            auto gradY = OUTPUT_VARIABLE(1);
+
+            auto lambdaX = LAMBDA_TT(_e, _y) {
+                return _e / _y;
+            };
+
+            auto lambdaY = LAMBDA_TTT(_e, _x, _y) {
+                return _e * -_x / (_y * _y);
+            };
+
+
+            if (x->isSameShape(y)) {
+                // PWT case case
+
+                // X gradient
+                epsNext->applyPairwiseLambda(y, lambdaX, gradX);
+
+                // Y gradient
+                epsNext->applyTriplewiseLambda(x, y, lambdaY, gradY);
+
+            } else if (y->isScalar()) {
+                // scalar case
+                auto tmp = epsNext->template reduceNumber<simdOps::Sum<T>>();
+                gradY->assign(tmp * -x->getScalar(0) / (y->getScalar(0) * y->getScalar(0)));
+                
+                epsNext->applyPairwiseLambda(y, lambdaX, gradX);
+            } else {
+                // broadcast case
+
+                auto preX = *epsNext / *y;
+
+                NDArray<T> negX(*x);
+                x->template applyTransform<simdOps::Neg<T>>(&negX);
+                auto preY = *epsNext * negX / ((*y) * (*y));
+
+                auto axisX = ShapeUtils<T>::evalBroadcastBackwardAxis(x->shapeInfo(), epsNext->shapeInfo());
+                auto axisY = ShapeUtils<T>::evalBroadcastBackwardAxis(y->shapeInfo(), epsNext->shapeInfo());
+
+                if (axisX.size() > 0) {
+                    auto sum = preX.template reduceAlongDimension<simdOps::Sum<T>>(axisX);
+                    gradX->assign(sum);
+                    delete sum;
+                } else 
+                    gradX->assign(preX);
+
+                if (axisY.size() > 0) {
+                    auto sum = preY.template reduceAlongDimension<simdOps::Sum<T>>(axisY);
+                    gradY->assign(sum);
+                    delete sum;
+                } else
+                    gradY->assign(preY);
+            }
+
+            return Status::OK();
         }
 
         DECLARE_SHAPE_FN(realdiv_bp) {

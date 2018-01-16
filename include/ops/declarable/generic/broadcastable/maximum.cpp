@@ -103,6 +103,7 @@ namespace nd4j {
             } else {
                 // broadcast case
 
+                // in this case we want to boost our X and Y shapes to the size of FF pass output (or epsNext, which has the same shape)
                 auto preX = x->dup();
                 auto preY = y->dup();
 
