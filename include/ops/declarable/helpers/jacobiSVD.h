@@ -20,7 +20,7 @@ class JacobiSVD {
     public:        
     
         NDArray<T> _M;
-        NDArray<T> _S;
+        NDArray<T> _S;          // vector with singular values
         NDArray<T> _U;
         NDArray<T> _V;
     
@@ -40,6 +40,10 @@ class JacobiSVD {
         static bool createJacobiRotation(const T& x, const T& y, const T& z, NDArray<T>& rotation);
         
         static void svd2x2(const NDArray<T>& block, int p, int q, NDArray<T>& left, NDArray<T>& right);
+
+        static void mulRotationOnLeft(const int i, const int j, NDArray<T>& block, const NDArray<T>& rotation);
+
+        static void mulRotationOnRight(const int i, const int j, NDArray<T>& block, const NDArray<T>& rotation);
 
         void evalData(const NDArray<T>& matrix);
 

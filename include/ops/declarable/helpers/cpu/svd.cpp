@@ -3,6 +3,7 @@
 //
 
 #include <ops/declarable/helpers/svd.h>
+#include <ops/declarable/helpers/jacobiSVD.h>
 
 
 namespace nd4j {
@@ -85,22 +86,13 @@ void SVD<T>::deflation1(int col1, int shift, int ind, int size) {
     rotation(1,0) = sin;
     rotation(1,1) = cos;
 
-    NDArray<T>* temp(nullptr);
-    
-    if (_calcU) {
-        
-        IndicesList indices({NDIndex::interval(col1, col1 + size + 1), NDIndex::interval(col1, col1 + ind + 1, ind)});
-        temp = _U.subarray(indices);
+    if (_calcU) {        
+        NDArray<T>* temp = _U.subarray({{col1, col1 + size + 1}, {}});            
+        JacobiSVD<T>::mulRotationOnRight(col1, col1+ind, *temp, rotation);
+        delete temp;
     }
-    else {
-        
-        IndicesList indices({NDIndex::all(), NDIndex::interval(col1, col1 + ind + 1, ind)});
-        temp = _U.subarray(indices);
-    }
-
-    temp->assign(mmul(*temp, rotation));
-    
-    delete temp;
+    else
+        JacobiSVD<T>::mulRotationOnRight(col1, col1+ind, _U, rotation);        
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -129,28 +121,22 @@ void SVD<T>::deflation2(int col1U , int col1M, int row1W, int col1W, int ind1, i
     _M(col1M + ind2, col1M + ind2) = _M(col1M + ind1, col1M + ind1);
     _M(col1M + ind2, col1M) = 0.;
     
-    NDArray<T> rotation(_M.ordering(), {2,2}, {cos, -sin, sin, cos}, _M.getWorkspace());
-
-    NDArray<T>* temp(nullptr);
+    NDArray<T> rotation(2, 2, _M.ordering(), _M.getWorkspace());
+    rotation(0,0) = rotation(1,1) = cos;
+    rotation(0,1) = -sin;
+    rotation(1,0) =  sin;
+    
     if (_calcU) {
-        
-        IndicesList indices({NDIndex::interval(col1U, col1U + size + 1), NDIndex::interval(col1U + ind1, col1U + ind2 + 1, ind2 - ind1)});
-        temp = _U.subarray(indices);        
+        NDArray<T>* temp = _U.subarray({{col1U, col1U + size + 1},{}});
+        JacobiSVD<T>::mulRotationOnRight(col1U+ind1, col1U+ind2, *temp, rotation);
+        delete temp;
     }
-    else {
-
-        IndicesList indices({NDIndex::all(), NDIndex::interval(col1U + ind1, col1U + ind2 + 1, ind2 - ind1)});
-        temp = _U.subarray(indices);        
-    }
-
-    temp->assign(mmul(*temp, rotation));
-    delete temp;
+    else
+        JacobiSVD<T>::mulRotationOnRight(col1U+ind1, col1U+ind2, _U, rotation);    
     
     if (_calcV)  {
-        
-        IndicesList indices({NDIndex::interval(row1W, row1W + size), NDIndex::interval(col1W + ind1, col1W + ind2 + 1, ind2 - ind1)});        
-        temp = _V.subarray(indices);        
-        temp->assign(mmul(*temp, rotation));
+        NDArray<T>* temp = _V.subarray({{row1W, row1W + size},{}});
+        JacobiSVD<T>::mulRotationOnRight(col1W+ind1, col1W+ind2, *temp, rotation);        
         delete temp;
     }
 }
