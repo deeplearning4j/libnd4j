@@ -829,3 +829,19 @@ TEST_F(DeclarableOpsTests4, Test_Reshape_Negative_1) {
 
     delete result;
 }
+
+TEST_F(DeclarableOpsTests4, Test_TileToShape_1) {
+    NDArray<float> x('c', {2, 1, 3});
+    NDArray<float> exp('c', {2, 4, 3});
+
+    nd4j::ops::tile_to_shape<float> op;
+    auto result = op.execute({&x},{}, {2, 4, 3});
+
+    ASSERT_EQ(Status::OK(), result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+
+    delete result;
+}

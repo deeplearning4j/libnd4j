@@ -13,7 +13,7 @@ namespace ops {
         if (block.isInplace()) {
             input->tileToShape(*block.getIArguments());
         } else {
-            // TODO: need to add target here
+            input->tileToShape(*block.getIArguments(), output);
         }
 
         return Status::OK();
