@@ -362,3 +362,20 @@ TEST_F(NDArrayTest2, Test_TriplewiseLambda_1) {
     ASSERT_TRUE(t.equalsTo(&exp));
 }
 
+
+TEST_F(NDArrayTest2, Test_TriplewiseLambda_2) {
+    NDArray<float> t('c', {3, 3}, {1, 1, 1, 1, 1, 1, 1, 1, 1});
+    NDArray<float> u('f', {3, 3}, {2, 2, 2, 2, 2, 2, 2, 2, 2});
+    NDArray<float> v('c', {3, 3}, {3, 3, 3, 3, 3, 3, 3, 3, 3});
+    NDArray<float> exp('c', {3, 3}, {7, 7, 7, 7, 7, 7, 7, 7, 7});
+
+    float extra = 1.0f;
+
+    auto la = LAMBDA_FFF(_t, _u, _v, extra) {
+        return _t + _u + _v + extra;
+    };
+
+    t.applyTriplewiseLambda(&u, &v, la);
+
+    ASSERT_TRUE(t.equalsTo(&exp));
+}
