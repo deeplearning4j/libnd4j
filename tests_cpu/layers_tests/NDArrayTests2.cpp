@@ -344,3 +344,21 @@ TEST_F(NDArrayTest2, tileToShape_test2) {
     ASSERT_TRUE(x.equalsTo(&exp));
 }
 
+
+TEST_F(NDArrayTest2, Test_TriplewiseLambda_1) {
+    NDArray<float> t('c', {3, 3}, {1, 1, 1, 1, 1, 1, 1, 1, 1});
+    NDArray<float> u('c', {3, 3}, {2, 2, 2, 2, 2, 2, 2, 2, 2});
+    NDArray<float> v('c', {3, 3}, {3, 3, 3, 3, 3, 3, 3, 3, 3});
+    NDArray<float> exp('c', {3, 3}, {7, 7, 7, 7, 7, 7, 7, 7, 7});
+
+    float extra = 1.0f;
+
+    auto la = LAMBDA_FFF(_t, _u, _v, extra) {
+        return _t + _u + _v + extra;
+    };
+
+    t.applyTriplewiseLambda(&u, &v, la);
+
+    ASSERT_TRUE(t.equalsTo(&exp));
+}
+
