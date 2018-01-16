@@ -2,6 +2,9 @@
 //  @author raver119@gmail.com
 //
 
+#ifndef ND4J_STATUS_H
+#define ND4J_STATUS_H
+
 #include <op_boilerplate.h>
 #include <dll.h>
 #include <helpers/logger.h>
@@ -26,3 +29,5 @@ namespace nd4j {
         }
     };
 }
+
+#endif // STATUS_H
