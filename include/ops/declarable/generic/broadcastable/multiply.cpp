@@ -100,8 +100,8 @@ namespace nd4j {
                 return _e * _y;
             };
 
-            auto lambdaY = LAMBDA_TTT(_e, _x, _y) {
-                return _e * -_x / (_y * _y);
+            auto lambdaY = LAMBDA_TT(_e, _x) {
+                return _e * _x;
             };
 
 
@@ -112,7 +112,7 @@ namespace nd4j {
                 epsNext->applyPairwiseLambda(y, lambdaX, gradX);
 
                 // Y gradient
-                epsNext->applyTriplewiseLambda(x, y, lambdaY, gradY);
+                epsNext->applyPairwiseLambda(x, lambdaY, gradY);
 
             } else if (y->isScalar()) {
                 // scalar case
@@ -121,36 +121,41 @@ namespace nd4j {
                     return _e * _y;
                 };
 
-                T tmp = epsNext->template reduceNumber<simdOps::Sum<T>>();
                 T tmpX = x->template reduceNumber<simdOps::Sum<T>>();
-                gradY->assign(tmp * -tmpX / (_y * _y));
+                gradY->assign(tmpX);
                 
                 epsNext->applyLambda(lambdaS, gradX);
             } else {
                 // broadcast case
 
-                auto preX = (*epsNext) * (*y);
+                auto preX = x->dup();
+                auto preY = y->dup();
 
-                NDArray<T> negX(*x);
-                x->template applyTransform<simdOps::Neg<T>>(&negX);
-                auto preY = (*epsNext) * negX / ((*y) * (*y));
+                auto targetShape = epsNext->getShapeAsVector();
+
+                preX->tileToShape(targetShape);
+                preY->tileToShape(targetShape);
 
                 auto axisX = ShapeUtils<T>::evalBroadcastBackwardAxis(x->shapeInfo(), epsNext->shapeInfo());
                 auto axisY = ShapeUtils<T>::evalBroadcastBackwardAxis(y->shapeInfo(), epsNext->shapeInfo());
 
                 if (axisX.size() > 0) {
-                    auto sum = preX.template reduceAlongDimension<simdOps::Sum<T>>(axisX);
+                    auto sum = preX->template reduceAlongDimension<simdOps::Sum<T>>(axisX);
                     gradX->assign(sum);
                     delete sum;
                 } else 
                     gradX->assign(preX);
 
                 if (axisY.size() > 0) {
-                    auto sum = preY.template reduceAlongDimension<simdOps::Sum<T>>(axisY);
+                    auto sum = preY->template reduceAlongDimension<simdOps::Sum<T>>(axisY);
                     gradY->assign(sum);
                     delete sum;
                 } else
                     gradY->assign(preY);
+
+
+                delete preX;
+                delete preY;
             }
 
             return Status::OK();
