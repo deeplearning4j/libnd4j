@@ -116,10 +116,16 @@ namespace nd4j {
 
             } else if (y->isScalar()) {
                 // scalar case
-                auto tmp = epsNext->template reduceNumber<simdOps::Sum<T>>();
-                gradY->assign(tmp * -x->getScalar(0) / (y->getScalar(0) * y->getScalar(0)));
+                T _y = y->getScalar(0);
+                auto lambdaS = LAMBDA_T(_e, _y) {
+                    return _e / _y;
+                };
+
+                T tmp = epsNext->template reduceNumber<simdOps::Sum<T>>();
+                T tmpX = x->template reduceNumber<simdOps::Sum<T>>();
+                gradY->assign(tmp * -tmpX / (_y * _y));
                 
-                epsNext->applyPairwiseLambda(y, lambdaX, gradX);
+                epsNext->applyLambda(lambdaS, gradX);
             } else {
                 // broadcast case
 
