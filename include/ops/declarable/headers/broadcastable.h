@@ -78,6 +78,8 @@ namespace nd4j {
          * This operation returns Z = ReverseMod(X, Y) == Mod(Y, X)
          */
         DECLARE_CUSTOM_OP(reversemod, 2, 1, true, 0, 0);
+        DECLARE_CUSTOM_OP(reversemod_bp, 3, 2, true, 0, 0);
+        
 
         /**
          * This is one of auto-broadcastable operations. It accepts 2 operands, and operation is applied based on their shapes:
@@ -137,6 +139,8 @@ namespace nd4j {
          * This operation returns Z = FloorMod(X, Y)
          */
         DECLARE_CUSTOM_OP(floormod, 2, 1, true, 0, 0);
+        DECLARE_CUSTOM_OP(floormod_bp, 3, 2, true, 0, 0);
+
         DECLARE_CUSTOM_OP(mod, 2, 1, true, 0, 0);
         DECLARE_CUSTOM_OP(mod_bp, 3, 2, true, 0, 0);
 
