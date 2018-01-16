@@ -845,3 +845,31 @@ TEST_F(DeclarableOpsTests4, Test_TileToShape_1) {
 
     delete result;
 }
+
+
+TEST_F(DeclarableOpsTests4, Test_StridedSlice_Alex_1) {
+    NDArray<float> x('c', {3, 4, 5});
+    NDArrayFactory<float>::linspace(1, x);
+
+    nd4j::ops::strided_slice<float> op;
+    auto result = op.execute({&x}, {}, {-999,0,0,0, -999,3,4,5, -999,1,1,1, 0,0,0,1,0});
+
+    ASSERT_EQ(Status::OK(), result->status());
+
+    delete result;
+}
+
+TEST_F(DeclarableOpsTests4, Test_StridedSlice_Alex_2) {
+    NDArray<float> x('c', {3, 4, 5});
+    NDArray<float> begin('c', {4}, {-999,0,0,0});
+    NDArray<float> end('c', {4}, {-999,3,4,5});
+    NDArray<float> stride('c', {4}, {-999,1,1,1});
+    NDArrayFactory<float>::linspace(1, x);
+
+    nd4j::ops::strided_slice<float> op;
+    auto result = op.execute({&x, &begin, &end, &stride}, {}, {0,0,0,1,0});
+
+    ASSERT_EQ(Status::OK(), result->status());
+
+    delete result;
+}
