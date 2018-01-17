@@ -74,11 +74,20 @@ namespace nd4j {
             gradX->assign((T) 0.0f);
 
             if (x->isSameShape(y)) {
-
+                gradY->assign(epsNext);
             } else if (y->isScalar()) {
-
+                T sum = epsNext->template reduceNumber<simdOps::Sum<T>>();
+                gradY->assign(sum);
             } else {
                 // broadcastable
+                auto axisY = ShapeUtils<T>::evalBroadcastBackwardAxis(y->shapeInfo(), epsNext->shapeInfo());
+
+                if (axisY.size() > 0) {
+                    auto sum = epsNext->template reduceAlongDimension<simdOps::Sum<T>>(axisY);
+                    gradY->assign(sum);
+                    delete sum;
+                } else
+                    gradY->assign(epsNext);
             }
 
             return Status::OK();
