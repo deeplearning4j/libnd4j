@@ -194,8 +194,12 @@ bool JacobiSVD<T>::createJacobiRotation(const T& x, const T& y, const T& z, NDAr
 //////////////////////////////////////////////////////////////////////////
 template <typename T>
 void JacobiSVD<T>::svd2x2(const NDArray<T>& block, int p, int q, NDArray<T>& left, NDArray<T>& right) {
-    
-    NDArray<T> m(block.ordering(), {2,2}, {block(p,p), block(p,q), block(q,p), block(q,q)}, block.getWorkspace());
+        
+    NDArray<T> m(2, 2, block.ordering(), block.getWorkspace());
+    m(0,0) = block(p,p);
+    m(0,1) = block(p,q);
+    m(1,0) = block(q,p);
+    m(1,1) = block(q,q);
   
     NDArray<T> rotation(2, 2, block.ordering(), block.getWorkspace());
     T t = m(0,0) + m(1,1);
@@ -274,12 +278,11 @@ void JacobiSVD<T>::evalData(const NDArray<T>& matrix) {
         if(_calcU)
             _U.assign(qr._permut);
         
-        delete matrixT;
-      
+        delete matrixT;      
     }
     else {
 
-        _M.assign(matrix({{0, _diagSize}, {0,_diagSize}})/scale);
+        _M.assign(matrix({{0, _diagSize}, {0,_diagSize}}) / scale);
 
         if(_calcU) 
             _U.setIdentity();
@@ -293,26 +296,26 @@ void JacobiSVD<T>::evalData(const NDArray<T>& matrix) {
         T current = math::nd4j_abs<T>(_M(i,i));
         if(maxDiagElem < current )
             maxDiagElem = current;
-    }
-    
+    }    
+
     bool stop = false;
 
-    while(!stop) {    
-        
-        stop = true;    
-        
+    while(!stop) {        
+
+        stop = true;            
+
         for(int p = 1; p < _diagSize; ++p) {
             
             for(int q = 0; q < p; ++q) {
         
-                T threshold = math::nd4j_max<T>(almostZero, precision * maxDiagElem);
+                T threshold = math::nd4j_max<T>(almostZero, precision * maxDiagElem);                
                 
                 if(math::nd4j_abs<T>(_M(p,q)) > threshold || math::nd4j_abs<T>(_M(q,p)) > threshold){          
                     
-                    stop = false;          
+                    stop = false;
                     
-                    if(isBlock2x2NotDiag(_M, p, q, maxDiagElem)) {                            
-                    
+                    // if(isBlock2x2NotDiag(_M, p, q, maxDiagElem)) 
+                    {                                                                       
                         NDArray<T> rotLeft (2, 2, _M.ordering(), _M.getWorkspace());
                         NDArray<T> rotRight(2, 2, _M.ordering(), _M.getWorkspace());
                         svd2x2(_M, p, q, rotLeft, rotRight);
@@ -344,7 +347,6 @@ void JacobiSVD<T>::evalData(const NDArray<T>& matrix) {
     }
   
     _S *= scale;
-
     
     for(int i = 0; i < _diagSize; i++) {
                 

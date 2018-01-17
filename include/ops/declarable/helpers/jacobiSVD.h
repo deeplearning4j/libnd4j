@@ -17,8 +17,8 @@ namespace helpers {
 template<typename T>
 class JacobiSVD {
 
-    public:        
-    
+    public:                
+
         NDArray<T> _M;
         NDArray<T> _S;          // vector with singular values
         NDArray<T> _U;
@@ -46,7 +46,6 @@ class JacobiSVD {
         static void mulRotationOnRight(const int i, const int j, NDArray<T>& block, const NDArray<T>& rotation);
 
         void evalData(const NDArray<T>& matrix);
-
 };
 
 

@@ -385,8 +385,8 @@ void SVD<T>::calcSingVals(const NDArray<T>& col0, const NDArray<T>& diag, const 
                && math::nd4j_abs<T>(fCur - fPrev) > DataTypeUtils::eps<T>() && !useBisection) {
                         
             T a = (fCur - fPrev) / ((T)1./muCur - (T)1./muPrev);
-            T b = fCur - a / muCur;      
-            T muZero = -a/b;
+            T jac = fCur - a / muCur;      
+            T muZero = -a/jac;
             T fZero = secularEq(muZero, col0, diag, permut, diagShifted, shift);
       
             muPrev = muCur;
@@ -641,10 +641,25 @@ void SVD<T>::DivideAndConquer(int col1, int col2, int row1W, int col1W, int shif
     T lambda, phi, c0, s0;
     NDArray<T> l, f;
     
-
-    if(n==2) { // if(n < 16)
+    if(n < switchSize) { 
+                            
+        JacobiSVD<T> jac(_M({{col1, col1+n+1}, {col1, col1+n}}), _calcU, _calcV, _fullUV);
+        
+        if (_calcU)
+            _U({{col1, col1+n+1},{col1, col1+n+1}}).assign(jac._U);            
+        else {
+            _U({{0, 1},{col1, col1+n+1}}).assign(jac._U({{0,1},  {}}));
+            _U({{1, 2},{col1, col1+n+1}}).assign(jac._U({{n,n+1},{}}));    
+        }
+    
+        if (_calcV) 
+            _V({{row1W, row1W+n},{col1W, col1W+n}}).assign(jac._V);            
             
-        // for small matrices it is more efficient to use another algorithm Jacobi SVD
+        _M({{col1+shift, col1+shift+n+1}, {col1+shift, col1+shift+n}}) = 0.;
+        NDArray<T>* diag = _M.diagonal('c');
+        (*diag)({{col1+shift, col1+shift+n}, {}}).assign(jac._S({{0, n},{}}));
+        delete diag;        
+    
         return;
     }
       
@@ -688,15 +703,18 @@ void SVD<T>::DivideAndConquer(int col1, int col2, int row1W, int col1W, int shif
   
     if (_calcU) {
     
-        NDArray<T> q1 = _U({{col1, col1+k+1},{col1+k, col1+k+1}});        
-        
+        NDArray<T>* temp = _U.subarray({{col1, col1+k+1},{col1+k, col1+k+1}});        
+        // NDArray<T> q1(_U({{col1, col1+k+1},{col1+k, col1+k+1}}));        
+        NDArray<T> q1(*temp);
+        delete temp;
+
         for (int i = col1 + k - 1; i >= col1; --i) 
             _U({{col1, col1+k+1}, {i+1, i+2}}).assign(_U({{col1, col1+k+1}, {i, i+1}}));
-    
+
         _U({{col1, col1+k+1}, {col1, col1+1}}).assign(q1 * c0);
         _U({{col1, col1+k+1}, {col2+1, col2+2}}).assign(q1 * (-s0));
-        _U({{col1+k+1, col1+n+1}, {col1, col1+1}}).assign(_U({{col1+k+1, col1+n+1}, {col2+1, col2+2}}) * s0);
-        _U({{col1+k+1, col1+n+1}, {col2+1, col2+2}}) *= c0;        
+        _U({{col1+k+1, col1+n+1}, {col1, col1+1}}).assign(_U({{col1+k+1, col1+n+1}, {col2+1, col2+2}}) * s0);        
+        _U({{col1+k+1, col1+n+1}, {col2+1, col2+2}}) *= c0;                
     } 
     else  {
     

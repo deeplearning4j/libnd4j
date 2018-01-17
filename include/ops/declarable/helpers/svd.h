@@ -18,6 +18,8 @@ class SVD {
 
     public:
     
+    static const int switchSize = 4;
+
     NDArray<T> _M;
     NDArray<T> _S;
     NDArray<T> _U;

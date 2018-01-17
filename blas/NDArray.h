@@ -825,7 +825,6 @@ namespace nd4j {
 
         /**
         *  return vector with buffer which points on corresponding diagonal elements of array
-        *
         *  type - means of vector to be returned: column ('c') or row ('r')
         */
         NDArray<T>* diagonal(const char type ) const;
