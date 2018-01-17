@@ -85,10 +85,6 @@ namespace nd4j {
                                     return false;
                                 }
 
-                                nd4j_printf("this->begin: %i\n", this->begin.size());
-                                nd4j_printf("sparse->begin: %i\n", sparse_spec.begin_tensor->size());
-                                nd4j_printv("sparse->begin", *sparse_spec.begin_tensor);
-
                                 // Gather slicing spec into appropriate index
                                 if (sparse_spec.begin_tensor != nullptr)
                                     this->begin[full_index] = sparse_spec.begin_tensor->at(e);
@@ -430,11 +426,7 @@ namespace nd4j {
             int *newShape;
             std::vector<int> input_shape(shape::rank(inShape));
             std::vector<int> shape;
-
-            nd4j_printv("begin:", begin);
-            nd4j_printv("end:", end);
-            nd4j_printv("strides:", strides);
-
+            
             for (int e = 0; e < shape::rank(inShape); e++)
                 input_shape[e] = shape::shapeOf(inShape)[e];
 

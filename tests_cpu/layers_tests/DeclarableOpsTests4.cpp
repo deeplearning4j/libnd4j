@@ -850,11 +850,18 @@ TEST_F(DeclarableOpsTests4, Test_TileToShape_1) {
 TEST_F(DeclarableOpsTests4, Test_StridedSlice_Alex_1) {
     NDArray<float> x('c', {3, 4, 5});
     NDArrayFactory<float>::linspace(1, x);
+    NDArray<float> exp('c', {1,3,4,5});
+    NDArrayFactory<float>::linspace(1, exp);
 
     nd4j::ops::strided_slice<float> op;
     auto result = op.execute({&x}, {}, {0,0,0,1,0, -999,0,0,0, -999,3,4,5, -999,1,1,1});
 
     ASSERT_EQ(Status::OK(), result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
 
     delete result;
 }
@@ -865,11 +872,20 @@ TEST_F(DeclarableOpsTests4, Test_StridedSlice_Alex_2) {
     NDArray<float> end('c', {4}, {-999,3,4,5});
     NDArray<float> stride('c', {4}, {-999,1,1,1});
     NDArrayFactory<float>::linspace(1, x);
+    NDArray<float> exp('c', {1,3,4,5});
+    NDArrayFactory<float>::linspace(1, exp);
 
     nd4j::ops::strided_slice<float> op;
     auto result = op.execute({&x, &begin, &end, &stride}, {}, {0,0,0,1,0});
 
     ASSERT_EQ(Status::OK(), result->status());
+
+    ASSERT_EQ(Status::OK(), result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
 
     delete result;
 }
