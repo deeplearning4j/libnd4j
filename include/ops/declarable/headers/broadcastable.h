@@ -154,6 +154,7 @@ namespace nd4j {
          * This operation returns Z = FloorDiv(X, Y)
          */
         DECLARE_CUSTOM_OP(floordiv, 2, 1, true, 0, 0)
+        DECLARE_CUSTOM_OP(floordiv_bp, 2, 1, true, 0, 0)
 
         /**
          * This is one of auto-broadcastable operations. It accepts 2 operands, and operation is applied based on their shapes:

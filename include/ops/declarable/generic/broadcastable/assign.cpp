@@ -64,8 +64,24 @@ namespace nd4j {
         DECLARE_SYN(copy, assign);
 
         CUSTOM_OP_IMPL(assign_bp, 3, 2, false, 0, 0) {
+            auto x = INPUT_VARIABLE(0);
+            auto y = INPUT_VARIABLE(1);
+            auto epsNext = INPUT_VARIABLE(2);
 
-            return Status::ERROR("Not implemented yet!");
+            auto gradX = OUTPUT_VARIABLE(0);
+            auto gradY = OUTPUT_VARIABLE(1);
+
+            gradX->assign((T) 0.0f);
+
+            if (x->isSameShape(y)) {
+
+            } else if (y->isScalar()) {
+
+            } else {
+                // broadcastable
+            }
+
+            return Status::OK();
         }
 
         DECLARE_SHAPE_FN(assign_bp) {
