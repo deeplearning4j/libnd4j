@@ -67,18 +67,18 @@ namespace nd4j {
             auto y = INPUT_VARIABLE(1);
             auto epsNext = INPUT_VARIABLE(2);
 
-            auto eps = OUTPUT_VARIABLE(0);
-            auto grad = OUTPUT_VARIABLE(1);
+            auto gradX = OUTPUT_VARIABLE(0);
+            auto gradY = OUTPUT_VARIABLE(1);
 
             if (x->isSameShape(y)) {
                 // PWT case case
-                grad->assign(epsNext);
-                eps->assign(epsNext);
+                gradY->assign(epsNext);
+                gradX->assign(epsNext);
             } else if (y->isScalar()) {
                 // scalar case
                 auto tmp = epsNext->template reduceNumber<simdOps::Sum<T>>();
-                grad->assign(tmp);
-                eps->assign(epsNext);
+                gradY->assign(tmp);
+                gradX->assign(epsNext);
             } else {
                 // broadcast case
                 auto axisX = ShapeUtils<T>::evalBroadcastBackwardAxis(x->shapeInfo(), epsNext->shapeInfo());
@@ -86,17 +86,17 @@ namespace nd4j {
 
                 if (axisX.size() > 0) {
                     auto sum = epsNext->template reduceAlongDimension<simdOps::Sum<T>>(axisX);
-                    eps->assign(sum);
+                    gradX->assign(sum);
                     delete sum;
                 } else 
-                    eps->assign(epsNext);
+                    gradX->assign(epsNext);
 
                 if (axisY.size() > 0) {
                     auto sum = epsNext->template reduceAlongDimension<simdOps::Sum<T>>(axisY);
-                    grad->assign(sum);
+                    gradY->assign(sum);
                     delete sum;
                 } else
-                    grad->assign(epsNext);
+                    gradY->assign(epsNext);
             }
 
             return Status::OK();
