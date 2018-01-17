@@ -96,34 +96,8 @@ namespace nd4j {
             auto gradX = OUTPUT_VARIABLE(0);
             auto gradY = OUTPUT_VARIABLE(1);
 
-            if (x->isSameShape(y)) {
-                // PWT case case
-                gradY->assign(epsNext);
-                gradX->assign(epsNext);
-            } else if (y->isScalar()) {
-                // scalar case
-                auto tmp = epsNext->template reduceNumber<simdOps::Sum<T>>();
-                gradY->assign(tmp);
-                gradX->assign(epsNext);
-            } else {
-                // broadcast case
-                auto axisX = ShapeUtils<T>::evalBroadcastBackwardAxis(x->shapeInfo(), epsNext->shapeInfo());
-                auto axisY = ShapeUtils<T>::evalBroadcastBackwardAxis(y->shapeInfo(), epsNext->shapeInfo());
-
-                if (axisX.size() > 0) {
-                    auto sum = epsNext->template reduceAlongDimension<simdOps::Sum<T>>(axisX);
-                    gradX->assign(sum);
-                    delete sum;
-                } else 
-                    gradX->assign(epsNext);
-
-                if (axisY.size() > 0) {
-                    auto sum = epsNext->template reduceAlongDimension<simdOps::Sum<T>>(axisY);
-                    gradY->assign(sum);
-                    delete sum;
-                } else
-                    gradY->assign(epsNext);
-            }
+            gradY->assign((T) 0.0f);
+            gradX->assign((T) 0.0f);
 
             return Status::OK();
         }
