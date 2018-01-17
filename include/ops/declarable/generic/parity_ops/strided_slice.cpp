@@ -48,9 +48,14 @@ namespace nd4j {
 
             public:
                 bool buildDenseSpec(StridedSliceSparseSpec& sparse_spec) {
-                    this->begin.resize(dims);
-                    this->end.resize(dims);
-                    this->strides.resize(dims);
+                    if (this->begin.size() < dims)
+                        this->begin.resize(dims);
+
+                    if (this->end.size() < dims)
+                        this->end.resize(dims);
+
+                    if (this->strides.size() < dims)
+                        this->strides.resize(dims);
                     this->begin_mask = 0;
                     this->end_mask = 0;
                     this->shrink_axis_mask = 0;
