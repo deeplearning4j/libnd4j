@@ -11,7 +11,7 @@ namespace ops {
         auto blocks = INPUT_VARIABLE(1);
         auto padding = INPUT_VARIABLE(2);
 
-        REQUIRE_TRUE(input->rankOf() >= 1 + block->lengthOf() + 1, 0, "SpaceToBatch: blocks length + 2 should match input rank at least");
+        REQUIRE_TRUE(input->rankOf() >= 1 + blocks->lengthOf() + 1, 0, "SpaceToBatch: blocks length + 2 should match input rank at least");
         REQUIRE_TRUE(padding->rankOf() == 2, 0, "SpaceToBatch: padding should have rank of 2, but got %i instead", padding->rankOf());
         REQUIRE_TRUE(padding->columns() == 2 && blocks->lengthOf() == padding->rows(), 0, "SpaceToBatch: padding should have M rows and 2 columns");
 

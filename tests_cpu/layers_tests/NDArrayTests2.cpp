@@ -405,3 +405,52 @@ TEST_F(NDArrayTest2, Test_TriplewiseLambda_2) {
 
     ASSERT_TRUE(t.equalsTo(&exp));
 }
+
+TEST_F(NDArrayTest2, Test_PermuteEquality_1) {
+    NDArray<float> x('c', {1, 60});
+    NDArrayFactory<float>::linspace(1, x);
+    x.reshapei('c', {3, 4, 5});
+
+    x.permutei({0, 2, 1});
+    x.streamline();
+
+    x.printShapeInfo("{0, 2, 1} shape");
+    x.printBuffer("{0, 2, 1} data");
+}
+
+
+TEST_F(NDArrayTest2, Test_PermuteEquality_2) {
+    NDArray<float> x('c', {1, 60});
+    NDArrayFactory<float>::linspace(1, x);
+    x.reshapei('c', {3, 4, 5});
+
+    x.permutei({1, 0, 2});
+    x.streamline();
+
+    x.printShapeInfo("{1, 0, 2} shape");
+    x.printBuffer("{1, 0, 2} data");
+}
+
+TEST_F(NDArrayTest2, Test_PermuteEquality_3) {
+    NDArray<float> x('c', {1, 60});
+    NDArrayFactory<float>::linspace(1, x);
+    x.reshapei('c', {3, 4, 5});
+
+    x.permutei({1, 2, 0});
+    x.streamline();
+
+    x.printShapeInfo("{1, 2, 0} shape");
+    x.printBuffer("{1, 2, 0} data");
+}
+
+TEST_F(NDArrayTest2, Test_PermuteEquality_4) {
+    NDArray<float> x('c', {1, 60});
+    NDArrayFactory<float>::linspace(1, x);
+    x.reshapei('c', {3, 4, 5});
+
+    x.permutei({2, 0, 1});
+    x.streamline();
+
+    x.printShapeInfo("{2, 0, 1} shape");
+    x.printBuffer("{2, 0, 1} data");
+}
