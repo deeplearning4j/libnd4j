@@ -8,7 +8,7 @@ namespace nd4j {
 namespace ops {
     CUSTOM_OP_IMPL(batch_to_space, 3, 1, false, 0, -2) {
 
-        return Status::OK();
+        return Status::ERROR("Not implemented yet");
     }
 
     DECLARE_SHAPE_FN(batch_to_space) {
