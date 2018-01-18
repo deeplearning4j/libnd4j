@@ -241,7 +241,7 @@ void JacobiSVD<T>::evalData(const NDArray<T>& matrix) {
         scale = 1.;
 
     if(_rows > _cols) {
-        
+
         HHcolPivQR<T> qr(matrix / scale);
         _M.assign(qr._qr({{0, _cols},{0, _cols}}));
         _M.setZeros("trianLow");
@@ -342,8 +342,11 @@ void JacobiSVD<T>::evalData(const NDArray<T>& matrix) {
     
     for(int i = 0; i < _diagSize; ++i) {                
         _S(i) = math::nd4j_abs<T>(_M(i,i));
-        if(_calcU && _M(i,i) < (T)0.) 
-            _U({{},{i, i+1}}).template applyTransform<simdOps::Neg<T>>();            
+        if(_calcU && _M(i,i) < (T)0.) {
+            NDArray<T>* temp = _U.subarray({{},{i, i+1}});
+            temp->template applyTransform<simdOps::Neg<T>>();            
+            delete temp;
+        }
     }
   
     _S *= scale;

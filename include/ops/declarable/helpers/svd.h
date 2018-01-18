@@ -6,6 +6,7 @@
 #define LIBND4J_SVD_H
 
 #include <ops/declarable/helpers/helpers.h>
+#include <ops/declarable/helpers/hhSequence.h>
 #include "NDArray.h"
 
 namespace nd4j {
@@ -18,7 +19,7 @@ class SVD {
 
     public:
     
-    static const int switchSize = 4;
+    int _switchSize = 10;
 
     NDArray<T> _M;
     NDArray<T> _S;
@@ -35,7 +36,9 @@ class SVD {
     /**
     *  constructor
     */
-    SVD(const NDArray<T>& matrix, const bool calcV, const bool calcU, const bool fullUV);
+    SVD(const NDArray<T>& matrix, const int switchSize, const bool calcV, const bool calcU, const bool fullUV);
+
+    SVD(const NDArray<T>& matrix, const int switchSize, const bool calcV, const bool calcU, const bool fullUV, const char t);
 
     void deflation1(int col1, int shift, int ind, int size);
     
@@ -54,6 +57,10 @@ class SVD {
     void calcBlockSVD(int firstCol, int size, NDArray<T>& U, NDArray<T>& singVals, NDArray<T>& V);
 
     void DivideAndConquer(int col1, int col2, int row1W, int col1W, int shift);
+
+    void exchangeUV(const HHsequence<T>& hhU, const HHsequence<T>& hhV, const NDArray<T>& U, const NDArray<T>& V);
+
+    void evalData(const NDArray<T>& matrix);
 
 };
 

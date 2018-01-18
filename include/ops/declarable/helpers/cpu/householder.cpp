@@ -78,7 +78,7 @@ void Householder<T>::evalHHmatrixData(const NDArray<T>& x, NDArray<T>& tail, T& 
 		
 		T u0 = x(0) - normX;
 		coeff = -u0 / normX;				
-		
+
 		if(x.isRowVector())
 			tail.assign(x({{}, {1, -1}}) / u0);		
 		else
@@ -93,10 +93,16 @@ void Householder<T>::evalHHmatrixDataI(const NDArray<T>& x, T& coeff, T& normX) 
 	NDArray<T> tail((int)x.lengthOf()-1, 1, x.ordering(), x.getWorkspace());
 	evalHHmatrixData(x, tail, coeff, normX);
 	
-	if(x.isRowVector())
-		x({{}, {1, -1}}).assign(tail);
-	else
-		x({{1, -1}, {}}).assign(tail);
+	if(x.isRowVector()) {
+		NDArray<T>* temp = x.subarray({{}, {1, x.sizeAt(1)}});
+		temp->assign(tail);
+		delete temp;
+	}
+	else {		
+		NDArray<T>* temp = x.subarray({{1, x.sizeAt(0)}, {}});
+		temp->assign(tail);
+		delete temp;
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -127,8 +133,9 @@ void Householder<T>::mulLeft(NDArray<T>& matrix, const NDArray<T>& tail, const T
     	NDArray<T>* bottomPart =  matrix.subarray({{1, matrix.sizeAt(0)}, {}});
     	NDArray<T> temp = *bottomPart;
     	NDArray<T> vectorRow = mmul(*pRow, temp);
-    	vectorRow += matrix({{0,1}, {}});    
-    	matrix({{0,1}, {}}) -= vectorRow * coeff;
+    	NDArray<T>* temp2 = matrix.subarray({{0,1}, {}});
+    	vectorRow += *temp2;        	
+    	*temp2 -= vectorRow * coeff;
     	*bottomPart -= mmul(*pCol, vectorRow) * coeff;    	
 
     	if(tail.isColumnVector())
@@ -137,6 +144,7 @@ void Householder<T>::mulLeft(NDArray<T>& matrix, const NDArray<T>& tail, const T
     		delete pCol;
 
     	delete bottomPart;
+    	delete temp2;
 	}
 }
 
@@ -169,8 +177,9 @@ void Householder<T>::mulRight(NDArray<T>& matrix, const NDArray<T>& tail, const 
     	NDArray<T>* rightPart =  matrix.subarray({{}, {1, matrix.sizeAt(1)}});
     	NDArray<T> temp = *rightPart;
     	NDArray<T> vectorCol  = mmul(temp, *pCol);      	      	
-    	vectorCol += matrix({{},{0,1}});    
-    	matrix({{},{0,1}}) -= vectorCol * coeff;    	
+    	NDArray<T>* temp2 = matrix.subarray({{},{0,1}});
+    	vectorCol += *temp2;
+    	*temp2 -= vectorCol * coeff;    	
     	*rightPart -= mmul(vectorCol, *pRow) * coeff;    	
     
    		if(tail.isColumnVector())
@@ -179,7 +188,7 @@ void Householder<T>::mulRight(NDArray<T>& matrix, const NDArray<T>& tail, const 
     		delete pCol;
     	
     	delete rightPart;    	
-    	
+    	delete temp2;
 	}
 }
 

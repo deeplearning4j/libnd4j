@@ -39,7 +39,7 @@ class HHsequence {
     int _diagSize;        
 
     /* 
-    *  type of sequence, type = 'u' (acting on columns) or type = 'v' (acting on rows)
+    *  type of sequence, type = 'u' (acting on columns, left) or type = 'v' (acting on rows, right)
     */
     char _type;        
 
@@ -59,10 +59,17 @@ class HHsequence {
 
     void applyTo(NDArray<T>& dest) const;
 
+    FORCEINLINE int rows() const;
 
 };
 
-    
+
+//////////////////////////////////////////////////////////////////////////
+template<typename T>
+FORCEINLINE int HHsequence<T>::rows() const {
+
+    return _type == 'u' ? _vectors.sizeAt(0) : _vectors.sizeAt(1); 
+}    
 
 
 

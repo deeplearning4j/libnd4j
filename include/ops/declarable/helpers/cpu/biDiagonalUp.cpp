@@ -84,6 +84,7 @@ void BiDiagonalUp<T>::evalData() {
 	delete tail;
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 template <typename T>
 HHsequence<T> BiDiagonalUp<T>::makeHHsequence(const char type) const {
