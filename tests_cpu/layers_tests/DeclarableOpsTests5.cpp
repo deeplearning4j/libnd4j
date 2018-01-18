@@ -147,6 +147,23 @@ TEST_F(DeclarableOpsTests5, Test_PermuteEquality_5) {
     delete result;
 }
 
+TEST_F(DeclarableOpsTests5, Test_TTS_bp_1) {
+    NDArray<float> x('c', {2, 1, 3});
+    NDArray<float> eps('c', {2, 4, 3});
+
+
+    nd4j::ops::tile_to_shape_bp<float> op;
+    auto result = op.execute({&x, &eps}, {}, {2, 4, 3});
+
+    ASSERT_EQ(Status::OK(), result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(x.isSameShape(z));
+
+    delete result;
+}
+
 
 TEST_F(DeclarableOpsTests5, Test_SpaceToBatch_1) {
     NDArray<float> x('c', {1, 2, 2, 3}, {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12});
