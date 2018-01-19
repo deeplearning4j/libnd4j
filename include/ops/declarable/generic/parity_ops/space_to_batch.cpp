@@ -108,7 +108,7 @@ namespace ops {
         internal_output_shape.emplace_back(depth);
 
 
-        helpers::_spaceToBatch(input, output, internal_input_shape, internal_output_shape, block_shape, padding_shape);
+        helpers::_spaceToBatch(internal_block_dims, input, output, internal_input_shape, internal_output_shape, block_shape, padding_shape);
 
 
         return Status::OK();

@@ -11,6 +11,7 @@ namespace nd4j {
 namespace ops {
 namespace helpers {
     // this method MUST be platform-specific
+
     template <typename T, int NUM_BLOCK_DIMS, bool B2S>
     void _execute(T *ptrSpace, const int *space_shape, const int *space_strides, const int *block_shape, const int *pad_start, const int *block_offsets, T *ptrBatch, const int *batch_shape, const int *batch_strides);
 
@@ -58,7 +59,7 @@ namespace helpers {
 
 
     template <typename T>
-    FORCEINLINE void _spaceToBatch(NDArray<T> *input, NDArray<T> *output, std::vector<int> &internal_input_shape, std::vector<int> &internal_output_shape, std::vector<int> &block_shape, std::vector<int> &paddings) {
+    FORCEINLINE void _spaceToBatch(int internal_block_dims, NDArray<T> *input, NDArray<T> *output, std::vector<int> &internal_input_shape, std::vector<int> &internal_output_shape, std::vector<int> &block_shape, std::vector<int> &paddings) {
 
     }
 }
