@@ -59,7 +59,6 @@ namespace ops {
         auto in = inputShape->at(0);
 
         int *newShape;
-        ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(in), int);
         COPY_SHAPE(in, newShape);
 
         return new ShapeList(newShape);
