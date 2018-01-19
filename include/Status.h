@@ -5,6 +5,7 @@
 #ifndef ND4J_STATUS_H
 #define ND4J_STATUS_H
 
+#include <pointercast.h>
 #include <op_boilerplate.h>
 #include <dll.h>
 #include <helpers/logger.h>
@@ -21,7 +22,7 @@ namespace nd4j {
             return code;
         }
 
-        static FORCEINLINE Nd4jStatus ERROR(const char *message = nullptr) {
+        static FORCEINLINE Nd4jStatus THROW(const char *message = nullptr) {
             if (message != nullptr) {
                 nd4j_printf("%s\n", message);
             }
