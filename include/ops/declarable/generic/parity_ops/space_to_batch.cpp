@@ -150,7 +150,6 @@ namespace ops {
         if (internal_block_dims == 0) {
             // just return input shape here
             int *newShape;
-            ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(in), int);
             COPY_SHAPE(in, newShape);
             return new ShapeList(newShape);   
         }

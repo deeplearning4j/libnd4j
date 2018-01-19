@@ -222,3 +222,59 @@ TEST_F(DeclarableOpsTests5, Test_SpaceToBatch_3) {
 
     delete result;
 }
+
+
+TEST_F(DeclarableOpsTests5, Test_BatchToSpace_1) {
+    NDArray<float> x('c', {4, 1, 1, 3}, {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12});
+    NDArray<float> exp('c', {1, 2, 2, 3}, {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12});
+    NDArray<float> blocks('c', {2}, {2, 2});
+    NDArray<float> crops('c', {2, 2}, {0, 0, 0, 0});
+
+    nd4j::ops::batch_to_space<float> op;
+    auto result = op.execute({&x, &blocks, &crops}, {}, {});
+    ASSERT_EQ(Status::OK(), result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}
+
+TEST_F(DeclarableOpsTests5, Test_BatchToSpace_2) {
+    NDArray<float> x('c', {4, 1, 1, 1}, {1, 2, 3, 4});
+    NDArray<float> exp('c', {1, 2, 2, 1}, {1, 2, 3, 4});
+    NDArray<float> blocks('c', {2}, {2, 2});
+    NDArray<float> crops('c', {2, 2}, {0, 0, 0, 0});
+
+    nd4j::ops::batch_to_space<float> op;
+    auto result = op.execute({&x, &blocks, &crops}, {}, {});
+    ASSERT_EQ(Status::OK(), result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}
+
+
+TEST_F(DeclarableOpsTests5, Test_BatchToSpace_3) {
+    NDArray<float> x('c', {8, 1, 3, 1}, {0, 1, 3, 0, 9, 11, 0, 2, 4, 0, 10, 12, 0, 5, 7, 0, 13, 15, 0, 6, 8, 0, 14, 16});
+    NDArray<float> exp('c', {2, 2, 4, 1}, {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16});
+    NDArray<float> blocks('c', {2}, {2, 2});
+    NDArray<float> crops('c', {2, 2}, {0, 0, 2, 0});
+
+    nd4j::ops::batch_to_space<float> op;
+    auto result = op.execute({&x, &blocks, &crops}, {}, {});
+    ASSERT_EQ(Status::OK(), result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}
