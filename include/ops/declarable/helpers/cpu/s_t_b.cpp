@@ -44,6 +44,38 @@ namespace helpers {
     void _execute(T *ptrSpace, const int *space_shape, const int *space_strides, const int *block_shape, const int *pad_start, const int *block_offsets, T *ptrBatch, const int *batch_shape, const int *batch_strides) {
         SpaceToBatchHelper<NUM_BLOCK_DIMS, B2S>::run(ptrSpace, space_shape, space_strides, block_shape, pad_start, block_offsets, ptrBatch, batch_shape, batch_strides);
     };
+
+
+    template void _execute<float, 4, false>(float *ptrSpace, const int *space_shape, const int *space_strides, const int *block_shape, const int *pad_start, const int *block_offsets, float *ptrBatch, const int *batch_shape, const int *batch_strides);
+    template void _execute<float, 3, false>(float *ptrSpace, const int *space_shape, const int *space_strides, const int *block_shape, const int *pad_start, const int *block_offsets, float *ptrBatch, const int *batch_shape, const int *batch_strides);
+    template void _execute<float, 2, false>(float *ptrSpace, const int *space_shape, const int *space_strides, const int *block_shape, const int *pad_start, const int *block_offsets, float *ptrBatch, const int *batch_shape, const int *batch_strides);
+    template void _execute<float, 1, false>(float *ptrSpace, const int *space_shape, const int *space_strides, const int *block_shape, const int *pad_start, const int *block_offsets, float *ptrBatch, const int *batch_shape, const int *batch_strides);
+
+    template void _execute<float16, 4, false>(float16 *ptrSpace, const int *space_shape, const int *space_strides, const int *block_shape, const int *pad_start, const int *block_offsets, float16 *ptrBatch, const int *batch_shape, const int *batch_strides);
+    template void _execute<float16, 3, false>(float16 *ptrSpace, const int *space_shape, const int *space_strides, const int *block_shape, const int *pad_start, const int *block_offsets, float16 *ptrBatch, const int *batch_shape, const int *batch_strides);
+    template void _execute<float16, 2, false>(float16 *ptrSpace, const int *space_shape, const int *space_strides, const int *block_shape, const int *pad_start, const int *block_offsets, float16 *ptrBatch, const int *batch_shape, const int *batch_strides);
+    template void _execute<float16, 1, false>(float16 *ptrSpace, const int *space_shape, const int *space_strides, const int *block_shape, const int *pad_start, const int *block_offsets, float16 *ptrBatch, const int *batch_shape, const int *batch_strides);
+
+    template void _execute<double, 4, false>(double *ptrSpace, const int *space_shape, const int *space_strides, const int *block_shape, const int *pad_start, const int *block_offsets, double *ptrBatch, const int *batch_shape, const int *batch_strides);
+    template void _execute<double, 3, false>(double *ptrSpace, const int *space_shape, const int *space_strides, const int *block_shape, const int *pad_start, const int *block_offsets, double *ptrBatch, const int *batch_shape, const int *batch_strides);
+    template void _execute<double, 2, false>(double *ptrSpace, const int *space_shape, const int *space_strides, const int *block_shape, const int *pad_start, const int *block_offsets, double *ptrBatch, const int *batch_shape, const int *batch_strides);
+    template void _execute<double, 1, false>(double *ptrSpace, const int *space_shape, const int *space_strides, const int *block_shape, const int *pad_start, const int *block_offsets, double *ptrBatch, const int *batch_shape, const int *batch_strides);
+
+
+    template void _execute<float, 4, true>(float *ptrSpace, const int *space_shape, const int *space_strides, const int *block_shape, const int *pad_start, const int *block_offsets, float *ptrBatch, const int *batch_shape, const int *batch_strides);
+    template void _execute<float, 3, true>(float *ptrSpace, const int *space_shape, const int *space_strides, const int *block_shape, const int *pad_start, const int *block_offsets, float *ptrBatch, const int *batch_shape, const int *batch_strides);
+    template void _execute<float, 2, true>(float *ptrSpace, const int *space_shape, const int *space_strides, const int *block_shape, const int *pad_start, const int *block_offsets, float *ptrBatch, const int *batch_shape, const int *batch_strides);
+    template void _execute<float, 1, true>(float *ptrSpace, const int *space_shape, const int *space_strides, const int *block_shape, const int *pad_start, const int *block_offsets, float *ptrBatch, const int *batch_shape, const int *batch_strides);
+
+    template void _execute<float16, 4, true>(float16 *ptrSpace, const int *space_shape, const int *space_strides, const int *block_shape, const int *pad_start, const int *block_offsets, float16 *ptrBatch, const int *batch_shape, const int *batch_strides);
+    template void _execute<float16, 3, true>(float16 *ptrSpace, const int *space_shape, const int *space_strides, const int *block_shape, const int *pad_start, const int *block_offsets, float16 *ptrBatch, const int *batch_shape, const int *batch_strides);
+    template void _execute<float16, 2, true>(float16 *ptrSpace, const int *space_shape, const int *space_strides, const int *block_shape, const int *pad_start, const int *block_offsets, float16 *ptrBatch, const int *batch_shape, const int *batch_strides);
+    template void _execute<float16, 1, true>(float16 *ptrSpace, const int *space_shape, const int *space_strides, const int *block_shape, const int *pad_start, const int *block_offsets, float16 *ptrBatch, const int *batch_shape, const int *batch_strides);
+
+    template void _execute<double, 4, true>(double *ptrSpace, const int *space_shape, const int *space_strides, const int *block_shape, const int *pad_start, const int *block_offsets, double *ptrBatch, const int *batch_shape, const int *batch_strides);
+    template void _execute<double, 3, true>(double *ptrSpace, const int *space_shape, const int *space_strides, const int *block_shape, const int *pad_start, const int *block_offsets, double *ptrBatch, const int *batch_shape, const int *batch_strides);
+    template void _execute<double, 2, true>(double *ptrSpace, const int *space_shape, const int *space_strides, const int *block_shape, const int *pad_start, const int *block_offsets, double *ptrBatch, const int *batch_shape, const int *batch_strides);
+    template void _execute<double, 1, true>(double *ptrSpace, const int *space_shape, const int *space_strides, const int *block_shape, const int *pad_start, const int *block_offsets, double *ptrBatch, const int *batch_shape, const int *batch_strides);
 }
 }
 }

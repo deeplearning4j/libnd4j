@@ -50,6 +50,8 @@ namespace ops {
         } else
             gradX->assign(epsNext);
 
+        STORE_RESULT(gradX);
+
         return Status::OK();
     }
 

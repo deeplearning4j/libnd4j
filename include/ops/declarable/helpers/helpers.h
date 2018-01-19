@@ -13,6 +13,7 @@
 #include <NDArray.h>
 #include <vector>
 #include <array>
+#include <Status.h>
 
 #ifdef __CUDACC__
 #include <cuda.h>

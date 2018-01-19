@@ -17,7 +17,7 @@ namespace helpers {
 
 
     template <typename T, int NUM_BLOCK_DIMS, bool B2S>
-    FORCEINLINE void _prepare(NDArray<T> * space, NDArray<T> *batch, int block_array[NUM_BLOCK_DIMS], int padding_array[NUM_BLOCK_DIMS]) {
+    FORCEINLINE void _prepare(NDArray<T> * space, NDArray<T> *batch, int block_array[NUM_BLOCK_DIMS], int padding_array[NUM_BLOCK_DIMS * 2]) {
 
         int pad_start[NUM_BLOCK_DIMS];
         int block_shape[NUM_BLOCK_DIMS];
@@ -40,6 +40,12 @@ namespace helpers {
         space_strides[NUM_BLOCK_DIMS + 1] = 1;
         batch_strides[NUM_BLOCK_DIMS + 1] = 1;
 
+#pragma unroll
+        for (int dim = NUM_BLOCK_DIMS; dim >= 0; --dim) {
+            space_strides[dim] = space_strides[dim + 1] * space->sizeAt(dim + 1);
+            batch_strides[dim] = batch_strides[dim + 1] * batch->sizeAt(dim + 1);
+        }
+
 
         // TODO: this loop should be moved to _execute phase
         for (int batch_b = 0; batch_b < batch_size; batch_b++) {
@@ -51,16 +57,37 @@ namespace helpers {
                 block_index /= block_shape[block_dim];
             }
 
-
-            // exec
-            _execute(space->buffer() + space_b * space_strides[0], space_shape, &space_strides[1], block_shape, pad_start, block_offsets, batch_shape, &batch_strides[1], batch->buffer() + batch_b * batch_strides[0]);
+            _execute<T, NUM_BLOCK_DIMS, B2S>(space->buffer() + space_b * space_strides[0], space_shape, &space_strides[1], block_shape, pad_start, block_offsets, batch->buffer() + batch_b * batch_strides[0], batch_shape, &batch_strides[1]);
         }
     };
 
 
     template <typename T>
-    FORCEINLINE void _spaceToBatch(int internal_block_dims, NDArray<T> *input, NDArray<T> *output, std::vector<int> &internal_input_shape, std::vector<int> &internal_output_shape, std::vector<int> &block_shape, std::vector<int> &paddings) {
+    FORCEINLINE Nd4jStatus _spaceToBatch(int internal_block_dims, NDArray<T> *input, NDArray<T> *output, std::vector<int> &internal_input_shape, std::vector<int> &internal_output_shape, std::vector<int> &block_shape, std::vector<int> &paddings) {
+        auto in = input->reshape('c', internal_input_shape);
+        auto out = output->reshape('c', internal_output_shape);
+        switch (internal_block_dims) {
+            case 1:
+                _prepare<T, 1, false>(in, out, block_shape.data(), paddings.data());
+                break;
+            case 2:
+                _prepare<T, 2, false>(in, out, block_shape.data(), paddings.data());
+                break;
+            case 3:
+                _prepare<T, 3, false>(in, out, block_shape.data(), paddings.data());
+                break;
+            case 4:
+                _prepare<T, 4, false>(in, out, block_shape.data(), paddings.data());
+                break;
+            default: {
+                return Status::THROW("Wrong number of internal_block_dims");
+            }
+        }
 
+        delete in;
+        delete out;
+
+        return Status::OK();
     }
 }
 }
