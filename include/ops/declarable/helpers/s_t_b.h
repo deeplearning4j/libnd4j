@@ -80,7 +80,36 @@ namespace helpers {
                 _prepare<T, 4, false>(in, out, block_shape.data(), paddings.data());
                 break;
             default: {
-                return Status::THROW("Wrong number of internal_block_dims");
+                return Status::THROW("SpaceToBatch: Wrong number of internal_block_dims");
+            }
+        }
+
+        delete in;
+        delete out;
+
+        return Status::OK();
+    }
+
+
+    template <typename T>
+    FORCEINLINE Nd4jStatus _batchToSpace(int internal_block_dims, NDArray<T> *input, NDArray<T> *output, std::vector<int> &internal_input_shape, std::vector<int> &internal_output_shape, std::vector<int> &block_shape, std::vector<int> &paddings) {
+        auto in = input->reshape('c', internal_input_shape);
+        auto out = output->reshape('c', internal_output_shape);
+        switch (internal_block_dims) {
+            case 1:
+                _prepare<T, 1, true>(in, out, block_shape.data(), paddings.data());
+                break;
+            case 2:
+                _prepare<T, 2, true>(in, out, block_shape.data(), paddings.data());
+                break;
+            case 3:
+                _prepare<T, 3, true>(in, out, block_shape.data(), paddings.data());
+                break;
+            case 4:
+                _prepare<T, 4, true>(in, out, block_shape.data(), paddings.data());
+                break;
+            default: {
+                return Status::THROW("BatchToSpace: Wrong number of internal_block_dims");
             }
         }
 
