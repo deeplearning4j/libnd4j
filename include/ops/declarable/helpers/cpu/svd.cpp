@@ -845,8 +845,13 @@ void SVD<T>::DivideAndConquer(int col1, int col2, int row1W, int col1W, int shif
 template<typename T>
 void SVD<T>::exchangeUV(const HHsequence<T>& hhU, const HHsequence<T>& hhV, const NDArray<T>& U, const NDArray<T>& V) {
     
+    NDArray<T> oldU;
+
     if (_calcU) {
-        int colsU = _fullUV ? hhU.rows() : _diagSize;
+        
+        if(_calcV)
+            oldU = _U;
+        int colsU = _fullUV ? hhU.rows() : _diagSize;        
         NDArray<T> temp1(hhU.rows(), colsU, _U.ordering(), _U.getWorkspace());
         temp1.setIdentity();
         _U = temp1;
@@ -856,14 +861,18 @@ void SVD<T>::exchangeUV(const HHsequence<T>& hhU, const HHsequence<T>& hhV, cons
         delete temp2;
         hhU.mulLeft(_U);
     }
+    
     if (_calcV) {
-        int colsV = _fullUV ? hhV.rows() : _diagSize;
+        int colsV = _fullUV ? hhV.rows() : _diagSize;        
         NDArray<T> temp1(hhV.rows(), colsV, _V.ordering(), _V.getWorkspace());
         temp1.setIdentity();
         _V = temp1;
 
         NDArray<T>* temp2 = _V.subarray({{0, _diagSize},{0, _diagSize}});
-        temp2->assign(U({{0,_diagSize},{0,_diagSize}}));
+        if(_calcU)
+            temp2->assign(oldU({{0,_diagSize},{0,_diagSize}}));
+        else
+            temp2->assign(U({{0,_diagSize},{0,_diagSize}}));
         delete temp2;
         hhV.mulLeft(_V);        
     }
@@ -903,8 +912,8 @@ void SVD<T>::evalData(const NDArray<T>& matrix) {
     else
         copy = matrix / scale;
   
-    BiDiagonalUp<T> biDiag(copy);
-    
+    BiDiagonalUp<T> biDiag(copy);    
+
     _U = 0.;
     _V = 0.;
   

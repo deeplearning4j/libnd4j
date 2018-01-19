@@ -60,11 +60,11 @@ void BiDiagonalUp<T>::evalData() {
 		// evaluate Householder matrix nullifying rows 
 		row  = _HHmatrix.subarray({{i, i+1}, {i+1, cols}});
 		tail = _HHmatrix.subarray({{i, i+1}, {i+2, cols}});
-		Householder<T>::evalHHmatrixData(*row, *tail, _HHmatrix(i,i+1), _HHbidiag(i,i+1));
+		Householder<T>::evalHHmatrixData(*row, *tail, _HHmatrix(i,i+1), _HHbidiag(i,i+1));				
 		// multiply corresponding matrix block on householder matrix from the right: bottomRightCorner * P
-		bottomRightCorner = _HHmatrix.subarray({{i+1, rows}, {i+1, cols}});  // {i, rows}
-		Householder<T>::mulRight(*bottomRightCorner, *tail, _HHmatrix(i,i+1));
-						
+		bottomRightCorner = _HHmatrix.subarray({{i+1, rows}, {i+1, cols}});  // {i, rows}		
+		Householder<T>::mulRight(*bottomRightCorner, *tail, _HHmatrix(i,i+1));		
+	
 		delete bottomRightCorner;
 		delete row;
 		delete tail;
@@ -93,10 +93,10 @@ HHsequence<T> BiDiagonalUp<T>::makeHHsequence(const char type) const {
 
     	const int diagSize = _HHbidiag.sizeAt(0);
     	NDArray<T> colOfCoeffs(diagSize, 1, _HHmatrix.ordering(),  _HHmatrix.getWorkspace());
-	
+
 	    for(int i = 0; i < diagSize; ++i)
 	        colOfCoeffs(i) = _HHmatrix(i,i);
-	    	
+
     	return HHsequence<T>(_HHmatrix, colOfCoeffs, type);
     }
     else {
@@ -106,7 +106,7 @@ HHsequence<T> BiDiagonalUp<T>::makeHHsequence(const char type) const {
 
     	for(int i = 0; i < diagUpSize; ++i)
         	colOfCoeffs(i) = _HHmatrix(i,i+1);
-            
+
     	HHsequence<T> result(_HHmatrix, colOfCoeffs, type);
     	result._diagSize = diagUpSize;
     	result._shift  = 1;

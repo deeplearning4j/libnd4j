@@ -90,16 +90,24 @@ void Householder<T>::evalHHmatrixData(const NDArray<T>& x, NDArray<T>& tail, T& 
 template <typename T>
 void Householder<T>::evalHHmatrixDataI(const NDArray<T>& x, T& coeff, T& normX) {
 
-	NDArray<T> tail((int)x.lengthOf()-1, 1, x.ordering(), x.getWorkspace());
-	evalHHmatrixData(x, tail, coeff, normX);
+	int rows = (int)x.lengthOf()-1;
+	int num = 1;
 	
+	if(rows == 0) {
+		rows = 1;
+		num = 0;
+	}	
+	
+	NDArray<T> tail(rows, 1, x.ordering(), x.getWorkspace());
+	evalHHmatrixData(x, tail, coeff, normX);
+
 	if(x.isRowVector()) {
-		NDArray<T>* temp = x.subarray({{}, {1, x.sizeAt(1)}});
+		NDArray<T>* temp = x.subarray({{}, {num, x.sizeAt(1)}});
 		temp->assign(tail);
 		delete temp;
 	}
 	else {		
-		NDArray<T>* temp = x.subarray({{1, x.sizeAt(0)}, {}});
+		NDArray<T>* temp = x.subarray({{num, x.sizeAt(0)}, {}});
 		temp->assign(tail);
 		delete temp;
 	}
@@ -174,7 +182,7 @@ void Householder<T>::mulRight(NDArray<T>& matrix, const NDArray<T>& tail, const 
 			pCol = tail.transpose();
 		}	
     	    	
-    	NDArray<T>* rightPart =  matrix.subarray({{}, {1, matrix.sizeAt(1)}});
+		NDArray<T>* rightPart =  matrix.subarray({{}, {1, matrix.sizeAt(1)}});
     	NDArray<T> temp = *rightPart;
     	NDArray<T> vectorCol  = mmul(temp, *pCol);      	      	
     	NDArray<T>* temp2 = matrix.subarray({{},{0,1}});
