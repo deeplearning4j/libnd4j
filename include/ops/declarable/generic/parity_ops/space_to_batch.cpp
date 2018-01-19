@@ -62,7 +62,7 @@ namespace ops {
             return Status::OK();
         }
 
-        return Status::THROW("Not implemented yet");
+        return Status::OK();
     }
 
     DECLARE_SHAPE_FN(space_to_batch) {
@@ -71,8 +71,34 @@ namespace ops {
         auto padding = INPUT_VARIABLE(2);
 
 
-        // TODO: shape preparation goes here
-        if (false) {
+        const int xRank = shape::rank(in);
+        const int block_dims = (int) blocks->lengthOf();
+        std::vector<int> block_shape;
+
+        for (int e = 0; e < block_dims; e++)
+            block_shape.emplace_back((int) blocks->getScalar(e));
+
+        int removed_prefix_block_dims = 0;
+        for (; removed_prefix_block_dims < block_dims; ++removed_prefix_block_dims) {
+            const int dim = removed_prefix_block_dims;
+            if ((int) padding->getScalar(2 * dim) != 0 || (int) padding->getScalar(2 * dim + 1) != 0 || block_shape[dim] != 1)
+                break;
+        }
+
+        int removed_suffix_block_dims = 0;
+        for (; removed_suffix_block_dims < block_dims - removed_prefix_block_dims; ++removed_suffix_block_dims) {
+            const int dim = block_dims - 1 - removed_suffix_block_dims;
+            if ((int) padding->getScalar(dim * 2) != 0 || (int) padding->getScalar(dim * 2 + 1) != 0 || block_shape[dim] != 1)
+                break;
+        }
+
+        int block_shape_product = 1;
+        for (int block_dim = 0; block_dim < block_dims; ++block_dim)
+            block_shape_product *= block_shape[block_dim];
+
+        const int internal_block_dims = block_dims - removed_prefix_block_dims - removed_suffix_block_dims;
+
+        if (internal_block_dims == 0) {
             // just return input shape here
             int *newShape;
             ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(in), int);
@@ -81,8 +107,55 @@ namespace ops {
         }
 
         // go full route otherwise
+        std::vector<int> internal_input_shape;
+        std::vector<int> internal_output_shape;
+        std::vector<int> external_output_shape;
+
+        external_output_shape.emplace_back(shape::sizeAt(in, 0) * block_shape_product);
+        int input_batch_size = shape::sizeAt(in, 0);
+        for (int block_dim = 0; block_dim < removed_prefix_block_dims; block_dim++) {
+            const int size = shape::sizeAt(in, block_dim + 1);
+            input_batch_size *= size;
+            external_output_shape.emplace_back(size);
+        }
+        internal_input_shape.emplace_back(input_batch_size);
+        internal_output_shape.emplace_back(input_batch_size * block_shape_product);
+
+        for (int block_dim = removed_prefix_block_dims; block_dim < block_dims - removed_suffix_block_dims; block_dim++) {
+            const int pad_start = (int) padding->getScalar(2 * block_dim);
+            const int pad_end = (int) padding->getScalar(2 * block_dim + 1);
+
+            const int input_size = shape::sizeAt(in, block_dim + 1);
+            const int block_shape_value = block_shape[block_dim];
+            const int padded_size = input_size + pad_start + pad_end;
+            const int output_size = padded_size / block_shape_value;
+
+            // FIXME: validation required here
+
+            internal_input_shape.emplace_back(input_size);
+            internal_output_shape.emplace_back(output_size);
+            external_output_shape.emplace_back(output_size);
+        }
+
+        int depth = 1;
+        for (int dim = block_dims - removed_suffix_block_dims + 1; dim < xRank; dim++) {
+            const int size = shape::sizeAt(in, dim);
+            external_output_shape.emplace_back(size);
+            depth *= size;
+        }
+
+        internal_input_shape.emplace_back(depth);
+        internal_output_shape.emplace_back(depth);
+
+        int *newShape;
+        ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(external_output_shape.size()), int);
+
+
+        // we always give out C order here
+        shape::shapeBuffer(external_output_shape.size(), external_output_shape.data(), newShape);
+
         
-        return new ShapeList();
+        return new ShapeList(newShape);
     }
 }
 }
