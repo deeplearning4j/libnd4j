@@ -10,6 +10,9 @@
 #include <graph/LaunchContext.h>
 #include <types/float16.h>
 #include <helpers/shape.h>
+#include <NDArray.h>
+#include <vector>
+#include <array>
 
 #ifdef __CUDACC__
 #include <cuda.h>
