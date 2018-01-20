@@ -27,7 +27,7 @@ CUSTOM_OP_IMPL(gather, 1, 1, false, 0, 1) {
 	// input validation
     REQUIRE_TRUE(axis < inputRank, 0, "GATHER custom operation: input axis is out of input array inputRank !");
 
-	if (block.width() == 1) {
+	if (block.width() > 1) {
 		NDArray<T>* indices = INPUT_VARIABLE(1);
 
 		for(int i = 0; i < indices->lengthOf(); ++i)
