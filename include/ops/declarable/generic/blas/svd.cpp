@@ -1,8 +1,8 @@
 //
-//  // Created by Yurii Shyrma on 20.01.2018
+//  Created by Yurii Shyrma on 20.01.2018
 //
-
-#include <ops/declarable/svd.h>
+#include <ops/declarable/CustomOperations.h>
+#include <ops/declarable/helpers/svd.h>
 
 namespace nd4j {
 namespace ops {
@@ -12,10 +12,13 @@ CUSTOM_OP_IMPL(svd, 1, 1, false, 0, 3) {
     NDArray<T>* x = INPUT_VARIABLE(0);
     NDArray<T>* s = OUTPUT_VARIABLE(0);
     
+    const int rank =  x->rankOf();
+    REQUIRE_TRUE(rank >= 2 , 0, "CUSTOM_OP svd: the rank of input array must be >=2 !");
+
     const bool fullUV = (bool)INT_ARG(0);
     const bool calcUV = (bool)INT_ARG(1);
     const int switchNum =  INT_ARG(2);    
-    const int rank =  x->rankOf();
+    
 
     ResultSet<T>* listX = NDArrayFactory<T>::allTensorsAlongDimension(x, {rank-2, rank-1});
     ResultSet<T>* listS = NDArrayFactory<T>::allTensorsAlongDimension(s, {rank-1});
@@ -28,15 +31,14 @@ CUSTOM_OP_IMPL(svd, 1, 1, false, 0, 3) {
         listV = NDArrayFactory<T>::allTensorsAlongDimension(v, {rank-2, rank-1});
     }
 
-
-    for(int i=0; i<listX->size(); ++i) {
+    for(int i = 0; i < listX->size(); ++i) {
         
-        helpers::SVD<T> svd(*(listX->at(i)), switchNum, calcUV, calcUV, fullUV);    
-        listS->at(i)->assign(svd._S);
+        helpers::SVD<T> svdObj(*(listX->at(i)), switchNum, calcUV, calcUV, fullUV);    
+        listS->at(i)->assign(svdObj._S);
 
         if(calcUV) {
-            listU->at(i)->assign(svd._U);
-            listV->at(i)->assign(svd._V);
+            listU->at(i)->assign(svdObj._U);
+            listV->at(i)->assign(svdObj._V);
         }        
     }
 
@@ -60,12 +62,23 @@ DECLARE_SHAPE_FN(svd) {
     
     const int rank = inShapeInfo[0];
     const int diagSize = inShapeInfo[rank] < inShapeInfo[rank-1] ? inShapeInfo[rank] : inShapeInfo[rank-1];
+        
     
-    ALLOCATE(sShapeInfo, block.getWorkspace(), shape::shapeInfoLength(rank-1), int); 
-    sShapeInfo[0] = rank - 1;
-    for(int i=1; i <= rank-2; ++i)
-        sShapeInfo[i] = inShapeInfo[i];
-    sShapeInfo[rank-1] = diagSize;
+    int* sShapeInfo(nullptr);
+    if(rank == 2) {
+        ALLOCATE(sShapeInfo, block.getWorkspace(), shape::shapeInfoLength(rank), int); 
+        sShapeInfo[0] = 2;
+        sShapeInfo[1] = 1;
+        sShapeInfo[2] = diagSize;
+    }
+    else {
+        ALLOCATE(sShapeInfo, block.getWorkspace(), shape::shapeInfoLength(rank-1), int); 
+        sShapeInfo[0] = rank - 1;
+        for(int i=1; i <= rank-2; ++i)
+            sShapeInfo[i] = inShapeInfo[i];
+        sShapeInfo[rank-1] = diagSize;
+    }
+    
     shape::updateStrides(sShapeInfo, shape::order(inShapeInfo));
     
     if(calcUV){
@@ -87,8 +100,7 @@ DECLARE_SHAPE_FN(svd) {
         shape::updateStrides(vShapeInfo, shape::order(inShapeInfo));
     
         return new ShapeList({sShapeInfo, uShapeInfo, vShapeInfo});        
-    }     
-    
+    }         
     return new ShapeList(sShapeInfo);
 }
 

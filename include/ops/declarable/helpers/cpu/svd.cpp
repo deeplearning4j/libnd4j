@@ -886,9 +886,9 @@ void SVD<T>::evalData(const NDArray<T>& matrix) {
         JacobiSVD<T> jac(matrix, _calcU, _calcV, _fullUV);
 
         if(_calcU) 
-            _U.assign(jac._U);
+            _U = jac._U;
         if(_calcV) 
-            _V.assign(jac._V);
+            _V = jac._V;
 
         _S.assign(jac._S);
 
