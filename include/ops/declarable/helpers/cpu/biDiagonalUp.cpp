@@ -37,51 +37,42 @@ void BiDiagonalUp<T>::evalData() {
 	if(rows < cols)
 		throw "ops::helpers::BiDiagonalizeUp::evalData method: this procedure is applicable only for input matrix with rows >= cols !";
 		
-	NDArray<T>* bottomRightCorner(nullptr), *column(nullptr), *row(nullptr), *tail(nullptr);	
+	NDArray<T>* bottomRightCorner(nullptr), *column(nullptr), *row(nullptr);	
 	T coeff, normX;	
 	
 	for(int i = 0; i < cols-1; ++i ) {
 
 		// evaluate Householder matrix nullifying columns 		
 		column = _HHmatrix.subarray({{i,   rows}, {i, i+1}});						
-		tail   = _HHmatrix.subarray({{i+1, rows}, {i, i+1}});
-		Householder<T>::evalHHmatrixData(*column, *tail, _HHmatrix(i,i), _HHbidiag(i,i)); 
+		Householder<T>::evalHHmatrixDataI(*column, _HHmatrix(i,i), _HHbidiag(i,i)); 
 		// multiply corresponding matrix block on householder matrix from the left: P * bottomRightCorner		
 		bottomRightCorner =  _HHmatrix.subarray({{i, rows}, {i+1, cols}});	// {i, cols}				
-		Householder<T>::mulLeft(*bottomRightCorner, *tail, _HHmatrix(i,i));
+		Householder<T>::mulLeft(*bottomRightCorner, _HHmatrix({{i+1, rows}, {i, i+1}}), _HHmatrix(i,i));		
 
 		delete bottomRightCorner;
 		delete column;
-		delete tail;
 		
 		if(i == cols-2)			
 			continue; 										// do not apply right multiplying at last iteration		
 
 		// evaluate Householder matrix nullifying rows 
 		row  = _HHmatrix.subarray({{i, i+1}, {i+1, cols}});
-		tail = _HHmatrix.subarray({{i, i+1}, {i+2, cols}});
-		Householder<T>::evalHHmatrixData(*row, *tail, _HHmatrix(i,i+1), _HHbidiag(i,i+1));				
+		Householder<T>::evalHHmatrixDataI(*row, _HHmatrix(i,i+1), _HHbidiag(i,i+1));				
 		// multiply corresponding matrix block on householder matrix from the right: bottomRightCorner * P
 		bottomRightCorner = _HHmatrix.subarray({{i+1, rows}, {i+1, cols}});  // {i, rows}		
-		Householder<T>::mulRight(*bottomRightCorner, *tail, _HHmatrix(i,i+1));		
+		Householder<T>::mulRight(*bottomRightCorner, _HHmatrix({{i, i+1}, {i+2, cols}}), _HHmatrix(i,i+1));
 	
 		delete bottomRightCorner;
 		delete row;
-		delete tail;
 	}	
 
 	row  = _HHmatrix.subarray({{cols-2, cols-1}, {cols-1, cols}});	
-	Householder<T>::evalHHmatrixData(*row, *row, _HHmatrix(cols-2,cols-1), _HHbidiag(cols-2,cols-1)); 
+	Householder<T>::evalHHmatrixDataI(*row, _HHmatrix(cols-2,cols-1), _HHbidiag(cols-2,cols-1)); 
 	delete row;	
 
 	column = _HHmatrix.subarray({{cols-1, rows}, {cols-1, cols}});
-	if(rows == cols)
-		tail = _HHmatrix.subarray({{cols-1, rows}, {cols-1, cols}});	
-	else
-		tail = _HHmatrix.subarray({{cols, rows}, {cols-1, cols}});
-	Householder<T>::evalHHmatrixData(*column, *tail, _HHmatrix(cols-1,cols-1), _HHbidiag(cols-1,cols-1)); 
+	Householder<T>::evalHHmatrixDataI(*column, _HHmatrix(cols-1,cols-1), _HHbidiag(cols-1,cols-1)); 
 	delete column;
-	delete tail;
 }
 
 

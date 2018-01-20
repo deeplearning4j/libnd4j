@@ -117,42 +117,44 @@ void Householder<T>::evalHHmatrixDataI(const NDArray<T>& x, T& coeff, T& normX) 
 template <typename T>
 void Householder<T>::mulLeft(NDArray<T>& matrix, const NDArray<T>& tail, const T coeff) {
 	
-	if(matrix.rankOf() != 2)
-		throw "ops::helpers::Householder::mulLeft method: input array must be 2D matrix !";	
+	// if(matrix.rankOf() != 2)
+	// 	throw "ops::helpers::Householder::mulLeft method: input array must be 2D matrix !";	
 
 	if(matrix.sizeAt(0) == 1)   
     	matrix *= (T)1. - coeff;
   	
-  	else {
+  	else if(coeff != (T)0.) {
 
-  		NDArray<T> *pCol(nullptr), *pRow(nullptr);
+  		NDArray<T>* bottomPart =  matrix.subarray({{1, matrix.sizeAt(0)}, {}});
+		NDArray<T> bottomPartCopy = *bottomPart; 
 
 		if(tail.isColumnVector()) {
 
-			pCol = const_cast<NDArray<T>*>(&tail);
-			pRow = tail.transpose();
+			NDArray<T> column = tail;
+			NDArray<T>* row = tail.transpose();						
+    		NDArray<T> resultingRow = mmul(*row, bottomPartCopy);
+    		NDArray<T>* fistRow = matrix.subarray({{0,1}, {}});
+    		resultingRow += *fistRow;        	
+    		*fistRow -= resultingRow * coeff;	
+    		*bottomPart -= mmul(column, resultingRow) * coeff;    		
+
+			delete row;
+			delete fistRow;
 		}
 		else {
+			
+			NDArray<T> row = tail;
+			NDArray<T>* column = tail.transpose();
+    		NDArray<T> resultingRow = mmul(row, bottomPartCopy);
+    		NDArray<T>* fistRow = matrix.subarray({{0,1}, {}});
+    		resultingRow += *fistRow;        	
+    		*fistRow -= resultingRow * coeff;
+    		*bottomPart -= mmul(*column, resultingRow) * coeff;    	
 
-			pRow = const_cast<NDArray<T>*>(&tail);
-			pCol = tail.transpose();
-		}
-    	    	
-    	NDArray<T>* bottomPart =  matrix.subarray({{1, matrix.sizeAt(0)}, {}});
-    	NDArray<T> temp = *bottomPart;
-    	NDArray<T> vectorRow = mmul(*pRow, temp);
-    	NDArray<T>* temp2 = matrix.subarray({{0,1}, {}});
-    	vectorRow += *temp2;        	
-    	*temp2 -= vectorRow * coeff;
-    	*bottomPart -= mmul(*pCol, vectorRow) * coeff;    	
-
-    	if(tail.isColumnVector())
-    		delete pRow;
-    	else
-    		delete pCol;
-
-    	delete bottomPart;
-    	delete temp2;
+			delete column;
+			delete fistRow;
+		}	    	    	
+		delete bottomPart;
 	}
 }
 
@@ -161,42 +163,43 @@ void Householder<T>::mulLeft(NDArray<T>& matrix, const NDArray<T>& tail, const T
 template <typename T>
 void Householder<T>::mulRight(NDArray<T>& matrix, const NDArray<T>& tail, const T coeff) {
 
-	if(matrix.rankOf() != 2)
-		throw "ops::helpers::Householder::mulRight method: input array must be 2D matrix !";
+	// if(matrix.rankOf() != 2)
+	// 	throw "ops::helpers::Householder::mulRight method: input array must be 2D matrix !";
 	
 	if(matrix.sizeAt(1) == 1)   
     	matrix *= (T)1. - coeff;
   	
-  	else {
+  	else if(coeff != (T)0.) {
 
-  		NDArray<T> *pCol(nullptr), *pRow(nullptr);
+  		NDArray<T>* rightPart =  matrix.subarray({{}, {1, matrix.sizeAt(1)}});
+		NDArray<T> rightPartCopy = *rightPart; 
+		NDArray<T>* fistCol = matrix.subarray({{},{0,1}});
 
-		if(tail.isColumnVector()) {
+  		if(tail.isColumnVector()) {
 
-			pCol = const_cast<NDArray<T>*>(&tail);
-			pRow = tail.transpose();
+			NDArray<T> column = tail;
+			NDArray<T>* row = tail.transpose();						
+    		NDArray<T> resultingCol = mmul(rightPartCopy, column);    		
+    		resultingCol += *fistCol;        	
+    		*fistCol -= resultingCol * coeff;	
+    		*rightPart -= mmul(resultingCol, *row) * coeff;    		
+
+			delete row;			
 		}
 		else {
+			
+			NDArray<T> row = tail;
+			NDArray<T>* column = tail.transpose();
+    		NDArray<T> resultingCol = mmul(rightPartCopy, *column);    		
+    		resultingCol += *fistCol;        	
+    		*fistCol -= resultingCol * coeff;
+    		*rightPart -= mmul(resultingCol, row) * coeff;
 
-			pRow = const_cast<NDArray<T>*>(&tail);
-			pCol = tail.transpose();
-		}	
-    	    	
-		NDArray<T>* rightPart =  matrix.subarray({{}, {1, matrix.sizeAt(1)}});
-    	NDArray<T> temp = *rightPart;
-    	NDArray<T> vectorCol  = mmul(temp, *pCol);      	      	
-    	NDArray<T>* temp2 = matrix.subarray({{},{0,1}});
-    	vectorCol += *temp2;
-    	*temp2 -= vectorCol * coeff;    	
-    	*rightPart -= mmul(vectorCol, *pRow) * coeff;    	
-    
-   		if(tail.isColumnVector())
-    		delete pRow;
-    	else
-    		delete pCol;
-    	
-    	delete rightPart;    	
-    	delete temp2;
+			delete column;
+			
+		}	    	    	
+  		delete rightPart;
+  		delete fistCol;
 	}
 }
 

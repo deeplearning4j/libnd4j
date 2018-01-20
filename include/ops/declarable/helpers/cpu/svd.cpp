@@ -817,20 +817,23 @@ void SVD<T>::DivideAndConquer(int col1, int col2, int row1W, int col1W, int shif
     calcBlockSVD(col1 + shift, n, UofSVD, singVals, VofSVD);
     
     if(_calcU) {
-        NDArray<T>* temp = _U.subarray({{col1, col1+n+1},{col1, col1+n+1}});
-        temp->assign(mmul(*temp, UofSVD));
-        delete temp;
+        NDArray<T>* pTemp = _U.subarray({{col1, col1+n+1},{col1, col1+n+1}});
+        NDArray<T> temp = *pTemp;
+        pTemp->assign(mmul(temp, UofSVD));
+        delete pTemp;
     }
     else {
-        NDArray<T>* temp = _U.subarray({{}, {col1, col1+n+1}});
-        temp->assign(mmul(*temp, UofSVD));
-        delete temp;
+        NDArray<T>* pTemp = _U.subarray({{}, {col1, col1+n+1}});
+        NDArray<T> temp = *pTemp;
+        pTemp->assign(mmul(temp, UofSVD));
+        delete pTemp;
     }
   
     if (_calcV) {
-        NDArray<T>* temp = _V.subarray({{row1W, row1W+n},{row1W, row1W+n}});
-        temp->assign(mmul(*temp, VofSVD));
-        delete temp;
+        NDArray<T>* pTemp = _V.subarray({{row1W, row1W+n},{row1W, row1W+n}});
+        NDArray<T> temp = *pTemp;
+        pTemp->assign(mmul(temp, VofSVD));
+        delete pTemp;
     }
 
     NDArray<T>* blockM = _M.subarray({{col1+shift, col1+shift+n},{col1+shift, col1+shift+n}});
@@ -843,38 +846,32 @@ void SVD<T>::DivideAndConquer(int col1, int col2, int row1W, int col1W, int shif
 
 //////////////////////////////////////////////////////////////////////////
 template<typename T>
-void SVD<T>::exchangeUV(const HHsequence<T>& hhU, const HHsequence<T>& hhV, const NDArray<T>& U, const NDArray<T>& V) {
+void SVD<T>::exchangeUV(const HHsequence<T>& hhU, const HHsequence<T>& hhV, const NDArray<T> U, const NDArray<T> V) {
     
-    NDArray<T> oldU;
-
     if (_calcU) {
         
-        if(_calcV)
-            oldU = _U;
         int colsU = _fullUV ? hhU.rows() : _diagSize;        
         NDArray<T> temp1(hhU.rows(), colsU, _U.ordering(), _U.getWorkspace());
         temp1.setIdentity();
-        _U = temp1;
-        
-        NDArray<T>* temp2 = _U.subarray({{0, _diagSize},{0, _diagSize}});
-        temp2->assign(V({{0,_diagSize},{0,_diagSize}}));
-        delete temp2;
+        _U = temp1;        
+
+        NDArray<T>* temp2 = _U.subarray({{0, _diagSize},{0, _diagSize}});        
+        temp2->assign(V({{0,_diagSize},{0,_diagSize}}));                
         hhU.mulLeft(_U);
+        delete temp2;
     }
     
     if (_calcV) {
+        
         int colsV = _fullUV ? hhV.rows() : _diagSize;        
         NDArray<T> temp1(hhV.rows(), colsV, _V.ordering(), _V.getWorkspace());
         temp1.setIdentity();
         _V = temp1;
 
-        NDArray<T>* temp2 = _V.subarray({{0, _diagSize},{0, _diagSize}});
-        if(_calcU)
-            temp2->assign(oldU({{0,_diagSize},{0,_diagSize}}));
-        else
-            temp2->assign(U({{0,_diagSize},{0,_diagSize}}));
-        delete temp2;
+        NDArray<T>* temp2 = _V.subarray({{0, _diagSize},{0, _diagSize}});        
+        temp2->assign(U({{0,_diagSize},{0,_diagSize}}));        
         hhV.mulLeft(_V);        
+        delete temp2;        
     }
 }
 
@@ -904,15 +901,16 @@ void SVD<T>::evalData(const NDArray<T>& matrix) {
         scale = 1.;
     
     NDArray<T> copy;
-    if(_transp) {
-        NDArray<T>* temp =  matrix.transpose();
-        copy = *temp / scale;
-        delete temp;
+    if(_transp) {        
+        copy = NDArray<T>(matrix.sizeAt(1), matrix.sizeAt(0), matrix.ordering(), matrix.getWorkspace());
+        for(int i = 0; i < copy.sizeAt(0); ++i)
+            for(int j = 0; j < copy.sizeAt(1); ++j)
+                copy(i,j) = matrix(j,i) / scale;
     }
     else
         copy = matrix / scale;
   
-    BiDiagonalUp<T> biDiag(copy);    
+    BiDiagonalUp<T> biDiag(copy);        
 
     _U = 0.;
     _V = 0.;
@@ -927,7 +925,7 @@ void SVD<T>::evalData(const NDArray<T>& matrix) {
     temp3->assign(0.);
     delete temp3;
 
-    DivideAndConquer(0, _diagSize - 1, 0, 0, 0);  
+    DivideAndConquer(0, _diagSize - 1, 0, 0, 0);      
     
     for (int i = 0; i < _diagSize; ++i) {
         T a = math::nd4j_abs<T>(_M(i, i));

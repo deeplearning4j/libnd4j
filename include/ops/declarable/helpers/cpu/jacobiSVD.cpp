@@ -61,9 +61,10 @@ void JacobiSVD<T>::mulRotationOnLeft(const int i, const int j, NDArray<T>& block
             throw "ops::helpers::JacobiSVD mulRotationOnLeft: second arguments is out of array row range !";
         
         IndicesList indices({NDIndex::interval(i, j+1, j-i), NDIndex::all()});
-        NDArray<T>* temp = block.subarray(indices);
-        temp->assign(mmul(rotation, *temp));
-        delete temp;
+        NDArray<T>* pTemp = block.subarray(indices);
+        NDArray<T> temp = *pTemp;
+        pTemp->assign(mmul(rotation, temp));
+        delete pTemp;
     }
     else {
 
@@ -98,9 +99,10 @@ void JacobiSVD<T>::mulRotationOnRight(const int i, const int j, NDArray<T>& bloc
             throw "ops::helpers::JacobiSVD mulRotationOnRight: second argument is out of array column range !";
         
         IndicesList indices({NDIndex::all(), NDIndex::interval(i, j+1, j-i)});
-        NDArray<T>* temp = block.subarray(indices);
-        temp->assign(mmul(*temp, rotation));
-        delete temp;
+        NDArray<T>* pTemp = block.subarray(indices);
+        NDArray<T> temp = *pTemp;
+        pTemp->assign(mmul(temp, rotation));
+        delete pTemp;
     }
     else {
 

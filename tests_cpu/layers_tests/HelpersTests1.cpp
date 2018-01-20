@@ -1129,7 +1129,7 @@ TEST_F(HelpersTests1, SVD_test19) {
                                           -7,  1, -2,  15, 0,  4,  -9,19,  -3, 10 });
 
     NDArray<double> expS('c', {10, 1}, {65.5187, 56.305, 50.9808, 41.6565, 35.8698, 29.3898, 17.9743, 15.3568, 15.2223, 0.846847});
-    
+
     NDArray<double> expU('c', {11,11},   {-0.387999,-0.117659,  0.162976,  0.641067,-0.0174306, -0.181469,-0.218643,  -0.308042, 0.0670776,-0.0632539, -0.462228,
                                            -0.37021,  0.14822, -0.195157,-0.0467394, -0.381275, -0.183363, 0.326599,  -0.370579,  -0.56626, 0.0798798,  0.225133,
                                            0.339692, 0.433146,   0.30841,  0.134184, -0.108725,  0.466056,-0.153546,  -0.359783, -0.189621, -0.402737, 0.0605675,
@@ -1203,13 +1203,12 @@ TEST_F(HelpersTests1, SVD_test20) {
                                         -0.134753, -0.154272,  0.037343, -0.281348,   0.666324, -0.213813,-0.0427932,   0.238783,  0.132347,-0.557478, 0.0253325});
 
     ops::helpers::SVD<double> svd(matrix, 8, true, true, true);    
-    svd._U.printIndexedBuffer();
 
-    // ASSERT_TRUE(expS.equalsTo(&svd._S));
+    ASSERT_TRUE(expS.equalsTo(&svd._S));
     ASSERT_TRUE(expU.equalsTo(&svd._U));
     ASSERT_TRUE(expV.equalsTo(&svd._V));
 
-    // ASSERT_TRUE(expS.isSameShapeStrict(&svd._S));
+    ASSERT_TRUE(expS.isSameShapeStrict(&svd._S));
     ASSERT_TRUE(expU.isSameShapeStrict(&svd._U));
     ASSERT_TRUE(expV.isSameShapeStrict(&svd._V));
 }

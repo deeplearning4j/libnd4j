@@ -58,7 +58,7 @@ class SVD {
 
     void DivideAndConquer(int col1, int col2, int row1W, int col1W, int shift);
 
-    void exchangeUV(const HHsequence<T>& hhU, const HHsequence<T>& hhV, const NDArray<T>& U, const NDArray<T>& V);
+    void exchangeUV(const HHsequence<T>& hhU, const HHsequence<T>& hhV, const NDArray<T> U, const NDArray<T> V);
 
     void evalData(const NDArray<T>& matrix);
 
