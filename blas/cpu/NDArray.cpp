@@ -110,6 +110,22 @@ NDArray<T>::NDArray(const Nd4jIndex length, const char order, nd4j::memory::Work
     delete[] shape;
 }
 
+    template <typename T>
+    NDArray<T>::NDArray(std::initializer_list<int> s, nd4j::memory::Workspace* workspace) {
+        std::vector<int> shape(s);
+        int rank = (int) shape.size();
+
+
+        ALLOCATE(_shapeInfo, workspace, shape::shapeInfoLength(rank), int);
+
+        shape::shapeBuffer(rank, shape.data(), _shapeInfo);
+
+        ALLOCATE(_buffer, workspace, shape::length(_shapeInfo), T);
+
+        _isShapeAlloc = true;
+        _isBuffAlloc = true;
+    }
+
 ////////////////////////////////////////////////////////////////////////
 // this constructor creates 2D NDArray, memory for array is allocated in this constructor 
 template <typename T>
@@ -238,12 +254,59 @@ template <typename T>
 ////////////////////////////////////////////////////////////////////////
 #ifndef __JAVACPP_HACK__
     template<typename T>
+    void NDArray<T>::applyTriplewiseLambda(NDArray<T>* second, NDArray<T> *third, const std::function<T(T, T, T)>& func, NDArray<T>* target) {
+        if (target == nullptr)
+            target = this;
+
+        if (second == nullptr) {
+            nd4j_printf("applyTriplewiseLambda requires three operands to be valid NDArrays, but Second is NULL\n","");
+            throw "second is null";
+        }
+
+        if (third == nullptr) {
+            nd4j_printf("applyTriplewiseLambda requires three operands to be valid NDArrays, but Third is NULL\n","");
+            throw "third is null";
+        }
+
+        if (this->lengthOf() != second->lengthOf() || this->lengthOf() != third->lengthOf() || !this->isSameShape(second) || !this->isSameShape(third)) {
+            nd4j_printf("applyPairwiseLambda requires both operands to have the same shape\n","");
+            throw "Shapes mismach";
+        }        
+
+        if (this->ordering() == second->ordering() && this->ordering() == third->ordering()  && this->ordering() == target->ordering() && (this->ews() == 1 && target->ews() == 1) && this->ews() == second->ews() && this->ews() == third->ews()) {
+#pragma omp parallel for simd schedule(guided)
+            for (int e = 0; e < this->lengthOf(); e++)
+                target->_buffer[e] = func(this->_buffer[e], second->_buffer[e], third->_buffer[e]);
+        } else {
+            int tCoord[MAX_RANK];
+            int uCoord[MAX_RANK];
+            int vCoord[MAX_RANK];
+            int zCoord[MAX_RANK]; 
+
+            #pragma omp parallel for schedule(guided) private(tCoord, uCoord, vCoord, zCoord)
+            for (int e = 0; e < this->lengthOf(); e++) {
+                shape::ind2subC(this->rankOf(), this->shapeOf(), e, tCoord);
+                shape::ind2subC(second->rankOf(), second->shapeOf(), e, uCoord);
+                shape::ind2subC(third->rankOf(), third->shapeOf(), e, vCoord);
+                shape::ind2subC(target->rankOf(), target->shapeOf(), e, zCoord);
+
+                Nd4jIndex tOffset = shape::getOffset(0, this->shapeOf(), this->stridesOf(), tCoord, this->rankOf());
+                Nd4jIndex uOffset = shape::getOffset(0, second->shapeOf(), second->stridesOf(), uCoord, second->rankOf());
+                Nd4jIndex vOffset = shape::getOffset(0, third->shapeOf(), third->stridesOf(), vCoord, third->rankOf());
+                Nd4jIndex zOffset = shape::getOffset(0, target->shapeOf(), target->stridesOf(), zCoord, target->rankOf());
+
+                target->_buffer[zOffset] = func(this->_buffer[tOffset], second->_buffer[uOffset], third->_buffer[vOffset]);
+            }
+        }
+    }
+
+    template<typename T>
     void NDArray<T>::applyPairwiseLambda(NDArray<T>* other, const std::function<T(T, T)>& func, NDArray<T>* target) {
         if (target == nullptr)
             target = this;
 
         if (other == nullptr) {
-            nd4j_printf("applyPairwiseLambda requires both operands to be valid NDArrays, both Y is NULL\n","");
+            nd4j_printf("applyPairwiseLambda requires both operands to be valid NDArrays, but Y is NULL\n","");
             throw "Other is null";
         }
 
@@ -609,6 +672,10 @@ void NDArray<T>::replacePointers(T *buffer, int *shapeInfo, const bool releaseEx
 // This method assigns values of given NDArray to this one, wrt order
     template<typename T>
     void NDArray<T>::assign(const NDArray<T> *other) {
+        if (this->isScalar() && other->isScalar()) {
+            this->_buffer[0] = other->_buffer[0];
+            return;
+        }
 
         if (other->lengthOf() != lengthOf()) {
             nd4j_printf("Can't assign new value to the array: this length [%i]; other length: [%i]\n", lengthOf(), other->lengthOf());
@@ -629,6 +696,10 @@ void NDArray<T>::replacePointers(T *buffer, int *shapeInfo, const bool releaseEx
 // This method assigns values of given NDArray to this one
     template<typename T>
     void NDArray<T>::assign(const NDArray<T>& other) {
+        if (this->isScalar() && other.isScalar()) {
+            this->_buffer[0] = other._buffer[0];
+            return;
+        }
 
         if (this == &other) 
             return;
@@ -968,8 +1039,9 @@ template <typename T>
             printf("%s: [", msg);
         else
             printf("[");
+
         for (Nd4jIndex e = 0; e < limit; e++) {
-            printf("%f", (float) this->getScalar(e));
+            printf("%f", (float) this->_buffer[e]);
             if (e < limit - 1)
                 printf(", ");
         }
@@ -1157,7 +1229,10 @@ template <typename T>
         if (lengthOf() != other->lengthOf())
             return false;
 
-        if (!shape::equalsSoft(_shapeInfo, other->_shapeInfo))
+        // we need to be able to compare [1, len] to [len]
+        if ((rankOf() == 1 && other->rankOf() == 2) || (rankOf() == 2 && other->rankOf() == 1)) {
+            // FIXME: do something here?
+        } else if (!shape::equalsSoft(_shapeInfo, other->_shapeInfo))
             return false;
 
         T *extras = new T[1]{eps};
@@ -1178,7 +1253,7 @@ template <typename T>
 //////////////////////////////////////////////////////////////////////////
 template<typename T>
     void NDArray<T>::addRowVector(const NDArray<T> *row, NDArray<T>* target) const {
-        if (rankOf() != 2 || target->rankOf() != 2 || rows() != target->rows() || columns() != target->columns() || !row->isRowVector() || columns() != row->columns())
+        if (rankOf() != 2 || target->rankOf() != 2 || rows() != target->rows() || columns() != target->columns() || !row->isRowVector() || columns() != row->lengthOf())
             throw std::invalid_argument("NDArray::addRowVector: wrong arguments !");
 
         int dimension[1] = {1};
@@ -1249,7 +1324,7 @@ template<typename T>
 // This method adds given row to all rows in this NDArray, this array becomes affected
     template<typename T>
     void NDArray<T>::addiRowVector(const NDArray<T> *row) {
-    if (rankOf() != 2 || !row->isRowVector() || columns() != row->columns())
+    if (rankOf() != 2 || !row->isRowVector() || columns() != row->lengthOf())
         throw std::invalid_argument("NDArray::addiRowVector: wrong arguments !");
 
         int dimension[1] = {1};
@@ -1267,7 +1342,7 @@ template<typename T>
 //////////////////////////////////////////////////////////////////////////
     template<typename T>
     void NDArray<T>::addColumnVector(const NDArray<T> *column, NDArray<T>* target) const {
-        if (rankOf() != 2 || target->rankOf() != 2 || rows() != target->rows() || columns() != target->columns() || !column->isColumnVector() || rows() != column->rows())
+        if (rankOf() != 2 || target->rankOf() != 2 || rows() != target->rows() || columns() != target->columns() || !column->isColumnVector() || rows() != column->lengthOf())
             throw std::invalid_argument("NDArray::addColumnVector: wrong arguments !");
 
         int dimension[1] = {0};
@@ -1285,7 +1360,7 @@ template<typename T>
 // This method adds given column to all columns in this NDArray, this array becomes affected
     template<typename T>
     void NDArray<T>::addiColumnVector(const NDArray<T> *column) {
-        if (rankOf() != 2 || !column->isColumnVector() || rows() != column->rows())
+        if (rankOf() != 2 || !column->isColumnVector() || rows() != column->lengthOf())
             throw std::invalid_argument("NDArray::addiColumnVector: wrong arguments !");
 
         int dimension[1] = {0};
@@ -1303,7 +1378,7 @@ template<typename T>
 // This method multiplies each column of this array by given argument-column, this array becomes affected
     template<typename T>
     void NDArray<T>::muliColumnVector(const NDArray<T> *column) {
-        if (rankOf() != 2 || !column->isColumnVector() || rows() != column->rows())
+        if (rankOf() != 2 || !column->isColumnVector() || rows() != column->lengthOf())
             throw std::invalid_argument("NDArray::muliColumnVector: wrong arguments !");
 
         int dimension[1] = {0};
@@ -1369,39 +1444,54 @@ template <typename T>
     bool NDArray<T>::reshapei(const char order, const std::initializer_list<int>& shape) {
         std::vector<int> vShape(shape);
         return reshapei(order, vShape);
-/*
-    int rank = shape.size();
-    int arrLength = 1;
-    for(const auto& item : shape)
-        arrLength *= item;
-
-    if(_buffer==nullptr || arrLength != lengthOf())
-        return false;
-
-    int shapeLength = rank*2 + 4;
-    // remember old values
-
-    int elemWiseStride = _shapeInfo[rankOf()*2 + 2];
-    // if rank is different then delete and resize _shapeInfo appropriately
-    // also check if current object is _shapeInfo owner
-    if(rank != rankOf() || !_isShapeAlloc) {
-        if(_isShapeAlloc)
-            delete []_shapeInfo;
-        _shapeInfo = new int[shapeLength];
-        _shapeInfo[0] = rank;
-        _isShapeAlloc = true;
-    }
-    // copy new dimensions to _shapeInfo
-    int i = 1;
-    for(const auto& item : shape)
-        _shapeInfo[i++] = item;                 // exclude first element -> rank
-    // set strides in correspondence to dimensions and order
-	updateStrides(order);
-
-    return true;
-        */
 }
 
+template <typename T>
+bool NDArray<T>::reshapei(const std::initializer_list<int>& shape) {
+    return reshapei('c', shape);
+}	
+
+template <typename T>
+bool NDArray<T>::reshapei(const std::vector<int>& shape) {
+    return reshapei('c', shape);
+}
+
+    template <typename T>
+    void NDArray<T>::enforce(const std::initializer_list<int> &dimensions, char order) {
+        std::vector<int> dims(dimensions);
+        enforce(dims, order);
+    }
+
+    template <typename T>
+    void NDArray<T>::enforce(std::vector<int> &dimensions, char o) {
+
+        Nd4jIndex prod = 1;
+        for (int e = 0; e < dimensions.size(); e++)
+            prod *= dimensions[e];
+
+        if (prod != this->lengthOf()) {
+            std::string current = ShapeUtils<T>::shapeAsString(*this);
+            std::string enforced = ShapeUtils<T>::shapeAsString(dimensions);
+            nd4j_printf("Can't enforce new shape, lengths mismatch. Original shape: %s; Requested shape: %s\n", current.c_str(), enforced.c_str());
+            throw "Incompatible shape";
+        }
+
+        int *newShape;
+        ALLOCATE(newShape, _workspace, shape::shapeInfoLength(dimensions.size()), int);
+
+        char order = o == 'a' ? this->ordering() : o;
+
+        if (o == 'c')
+            shape::shapeBuffer(dimensions.size(), dimensions.data(), newShape);
+        else
+            shape::shapeBufferFortran(dimensions.size(), dimensions.data(), newShape);
+
+        if (_isShapeAlloc)
+            RELEASE(_shapeInfo, _workspace);
+
+        _shapeInfo = newShape;
+        _isShapeAlloc = true;
+    }
 
 //////////////////////////////////////////////////////////////////////////
 // set new order and shape in case of suitable array length 
@@ -1607,6 +1697,22 @@ void NDArray<T>::tile(const std::vector<int>& reps, NDArray<T>& target) const {
         throw "NDArray::tile method - shapeInfo of target array is not suitable for tile operation !";
     }
     delete[] newShapeInfo;
+
+    // fill newBuff, loop through all elements of newBuff 
+    // looping through _buffer goes automatically by means of getSubArrayIndex applying
+    for(int i=0;  i<target.lengthOf(); ++i)        
+        target.putIndexedScalar(i, this->getIndexedScalar(ShapeUtils<T>::getSubArrayIndex(target._shapeInfo, _shapeInfo, i)));
+}
+
+//////////////////////////////////////////////////////////////////////////
+template <typename T>
+void NDArray<T>::tile(NDArray<T>& target) const {
+        
+    if(rankOf() > target.rankOf())
+        throw "NDArray::tile method - rank of target array must be bigger or equal to the rank of this array !";
+    
+    if(!ShapeUtils<T>::areShapesBroadcastable(*this, target))         
+        throw "NDArray::tile method - shapeInfo of target array is not suitable for tile operation !";
 
     // fill newBuff, loop through all elements of newBuff 
     // looping through _buffer goes automatically by means of getSubArrayIndex applying
@@ -2490,8 +2596,9 @@ NDArray<T> NDArray<T>::operator+(const NDArray<T>& other) const {
     ////////////////////////////////////////////////////////////////////////
     template<typename T>
     void NDArray<T>::operator+=(const NDArray<T>& other) {    
-
-        if (other.lengthOf() == lengthOf())
+        if (!this->isScalar() && other.isScalar()) {
+            functions::scalar::ScalarTransform<T>::template transform<simdOps::Add<T>>(this->_buffer, this->_shapeInfo, this->_buffer, this->_shapeInfo, other._buffer[0], nullptr);
+        } else if (other.lengthOf() == lengthOf())
             functions::pairwise_transforms::PairWiseTransform<T>::template exec<simdOps::Add<T>>(this->_buffer, this->_shapeInfo, other._buffer, other._shapeInfo, this->_buffer, this->_shapeInfo, nullptr);
         else
             *this = this->template applyTrueBroadcast<simdOps::Add<T>>(other);
@@ -2587,7 +2694,9 @@ NDArray<T> NDArray<T>::operator+(const NDArray<T>& other) const {
     template<typename T>
     void NDArray<T>::operator*=(const NDArray<T>& other) {    
 
-        if (other.lengthOf() == lengthOf())
+        if (!this->isScalar() && other.isScalar()) {
+            functions::scalar::ScalarTransform<T>::template transform<simdOps::Multiply<T>>(this->_buffer, this->_shapeInfo, this->_buffer, this->_shapeInfo, other._buffer[0], nullptr);
+        } else if (other.lengthOf() == lengthOf())
             functions::pairwise_transforms::PairWiseTransform<T>::template exec<simdOps::Multiply<T>>(this->_buffer, this->_shapeInfo, other._buffer, other._shapeInfo, this->_buffer, this->_shapeInfo, nullptr);
         else
             *this = this->template applyTrueBroadcast<simdOps::Multiply<T>>(other);
@@ -2597,7 +2706,6 @@ NDArray<T> NDArray<T>::operator+(const NDArray<T>& other) const {
     // multiplication operator array*scalar
     template<typename T>
     void NDArray<T>::operator*=(const T scalar) {
-        
         functions::scalar::ScalarTransform<T>::template transform<simdOps::Multiply<T>>(this->_buffer, this->_shapeInfo, this->_buffer, this->_shapeInfo, scalar, nullptr);
     }
 
@@ -2635,7 +2743,9 @@ NDArray<T> NDArray<T>::operator+(const NDArray<T>& other) const {
     template<typename T>
     void NDArray<T>::operator/=(const NDArray<T>& other) {    
 
-        if (other.lengthOf() == lengthOf())
+        if (!this->isScalar() && other.isScalar()) {
+            functions::scalar::ScalarTransform<T>::template transform<simdOps::Divide<T>>(this->_buffer, this->_shapeInfo, this->_buffer, this->_shapeInfo, other._buffer[0], nullptr);
+        } else if (other.lengthOf() == lengthOf())
             functions::pairwise_transforms::PairWiseTransform<T>::template exec<simdOps::Divide<T>>(this->_buffer, this->_shapeInfo, other._buffer, other._shapeInfo, this->_buffer, this->_shapeInfo, nullptr);
         else
             *this = this->template applyTrueBroadcast<simdOps::Divide<T>>(other);
@@ -2820,7 +2930,75 @@ NDArray<T> NDArray<T>::operator+(const NDArray<T>& other) const {
             delete[] _shapeInfo;
     }
     
+template<typename T>
+void NDArray<T>::streamline(char o) {
+    char order = o == 'a' ? this->ordering() : o;
+    
+    int *newShape;
+    ALLOCATE(newShape, this->_workspace, shape::shapeInfoLength(this->rankOf()), int);
 
+    T *newBuffer;
+    ALLOCATE(newBuffer, this->_workspace, this->lengthOf(), T);
+
+    std::vector<int> shape(this->rankOf());
+    for (int e = 0; e < this->rankOf(); e++)
+        shape[e] = this->sizeAt(e);
+
+    if (order == 'c')
+        shape::shapeBuffer(this->rankOf(), shape.data(), newShape);
+    else
+        shape::shapeBufferFortran(this->rankOf(), shape.data(), newShape);
+
+    NativeOpExcutioner<T>::execPairwiseTransform(1, newBuffer, newShape, _buffer, _shapeInfo, newBuffer, newShape, nullptr);
+
+    if (_isBuffAlloc)
+        RELEASE(this->_buffer, this->_workspace);
+    if (_isShapeAlloc)
+        RELEASE(this->_shapeInfo, this->_workspace);
+
+    this->_buffer = newBuffer;
+    this->_shapeInfo = newShape;
+    this->_isBuffAlloc = true;
+    this->_isShapeAlloc = true;
+}
+
+
+////////////////////////////////////////////////////////////////////////
+template<typename T>
+void NDArray<T>::tileToShape(const std::vector<int>& shape, NDArray<T>* target) {
+
+    if(target != nullptr) {
+        this->tile(*target);
+        return;
+    }
+
+    std::vector<int> thisShape(rankOf());
+    for(int i = 0; i < rankOf(); ++i)
+        thisShape[i] = sizeAt(i);
+
+    if(!ShapeUtils<T>::areShapesBroadcastable(shape, thisShape))
+        throw "NDArray::tileToShape method: the shape of this array and input shape are not suitable for broadcast operation !" ;
+
+    const int newRank = shape.size();
+    std::vector<int> repeats(newRank);
+
+    for(int i = 1; i <= newRank; ++i) {
+        if(i > rankOf())
+            repeats[newRank-i] = shape[newRank - i];
+        else
+            repeats[newRank-i] = shape[newRank - i] / thisShape[rankOf() - i];
+    }
+
+    tilei(repeats);
+}
+
+////////////////////////////////////////////////////////////////////////
+template<typename T>
+void NDArray<T>::tileToShape(const std::initializer_list<int>& shape, NDArray<T>* target) {
+
+    const std::vector<int> shapeV(shape);
+    tileToShape(shapeV, target);
+}
 
 
 

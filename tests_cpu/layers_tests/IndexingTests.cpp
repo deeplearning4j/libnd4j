@@ -234,7 +234,7 @@ TEST_F(IndexingTests, MaskedSlice_1) {
         tads->at(e)->assign((float) (e+1));
     }
 
-    NDArray<float> exp('c', {1, 5});
+    NDArray<float> exp({5});
     exp.assign(2.0f);
 
     nd4j::ops::strided_slice<float> op;
@@ -307,7 +307,7 @@ TEST_F(IndexingTests, MaskedSlice_4) {
     matrix.setBuffer(_buff);
 
     float _expB[] = { 4.f,   4.2f,  4.3f};
-    NDArray<float> exp('c', {1, 3});
+    NDArray<float> exp({3});
     exp.setBuffer(_expB);
 
     // output = tf.strided_slice(a, [1, 0, 0], [3, 3, 3], shrink_axis_mask=5)
@@ -428,7 +428,7 @@ TEST_F(IndexingTests, Test_StridedSlice_4) {
     NDArray<float> a('c', {1, 1}, {0});
     NDArray<float> b('c', {1, 1}, {1});
     NDArray<float> c('c', {1, 1}, {1});
-    NDArray<float> exp('c', {1, 1}, {5.0});
+    NDArray<float> exp(5.0f);
 
     nd4j::ops::strided_slice<float> op;
     auto result = op.execute({&x, &a, &b, &c}, {}, {0, 0, 0, 0, 1, 0, 1, 1});
@@ -443,6 +443,21 @@ TEST_F(IndexingTests, Test_StridedSlice_4) {
     ASSERT_TRUE(exp.equalsTo(z));
 
     delete result;
+}
+
+TEST_F(IndexingTests, Test_Subarray_Strided_1) {
+    NDArray<float> x('c', {3, 3}, {1, 2, 3, 4, 5, 6, 7, 8, 9});
+    NDArray<float> exp('c', {3, 2}, {1, 3, 4, 6, 7, 9});
+    IndicesList indices({NDIndex::all(), NDIndex::interval(0, 3, 2)});
+    auto sub = x.subarray(indices);
+
+    //sub->printShapeInfo("sub shape");
+    //sub->printIndexedBuffer("sub buffr");
+
+    ASSERT_TRUE(exp.isSameShape(sub));
+    ASSERT_TRUE(exp.equalsTo(sub));
+
+    delete sub;
 }
 
 

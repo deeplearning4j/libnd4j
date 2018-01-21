@@ -108,6 +108,9 @@ TEST_F(ParityOpsTests, TestUnstack1) {
 
     ASSERT_EQ(10, result->size());
 
+    result->at(0)->printShapeInfo("rz");
+    tads->at(0)->printShapeInfo("re");
+
     for (int e = 0; e < result->size(); e++)
         ASSERT_TRUE(tads->at(e)->equalsTo(result->at(e)));
 
@@ -136,6 +139,61 @@ TEST_F(ParityOpsTests, TestUnstack2) {
 
     delete result;
     delete tads;
+}
+
+TEST_F(ParityOpsTests, TestUnstack3) { 
+    NDArray<float> input('c', {3,2,3});
+    NDArray<float> exp('c', {3, 2}, {1.f, 4., 7., 10.f, 13.f,  16.f});
+    NDArrayFactory<float>::linspace(1, input);
+
+    nd4j::ops::unstack<float> op;
+
+    auto result = op.execute({&input}, {}, {2});
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}
+
+
+TEST_F(ParityOpsTests, TestUnstack4) { 
+    NDArray<float> input('c', {3,2,3});
+    NDArray<float> exp('c', {3, 3}, { 1, 2, 3, 7, 8, 9, 13, 14, 15.});
+    NDArrayFactory<float>::linspace(1, input);
+
+    nd4j::ops::unstack<float> op;
+
+    auto result = op.execute({&input}, {}, {1});
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}
+
+TEST_F(ParityOpsTests, TestUnstack5) { 
+    NDArray<float> input('c', {3,2,3});
+    NDArray<float> exp('c', {2, 3}, { 1, 2, 3, 4, 5, 6});
+    NDArrayFactory<float>::linspace(1, input);
+
+    nd4j::ops::unstack<float> op;
+
+    auto result = op.execute({&input}, {}, {0});
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
 }
 
 
@@ -224,7 +282,7 @@ TEST_F(ParityOpsTests, ExpandDimsTest4) {
 
 TEST_F(ParityOpsTests, Test_Shape_1) {
     NDArray<float> x('c', {3, 4, 5, 6});
-    NDArray<float> exp('c', {1, 4}, {3, 4, 5, 6});
+    NDArray<float> exp('c', {4}, {3, 4, 5, 6});
 
     nd4j::ops::shape_of<float> op;
     auto result = op.execute({&x}, {}, {});
@@ -388,6 +446,8 @@ TEST_F(ParityOpsTests, Test_Where_3) {
     ASSERT_EQ(ND4J_STATUS_OK, result->status());
 
     auto z = result->at(0);
+
+    z->printShapeInfo("z");
 
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));

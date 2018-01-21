@@ -26,7 +26,7 @@ namespace nd4j {
         struct StridedSliceSparseSpec {
             int dims;
             int num_add_axis_after_ellipsis;
-            const std::vector<int>* begin_tensor;
+            std::vector<int>* begin_tensor;
             const std::vector<int>* end_tensor;
             const std::vector<int>* strides_tensor;
             const int begin_mask, end_mask;
@@ -48,9 +48,14 @@ namespace nd4j {
 
             public:
                 bool buildDenseSpec(StridedSliceSparseSpec& sparse_spec) {
-                    this->begin.resize(dims);
-                    this->end.resize(dims);
-                    this->strides.resize(dims);
+                    if (this->begin.size() < dims)
+                        this->begin.resize(dims);
+
+                    if (this->end.size() < dims)
+                        this->end.resize(dims);
+
+                    if (this->strides.size() < dims)
+                        this->strides.resize(dims);
                     this->begin_mask = 0;
                     this->end_mask = 0;
                     this->shrink_axis_mask = 0;
@@ -157,7 +162,7 @@ namespace nd4j {
             if (!dense_spec.buildDenseSpec(sparse_spec))
                 return false;
 
-            nd4j_printv("Input shape: ", input_shape);
+            //nd4j_printv("Input shape: ", input_shape);
 
             for (int e = 0; e < (int) input_shape.size(); e++) {
                 int begin_idx = begin[e];
@@ -258,7 +263,7 @@ namespace nd4j {
 
 
             std::vector<int> postshape;
-            nd4j_printv("Preshape: ", preshape);
+            //nd4j_printv("Preshape: ", preshape);
 
             final_shape->clear();
             for (auto gather_index : dense_spec.final_shape_gather_indices) {
@@ -269,8 +274,8 @@ namespace nd4j {
                 }
             }
 
-            nd4j_printv("Preshape: ", preshape);
-            nd4j_printv("Postshape: ", *final_shape);
+            //nd4j_printv("Preshape: ", preshape);
+            //nd4j_printv("Postshape: ", *final_shape);
 
             return true;
         }
@@ -421,7 +426,7 @@ namespace nd4j {
             int *newShape;
             std::vector<int> input_shape(shape::rank(inShape));
             std::vector<int> shape;
-
+            
             for (int e = 0; e < shape::rank(inShape); e++)
                 input_shape[e] = shape::shapeOf(inShape)[e];
 
@@ -433,17 +438,19 @@ namespace nd4j {
             vectorize(input_shape);
             bool result = _preprocess_strided_slice(nullptr, &shape, input_shape, begin, end, strides, begin_mask, ellipsis_mask, end_mask, new_axis_mask, shrink_axis_mask, &is_identity, &is_simple_slice, &is_dim0);
 
-            nd4j_printv("shape after shrink: ", shape);
+            //nd4j_printv("shape after shrink: ", shape);
             
             // scalar edge case
+            /*
             if (shape.empty()) {
                 shape.emplace_back(1);
                 shape.emplace_back(1);
             } else if (shape.size() == 1) {
                 shape.insert(shape.begin(), 1);
             }
+             */
 
-            nd4j_printv("shape after normalization: ", shape);
+            //nd4j_printv("shape after normalization: ", shape);
 
             ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(shape.size()), int);
             shape::shapeBuffer(shape.size(), shape.data(), newShape);

@@ -1906,14 +1906,18 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
         int rank = shape[0];
         int doubleRank = 2*rank;
         if(order == 'c') {
-            shape[doubleRank] = 1;          // set unity as last stride for c order
-            for(int j=1; j<rank; ++j)
-                shape[doubleRank-j] = shape[doubleRank-j+1]*shape[rank+1-j];
+            if (rank > 0) {
+                shape[doubleRank] = 1;          // set unity as last stride for c order
+                for(int j=1; j<rank; ++j)
+                    shape[doubleRank-j] = shape[doubleRank-j+1]*shape[rank+1-j];
+            }
         }
         else {
-            shape[rank+1] = 1;             // set unity as first stride for f order
-            for(int j=rank+1; j<doubleRank; ++j)
-                shape[j+1] = shape[j]*shape[j-rank];
+            if (rank > 0) {
+                shape[rank+1] = 1;             // set unity as first stride for f order
+                for(int j=rank+1; j<doubleRank; ++j)
+                    shape[j+1] = shape[j]*shape[j-rank];
+            }
         }
         // set last 3 elements in shape
         shape[doubleRank + 1] = 0;
@@ -1968,6 +1972,9 @@ __device__ INLINEDEF int *cuMalloc(int *buffer, long size) {
     __host__ __device__
 #endif
     INLINEDEF int computeElementWiseStride(int rank, int *shape, int *stride, int isFOrder) {
+        if (rank == 0)
+            return 1;
+
         if(shape::isVector(shape,rank)) {
             return stride[rank - 1];
         }
@@ -2821,6 +2828,9 @@ __host__ __device__
 #endif
 
     INLINEDEF int isVector(int *shape, int rank) {
+        if (rank == 0)
+            return 0;
+
         if (rank == 1)
             return 1;
 
@@ -3212,10 +3222,14 @@ __host__ __device__
 #endif
 
     INLINEDEF Nd4jIndex length(int *shapeInfo) {
-        if (shape::rank(shapeInfo) == 0)
+        int rank = shape::rank(shapeInfo);
+        if (rank == 0)
             return 1L;
+        if (rank == 1)
+            return shapeInfo[1];
 
-        return shape::prodLong(shape::shapeOf(shapeInfo), shape::rank(shapeInfo));
+
+        return shape::prodLong(shape::shapeOf(shapeInfo), rank);
     }
 
 #ifdef __CUDACC__

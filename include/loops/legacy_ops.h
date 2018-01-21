@@ -39,7 +39,8 @@
        (18, simdOps::FloorMod),\
        (19, simdOps::FloorDiv),\
        (20, simdOps::ReverseMod),\
-       (21, simdOps::SafeDivide)
+       (21, simdOps::SafeDivide),\
+       (22, simdOps::Mod)
 
 
 
@@ -131,7 +132,9 @@
         (88,simdOps::LogSigmoid), \
         (89,simdOps::LogSigmoidDerivative) ,\
         (90,simdOps::Erfc) ,\
-        (91,simdOps::Expm1)
+        (91,simdOps::Expm1), \
+        (92, simdOps::PowDerivative), \
+        (93,simdOps::ATanh)
 
 
 
@@ -264,7 +267,9 @@
         (21, simdOps::FloorMod) ,\
         (22, simdOps::SquaredSubtract) ,\
         (23, simdOps::ReverseMod),\
-        (24, simdOps::SafeDivide)        
+        (24, simdOps::SafeDivide), \
+        (25, simdOps::Mod) ,\
+        (92, simdOps::PowDerivative)
 
 
 

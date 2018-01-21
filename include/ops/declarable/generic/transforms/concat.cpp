@@ -3,6 +3,7 @@
 //
 
 #include <ops/declarable/CustomOperations.h>
+#include <array>
 
 namespace nd4j {
     namespace ops {
@@ -12,7 +13,7 @@ namespace nd4j {
             NDArray<T> *last = INPUT_VARIABLE((int) block.width() - 1);
 
             int _dimension = 0;
-            if (block.getIArguments() > 0)
+            if (block.numI() > 0)
                 _dimension = INT_ARG(0);
             else {
                 _dimension = (int) last->getScalar(0);
@@ -23,6 +24,7 @@ namespace nd4j {
             NDArray<T> *output = this->getZ(block);
 
             int elements = (int) block.width();
+            bool oldScalars = first->rankOf() == 2 && first->isScalar();
 
             Nd4jPointer* buffers = new Nd4jPointer[elements];
             Nd4jPointer* shapes = new Nd4jPointer[elements];
@@ -44,6 +46,8 @@ namespace nd4j {
                 buffers[e] = (Nd4jPointer) var->getNDArray()->getBuffer();
                 shapes[e] = (Nd4jPointer) var->getNDArray()->getShapeInfo();
 
+                oldScalars &= shape::rank(var->getNDArray()->getShapeInfo()) == 2 && shape::isScalar(var->getNDArray()->getShapeInfo());
+
                 if (nd4j::Environment::getInstance()->isDebugAndVerbose()) {
                     printf("Shape %i: ", e);
                     shape::printShapeInfoLinear((int *) shapes[e]);
@@ -51,6 +55,11 @@ namespace nd4j {
             }
             if (nd4j::Environment::getInstance()->isDebugAndVerbose())
                 fflush(stdout);
+
+            if (oldScalars) {
+                nd4j_debug("OLD_SCALARS!\n","");
+                _dimension = 1;
+            }
 
             nd4j::SpecialMethods<T>::concatCpuGeneric(_dimension, elements, buffers, shapes, output->getBuffer(), output->getShapeInfo());
 
@@ -80,8 +89,9 @@ namespace nd4j {
                 bool allScalars = true;
                 bool hasScalars = false;
                 for (int e = 0; e < elements; e++) {
-                    allScalars &= shape::rank(inputShape->at(e)) == 0;
-                    hasScalars |= shape::rank(inputShape->at(e)) == 0;
+                    auto c = inputShape->at(e);
+                    allScalars &= shape::rank(c) == 0;
+                    hasScalars |= shape::rank(c) == 0;
                 }
 
                 // all scalars

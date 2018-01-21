@@ -48,6 +48,7 @@ namespace nd4j {
         // shape comparison starts from the end
         static bool areShapesBroadcastable(const NDArray<T> &arr1, const NDArray<T> &arr2);
         static bool areShapesBroadcastable(int* shapeX, int * shapeY);
+        static bool areShapesBroadcastable(const std::vector<int>& shape1, const std::vector<int>& shape2);
 
         // check the possibility of broadcast operation, if true then return shapeInfo of resulting array
         // if evalMinMax == false then array with larger rank has to be passed as first argument
@@ -74,6 +75,8 @@ namespace nd4j {
 
         // evaluate shapeInfo for diagonal array which is made using input arr elements as diagonal
         static int* evalDiagShapeInfo(const NDArray<T>& arr);
+
+        static std::vector<int> evalBroadcastBackwardAxis(int *operand, int *result);
     };
 
 

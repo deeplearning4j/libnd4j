@@ -282,6 +282,22 @@ TEST_F(DeclarableOpsTests3, Test_CumSum_2) {
     NDArray<float> exp('c', {2, 4}, {1, 3, 6, 10, 1, 3, 6, 10});
 
     nd4j::ops::cumsum<float> op;
+    auto result = op.execute({&x}, {}, {1});
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}
+
+TEST_F(DeclarableOpsTests3, Test_CumSum_3) {
+    NDArray<float> x('c', {2, 4}, {1, 2, 3, 4, 1, 2, 3, 4});
+    NDArray<float> exp('c', {2, 4}, {1, 2, 3, 4, 2, 4, 6, 8});
+
+    nd4j::ops::cumsum<float> op;
     auto result = op.execute({&x}, {}, {0});
     ASSERT_EQ(ND4J_STATUS_OK, result->status());
 
@@ -321,7 +337,7 @@ TEST_F(DeclarableOpsTests3, Test_Range_1) {
     NDArray<float> start('c', {1, 1}, {2});
     NDArray<float> stop('c', {1, 1}, {0});
     NDArray<float> step('c', {1, 1}, {1});
-    NDArray<float> exp('c', {1, 2}, {2, 1});
+    NDArray<float> exp('c', {2}, {2, 1});
 
     nd4j::ops::range<float> op;
     auto result = op.execute({&start, &stop, &step}, {}, {});
@@ -341,7 +357,7 @@ TEST_F(DeclarableOpsTests3, Test_Range_2) {
     NDArray<float> start('c', {1, 1}, {2});
     NDArray<float> stop('c', {1, 1}, {0});
     NDArray<float> step('c', {1, 1}, {-1});
-    NDArray<float> exp('c', {1, 2}, {2, 1});
+    NDArray<float> exp('c', {2}, {2, 1});
 
     nd4j::ops::range<float> op;
     auto result = op.execute({&start, &stop, &step}, {}, {});
@@ -349,6 +365,8 @@ TEST_F(DeclarableOpsTests3, Test_Range_2) {
     ASSERT_EQ(ND4J_STATUS_OK, result->status());
 
     auto z = result->at(0);
+
+    z->printShapeInfo("shape");
 
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
@@ -360,7 +378,7 @@ TEST_F(DeclarableOpsTests3, Test_Range_3) {
     NDArray<float> start('c', {1, 1}, {0});
     NDArray<float> stop('c', {1, 1}, {2});
     NDArray<float> step('c', {1, 1}, {1});
-    NDArray<float> exp('c', {1, 2}, {0, 1});
+    NDArray<float> exp('c', {2}, {0, 1});
 
     nd4j::ops::range<float> op;
     auto result = op.execute({&start, &stop, &step}, {}, {});
@@ -377,7 +395,7 @@ TEST_F(DeclarableOpsTests3, Test_Range_3) {
 
 
 TEST_F(DeclarableOpsTests3, Test_Range_4) {
-    NDArray<float> exp('c', {1, 2}, {2, 1});
+    NDArray<float> exp('c', {2}, {2, 1});
 
     nd4j::ops::range<float> op;
     auto result = op.execute({}, {2, 0, 1}, {});
@@ -394,7 +412,7 @@ TEST_F(DeclarableOpsTests3, Test_Range_4) {
 
 
 TEST_F(DeclarableOpsTests3, Test_Range_5) {
-    NDArray<float> exp('c', {1, 2}, {2, 1});
+    NDArray<float> exp('c', {2}, {2, 1});
 
     nd4j::ops::range<float> op;
     auto result = op.execute({}, {2, 0, -1}, {});
@@ -410,7 +428,7 @@ TEST_F(DeclarableOpsTests3, Test_Range_5) {
 }
 
 TEST_F(DeclarableOpsTests3, Test_Range_6) {
-    NDArray<float> exp('c', {1, 2}, {0, 1});
+    NDArray<float> exp('c', {2}, {0, 1});
 
     nd4j::ops::range<float> op;
     auto result = op.execute({}, {0, 2, 1}, {});
@@ -426,7 +444,7 @@ TEST_F(DeclarableOpsTests3, Test_Range_6) {
 }
 
 TEST_F(DeclarableOpsTests3, Test_Range_7) {
-    NDArray<float> exp('c', {1, 2}, {2, 1});
+    NDArray<float> exp('c', {2}, {2, 1});
 
     nd4j::ops::range<float> op;
     auto result = op.execute({}, {}, {2, 0, 1});
@@ -443,7 +461,7 @@ TEST_F(DeclarableOpsTests3, Test_Range_7) {
 
 
 TEST_F(DeclarableOpsTests3, Test_Range_8) {
-    NDArray<float> exp('c', {1, 2}, {2, 1});
+    NDArray<float> exp('c', {2}, {2, 1});
 
     nd4j::ops::range<float> op;
     auto result = op.execute({}, {}, {2, 0, -1});
@@ -459,7 +477,7 @@ TEST_F(DeclarableOpsTests3, Test_Range_8) {
 }
 
 TEST_F(DeclarableOpsTests3, Test_Range_9) {
-    NDArray<float> exp('c', {1, 2}, {0, 1});
+    NDArray<float> exp('c', {2}, {0, 1});
 
     nd4j::ops::range<float> op;
     auto result = op.execute({}, {}, {0, 2, 1});

@@ -535,6 +535,10 @@ namespace simdOps {
 		}
 		 */
 
+		op_def static T op(T d1, T d2) {
+            return (int)d1 % (int)d2;
+        }
+
 		op_def static T op(T d1, T d2, T *params) {
 			return (int)d1 % (int)d2;
 		}
@@ -887,6 +891,30 @@ namespace simdOps {
 
 		op_def static T op(T d1, T d2, T *params) {
 			return nd4j::math::nd4j_pow<T>(d1, d2);
+		}
+
+		op_def static T op(T d1) {
+			return d1;
+		}
+	};
+
+
+	template<typename T>
+	class PowDerivative {
+	public:
+		no_op_exec_special
+		no_op_exec_special_cuda
+
+		op_def static T op(T d1, T *params) {
+			return params[0] * nd4j::math::nd4j_pow<T>(d1, params[0] - (T) 1.);
+		}
+
+		op_def static T op(T d1, T d2) {
+			return d2 * nd4j::math::nd4j_pow<T>(d1, d2 - (T) 1.);
+		}
+
+		op_def static T op(T d1, T d2, T *params) {
+			return d2 * nd4j::math::nd4j_pow<T>(d1, d2 - (T) 1.);
 		}
 
 		op_def static T op(T d1) {

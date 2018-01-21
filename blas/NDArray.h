@@ -70,6 +70,8 @@ namespace nd4j {
         *  default constructor, do not allocate memory, memory for array is passed from outside 
         */
         NDArray(T *buffer = nullptr, int *shapeInfo = nullptr, nd4j::memory::Workspace* workspace = nullptr);
+
+        NDArray(std::initializer_list<int> shape, nd4j::memory::Workspace* workspace = nullptr);
         
         /**
          * Constructor for scalar NDArray
@@ -109,10 +111,12 @@ namespace nd4j {
         /**
         *  this constructor creates new array using shape information contained in vector argument    
         */
-        NDArray(const char order, const std::vector<int> &shape, nd4j::memory::Workspace* workspace = nullptr);
+        NDArray(const char order, const std::vector<int> &shape , nd4j::memory::Workspace* workspace = nullptr);
 
         /**
-        *  this constructor creates new array with elements copied from data and using shape information stored in shape
+        * This constructor creates new array with elements copied from data and using shape information stored in shape
+        *
+        * PLEASE NOTE: data will be copied AS IS, without respect to specified order. You must ensure order match here.
         */
         NDArray(const char order, const std::vector<int> &shape, const std::vector<T> &data, nd4j::memory::Workspace* workspace = nullptr);
 
@@ -228,6 +232,11 @@ namespace nd4j {
         NDArray<T>* permute(const int* dimensions, const int rank) const;
 
         /**
+         * This method streamlines given view or permuted array, and reallocates buffer
+         */
+        void streamline(char order = 'a');
+
+        /**
         *  permutes the dimensions in target according to "dimensions" array
         */
         void permute(const int* dimensions, const int rank, NDArray<T>& target) const;
@@ -287,6 +296,13 @@ namespace nd4j {
         *  returns mean number of array
         */ 
         T meanNumber() const;
+
+
+        /**
+         * This method explicitly enforces new shape for this NDArray, old shape/stride information is lost
+         */
+        void enforce(const std::initializer_list<int> &dimensions, char order = 'a');
+        void enforce(std::vector<int> &dimensions, char order = 'a');
 
         /**
         *  calculates sum along dimension(s) in this array and save it to created reduced array
@@ -448,6 +464,8 @@ namespace nd4j {
         *  target - where to store result
         */ 
         void applyPairwiseLambda(NDArray<T>* other, const std::function<T(T, T)>& func, NDArray<T>* target = nullptr);
+
+        void applyTriplewiseLambda(NDArray<T>* second, NDArray<T> *third, const std::function<T(T, T, T)>& func, NDArray<T>* target = nullptr);
 #endif
 
         /**
@@ -570,6 +588,9 @@ namespace nd4j {
         */
 		bool reshapei(const char order, const std::initializer_list<int>& shape);		
 		bool reshapei(const char order, const std::vector<int>& shape);
+
+        bool reshapei(const std::initializer_list<int>& shape);		
+		bool reshapei(const std::vector<int>& shape);
 	
         /**
         *  creates new array with corresponding order and shape, new array will point on _buffer of this array
@@ -602,6 +623,12 @@ namespace nd4j {
         *  target - where to store result
         */
         void tile(const std::vector<int>& repeats, NDArray<T>& target) const;
+
+        /**
+        *  change an array by repeating it the number of times to acquire the new shape which is the same as target shape        
+        *  target - where to store result
+        */
+        void tile(NDArray<T>& target) const;
         
         /**
         *  returns an array which is result of broadcasting of this and other arrays 
@@ -839,7 +866,15 @@ namespace nd4j {
         *      "trianLowD" - lower triangular block including diagonal
         */
         void setZeros(const char* block);
-        
+
+		/**
+        *  change an array by repeating it the number of times in order to acquire new shape equal to the input shape
+        *
+        *  shape  - contains new shape to broadcast array to 
+        *  target - optional argument, if target != nullptr the resulting array will be placed it target, in opposite case tile operation is done in place
+        */
+        void tileToShape(const std::vector<int>& shape, NDArray<T>* target = nullptr);
+        void tileToShape(const std::initializer_list<int>& shape, NDArray<T>* target = nullptr);
 
         /**
         *  default destructor
@@ -1046,7 +1081,8 @@ namespace nd4j {
         */ 
         FORCEINLINE T& operator()(const int i, const int j, const int k);
 
-
+        template <typename T2>
+        FORCEINLINE std::vector<T2> asVectorT();
     };
 
 
@@ -1055,6 +1091,18 @@ namespace nd4j {
 //////////////////////////////////////////////////////////////////////////
 ///// IMLEMENTATION OF INLINE METHODS ///// 
 //////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+template <typename T2>
+FORCEINLINE std::vector<T2> NDArray<T>::asVectorT() {
+    std::vector<T2> result(this->lengthOf());
+
+#pragma omp parallel for simd
+    for (int e = 0; e < this->lengthOf(); e++)
+        result[e] = (T2) this->getIndexedScalar(e);
+
+    return result;
+}
 
 
 //////////////////////////////////////////////////////////////////////////

@@ -333,13 +333,25 @@ template <typename T>
 bool ShapeUtils<T>::areShapesBroadcastable(int *arr1, int *arr2) {
     int minRank = shape::rank(arr1) < shape::rank(arr2) ? shape::rank(arr1) : shape::rank(arr2);
        
-    for (int i = -1; i >= -minRank; --i) {
+    for (int i = -1; i >= -minRank; --i) 
         if (shape::sizeAt(arr1, i) != shape::sizeAt(arr2, i) && shape::sizeAt(arr1, i) != 1 && shape::sizeAt(arr2, i) != 1) return false;
-    }
     
     return true;
 }
 
+template <typename T>
+bool ShapeUtils<T>::areShapesBroadcastable(const std::vector<int>& shape1, const std::vector<int>& shape2) {
+    
+    const int rank1 = shape1.size();
+    const int rank2 = shape2.size();
+    const int minRank = rank1 < rank2 ? rank1 : rank2;
+    
+    for (int i = 1; i <= minRank; ++i) 
+        if (shape1[rank1-i] != shape2[rank2-i] && shape1[rank1-i] != 1 && shape2[rank2-i] != 1) 
+            return false;
+    
+    return true;
+}
 
 //////////////////////////////////////////////////////////////////////////
 // check the possibility of broadcast operation, if true then return shapeInfo of resulting array
@@ -522,9 +534,19 @@ int* ShapeUtils<T>::evalTileShapeInfo(const NDArray<T>& arr, const std::vector<i
 
     template<typename T>
     std::string ShapeUtils<T>::shapeAsString(NDArray<T> &array) {
-        auto vec = array.getShapeAsVector();
-        return shapeAsString(vec);
+        std::string result;
+
+        result.append("[");
+        for (int e = 0; e < array.rankOf(); e++) {
+            result += flatbuffers::NumToString(array.sizeAt(e));
+            if (e < array.rankOf() - 1)
+                result.append(", ");
+        }
+        result.append("]");
+
+        return result;
     }
+
     template<typename T>
     std::string ShapeUtils<T>::shapeAsString(std::vector<int>& shape) {
         std::string result;
@@ -565,6 +587,49 @@ int* ShapeUtils<T>::evalDiagShapeInfo(const NDArray<T>& arr){
     shape::updateStrides(outputShapeInfo, arr.ordering());
 
     return outputShapeInfo;
+}
+
+template<typename T>
+std::vector<int> ShapeUtils<T>::evalBroadcastBackwardAxis(int *operand, int *result) {
+    const int xRank = shape::rank(operand);
+    const int zRank = shape::rank(result);
+    std::vector<int> axis;
+
+    int *xShape = shape::shapeOf(operand);
+    int *zShape = shape::shapeOf(result);
+
+    int minRank = nd4j::math::nd4j_min<int>(xRank, zRank);
+    int maxRank = nd4j::math::nd4j_max<int>(xRank, zRank);
+
+    if (xRank == zRank) {
+        for (int e = -1; e >= -minRank; e--) {
+            int o = shape::sizeAt(operand, e);
+            int r = shape::sizeAt(result, e);
+
+            if (o != r)
+                axis.emplace_back(e + maxRank);
+        } 
+    } else if (xRank < zRank) {
+        for (int e = -1; e > -minRank; e--) {
+            int o = shape::sizeAt(operand, e);
+            int r = shape::sizeAt(result, e);
+
+            if (o != r)
+                axis.emplace_back(e + maxRank);
+        } 
+
+        // adding inner dimensions
+        for (int e = 0; e < zRank - xRank; e++) 
+            axis.emplace_back(e);
+    } else {
+        // this isn't possible
+    }
+
+    // FIXME: eventually we'd like to get rid of sort 
+    if (axis.size() > 1)
+        std::sort(axis.begin(), axis.end());
+
+    return axis;
 }
 
 template class ND4J_EXPORT ShapeUtils<float>;

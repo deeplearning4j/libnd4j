@@ -320,5 +320,93 @@ namespace nd4j {
          * 
          */
         DECLARE_CUSTOM_OP(fill, 1, 1, false, -2, 0);
+
+        /**
+         * This operation splits given NDArray into chunks of specific size, along given dimension
+         * Input arrays:
+         * 0 - input array
+         * 1 - array of sizes
+         * 2 - optional axis
+         * 
+         * Integer arguments:
+         * 0 - optional axis
+         * 
+         */
+        DECLARE_CUSTOM_OP(split_v, 2, -1, false, 0, -2);
+
+        /**
+         * This operation splits given NDArray into chunks of specific size, along given dimension
+         * 0 - input array
+         * 1 - optional axis
+         * 
+         * Integer arguments:
+         * 0 - number of splits
+         * 1 - optional axis
+         */
+        DECLARE_CUSTOM_OP(split, 1, -1, false, 0, 1);
+
+
+        /**
+         * This operation adjusts image hue by delta
+         * Input arrays:
+         * 0 - 1D or 3D input array, must have 3 channels.
+         * 1 - optional scalar, delta value
+         * 
+         * T arguments:
+         * 0 - optional delta value
+         * 
+         * Int arguments:
+         * 0 - optional argument, isNHWC. false by default.
+         */
+        DECLARE_CONFIGURABLE_OP(adjust_hue, 1, 1, true, -2, -2);
+
+        /**
+         * This operation adjusts image saturation by delta
+         * Input arrays:
+         * 0 - 1D or 3D input array, must have 3 channels.
+         * 1 - optional scalar, delta value
+         * 
+         * T arguments:
+         * 0 - optional delta value
+         * 
+         * Int arguments:
+         * 0 - optional argument, isNHWC. false by default.
+         */
+        DECLARE_CONFIGURABLE_OP(adjust_saturation, 1, 1, true, -2, -2);
+
+
+        /**
+         * 
+         * 
+         *
+         */
+        DECLARE_CUSTOM_OP(depth_to_space, 1, 1, false, 0, 2);
+
+        /**
+         * 
+         * 
+         *
+         */
+        DECLARE_CUSTOM_OP(space_to_depth, 1, 1, false, 0, 2);
+
+        /**
+         * This op calculates cross-product between input arguments
+         * Input arguments
+         * 0 - vector or tensor A
+         * 1 - vector or tensor B
+         */
+        DECLARE_OP(cross, 2, 1, false);
+
+        /**
+         * 
+         * 
+         */
+        DECLARE_CUSTOM_OP(space_to_batch, 3, 1, false, 0, -2);
+
+        /**
+         * 
+         * 
+         */
+        DECLARE_CUSTOM_OP(batch_to_space, 3, 1, false, 0, -2);
     }
 }
