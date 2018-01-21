@@ -9,6 +9,10 @@
 namespace nd4j {
 namespace ops {
     CUSTOM_OP_IMPL(dilation2d, 2, 1, false, 0, 1) {
+        auto input = INPUT_VARIABLE(0);
+        auto weights = INPUT_VARIABLE(1);
+
+        auto output = OUTPUT_VARIABLE(0);
 
         return Status::OK();
     }
@@ -53,6 +57,8 @@ namespace ops {
         std::array<int, 4> shape = {{batch_size, out_rows, out_cols, depth}};
         ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(4), int);
         shape::shapeBuffer(4, shape.data(), newShape);
+
+        shape::printShapeInfoLinear(newShape);
 
         return new ShapeList();
     }
