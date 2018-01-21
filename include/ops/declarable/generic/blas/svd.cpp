@@ -19,9 +19,10 @@ CUSTOM_OP_IMPL(svd, 1, 1, false, 0, 3) {
     const bool calcUV = (bool)INT_ARG(1);
     const int switchNum =  INT_ARG(2);    
     
+    const int sRank = rank == 2 ? 2 : rank - 1; 
 
     ResultSet<T>* listX = NDArrayFactory<T>::allTensorsAlongDimension(x, {rank-2, rank-1});
-    ResultSet<T>* listS = NDArrayFactory<T>::allTensorsAlongDimension(s, {rank-1});
+    ResultSet<T>* listS = NDArrayFactory<T>::allTensorsAlongDimension(s, {sRank-1});
     ResultSet<T>* listU(nullptr), *listV(nullptr);
     
     if(calcUV) {
@@ -33,6 +34,8 @@ CUSTOM_OP_IMPL(svd, 1, 1, false, 0, 3) {
 
     for(int i = 0; i < listX->size(); ++i) {
         
+        // NDArray<T> matrix(listX->at(i)->sizeAt(0), listX->at(i)->sizeAt(1), x->ordering(), block.getWorkspace());
+        // matrix.assign(listX->at(i));
         helpers::SVD<T> svdObj(*(listX->at(i)), switchNum, calcUV, calcUV, fullUV);    
         listS->at(i)->assign(svdObj._S);
 
@@ -86,13 +89,14 @@ DECLARE_SHAPE_FN(svd) {
         int* uShapeInfo(nullptr), *vShapeInfo(nullptr);
         COPY_SHAPE(inShapeInfo, uShapeInfo);
         COPY_SHAPE(inShapeInfo, vShapeInfo);
-    
+
         if(fullUV) {
             uShapeInfo[rank]   = uShapeInfo[rank-1];
             vShapeInfo[rank-1] = vShapeInfo[rank];
         }
         else {
             uShapeInfo[rank] = diagSize;
+            vShapeInfo[rank-1] = vShapeInfo[rank];
             vShapeInfo[rank] = diagSize;
         }
     

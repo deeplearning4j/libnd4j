@@ -75,6 +75,7 @@ namespace nd4j {
          * IArgs[1] - bool, whether to calculate full-sized u and v
          * IArgs[2] - the number of cols or rows which determines what algorithm to use. More precisely:
          *            if diagSize < IArgs[2] then Jacobi algorithm is used, in opposite case the Divide-And-Conquer is applied
+         *            Recommended value is 16. 
          */
         DECLARE_CUSTOM_OP(svd, 1, 1, false, 0, 3);   
     }
