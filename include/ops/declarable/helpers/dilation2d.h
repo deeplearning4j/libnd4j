@@ -54,13 +54,12 @@ namespace helpers {
         const int filter_rows_eff = filter_rows + (filter_rows - 1) * (*rate_rows - 1);
         const int filter_cols_eff = filter_cols + (filter_cols - 1) * (*rate_cols - 1);
 
-        int *padding_after_unused;
-        if (_outputSize(input_rows, filter_rows_eff, *stride_rows, isSameMode, out_rows, pad_top, padding_after_unused, padding_after_unused) != Status::OK())
+        int padding_after_unusedA, padding_after_unusedB;
+        if (_outputSize(input_rows, filter_rows_eff, 1, *stride_rows, isSameMode, out_rows, pad_top, &padding_after_unusedA) != Status::OK())
             return Status::THROW("Dilation2D: bad height");
 
-        if (_outputSize(input_cols, filter_cols_eff, *stride_cols, isSameMode, out_cols, pad_left, padding_after_unused, padding_after_unused) != Status::OK())
+        if (_outputSize(input_cols, filter_cols_eff, 1, *stride_cols, isSameMode, out_cols, pad_left, &padding_after_unusedA) != Status::OK())
             return Status::THROW("Dilation2D: bad width");
-
 
         return Status::OK();
     }

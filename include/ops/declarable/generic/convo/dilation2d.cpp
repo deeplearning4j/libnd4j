@@ -60,7 +60,7 @@ namespace ops {
 
         shape::printShapeInfoLinear(newShape);
 
-        return new ShapeList();
+        return new ShapeList(newShape);
     }
 }
 }
