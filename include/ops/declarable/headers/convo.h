@@ -216,6 +216,6 @@ namespace nd4j {
          * Int args:
          * 0: isSameMode
          */
-        DECLARE_CUSTOM_OP(dilation2d, 4, 1, false, 0, 1);
+        DECLARE_CUSTOM_OP(dilation2d, 2, 1, false, 0, 1);
     }
 }
