@@ -3,6 +3,7 @@
 //
 
 #include <ops/declarable/helpers/dilation2d.h>
+#include <array/DataTypeUtils.h>
 
 namespace nd4j {
 namespace ops {
@@ -20,14 +21,14 @@ namespace helpers {
         const int output_rows = output->sizeAt(1);
         const int output_cols = output->sizeAt(2);
 
-#pragma omp parallel for schedule(guided)
+#pragma omp parallel for simd schedule(guided)
         for (int b = 0; b < batch; ++b) {
             for (int h_out = 0; h_out < output_rows; ++h_out) {
                 int h_beg = h_out * stride_rows - pad_top;
                 for (int w_out = 0; w_out < output_cols; ++w_out) {
                     int w_beg = w_out * stride_cols - pad_left;
                     for (int d = 0; d < depth; ++d) {
-                        T cur_val = -MAX_FLOAT;
+                        T cur_val = -DataTypeUtils::max<T>();
                         for (int h = 0; h < filter_rows; ++h) {
                             const int h_in = h_beg + h * rate_rows;
                             if (h_in >= 0 && h_in < input_rows) {
