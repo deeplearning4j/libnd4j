@@ -995,7 +995,7 @@ TEST_F(ConvolutionTests, Test_Conv2D_4_1) {
 
 TEST_F(ConvolutionTests, Test_Dilation2D_1) {
     NDArray<double> input('c', {2, 6, 6, 3});
-    NDArray<double> weights('c', {3, 2, 2});
+    NDArray<double> weights('c', {3, 2, 3});
     NDArray<double> exp('c', {2, 3, 3, 3}, {77,   79,   81,   83,   85,   87,   80,   82,   84,  113,  115,  117, 119,  121,  123,  116,  118,  120,  107,  109,  111,  113,  115,  117, 110,  112,  114,  185,  187,  189,  191,  193,  195,  188,  190,  192, 221,  223,  225,  227,  229,  231,  224,  226,  228,  215,  217,  219, 221,  223,  225,  218,  220,  222,});
 
     NDArrayFactory<double>::linspace(1, input);
@@ -1015,7 +1015,7 @@ TEST_F(ConvolutionTests, Test_Dilation2D_1) {
 
 TEST_F(ConvolutionTests, Test_Dilation2D_2) {
     NDArray<double> input('c', {2, 6, 6, 3});
-    NDArray<double> weights('c', {3, 2, 2});
+    NDArray<double> weights('c', {3, 2, 3});
     NDArray<double> exp('c', {2, 1, 2, 3}, {95, 97, 99, 101, 103, 105, 203, 205, 207, 209, 211, 213});
 
     NDArrayFactory<double>::linspace(1, input);
