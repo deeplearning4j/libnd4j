@@ -812,13 +812,14 @@ TEST_F(HelpersTests1, JacobiSVD_test2) {
     jac._v = matrix5;
 
     double maxElem;
-    bool result = jac.isBlock2x2NotDiag(matrix3, 1, 3, maxElem);    
-    
-    ASSERT_TRUE(result);
+    bool result = jac.isBlock2x2NotDiag(matrix3, 1, 3, maxElem);
+
     // ASSERT_NEAR(maxElem, 19.69772, 1e-5);
     ASSERT_TRUE(exp3.equalsTo(&matrix3));
     ASSERT_TRUE(exp4.equalsTo(&jac._u));
     ASSERT_TRUE(exp5.equalsTo(&jac._v));
+
+    ASSERT_TRUE(result);
 }
 
 ///////////////////////////////////////////////////////////////////
