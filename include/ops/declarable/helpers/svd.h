@@ -62,9 +62,30 @@ class SVD {
 
     void evalData(const NDArray<T>& matrix);
 
+    FORCEINLINE NDArray<T>& getS();
+    FORCEINLINE NDArray<T>& getU();
+    FORCEINLINE NDArray<T>& getV();
+
 };
 
-    
+
+//////////////////////////////////////////////////////////////////////////
+template<typename T>
+FORCEINLINE NDArray<T>& SVD<T>::getS() {
+  return _S;
+}
+
+//////////////////////////////////////////////////////////////////////////
+template<typename T>
+FORCEINLINE NDArray<T>& SVD<T>::getU() {
+  return _U;
+}
+
+//////////////////////////////////////////////////////////////////////////
+template<typename T>
+FORCEINLINE NDArray<T>& SVD<T>::getV() {
+  return _V;
+}
 
 
 

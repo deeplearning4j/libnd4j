@@ -156,11 +156,6 @@ bool JacobiSVD<T>::isBlock2x2NotDiag(NDArray<T>& block, int p, int q, T& maxElem
     
     maxElem = math::nd4j_max<T>(maxElem, math::nd4j_max<T>(math::nd4j_abs<T>(block(p,p)), math::nd4j_abs<T>(block(q,q))));
     T threshold = math::nd4j_max<T>(almostZero, precision * maxElem);
-    std::cout << (double)almostZero << " " << (double) precision << " "<<(double)maxElem << " " <<(double)(precision * maxElem)<<std::endl;
-
-    std::cout << (double)math::nd4j_abs<T>(block(p,q)) << std::endl;
-    std::cout << (double)math::nd4j_abs<T>(block(q,p)) << std::endl;
-    std::cout << (double)threshold << std::endl;
 
     return math::nd4j_abs<T>(block(p,q)) > threshold || math::nd4j_abs<T>(block(q,p)) > threshold;
 }
