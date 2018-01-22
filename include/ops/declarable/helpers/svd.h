@@ -21,10 +21,10 @@ class SVD {
     
     int _switchSize = 10;
 
-    NDArray<T> _M;
-    NDArray<T> _S;
-    NDArray<T> _U;
-    NDArray<T> _V;
+    NDArray<T> _m;
+    NDArray<T> _s;
+    NDArray<T> _u;
+    NDArray<T> _v;
     
     int _diagSize;
 
@@ -72,19 +72,19 @@ class SVD {
 //////////////////////////////////////////////////////////////////////////
 template<typename T>
 FORCEINLINE NDArray<T>& SVD<T>::getS() {
-  return _S;
+  return _s;
 }
 
 //////////////////////////////////////////////////////////////////////////
 template<typename T>
 FORCEINLINE NDArray<T>& SVD<T>::getU() {
-  return _U;
+  return _u;
 }
 
 //////////////////////////////////////////////////////////////////////////
 template<typename T>
 FORCEINLINE NDArray<T>& SVD<T>::getV() {
-  return _V;
+  return _v;
 }
 
 

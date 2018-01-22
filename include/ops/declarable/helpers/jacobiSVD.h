@@ -19,10 +19,10 @@ class JacobiSVD {
 
     public:                
 
-        NDArray<T> _M;
-        NDArray<T> _S;          // vector with singular values
-        NDArray<T> _U;
-        NDArray<T> _V;
+        NDArray<T> _m;
+        NDArray<T> _s;          // vector with singular values
+        NDArray<T> _u;
+        NDArray<T> _v;
     
         int _diagSize;
         int _rows;

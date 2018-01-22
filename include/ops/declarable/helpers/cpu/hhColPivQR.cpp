@@ -14,7 +14,6 @@ namespace helpers {
 template <typename T>
 HHcolPivQR<T>::HHcolPivQR(const NDArray<T>& matrix) {
 
-
     _qr = matrix;
     _diagSize = math::nd4j_min<int>(matrix.sizeAt(0), matrix.sizeAt(1));    
     _coeffs = NDArray<T>(1, _diagSize, matrix.ordering(), matrix.getWorkspace());   
