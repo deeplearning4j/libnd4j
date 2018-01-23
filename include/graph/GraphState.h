@@ -11,6 +11,8 @@
 #include <vector>
 #include <map>
 #include <Scope.h>
+#include <Status.h>
+#include <ops/declarable/DeclarableOp.h>
 
 namespace nd4j {
 namespace graph {
@@ -33,6 +35,55 @@ namespace graph {
 
         Nd4jIndex FORCEINLINE id() {
             return _id;
+        }
+
+        /**
+         * This method adds scope to this state tracker
+         *
+         * @param scopeId
+         * @return
+         */
+        Nd4jStatus FORCEINLINE registerScope(int scopeId) {
+            Scope<T> scope(scopeId);
+            _scopes[scopeId] = scope;
+
+            return Status::OK();
+        }
+
+        /**
+         * This method removes specified scope from this state tracker
+         *
+         * @param scopeId
+         * @return
+         */
+        Nd4jStatus FORCEINLINE forgetScope(int scopeId) {
+            if (_scopes.count(scopeId) > 0)
+                _scopes.erase(scopeId);
+            else
+                return Status::THROW("Non-existent scope requested");
+
+            return Status::OK();
+        }
+
+        /**
+         * This method adds given op to the end of specified scope
+         *
+         * @param scopeId
+         * @param op
+         * @return
+         */
+        FORCEINLINE Nd4jStatus attachOpToScope(int scopeId, DeclarableOp<T> *op) {
+
+            return Status::OK();
+        }
+
+        /**
+         * This method returns current variable space of this state holder
+         *
+         * @return
+         */
+        FORCEINLINE VariableSpace<T>*  variableSpace() {
+            return &_variableSpace;
         }
 
 
