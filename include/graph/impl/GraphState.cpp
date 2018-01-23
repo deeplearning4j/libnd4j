@@ -3,3 +3,12 @@
 //
 
 #include <graph/GraphState.h>
+
+
+namespace nd4j {
+namespace graph {
+
+
+
+}
+}
