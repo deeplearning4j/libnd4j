@@ -118,6 +118,29 @@ namespace simdOps {
 		}
 	};
 
+
+	template<typename T>
+	class Polysq {
+	public:
+		op_def static T op(T d1, T d2) {
+			return (d1 * d1 + d2);
+		}
+
+		op_def static T op(T d1, T d2, T *params) {
+			return (d1 * d1 + d2);
+		}
+
+		op_def static T op(T d1) {
+			return d1 * d1;
+		}
+
+		// op for MetaOps
+		op_def static T op(T d1, T *params) {
+			return d1 * d1 + params[0];
+		}
+	};
+
+        
 	template<typename T>
 	class Subtract {
 	public:

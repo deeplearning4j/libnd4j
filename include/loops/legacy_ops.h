@@ -40,7 +40,8 @@
        (19, simdOps::FloorDiv),\
        (20, simdOps::ReverseMod),\
        (21, simdOps::SafeDivide),\
-       (22, simdOps::Mod)
+       (22, simdOps::Mod), \
+       (81, simdOps::Polysq)
 
 
 
@@ -269,6 +270,7 @@
         (23, simdOps::ReverseMod),\
         (24, simdOps::SafeDivide), \
         (25, simdOps::Mod) ,\
+        (81, simdOps::Polysq), \
         (92, simdOps::PowDerivative)
 
 
