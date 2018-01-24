@@ -383,7 +383,7 @@ TEST_F(DeclarableOpsTests5, eye_trest4) {
 }
 
 //////////////////////////////////////////////////////////////////////
-TEST_F(DeclarableOpsTests5, gatherNd_trest1) {
+TEST_F(DeclarableOpsTests5, gatherNd_test1) {
     
     NDArray<float> input('c', {4, 3, 2});
     NDArrayFactory<float>::linspace(1, input);    
@@ -403,7 +403,7 @@ TEST_F(DeclarableOpsTests5, gatherNd_trest1) {
 }
 
 //////////////////////////////////////////////////////////////////////
-TEST_F(DeclarableOpsTests5, gatherNd_trest2) {
+TEST_F(DeclarableOpsTests5, gatherNd_test2) {
     
     NDArray<float> input('c', {4, 3, 2});
     NDArrayFactory<float>::linspace(1, input);    
@@ -423,7 +423,7 @@ TEST_F(DeclarableOpsTests5, gatherNd_trest2) {
 }
 
 //////////////////////////////////////////////////////////////////////
-TEST_F(DeclarableOpsTests5, gatherNd_trest3) {
+TEST_F(DeclarableOpsTests5, gatherNd_test3) {
     
     NDArray<float> input('c', {4, 3, 2});
     NDArrayFactory<float>::linspace(1, input);    
@@ -442,7 +442,7 @@ TEST_F(DeclarableOpsTests5, gatherNd_trest3) {
 }
 
 //////////////////////////////////////////////////////////////////////
-TEST_F(DeclarableOpsTests5, gatherNd_trest4) {
+TEST_F(DeclarableOpsTests5, gatherNd_test4) {
     
     NDArray<float> input('c', {4, 3, 2});
     NDArrayFactory<float>::linspace(1, input);    
@@ -461,7 +461,7 @@ TEST_F(DeclarableOpsTests5, gatherNd_trest4) {
 }
 
 //////////////////////////////////////////////////////////////////////
-TEST_F(DeclarableOpsTests5, gatherNd_trest5) {
+TEST_F(DeclarableOpsTests5, gatherNd_test5) {
     
     NDArray<float> input('c', {4}, {1,2,3,4});
     NDArray<float> indices('c', {5,1}, {3,2,0,1,1});
@@ -479,7 +479,7 @@ TEST_F(DeclarableOpsTests5, gatherNd_trest5) {
 }
 
 //////////////////////////////////////////////////////////////////////
-TEST_F(DeclarableOpsTests5, gatherNd_trest6) {
+TEST_F(DeclarableOpsTests5, gatherNd_test6) {
     
     NDArray<float> input('c', {4}, {1,2,3,4});
     std::vector<int> shape = {1};
