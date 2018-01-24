@@ -12,7 +12,9 @@
 #include <map>
 #include <Scope.h>
 #include <Status.h>
+#include <VariableSpace.h>
 #include <ops/declarable/DeclarableOp.h>
+#include <types/pair.h>
 
 namespace nd4j {
 namespace graph {
@@ -23,19 +25,20 @@ namespace graph {
         Nd4jIndex _id = 0;
 
         // map of scopes. Scope id is used as key, since it's referred in calls later anyway
-        std::map<int, Scope<T>> _scopes;
+        std::map<int, Scope<T> *> _scopes;
 
         // this variable space holds temp references
         VariableSpace<T> _variableSpace;
 
     public:
-        GraphState() = default;
-        ~GraphState() = default;
+        explicit GraphState(Nd4jIndex id);
+        ~GraphState();
 
-
-        Nd4jIndex FORCEINLINE id() {
-            return _id;
-        }
+        /**
+         *
+         * @return
+         */
+        Nd4jIndex id();
 
         /**
          * This method adds scope to this state tracker
@@ -43,12 +46,7 @@ namespace graph {
          * @param scopeId
          * @return
          */
-        Nd4jStatus FORCEINLINE registerScope(int scopeId) {
-            Scope<T> scope(scopeId);
-            _scopes[scopeId] = scope;
-
-            return Status::OK();
-        }
+        Nd4jStatus registerScope(int scopeId);
 
         /**
          * This method removes specified scope from this state tracker
@@ -56,37 +54,34 @@ namespace graph {
          * @param scopeId
          * @return
          */
-        Nd4jStatus FORCEINLINE forgetScope(int scopeId) {
-            if (_scopes.count(scopeId) > 0)
-                _scopes.erase(scopeId);
-            else
-                return Status::THROW("Non-existent scope requested");
-
-            return Status::OK();
-        }
+        Nd4jStatus forgetScope(int scopeId);
 
         /**
          * This method adds given op to the end of specified scope
+         * PLEASE NOTE: This method is used for tests mostly
          *
          * @param scopeId
          * @param op
          * @return
          */
-        FORCEINLINE Nd4jStatus attachOpToScope(int scopeId, DeclarableOp<T> *op) {
+        Nd4jStatus attachOpToScope(int scopeId, DeclarableOp<T> *op, std::vector<Pair> inputs);
 
-            return Status::OK();
-        }
+        /**
+         * This method adds given op to the end of specified scope
+         *
+         * @param scopeId
+         * @param opNum
+         * @param type
+         * @return
+         */
+        Nd4jStatus attachOpToScope(int scopeId, Nd4jIndex opNum, OpType type, std::vector<Pair> inputs);
 
         /**
          * This method returns current variable space of this state holder
          *
          * @return
          */
-        FORCEINLINE VariableSpace<T>*  variableSpace() {
-            return &_variableSpace;
-        }
-
-
+        VariableSpace<T>*  variableSpace();
     };
 }
 }

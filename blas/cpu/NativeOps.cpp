@@ -3415,6 +3415,22 @@ const char* NativeOps::getAllOperations() {
     return nd4j::OpTracker::getInstance()->exportOperations();
 }
 
+nd4j::graph::GraphState<float> *getGraphStateFloat(Nd4jIndex id) {
+    return new nd4j::graph::GraphState<float>(id);
+}
+
+nd4j::graph::GraphState<double> *getGraphStateDouble(Nd4jIndex id) {
+    return new nd4j::graph::GraphState<double>(id);
+}
+
+void deleteGraphStateFloat(nd4j::graph::GraphState<float> *state) {
+    delete state;
+}
+
+void deleteGraphStateDouble(nd4j::graph::GraphState<double> *state) {
+    delete state;
+}
+
 
 template void flattenGeneric<float16>(Nd4jPointer*, int, char, float16*, int*, float16*, int*);
 template void flattenGeneric<float>(Nd4jPointer*, int, char, float*, int*, float*, int*);

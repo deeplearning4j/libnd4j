@@ -50,6 +50,7 @@ bool verbose = false;
 
 #include <array/ShapeList.h>
 #include <graph/VariablesSet.h>
+#include <graph/GraphState.h>
 
 class ND4J_EXPORT NativeOps {
 
@@ -3005,6 +3006,12 @@ public:
     void deleteVariablesSetFloat(Nd4jPointer pointer);
     void deleteVariablesSetDouble(Nd4jPointer pointer);
     void deleteVariablesSetHalf(Nd4jPointer pointer);
+
+    // GraphState creation
+    nd4j::graph::GraphState<float> *getGraphStateFloat(Nd4jIndex id);
+    nd4j::graph::GraphState<double> *getGraphStateDouble(Nd4jIndex id);
+    void deleteGraphStateFloat(nd4j::graph::GraphState<float> *state);
+    void deleteGraphStateDouble(nd4j::graph::GraphState<double> *state);
 };
 
 
