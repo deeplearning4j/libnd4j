@@ -9,7 +9,7 @@
 
 
 namespace nd4j {
-    namespace ops {
+namespace ops {
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -26,7 +26,7 @@ CUSTOM_OP_IMPL(gatherNd, 2, 1, false, 0, 0) {
     int lastIndDim = indices->sizeAt(-1);
 
     REQUIRE_TRUE(lastIndDim <= rank0, 0, "GATHER_ND custom operation: the last dimension of indices array must be <= rank of input array !");
-
+    
     std::vector<int> tadDims(rank0 - lastIndDim);
     std::iota(tadDims.begin(), tadDims.end(), rank0-1);
     ResultSet<T>* innerMostOut = NDArrayFactory<T>::allTensorsAlongDimension(output, tadDims); 
@@ -46,8 +46,7 @@ CUSTOM_OP_IMPL(gatherNd, 2, 1, false, 0, 0) {
     int idx[lastIndDim];
 
     for(int i = 0; i < innerMost1->size(); ++i) {
-        
-        NDArray<T>* outSubArr = innerMostOut->at(i);
+                
         NDArray<T>* idxSubArr = innerMost1->at(i);        
         
         for(int j = 0; j < lastIndDim; ++j) {
@@ -56,7 +55,13 @@ CUSTOM_OP_IMPL(gatherNd, 2, 1, false, 0, 0) {
         }
                 
         int currentInd0 = (int)shape::getOffset(0, shape::shapeOf(outerShapeInfo), shape::stride(outerShapeInfo), idx, lastIndDim);
-        outSubArr->assign(innerMost0->at(currentInd0));
+
+        if(rank0 != lastIndDim) {
+            NDArray<T>* outSubArr = innerMostOut->at(i);
+            outSubArr->assign(innerMost0->at(currentInd0));
+        }
+        else
+            (*output)(i) = ((*input)(currentInd0));
     }
 
     delete innerMost1;
@@ -94,7 +99,6 @@ DECLARE_SHAPE_FN(gatherNd) {
 
     return new ShapeList(outShapeInfo);    
 }
-
 
 
 
