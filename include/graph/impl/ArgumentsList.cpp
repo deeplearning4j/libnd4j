@@ -6,6 +6,10 @@
 
 namespace nd4j {
 namespace graph {
+    ArgumentsList::ArgumentsList(std::initializer_list<Pair> arguments) {
+        _arguments = arguments;
+    }
+
     int ArgumentsList::size() {
         return (int) _arguments.size();
     }
