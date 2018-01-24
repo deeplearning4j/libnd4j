@@ -48,5 +48,11 @@ namespace nd4j {
          * IArgs[3,4,...] - optional, shape of batch, output matrix will have leading batch dimensions of this shape         
          */
         DECLARE_CUSTOM_OP(eye, 1, 1, false, 0, 2);
+
+        /**
+         *  calculates the trace of an array through last two dimensions, that is evaluates the set of sums of elements on main diagonal of inner-most 2D arrays
+         *  the output array will have rank smaller by two compared to rank of input array
+         */
+        DECLARE_CUSTOM_OP(trace, 1, 1, false, 0, 0);
     }
 }

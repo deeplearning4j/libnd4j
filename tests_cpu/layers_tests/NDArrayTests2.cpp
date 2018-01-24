@@ -559,3 +559,36 @@ TEST_F(NDArrayTest2, setZeros_test4) {
     ASSERT_TRUE(exp.equalsTo(&x));    
 
 }
+
+////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest2, getTrace_test1) {
+
+    NDArray<float> x  ('c', {3, 3}, {1,2,3,4,5,6,7,8,9});
+
+    float trace = x.getTrace();
+
+    ASSERT_TRUE(trace == 15.);    
+
+}
+
+////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest2, getTrace_test2) {
+
+    NDArray<float> x  ('c', {2, 3}, {1,2,3,4,5,6});
+
+    float trace = x.getTrace();
+
+    ASSERT_TRUE(trace == 6.);    
+
+}
+
+////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayTest2, getTrace_test3) {
+
+    NDArray<float> x  ('c', {3, 2}, {1,2,3,4,5,6});
+
+    float trace = x.getTrace();
+
+    ASSERT_TRUE(trace == 5.);    
+
+}
