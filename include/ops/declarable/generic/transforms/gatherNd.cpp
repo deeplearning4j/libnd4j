@@ -43,7 +43,7 @@ CUSTOM_OP_IMPL(gatherNd, 2, 1, false, 0, 0) {
         outerShapeInfo[i] = input->sizeAt(i-1);
     shape::updateStrides(outerShapeInfo, input->ordering());
 
-    int idx[lastIndDim];
+    int* idx = new int[lastIndDim];
 
     for(int i = 0; i < innerMost1->size(); ++i) {
                 
@@ -67,6 +67,7 @@ CUSTOM_OP_IMPL(gatherNd, 2, 1, false, 0, 0) {
     delete innerMost1;
     delete innerMost0;
     delete innerMostOut;
+    delete []idx;
     RELEASE(outerShapeInfo, block.getWorkspace());
     
     return Status::OK();
