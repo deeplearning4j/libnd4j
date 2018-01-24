@@ -40,11 +40,13 @@ namespace graph {
         return Status::OK();
     };
 
+#ifndef __JAVACPP_HACK__
     template <typename T>
-    Nd4jStatus GraphState<T>::attachOpToScope(int scopeId, DeclarableOp<T> *op, std::vector<Pair> inputs) {
+    Nd4jStatus GraphState<T>::attachOpToScope(int scopeId, DeclarableOp<T> *op, ArgumentsList inputs) {
 
         return Status::OK();
     };
+#endif
 
     template <typename T>
     VariableSpace<T>* GraphState<T>::variableSpace() {
@@ -57,7 +59,7 @@ namespace graph {
     }
 
     template <typename T>
-    Nd4jStatus GraphState<T>::attachOpToScope(int scopeId, Nd4jIndex opNum, OpType type, std::vector<Pair> inputs) {
+    Nd4jStatus GraphState<T>::attachOpToScope(int scopeId, Nd4jIndex opNum, int type, ArgumentsList inputs) {
         // we should use OpRegistrator here, to create Node and push it to specific scope
         return Status::OK();
     }

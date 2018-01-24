@@ -15,6 +15,7 @@
 #include <VariableSpace.h>
 #include <ops/declarable/DeclarableOp.h>
 #include <types/pair.h>
+#include "ArgumentsList.h"
 
 namespace nd4j {
 namespace graph {
@@ -56,6 +57,7 @@ namespace graph {
          */
         Nd4jStatus forgetScope(int scopeId);
 
+#ifndef __JAVACPP_HACK__
         /**
          * This method adds given op to the end of specified scope
          * PLEASE NOTE: This method is used for tests mostly
@@ -64,8 +66,9 @@ namespace graph {
          * @param op
          * @return
          */
-        Nd4jStatus attachOpToScope(int scopeId, DeclarableOp<T> *op, std::vector<Pair> inputs);
+        Nd4jStatus attachOpToScope(int scopeId, DeclarableOp<T> *op, ArgumentsList inputs);
 
+#endif
         /**
          * This method adds given op to the end of specified scope
          *
@@ -74,7 +77,7 @@ namespace graph {
          * @param type
          * @return
          */
-        Nd4jStatus attachOpToScope(int scopeId, Nd4jIndex opNum, OpType type, std::vector<Pair> inputs);
+        Nd4jStatus attachOpToScope(int scopeId, Nd4jIndex opNum, int type, ArgumentsList inputs);
 
         /**
          * This method returns current variable space of this state holder
