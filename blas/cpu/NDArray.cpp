@@ -3005,7 +3005,7 @@ T NDArray<T>::getTrace() const {
             minDim = shape[i];
     T sum = 0.;
 
-#pragma omp parallel for if(minDim > Environment::getInstance()->elementwiseThreshold()) reduction(+:sum) schedule(guided) 
+#pragma omp parallel for reduction(sumT:sum) if(minDim > Environment::getInstance()->elementwiseThreshold()) schedule(guided) 
     for(int i = 0; i < minDim; ++i)
         sum += _buffer[i*offset];
 
