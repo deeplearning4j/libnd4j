@@ -78,4 +78,27 @@ TEST_F(GraphStateTests, Basic_Tests_2) {
 
 TEST_F(GraphStateTests, Stateful_Execution_1) {
     NativeOps nativeOps;
+
+    auto state = nativeOps.getGraphStateFloat(117L);
+
+    Nd4jIndex scopes[] = {22, 33};
+    auto status = nativeOps.execCustomOpWithScopeFloat(nullptr, state, 10, scopes, 2, nullptr, nullptr, 0, nullptr, nullptr, 0);
+    ASSERT_EQ(Status::THROW(), status);
+
+    nativeOps.deleteGraphStateFloat(state);
+}
+
+TEST_F(GraphStateTests, Stateful_Execution_2) {
+    NativeOps nativeOps;
+
+    auto state = nativeOps.getGraphStateFloat(117L);
+
+    state->registerScope(22);
+    state->registerScope(33);
+
+    Nd4jIndex scopes[] = {22, 33};
+    auto status = nativeOps.execCustomOpWithScopeFloat(nullptr, state, 10, scopes, 2, nullptr, nullptr, 0, nullptr, nullptr, 0);
+    ASSERT_EQ(Status::OK(), status);
+
+    nativeOps.deleteGraphStateFloat(state);
 }
