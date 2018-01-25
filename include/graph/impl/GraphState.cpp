@@ -28,6 +28,9 @@ namespace graph {
         auto scope = new Scope<T>(scopeId);
         _scopes[scopeId] = scope;
 
+        auto scopeWrapper = new Node<T>(OpType_LOGIC, 10, scopeId);
+        _graph->addNode(scopeWrapper);
+
         return Status::OK();
     };
 

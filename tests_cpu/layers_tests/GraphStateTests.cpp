@@ -137,5 +137,10 @@ TEST_F(GraphStateTests, Stateful_Execution_3) {
     auto status = nativeOps.execCustomOpWithScopeFloat(nullptr, state, 0, scopes, 2, ptrBuffers, ptrShapes, 3, outBuffers, outShapes, 3);
     ASSERT_EQ(Status::OK(), status);
 
+
+    float sum = res0.template reduceNumber<simdOps::Sum<float>>();
+
+    ASSERT_TRUE(sum > 0.0f);
+
     nativeOps.deleteGraphStateFloat(state);
 }
