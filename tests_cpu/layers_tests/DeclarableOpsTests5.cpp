@@ -391,7 +391,7 @@ TEST_F(DeclarableOpsTests5, gatherNd_test1) {
 
     NDArray<float> expected('c', {2,2,3,2}, {19, 20, 21, 22, 23, 24, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 13, 14, 15, 16, 17, 18});
 
-    nd4j::ops::gatherNd<float> op;
+    nd4j::ops::gather_nd<float> op;
     ResultSet<float>* results = op.execute({&input, &indices}, {}, {});
     NDArray<float>* output = results->at(0);
     
@@ -411,7 +411,7 @@ TEST_F(DeclarableOpsTests5, gatherNd_test2) {
 
     NDArray<float> expected('c', {2,2,2}, {23, 24, 11, 12, 3,  4, 3,  4});
 
-    nd4j::ops::gatherNd<float> op;
+    nd4j::ops::gather_nd<float> op;
     ResultSet<float>* results = op.execute({&input, &indices}, {}, {});
     NDArray<float>* output = results->at(0);    
     
@@ -430,7 +430,7 @@ TEST_F(DeclarableOpsTests5, gatherNd_test3) {
     NDArray<float> indices('c', {3}, {3,2,1});
     NDArray<float> expected(24.);
 
-    nd4j::ops::gatherNd<float> op;
+    nd4j::ops::gather_nd<float> op;
     ResultSet<float>* results = op.execute({&input, &indices}, {}, {});
     NDArray<float>* output = results->at(0);
     
@@ -449,7 +449,7 @@ TEST_F(DeclarableOpsTests5, gatherNd_test4) {
     NDArray<float> indices('c', {2,3}, {3,2,1,0,2,1});
     NDArray<float> expected('c',{2}, {24., 6});
 
-    nd4j::ops::gatherNd<float> op;
+    nd4j::ops::gather_nd<float> op;
     ResultSet<float>* results = op.execute({&input, &indices}, {}, {});
     NDArray<float>* output = results->at(0);
     
@@ -467,7 +467,7 @@ TEST_F(DeclarableOpsTests5, gatherNd_test5) {
     NDArray<float> indices('c', {5,1}, {3,2,0,1,1});
     NDArray<float> expected('c',{5}, {4.,3,1,2,2});
 
-    nd4j::ops::gatherNd<float> op;
+    nd4j::ops::gather_nd<float> op;
     ResultSet<float>* results = op.execute({&input, &indices}, {}, {});
     NDArray<float>* output = results->at(0);
     
@@ -486,7 +486,7 @@ TEST_F(DeclarableOpsTests5, gatherNd_test6) {
     NDArray<float> indices('c', shape, {2});
     NDArray<float> expected(3.);
 
-    nd4j::ops::gatherNd<float> op;
+    nd4j::ops::gather_nd<float> op;
     ResultSet<float>* results = op.execute({&input, &indices}, {}, {});
     NDArray<float>* output = results->at(0);
     
@@ -628,7 +628,7 @@ TEST_F(DeclarableOpsTests5, reverse_sequense_test7) {
     ASSERT_TRUE(exp.isSameShape(output));
     ASSERT_TRUE(exp.equalsTo(output));
 
-    delete results
+    delete results;
 }
 
 //////////////////////////////////////////////////////////////////////
