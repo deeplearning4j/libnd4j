@@ -12,6 +12,7 @@ namespace graph {
     template <typename T>
     GraphState<T>::GraphState(Nd4jIndex id) {
         _id = id;
+        _graph = new Graph<T>(nullptr, &_variableSpace);
     };
 
     template <typename T>
@@ -73,7 +74,7 @@ namespace graph {
 
     template <typename T>
     Graph<T>* GraphState<T>::graph() {
-        return &_graph;
+        return _graph;
     }
 
     template <typename T>

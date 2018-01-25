@@ -98,6 +98,43 @@ TEST_F(GraphStateTests, Stateful_Execution_2) {
 
     Nd4jIndex scopes[] = {22, 33};
     auto status = nativeOps.execCustomOpWithScopeFloat(nullptr, state, 10, scopes, 2, nullptr, nullptr, 0, nullptr, nullptr, 0);
+    
+    // it's no-op: just LogicScope
+    ASSERT_EQ(Status::OK(), status);
+
+    nativeOps.deleteGraphStateFloat(state);
+}
+
+
+TEST_F(GraphStateTests, Stateful_Execution_3) {
+    NativeOps nativeOps;
+
+    NDArray<float> var0('c', {2, 2}, {1, 2, 3, 4});
+    NDArray<float> var1(1.0f);
+    NDArray<float> var2(1.0f);
+
+    NDArray<float> res0('c', {2, 2});
+    NDArray<float> res1(0.0f);
+    NDArray<float> res2(0.0f);
+
+    auto state = nativeOps.getGraphStateFloat(117L);
+
+    Nd4jPointer ptrBuffers[] = {(Nd4jPointer) var0.buffer(), (Nd4jPointer) var1.buffer(), (Nd4jPointer)var2.buffer()};
+    Nd4jPointer ptrShapes[] = {(Nd4jPointer) var0.shapeInfo(), (Nd4jPointer) var1.shapeInfo(), (Nd4jPointer)var2.shapeInfo()};
+
+    Nd4jPointer outBuffers[] = {(Nd4jPointer) res0.buffer(), (Nd4jPointer) res1.buffer(), (Nd4jPointer) res2.buffer()};
+    Nd4jPointer outShapes[] = {(Nd4jPointer) res0.shapeInfo(), (Nd4jPointer) res1.shapeInfo(), (Nd4jPointer) res2.shapeInfo()};
+
+    // conditional scope
+    state->registerScope(22);
+
+    // body scope
+    state->registerScope(33);
+
+    Nd4jIndex scopes[] = {22, 33};
+
+    // we're executing while loop
+    auto status = nativeOps.execCustomOpWithScopeFloat(nullptr, state, 0, scopes, 2, ptrBuffers, ptrShapes, 3, outBuffers, outShapes, 3);
     ASSERT_EQ(Status::OK(), status);
 
     nativeOps.deleteGraphStateFloat(state);

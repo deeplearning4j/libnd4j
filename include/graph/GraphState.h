@@ -32,7 +32,7 @@ namespace graph {
         // this variable space holds temp references
         VariableSpace<T> _variableSpace;
 
-        Graph<T> _graph;
+        Graph<T> *_graph;
 
     public:
         explicit GraphState(Nd4jIndex id);

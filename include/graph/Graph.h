@@ -60,7 +60,7 @@ namespace nd4j {
 
             void printOutNode(Node<T>* node);
         public:
-            Graph(const FlatGraph *flatGraph = nullptr);
+            Graph(const FlatGraph *flatGraph = nullptr, VariableSpace<T> *variableSpace = nullptr);
 
             ~Graph();
 
