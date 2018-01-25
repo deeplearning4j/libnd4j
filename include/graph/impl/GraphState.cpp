@@ -88,6 +88,11 @@ namespace graph {
 #endif
 
     template <typename T>
+    bool GraphState<T>::hasScope(int scopeId) {
+        return _scopes.count(scopeId) > 0;
+    }
+
+    template <typename T>
     VariableSpace<T>* GraphState<T>::variableSpace() {
         return &_variableSpace;
     };

@@ -53,6 +53,14 @@ namespace graph {
         Nd4jStatus registerScope(int scopeId);
 
         /**
+         * This method cheks if scope with given ID exists
+         * 
+         * @param scopeId - ID of the scope
+         * @return - TRUE if scope exists, FALSE otherwise
+         */
+        bool hasScope(int scopeId);
+
+        /**
          * This method removes specified scope from this state tracker
          *
          * @param scopeId

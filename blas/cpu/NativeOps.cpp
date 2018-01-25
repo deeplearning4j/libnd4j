@@ -3441,6 +3441,10 @@ Nd4jStatus execCustomOpWithScope(Nd4jPointer *extraPointers, nd4j::graph::GraphS
     auto graph = state->graph();
     auto varSpace = state->variableSpace();
 
+    // Node is dynamically created, and has nothing beyond it: only inputs and outputs
+    // this node has id of 0, and inputs are
+    Node<T> node(OpType_LOGIC, opHash, 0);
+
     // mapping inputs
     for (int e = 0; e < numInputs; e++) {
         auto buffer = (T *) inputBuffers[e];
@@ -3449,6 +3453,19 @@ Nd4jStatus execCustomOpWithScope(Nd4jPointer *extraPointers, nd4j::graph::GraphS
         auto array = new NDArray<T>(buffer, shapeInfo, varSpace->workspace());
         
         // now we just put array to VarSpace
+        varSpace->putVariable(-1, e, array);
+        node.pickInput(-1, e);
+    }
+
+    // mapping scopes
+    for (int e = 0; e < numScopes; e++) {
+        // we should check scope existence in GraphState/Graph
+        int scopeId = (int) scopes[e];
+        if (!state->hasScope(scopeId)) {
+            nd4j_printf("execCustomOpWithScope: scope [%i] doesn't exist\n", scopeId);
+            return Status::THROW("execCustomOpWithScope: scope doesn't exist");
+        }
+        node.pickInput(scopeId, 0);
     }
 
     // mapping outputs
@@ -3459,12 +3476,11 @@ Nd4jStatus execCustomOpWithScope(Nd4jPointer *extraPointers, nd4j::graph::GraphS
         auto array = new NDArray<T>(buffer, shapeInfo, varSpace->workspace());
         
         // now we just put array to VarSpace to the same ID
+        varSpace->putVariable(0, e, array);
     }
 
     // after some bla-bla-bla we should have Graph and Node for current op
-    // Node is dynamically created, and has nothing beyond it: only inputs and outputs
-
-    return ND4J_STATUS_OK;
+    return LogicExecutor<T>::processNode(graph, &node);
 }
 
 Nd4jStatus NativeOps::execCustomOpWithScopeFloat(Nd4jPointer *extraPointers, nd4j::graph::GraphState<float> *state, Nd4jIndex opHash, Nd4jIndex *scopes, int numScopes, Nd4jPointer *inputBuffers, Nd4jPointer *inputShapes, int numInputs, Nd4jPointer *outputBuffers, Nd4jPointer *outputShapes, int numOutputs) {
