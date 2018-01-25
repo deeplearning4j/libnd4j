@@ -6912,3 +6912,13 @@ void NativeOps::deleteGraphStateFloat(nd4j::graph::GraphState<float> *state) {
 void NativeOps::deleteGraphStateDouble(nd4j::graph::GraphState<double> *state) {
     delete state;
 }
+
+Nd4jStatus NativeOps::execCustomOpWithScopeFloat(Nd4jPointer *extraPointers, nd4j::graph::GraphState<float> *state, Nd4jIndex opHash, Nd4jIndex *scopes, int numScopes, Nd4jPointer *inputBuffers, Nd4jPointer *inputShapes, int numInputs, Nd4jPointer *outputBuffers, Nd4jPointer *outputShapes, int numOutputs) {
+
+    return ND4J_STATUS_OK;
+}
+
+Nd4jStatus NativeOps::execCustomOpWithScopeDouble(Nd4jPointer *extraPointers, nd4j::graph::GraphState<double> *state, Nd4jIndex opHash, Nd4jIndex *scopes, int numScopes, Nd4jPointer *inputBuffers, Nd4jPointer *inputShapes, int numInputs, Nd4jPointer *outputBuffers, Nd4jPointer *outputShapes, int numOutputs) {
+
+    return ND4J_STATUS_OK;
+}

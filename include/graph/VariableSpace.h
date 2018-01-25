@@ -65,6 +65,8 @@ namespace nd4j {
             virtual std::vector<Variable<T>*>* getPlaceholders();
             virtual nd4j::random::RandomBuffer* getRNG();
             virtual void setRNG(nd4j::random::RandomBuffer* rng);
+            
+            virtual nd4j::memory::Workspace *workspace();
 
             virtual bool hasExternalVariable(int it);
             virtual bool hasExternalVariable(std::pair<int,int>& pair);

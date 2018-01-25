@@ -15,7 +15,8 @@
 #include <VariableSpace.h>
 #include <ops/declarable/DeclarableOp.h>
 #include <types/pair.h>
-#include "ArgumentsList.h"
+#include <ArgumentsList.h>
+#include <Graph.h>
 
 namespace nd4j {
 namespace graph {
@@ -30,6 +31,8 @@ namespace graph {
 
         // this variable space holds temp references
         VariableSpace<T> _variableSpace;
+
+        Graph<T> _graph;
 
     public:
         explicit GraphState(Nd4jIndex id);
@@ -75,6 +78,7 @@ namespace graph {
          */
         Scope<T>* getScope(int scopeId);
 
+        Graph<T>* graph();
 #endif
         /**
          * This method adds given op to the end of specified scope

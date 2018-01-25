@@ -72,6 +72,11 @@ namespace graph {
     };
 
     template <typename T>
+    Graph<T>* GraphState<T>::graph() {
+        return &_graph;
+    }
+
+    template <typename T>
     Scope<T>* GraphState<T>::getScope(int scopeId) {
         if (_scopes.count(scopeId) == 0) {
             nd4j_printf("GraphState: Unknown scope requested %i\n", scopeId);

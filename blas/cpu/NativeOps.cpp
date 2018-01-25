@@ -3431,6 +3431,50 @@ void NativeOps::deleteGraphStateDouble(nd4j::graph::GraphState<double> *state) {
     delete state;
 }
 
+template <typename T>
+Nd4jStatus execCustomOpWithScope(Nd4jPointer *extraPointers, nd4j::graph::GraphState<T> *state, Nd4jIndex opHash, Nd4jIndex *scopes, int numScopes, Nd4jPointer *inputBuffers, Nd4jPointer *inputShapes, int numInputs, Nd4jPointer *outputBuffers, Nd4jPointer *outputShapes, int numOutputs) {
+    /**
+     * That's basically exec, with VariableSpace provided in GraphState:
+     * depending on operation (i.e. while of if), different logic executors could be used
+     */
+
+    auto graph = state->graph();
+    auto varSpace = state->variableSpace();
+
+    // mapping inputs
+    for (int e = 0; e < numInputs; e++) {
+        auto buffer = (T *) inputBuffers[e];
+        auto shapeInfo = (int *) inputShapes[e];
+
+        auto array = new NDArray<T>(buffer, shapeInfo, varSpace->workspace());
+        
+        // now we just put array to VarSpace
+    }
+
+    // mapping outputs
+    for (int e = 0; e < numOutputs; e++) {
+        auto buffer = (T *) outputBuffers[e];
+        auto shapeInfo = (int *) outputShapes[e];
+
+        auto array = new NDArray<T>(buffer, shapeInfo, varSpace->workspace());
+        
+        // now we just put array to VarSpace to the same ID
+    }
+
+    // after some bla-bla-bla we should have Graph and Node for current op
+    // Node is dynamically created, and has nothing beyond it: only inputs and outputs
+
+    return ND4J_STATUS_OK;
+}
+
+Nd4jStatus NativeOps::execCustomOpWithScopeFloat(Nd4jPointer *extraPointers, nd4j::graph::GraphState<float> *state, Nd4jIndex opHash, Nd4jIndex *scopes, int numScopes, Nd4jPointer *inputBuffers, Nd4jPointer *inputShapes, int numInputs, Nd4jPointer *outputBuffers, Nd4jPointer *outputShapes, int numOutputs) {
+    return execCustomOpWithScope<float>(extraPointers, state, opHash, scopes, numScopes, inputBuffers, inputShapes, numInputs, outputBuffers, outputShapes, numOutputs);
+}
+
+Nd4jStatus NativeOps::execCustomOpWithScopeDouble(Nd4jPointer *extraPointers, nd4j::graph::GraphState<double> *state, Nd4jIndex opHash, Nd4jIndex *scopes, int numScopes, Nd4jPointer *inputBuffers, Nd4jPointer *inputShapes, int numInputs, Nd4jPointer *outputBuffers, Nd4jPointer *outputShapes, int numOutputs) {
+    return execCustomOpWithScope<double>(extraPointers, state, opHash, scopes, numScopes, inputBuffers, inputShapes, numInputs, outputBuffers, outputShapes, numOutputs);
+}
+
 
 template void flattenGeneric<float16>(Nd4jPointer*, int, char, float16*, int*, float16*, int*);
 template void flattenGeneric<float>(Nd4jPointer*, int, char, float*, int*, float*, int*);
