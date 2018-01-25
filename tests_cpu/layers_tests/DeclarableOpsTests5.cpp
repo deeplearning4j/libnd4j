@@ -576,23 +576,3 @@ TEST_F(DeclarableOpsTests5, reverse_sequense_test10) {
 
     delete results;
 }
-
-//////////////////////////////////////////////////////////////////////
-TEST_F(DeclarableOpsTests5, reverse_sequense_test11) {
-    
-    NDArray<float> input('f', {3, 4, 5});
-    NDArrayFactory<float>::linspace(1, input);
-    NDArray<float> seqLengths('c', {5}, {1, 2, 4, 2, 3});
-    NDArray<float> exp('f', {3, 4, 5}, {1, 16, 34, 40, 55, 4, 13, 31, 37, 52, 7, 19, 28, 43, 49, 10, 22, 25, 46, 58, 2, 17, 35, 41, 56, 5, 14, 32, 38, 53, 8, 20, 29, 44, 50, 11, 23, 26, 47, 59, 3, 18, 36, 42, 57, 6, 15, 33, 39, 54, 9, 21, 30, 45, 51, 12, 24, 27, 48, 60});
-                                       // {1,  7, 18,  9, 15, 6,  2, 13,  4, 10, 11, 12,  8, 14,  5, 16, 17,  3, 19, 20, 21, 27, 38, 29, 35, 26, 22, 33, 24, 30, 31, 32, 28, 34, 25, 36, 37, 23, 39, 40, 41, 47, 58, 49, 55, 46, 42, 53, 44, 50, 51, 52, 48, 54, 45, 56, 57, 43, 59, 60}
-    nd4j::ops::reverse_sequense<float> op;
-    ResultSet<float>* results = op.execute({&input, &seqLengths}, {}, {1, 2});
-    NDArray<float>* output = results->at(0);        
-    output->printIndexedBuffer();
-    
-    ASSERT_EQ(Status::OK(), results->status());
-    ASSERT_TRUE(exp.isSameShape(output));
-    ASSERT_TRUE(exp.equalsTo(output));
-
-    delete results;
-}
