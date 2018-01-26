@@ -6,6 +6,7 @@
 #include <graph/GraphState.h>
 #include <ops/declarable/CustomOperations.h>
 #include <ops/declarable/LegacyTransformOp.h>
+#include <ops/declarable/LegacyReduceOp.h>
 #include <NativeOps.h>
 
 using namespace nd4j;
@@ -111,7 +112,7 @@ TEST_F(GraphStateTests, Stateful_Execution_3) {
 
     NDArray<float> var0('c', {2, 2}, {1, 2, 3, 4});
     NDArray<float> var1(1.0f);
-    NDArray<float> var2(1.0f);
+    NDArray<float> var2(2.0f);
 
     NDArray<float> res0('c', {2, 2});
     NDArray<float> res1(0.0f);
@@ -128,8 +129,27 @@ TEST_F(GraphStateTests, Stateful_Execution_3) {
     // conditional scope
     state->registerScope(22);
 
+    nd4j::ops::LegacyReduceOp<float> op0(1);
+    nd4j::ops::lt_scalar<float> op1;
+
+    // while sum(var0) < var1
+    ArgumentsList args0;
+    ArgumentsList args1;
+    state->attachOpToScope(22, &op0, args0);
+    state->attachOpToScope(22, &op1, args1);
+
     // body scope
     state->registerScope(33);
+
+    // var0 + var1 + var2
+    ArgumentsList args2;
+    ArgumentsList args3;
+
+    nd4j::ops::add<float> op2;
+    nd4j::ops::add<float> op3;
+
+    state->attachOpToScope(33, &op2, args2);
+    state->attachOpToScope(33, &op3, args3);
 
     Nd4jIndex scopes[] = {22, 33};
 

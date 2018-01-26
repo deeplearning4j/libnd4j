@@ -53,8 +53,9 @@ namespace graph {
         auto scope = _scopes[scopeId];
         
         // creating new Node
-        auto node = new Node<T>(OpType_CUSTOM);
+        auto node = new Node<T>(OpType_CUSTOM, 0, scope->size());
         node->setCustomOp(op);
+        node->setScopeInfo(scopeId);
 
         // mapping inputs here
         for (int e = 0; e < inputs.size(); e++) {
@@ -71,6 +72,8 @@ namespace graph {
         }
 
         scope->push_back(node);
+
+        _graph->addNode(node);
 
         return Status::OK();
     };
