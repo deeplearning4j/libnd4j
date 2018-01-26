@@ -12,9 +12,33 @@ namespace nd4j {
         Nd4jStatus LogicConditional<T>::processNode(Graph<T> *graph, Node<T> *node) {
             auto __variableSpace = graph->getVariableSpace();
 
-            int scopeConditionIndex = node->input()->at(0).first;
-            int scopeFalseIndex = node->input()->at(1).first;
-            int scopeTrueIndex = node->input()->at(2).first;
+            auto size = node->input()->size();
+
+            // propagating inputs (optional)
+            for (int e = 0; e < size - 3; e++) {
+                std::pair<int, int> pair(node->id(), e);
+                if (!__variableSpace->hasVariable(pair)) {
+                    __variableSpace->putVariable(pair, new Variable<T>(nullptr, nullptr, node->id(), e));
+                }
+
+                auto va = node->input()->at(e);
+
+                auto inputVar = __variableSpace->getVariable(va);
+
+                auto innerVar = __variableSpace->getVariable(pair);
+                if (innerVar->hasNDArray()) {
+                    // TODO: ???
+                } else {
+                    // FIXME: in some cases it's possible to have no NDArray
+                    if (inputVar->hasNDArray())
+                        innerVar->setNDArray(inputVar->getNDArray()->dup());
+                }
+            }
+
+
+            int scopeConditionIndex = node->input()->at(size - 3).first;
+            int scopeFalseIndex = node->input()->at(size - 2).first;
+            int scopeTrueIndex = node->input()->at(size - 1).first;
 
             auto scopeCondition = graph->scopeById(scopeConditionIndex);
             int lastNode = 0;
