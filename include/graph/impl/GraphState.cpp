@@ -98,6 +98,43 @@ namespace graph {
 #endif
 
     template <typename T>
+    Nd4jStatus GraphState<T>::defineReturn(int scopeId, int nodeId, ArgumentsList args) {
+        if (_scopes.count(scopeId) == 0)
+            return Status::THROW("GraphState: can't attach op to unknown scope");
+
+        auto scope = _scopes[scopeId];
+
+        // creating new Node for RETURN
+        auto node = new Node<T>(OpType_LOGIC, 40, nodeId);
+        node->setScopeInfo(scopeId);
+
+        // mapping inputs here
+        for (int e = 0; e < args.size(); e++) {
+            auto p = args.at(e);
+
+            // each expected input is Variable in current VariableSpace
+            // it should have it's numerical and symbolic ID
+
+            if (!_variableSpace.hasVariable(p.first(), p.second())) {
+                auto var = new Variable<T>();
+                var->setId(p.first(), p.second());
+                _variableSpace.putVariable(p.first(), p.second(), var);
+            }
+
+            nd4j_printf("Node_%i: adding input [%i:%i]\n", node->id(), p.first(), p.second());
+            node->pickInput(p.first(), p.second());
+            node->pickOutput(0, e);
+        }
+
+        scope->push_back(node);
+
+        _graph->addNode(node);
+
+
+        return Status::OK();
+    }
+
+    template <typename T>
     bool GraphState<T>::hasScope(int scopeId) {
         return _scopes.count(scopeId) > 0;
     }

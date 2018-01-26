@@ -160,6 +160,10 @@ TEST_F(GraphStateTests, Stateful_Execution_3) {
     state->attachOpToScope(33, 3, &op3, args3);
     state->attachOpToScope(33, 4, &op4, args4);
 
+    // Now we define RETURN, which returns 1 modified variable, and 2 unmodified variables
+    ArgumentsList args5({{4, 0}, {0, 1}, {0, 2}});
+    state->defineReturn(33, 5, args5);
+
     Nd4jIndex scopes[] = {22, 33};
 
     // we're executing while loop

@@ -99,6 +99,18 @@ namespace graph {
         Nd4jStatus attachOpToScope(int scopeId, Nd4jIndex opNum, int type, ArgumentsList inputs);
 
         /**
+         * This method adds return statement to specified scope
+         *
+         * PLEASE NOTE: should be used only in body scopes
+         *
+         * @param scopeId
+         * @param nodeId
+         * @param args
+         * @return
+         */
+        Nd4jStatus defineReturn(int scopeId, int nodeId, ArgumentsList args);
+
+        /**
          * This method returns current variable space of this state holder
          *
          * @return

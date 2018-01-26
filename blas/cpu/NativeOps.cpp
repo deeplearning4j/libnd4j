@@ -3468,8 +3468,12 @@ Nd4jStatus execCustomOpWithScope(Nd4jPointer *extraPointers, nd4j::graph::GraphS
         node.pickInput(scopeId, 0);
     }
 
+    auto result = LogicExecutor<T>::processNode(graph, &node);
+    if (result != Status::OK())
+        return result;
+
     // mapping outputs
-    /*
+
     for (int e = 0; e < numOutputs; e++) {
         auto buffer = (T *) outputBuffers[e];
         auto shapeInfo = (int *) outputShapes[e];
@@ -3477,12 +3481,17 @@ Nd4jStatus execCustomOpWithScope(Nd4jPointer *extraPointers, nd4j::graph::GraphS
         auto array = new NDArray<T>(buffer, shapeInfo, varSpace->workspace());
         
         // now we just put array to VarSpace to the same ID
-        varSpace->putVariable(0, e, array);
+        //varSpace->putVariable(0, e, array);
+
+        auto t = varSpace->getVariable(0, e)->getNDArray();
+        array->assign(t);
+
+        delete array;
     }
-    */
+
 
     // after some bla-bla-bla we should have Graph and Node for current op
-    return LogicExecutor<T>::processNode(graph, &node);
+    return Status::OK();
 }
 
 Nd4jStatus NativeOps::execCustomOpWithScopeFloat(Nd4jPointer *extraPointers, nd4j::graph::GraphState<float> *state, Nd4jIndex opHash, Nd4jIndex *scopes, int numScopes, Nd4jPointer *inputBuffers, Nd4jPointer *inputShapes, int numInputs, Nd4jPointer *outputBuffers, Nd4jPointer *outputShapes, int numOutputs) {
