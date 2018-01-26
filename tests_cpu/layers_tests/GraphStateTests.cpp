@@ -126,8 +126,10 @@ TEST_F(GraphStateTests, Stateful_Execution_3) {
     NDArray<float> res1(0.0f);
     NDArray<float> res2(0.0f);
 
+    // registering our GraphState holder
     auto state = nativeOps.getGraphStateFloat(117L);
 
+    // we're prepping pointers to input/output buffers
     Nd4jPointer ptrBuffers[] = {(Nd4jPointer) var0.buffer(), (Nd4jPointer) var1.buffer(), (Nd4jPointer)var2.buffer()};
     Nd4jPointer ptrShapes[] = {(Nd4jPointer) var0.shapeInfo(), (Nd4jPointer) var1.shapeInfo(), (Nd4jPointer)var2.shapeInfo()};
 
@@ -141,7 +143,10 @@ TEST_F(GraphStateTests, Stateful_Execution_3) {
     nd4j::ops::lt_scalar<float> op2;
 
     // while sum(var0) < var1
+    // this op takes sum
     ArgumentsList args1({{0, 0}});
+
+    // this op compares result of sum to input variable 0:1
     ArgumentsList args2({{1, 0}, {0, 1}});
 
     state->attachOpToScope(22, 1, &op1, args1);
@@ -151,7 +156,10 @@ TEST_F(GraphStateTests, Stateful_Execution_3) {
     state->registerScope(33);
 
     // var0 + var1 + var1
+    // this op is var0 + var1
     ArgumentsList args3({{0, 0}, {0, 2}});
+
+    // this op is result of previous op + 1
     ArgumentsList args4({{3, 0}, {0, 2}});
 
     nd4j::ops::add<float> op3;
@@ -162,6 +170,8 @@ TEST_F(GraphStateTests, Stateful_Execution_3) {
 
     // Now we define RETURN, which returns 1 modified variable, and 2 unmodified variables
     ArgumentsList args5({{4, 0}, {0, 1}, {0, 2}});
+
+    // so, at the end of body, initial variables will be updated
     state->defineReturn(33, 5, args5);
 
     Nd4jIndex scopes[] = {22, 33};
@@ -170,10 +180,14 @@ TEST_F(GraphStateTests, Stateful_Execution_3) {
     auto status = nativeOps.execCustomOpWithScopeFloat(nullptr, state, 0, scopes, 2, ptrBuffers, ptrShapes, 3, outBuffers, outShapes, 3);
     ASSERT_EQ(Status::OK(), status);
 
-
+    // now we check provided result array
     float sum = res0.template reduceNumber<simdOps::Sum<float>>();
 
-    ASSERT_TRUE(sum > 0.0f);
+    /*
+     * Expected result is {1, 2, 3, 4} + {2} elementwise + {2} elementwise, which gives { 5, 6, 7, 8}, and sum should be 26
+     *
+     */
+    ASSERT_NEAR(26.0f, sum, 1e-5);
 
     nativeOps.deleteGraphStateFloat(state);
 }
