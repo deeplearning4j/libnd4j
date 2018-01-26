@@ -51,6 +51,7 @@ bool verbose = false;
 #include <array/ShapeList.h>
 #include <graph/VariablesSet.h>
 #include <graph/GraphState.h>
+#include <graph/execution/LogicExecutor.h>
 
 class ND4J_EXPORT NativeOps {
 
@@ -3012,6 +3013,10 @@ public:
     nd4j::graph::GraphState<double> *getGraphStateDouble(Nd4jIndex id);
     void deleteGraphStateFloat(nd4j::graph::GraphState<float> *state);
     void deleteGraphStateDouble(nd4j::graph::GraphState<double> *state);
+
+    // this method executes op that requires scope to be present: if/while/cond/whatever
+    Nd4jStatus execCustomOpWithScopeFloat(Nd4jPointer *extraPointers, nd4j::graph::GraphState<float> *state, Nd4jIndex opHash, Nd4jIndex *scopes, int numScopes, Nd4jPointer *inputBuffers, Nd4jPointer *inputShapes, int numInputs, Nd4jPointer *outputBuffers, Nd4jPointer *outputShapes, int numOutputs);
+    Nd4jStatus execCustomOpWithScopeDouble(Nd4jPointer *extraPointers, nd4j::graph::GraphState<double> *state, Nd4jIndex opHash, Nd4jIndex *scopes, int numScopes, Nd4jPointer *inputBuffers, Nd4jPointer *inputShapes, int numInputs, Nd4jPointer *outputBuffers, Nd4jPointer *outputShapes, int numOutputs);
 };
 
 

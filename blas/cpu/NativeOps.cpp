@@ -3415,20 +3415,80 @@ const char* NativeOps::getAllOperations() {
     return nd4j::OpTracker::getInstance()->exportOperations();
 }
 
-nd4j::graph::GraphState<float> *getGraphStateFloat(Nd4jIndex id) {
+nd4j::graph::GraphState<float> *NativeOps::getGraphStateFloat(Nd4jIndex id) {
     return new nd4j::graph::GraphState<float>(id);
 }
 
-nd4j::graph::GraphState<double> *getGraphStateDouble(Nd4jIndex id) {
+nd4j::graph::GraphState<double> *NativeOps::getGraphStateDouble(Nd4jIndex id) {
     return new nd4j::graph::GraphState<double>(id);
 }
 
-void deleteGraphStateFloat(nd4j::graph::GraphState<float> *state) {
+void NativeOps::deleteGraphStateFloat(nd4j::graph::GraphState<float> *state) {
     delete state;
 }
 
-void deleteGraphStateDouble(nd4j::graph::GraphState<double> *state) {
+void NativeOps::deleteGraphStateDouble(nd4j::graph::GraphState<double> *state) {
     delete state;
+}
+
+template <typename T>
+Nd4jStatus execCustomOpWithScope(Nd4jPointer *extraPointers, nd4j::graph::GraphState<T> *state, Nd4jIndex opHash, Nd4jIndex *scopes, int numScopes, Nd4jPointer *inputBuffers, Nd4jPointer *inputShapes, int numInputs, Nd4jPointer *outputBuffers, Nd4jPointer *outputShapes, int numOutputs) {
+    /**
+     * That's basically exec, with VariableSpace provided in GraphState:
+     * depending on operation (i.e. while of if), different logic executors could be used
+     */
+
+    auto graph = state->graph();
+    auto varSpace = state->variableSpace();
+
+    // Node is dynamically created, and has nothing beyond it: only inputs and outputs
+    // this node has id of 0, and inputs are
+    Node<T> node(OpType_LOGIC, opHash, 0);
+
+    // mapping inputs
+    for (int e = 0; e < numInputs; e++) {
+        auto buffer = (T *) inputBuffers[e];
+        auto shapeInfo = (int *) inputShapes[e];
+
+        auto array = new NDArray<T>(buffer, shapeInfo, varSpace->workspace());
+        
+        // now we just put array to VarSpace
+        varSpace->putVariable(-1, e, array);
+        node.pickInput(-1, e);
+    }
+
+    // mapping scopes
+    for (int e = 0; e < numScopes; e++) {
+        // we should check scope existence in GraphState/Graph
+        int scopeId = (int) scopes[e];
+        if (!state->hasScope(scopeId)) {
+            nd4j_printf("execCustomOpWithScope: referenced scope [%i] doesn't exist\n", scopeId);
+            return Status::THROW();
+        }
+        node.pickInput(scopeId, 0);
+    }
+
+    // mapping outputs
+    for (int e = 0; e < numOutputs; e++) {
+        auto buffer = (T *) outputBuffers[e];
+        auto shapeInfo = (int *) outputShapes[e];
+
+        auto array = new NDArray<T>(buffer, shapeInfo, varSpace->workspace());
+        
+        // now we just put array to VarSpace to the same ID
+        varSpace->putVariable(0, e, array);
+    }
+
+    // after some bla-bla-bla we should have Graph and Node for current op
+    return LogicExecutor<T>::processNode(graph, &node);
+}
+
+Nd4jStatus NativeOps::execCustomOpWithScopeFloat(Nd4jPointer *extraPointers, nd4j::graph::GraphState<float> *state, Nd4jIndex opHash, Nd4jIndex *scopes, int numScopes, Nd4jPointer *inputBuffers, Nd4jPointer *inputShapes, int numInputs, Nd4jPointer *outputBuffers, Nd4jPointer *outputShapes, int numOutputs) {
+    return execCustomOpWithScope<float>(extraPointers, state, opHash, scopes, numScopes, inputBuffers, inputShapes, numInputs, outputBuffers, outputShapes, numOutputs);
+}
+
+Nd4jStatus NativeOps::execCustomOpWithScopeDouble(Nd4jPointer *extraPointers, nd4j::graph::GraphState<double> *state, Nd4jIndex opHash, Nd4jIndex *scopes, int numScopes, Nd4jPointer *inputBuffers, Nd4jPointer *inputShapes, int numInputs, Nd4jPointer *outputBuffers, Nd4jPointer *outputShapes, int numOutputs) {
+    return execCustomOpWithScope<double>(extraPointers, state, opHash, scopes, numScopes, inputBuffers, inputShapes, numInputs, outputBuffers, outputShapes, numOutputs);
 }
 
 

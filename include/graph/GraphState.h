@@ -15,7 +15,8 @@
 #include <VariableSpace.h>
 #include <ops/declarable/DeclarableOp.h>
 #include <types/pair.h>
-#include "ArgumentsList.h"
+#include <ArgumentsList.h>
+#include <Graph.h>
 
 namespace nd4j {
 namespace graph {
@@ -30,6 +31,8 @@ namespace graph {
 
         // this variable space holds temp references
         VariableSpace<T> _variableSpace;
+
+        Graph<T> *_graph;
 
     public:
         explicit GraphState(Nd4jIndex id);
@@ -50,6 +53,14 @@ namespace graph {
         Nd4jStatus registerScope(int scopeId);
 
         /**
+         * This method cheks if scope with given ID exists
+         * 
+         * @param scopeId - ID of the scope
+         * @return - TRUE if scope exists, FALSE otherwise
+         */
+        bool hasScope(int scopeId);
+
+        /**
          * This method removes specified scope from this state tracker
          *
          * @param scopeId
@@ -68,6 +79,14 @@ namespace graph {
          */
         Nd4jStatus attachOpToScope(int scopeId, DeclarableOp<T> *op, ArgumentsList inputs);
 
+        /**
+         * This method returns pointer to the scope with given id
+         * 
+         * @param scopeId - id of the scope
+         */
+        Scope<T>* getScope(int scopeId);
+
+        Graph<T>* graph();
 #endif
         /**
          * This method adds given op to the end of specified scope

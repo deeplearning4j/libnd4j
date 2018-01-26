@@ -17,7 +17,8 @@ namespace graph {
     protected:
         std::vector<Pair> _arguments;
     public:
-        ArgumentsList() = default;
+        explicit ArgumentsList() = default;
+        ArgumentsList(std::initializer_list<Pair> arguments);
 
         ~ArgumentsList() = default;
 

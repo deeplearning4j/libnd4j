@@ -22,6 +22,8 @@ namespace nd4j {
             virtual nd4j::random::RandomBuffer* getRNG();
             virtual void setRNG(nd4j::random::RandomBuffer* rng);
 
+            virtual nd4j::memory::Workspace *workspace();
+
             virtual bool hasExternalVariable(int it);
             virtual bool hasExternalVariable(std::pair<int,int>& pair);
             virtual bool hasExternalVariable(std::string *symbol);

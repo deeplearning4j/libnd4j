@@ -314,6 +314,11 @@ namespace nd4j {
             }
         }
 
+        template <typename T>
+        nd4j::memory::Workspace * nd4j::graph::VariableSpace<T>::workspace() {
+            return &_workspace;
+        }
+
 /*
  * FIXME: this thing have nice chances to become backend-specific!
  */

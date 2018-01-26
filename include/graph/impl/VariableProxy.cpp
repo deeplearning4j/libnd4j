@@ -228,6 +228,11 @@ namespace nd4j {
             return *this;
         }  
 
+        template <typename T>
+        nd4j::memory::Workspace * nd4j::graph::VariableProxy<T>::workspace() {
+            return &this->_workspace;
+        }
+
         template class ND4J_EXPORT VariableProxy<float>;
         template class ND4J_EXPORT VariableProxy<float16>;
         template class ND4J_EXPORT VariableProxy<double>;
