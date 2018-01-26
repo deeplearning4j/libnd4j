@@ -14,7 +14,15 @@ using namespace nd4j::graph;
 
 class GraphStateTests : public testing::Test {
 public:
+    GraphStateTests() {
+        Environment::getInstance()->setDebug(true);
+        Environment::getInstance()->setVerbose(true);
+    };
 
+    ~GraphStateTests() {
+        Environment::getInstance()->setDebug(false);
+        Environment::getInstance()->setVerbose(false);
+    }
 };
 
 /*
@@ -133,8 +141,9 @@ TEST_F(GraphStateTests, Stateful_Execution_3) {
     nd4j::ops::lt_scalar<float> op1;
 
     // while sum(var0) < var1
-    ArgumentsList args0;
-    ArgumentsList args1;
+    ArgumentsList args0({{0, 0}});
+    ArgumentsList args1({{1, 0}, {0, 1}});
+
     state->attachOpToScope(22, &op0, args0);
     state->attachOpToScope(22, &op1, args1);
 

@@ -53,7 +53,7 @@ namespace graph {
         auto scope = _scopes[scopeId];
         
         // creating new Node
-        auto node = new Node<T>(OpType_CUSTOM, 0, scope->size());
+        auto node = new Node<T>(OpType_CUSTOM, 0, scope->size() + 1);
         node->setCustomOp(op);
         node->setScopeInfo(scopeId);
 
@@ -69,6 +69,9 @@ namespace graph {
                 var->setId(p.first(), p.second());
                 _variableSpace.putVariable(p.first(), p.second(), var);
             }
+
+            nd4j_printf("Node_%i: adding input [%i:%i]\n", node->id(), p.first(), p.second());
+            node->pickInput(p.first(), p.second());
         }
 
         scope->push_back(node);

@@ -3469,6 +3469,7 @@ Nd4jStatus execCustomOpWithScope(Nd4jPointer *extraPointers, nd4j::graph::GraphS
     }
 
     // mapping outputs
+    /*
     for (int e = 0; e < numOutputs; e++) {
         auto buffer = (T *) outputBuffers[e];
         auto shapeInfo = (int *) outputShapes[e];
@@ -3478,6 +3479,7 @@ Nd4jStatus execCustomOpWithScope(Nd4jPointer *extraPointers, nd4j::graph::GraphS
         // now we just put array to VarSpace to the same ID
         varSpace->putVariable(0, e, array);
     }
+    */
 
     // after some bla-bla-bla we should have Graph and Node for current op
     return LogicExecutor<T>::processNode(graph, &node);

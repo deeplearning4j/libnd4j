@@ -19,6 +19,7 @@ namespace graph {
     public:
         explicit ArgumentsList() = default;
         ArgumentsList(std::initializer_list<Pair> arguments);
+        ArgumentsList(std::initializer_list<int> arguments);
 
         ~ArgumentsList() = default;
 
