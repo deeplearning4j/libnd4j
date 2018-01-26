@@ -49,8 +49,8 @@ TEST_F(GraphStateTests, Basic_Tests_1) {
     ArgumentsList argsA;
     ArgumentsList argsB;
 
-    state->attachOpToScope(119, &opA, argsA);
-    state->attachOpToScope(119, &opB, argsB);
+    state->attachOpToScope(119, 1, &opA, argsA);
+    state->attachOpToScope(119, 2, &opB, argsB);
 
     auto scope = state->getScope(119);
     ASSERT_TRUE(scope != nullptr);
@@ -75,8 +75,8 @@ TEST_F(GraphStateTests, Basic_Tests_2) {
     ArgumentsList argsA;
     ArgumentsList argsB;
 
-    state->attachOpToScope(119, &opA, argsA);
-    state->attachOpToScope(119, &opB, argsB);
+    state->attachOpToScope(119, 1, &opA, argsA);
+    state->attachOpToScope(119, 2, &opB, argsB);
 
     auto scope = state->getScope(119);
     ASSERT_TRUE(scope != nullptr);
@@ -119,7 +119,7 @@ TEST_F(GraphStateTests, Stateful_Execution_3) {
     NativeOps nativeOps;
 
     NDArray<float> var0('c', {2, 2}, {1, 2, 3, 4});
-    NDArray<float> var1(1.0f);
+    NDArray<float> var1(11.0f);
     NDArray<float> var2(2.0f);
 
     NDArray<float> res0('c', {2, 2});
@@ -137,28 +137,28 @@ TEST_F(GraphStateTests, Stateful_Execution_3) {
     // conditional scope
     state->registerScope(22);
 
-    nd4j::ops::LegacyReduceOp<float> op0(1);
-    nd4j::ops::lt_scalar<float> op1;
+    nd4j::ops::LegacyReduceOp<float> op1(1);
+    nd4j::ops::lt_scalar<float> op2;
 
     // while sum(var0) < var1
-    ArgumentsList args0({{0, 0}});
-    ArgumentsList args1({{1, 0}, {0, 1}});
+    ArgumentsList args1({{0, 0}});
+    ArgumentsList args2({{1, 0}, {0, 1}});
 
-    state->attachOpToScope(22, &op0, args0);
-    state->attachOpToScope(22, &op1, args1);
+    state->attachOpToScope(22, 1, &op1, args1);
+    state->attachOpToScope(22, 2, &op2, args2);
 
     // body scope
     state->registerScope(33);
 
-    // var0 + var1 + var2
-    ArgumentsList args2;
-    ArgumentsList args3;
+    // var0 + var1 + var1
+    ArgumentsList args3({{0, 0}, {0, 2}});
+    ArgumentsList args4({{3, 0}, {0, 2}});
 
-    nd4j::ops::add<float> op2;
     nd4j::ops::add<float> op3;
+    nd4j::ops::add<float> op4;
 
-    state->attachOpToScope(33, &op2, args2);
-    state->attachOpToScope(33, &op3, args3);
+    state->attachOpToScope(33, 3, &op3, args3);
+    state->attachOpToScope(33, 4, &op4, args4);
 
     Nd4jIndex scopes[] = {22, 33};
 

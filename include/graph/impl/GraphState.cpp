@@ -46,14 +46,14 @@ namespace graph {
 
 #ifndef __JAVACPP_HACK__
     template <typename T>
-    Nd4jStatus GraphState<T>::attachOpToScope(int scopeId, DeclarableOp<T> *op, ArgumentsList inputs) {
+    Nd4jStatus GraphState<T>::attachOpToScope(int scopeId, int nodeId, DeclarableOp<T> *op, ArgumentsList inputs) {
         if (_scopes.count(scopeId) == 0)
             return Status::THROW("GraphState: can't attach op to unknown scope");
         
         auto scope = _scopes[scopeId];
         
         // creating new Node
-        auto node = new Node<T>(OpType_CUSTOM, 0, scope->size() + 1);
+        auto node = new Node<T>(OpType_CUSTOM, 0, nodeId);
         node->setCustomOp(op);
         node->setScopeInfo(scopeId);
 

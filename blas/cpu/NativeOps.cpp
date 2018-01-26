@@ -3453,8 +3453,8 @@ Nd4jStatus execCustomOpWithScope(Nd4jPointer *extraPointers, nd4j::graph::GraphS
         auto array = new NDArray<T>(buffer, shapeInfo, varSpace->workspace());
         
         // now we just put array to VarSpace
-        varSpace->putVariable(-1, e, array);
-        node.pickInput(-1, e);
+        varSpace->putVariable(0, e, array);
+        node.pickInput(0, e);
     }
 
     // mapping scopes
