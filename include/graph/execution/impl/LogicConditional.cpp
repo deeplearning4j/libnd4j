@@ -4,6 +4,7 @@
 
 #include <graph/execution/LogicConditional.h>
 #include <GraphExecutioner.h>
+#include <graph/execution/LogicReturn.h>
 
 
 namespace nd4j {
@@ -52,36 +53,59 @@ namespace nd4j {
             auto result = __variableSpace->getVariable(lastNode)->getNDArray();
             //result->printBuffer("Result of the last node:");
 
+            bool isReturn = false;
+
             // now we're executing one of the scopes, depending on condition evaluation
             if (result->getScalar(0) == (T) 0.0f) {
                 auto scopeFalse = graph->scopeById(scopeFalseIndex);
                 lastNode = 0;
-                for (auto v: *scopeFalse->nodes()) {
+                int nodes = scopeFalse->nodes()->size();
+                for (int e = 0; e < nodes - 1; e++) {
+                    auto v = scopeFalse->nodes()->at(e);
                     GraphExecutioner<T>::executeFlatNode(graph, v, __variableSpace);
                     lastNode = v->id();
+                }
+
+                // last node is either return or just last op
+                Node<T> *node = scopeFalse->nodes()->at(nodes -1);
+                if (node->opType() == OpType_LOGIC && node->opNum() == 40) {
+                    isReturn = true;
+                    LogicReturn<T>::processNode(graph, node);
                 }
             } else {
                 auto scopeTrue = graph->scopeById(scopeTrueIndex);
                 lastNode = 0;
-                for (auto v: *scopeTrue->nodes()) {
+                int nodes = scopeTrue->nodes()->size();
+                for (int e = 0; e < nodes - 1; e++) {
+                    auto v = scopeTrue->nodes()->at(e);
                     GraphExecutioner<T>::executeFlatNode(graph, v, __variableSpace);
                     lastNode = v->id();
+                }
+
+                // last node is either return or just last op
+                Node<T> *node = scopeTrue->nodes()->at(nodes -1);
+                if (node->opType() == OpType_LOGIC && node->opNum() == 40) {
+                    isReturn = true;
+                    LogicReturn<T>::processNode(graph, node);
                 }
             }
 
             // now fetch and transfer variables to Conditional node
-            for (int e = 0; e < 65536; e++) {
-                std::pair<int, int> pair(lastNode, e);
-                std::pair<int, int> pairNew(node->id(), e);
-                if (__variableSpace->hasVariable(pair)) {
-                    auto array = __variableSpace->getVariable(pair)->getNDArray();
-                    auto newVar = new Variable<T>(array);
-                    newVar->setId(lastNode, e);
-                    newVar->markRemovable(false);
+            // but only if return wasn't called at the end of scope
+            if (!isReturn) {
+                for (int e = 0; e < 65536; e++) {
+                    std::pair<int, int> pair(lastNode, e);
+                    std::pair<int, int> pairNew(node->id(), e);
+                    if (__variableSpace->hasVariable(pair)) {
+                        auto array = __variableSpace->getVariable(pair)->getNDArray();
+                        auto newVar = new Variable<T>(array);
+                        newVar->setId(lastNode, e);
+                        newVar->markRemovable(false);
 
-                    __variableSpace->putVariable(pairNew, newVar);
-                } else
-                    break;
+                        __variableSpace->putVariable(pairNew, newVar);
+                    } else
+                        break;
+                }
             }
 
             return ND4J_STATUS_OK;
