@@ -3,6 +3,7 @@
 //
 
 #include <ops/declarable/CustomOperations.h>
+#include <numeric>
 
 namespace nd4j {
 namespace ops {

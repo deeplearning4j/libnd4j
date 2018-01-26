@@ -26,10 +26,10 @@ CUSTOM_OP_IMPL(reverse_sequense, 2, 1, false, 0, 2) {
     T maxElem = seqLengths->template reduceNumber<simdOps::Max<T>>();
     REQUIRE_TRUE(maxElem <= (T)input->sizeAt(seqDim), 0, "REVERSE_SEQUENSE custom operation: max element in seqLengths array must be not greater than value of seqDim dimension of input array !");
     
+    int posOfNonUnityDim = -1;
+    if(input->isVector() || shape::isLikeVector(input->getShapeInfo(), posOfNonUnityDim)) {
 
-    if(input->isVector() ) {
-
-        if(seqDim == 0 && input->sizeAt(0) == 1)
+        if((seqDim == 0 && input->sizeAt(0) == 1) || (batchDim == posOfNonUnityDim))
             output->assign(input);
         else 
             helpers::reverseArray<T>(input->getBuffer(), input->getShapeInfo(), output->getBuffer(), output->getShapeInfo(), (int)(*seqLengths)(0));
@@ -37,7 +37,7 @@ CUSTOM_OP_IMPL(reverse_sequense, 2, 1, false, 0, 2) {
     else {
             
         if(seqDim > batchDim)
-        --seqDim;
+            --seqDim;
 
         std::vector<int> dimensions = ShapeUtils<T>::evalDimsToExclude(input->rankOf(), {batchDim});       
 

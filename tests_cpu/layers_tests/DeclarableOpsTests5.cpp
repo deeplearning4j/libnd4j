@@ -690,3 +690,63 @@ TEST_F(DeclarableOpsTests5, reverse_sequense_test10) {
 
     delete results;
 }
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests5, reverse_sequense_test11) {
+    
+    NDArray<float> input('c', {1, 1, 5, 1});
+    NDArrayFactory<float>::linspace(1, input);
+    std::vector<float> data = {1, 0, 1, 0, 1};
+    NDArray<float> seqLengths('c', {5}, data);    
+    NDArray<float> exp('c', {1, 1, 5, 1}, {1, 2, 3, 4, 5});
+
+    nd4j::ops::reverse_sequense<float> op;
+    ResultSet<float>* results = op.execute({&input, &seqLengths}, {}, {1, 2});
+    NDArray<float>* output = results->at(0);        
+    
+    ASSERT_EQ(Status::OK(), results->status());
+    ASSERT_TRUE(exp.isSameShape(output));
+    ASSERT_TRUE(exp.equalsTo(output));
+
+    delete results;
+}
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests5, reverse_sequense_test12) {
+    
+    NDArray<float> input('c', {1, 1, 5, 1});
+    NDArrayFactory<float>::linspace(1, input);
+    std::vector<float> data = {3};
+    NDArray<float> seqLengths('c', {1}, data);    
+    NDArray<float> exp('c', {1, 1, 5, 1}, {3, 2, 1, 4, 5});
+
+    nd4j::ops::reverse_sequense<float> op;
+    ResultSet<float>* results = op.execute({&input, &seqLengths}, {}, {2, 0});
+    NDArray<float>* output = results->at(0);        
+    
+    ASSERT_EQ(Status::OK(), results->status());
+    ASSERT_TRUE(exp.isSameShape(output));
+    ASSERT_TRUE(exp.equalsTo(output));
+
+    delete results;
+}
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests5, reverse_sequense_test13) {
+    
+    NDArray<float> input('c', {1, 1, 5, 1});
+    NDArrayFactory<float>::linspace(1, input);
+    std::vector<float> data = {1};
+    NDArray<float> seqLengths('c', {1}, data);    
+    NDArray<float> exp('c', {1, 1, 5, 1}, {1, 2, 3, 4, 5});
+
+    nd4j::ops::reverse_sequense<float> op;
+    ResultSet<float>* results = op.execute({&input, &seqLengths}, {}, {3, 0});
+    NDArray<float>* output = results->at(0);        
+    
+    ASSERT_EQ(Status::OK(), results->status());
+    ASSERT_TRUE(exp.isSameShape(output));
+    ASSERT_TRUE(exp.equalsTo(output));
+
+    delete results;
+}
