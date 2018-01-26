@@ -1048,3 +1048,94 @@ TEST_F(DeclarableOpsTests5, Test_InTopK_3) {
 
     delete result;
 }
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests5, trace_test1) {
+    
+    NDArray<float> input('c', {3, 4, 5});
+    NDArrayFactory<float>::linspace(1, input);
+    NDArray<float> exp('c', {3}, {40, 120, 200});
+
+    nd4j::ops::trace<float> op;
+    ResultSet<float>* results = op.execute({&input}, {}, {});
+    NDArray<float>* output = results->at(0);    
+    
+    ASSERT_EQ(Status::OK(), results->status());
+    ASSERT_TRUE(exp.isSameShape(output));
+    ASSERT_TRUE(exp.equalsTo(output));
+
+    delete results;
+}
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests5, trace_test2) {
+    
+    NDArray<float> input('c', {4, 5});
+    NDArrayFactory<float>::linspace(1, input);
+    NDArray<float> exp(40.);
+
+    nd4j::ops::trace<float> op;
+    ResultSet<float>* results = op.execute({&input}, {}, {});
+    NDArray<float>* output = results->at(0);    
+    
+    ASSERT_EQ(Status::OK(), results->status());
+    ASSERT_TRUE(exp.isSameShape(output));
+    ASSERT_TRUE(exp.equalsTo(output));
+
+    delete results;
+}
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests5, trace_test3) {
+    
+    NDArray<float> input('c', {1, 5});
+    NDArrayFactory<float>::linspace(1, input);
+    NDArray<float> exp(1.);
+
+    nd4j::ops::trace<float> op;
+    ResultSet<float>* results = op.execute({&input}, {}, {});
+    NDArray<float>* output = results->at(0);    
+    
+    ASSERT_EQ(Status::OK(), results->status());
+    ASSERT_TRUE(exp.isSameShape(output));
+    ASSERT_TRUE(exp.equalsTo(output));
+
+    delete results;
+}
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests5, trace_test4) {
+    
+    NDArray<float> input('c', {5, 1});
+    NDArrayFactory<float>::linspace(1, input);
+    NDArray<float> exp(1.);
+
+    nd4j::ops::trace<float> op;
+    ResultSet<float>* results = op.execute({&input}, {}, {});
+    NDArray<float>* output = results->at(0);    
+    
+    ASSERT_EQ(Status::OK(), results->status());
+    ASSERT_TRUE(exp.isSameShape(output));
+    ASSERT_TRUE(exp.equalsTo(output));
+
+    delete results;
+}
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests5, trace_test5) {
+    
+    NDArray<float> input('c', {3, 4, 5, 6});
+    NDArrayFactory<float>::linspace(1, input);
+    NDArray<float> exp('c', {3, 4}, {75,  225,  375,  525, 675,  825,  975, 1125, 1275, 1425, 1575, 1725});
+
+    nd4j::ops::trace<float> op;
+    ResultSet<float>* results = op.execute({&input}, {}, {});
+    NDArray<float>* output = results->at(0);    
+    
+    ASSERT_EQ(Status::OK(), results->status());
+    ASSERT_TRUE(exp.isSameShape(output));
+    ASSERT_TRUE(exp.equalsTo(output));
+
+    delete results;
+}
+

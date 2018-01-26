@@ -52,5 +52,7 @@ namespace nd4j {
         DECLARE_CUSTOM_OP(gather_nd, 2, 1, false, 0, 0);
 
         DECLARE_CUSTOM_OP(reverse_sequense, 2, 1, false, 0, 2);
+
+        DECLARE_CUSTOM_OP(trace, 1, 1, false, 0, 0);
     }
 }
