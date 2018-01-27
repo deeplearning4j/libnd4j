@@ -1314,9 +1314,9 @@ TEST_F(DeclarableOpsTests5, random_shuffle_test1) {
 //////////////////////////////////////////////////////////////////////
 TEST_F(DeclarableOpsTests5, random_shuffle_test2) {
     
-    NDArray<float> input('c', {3, 2, 1});
+    NDArray<float> input('c', {1, 3, 2});
     NDArrayFactory<float>::linspace(1, input);
-    NDArray<float> exp('c', {3, 2, 1}, {5, 6,  1, 2,  3, 4});    
+    NDArray<float> exp('c', {1, 3, 2}, {1, 2,  3, 4, 5, 6});    
 
     nd4j::ops::random_shuffle<float> op;
     ResultSet<float>* results = op.execute({&input}, {}, {});
@@ -1329,13 +1329,12 @@ TEST_F(DeclarableOpsTests5, random_shuffle_test2) {
     delete results;
 }
 
-
 //////////////////////////////////////////////////////////////////////
 TEST_F(DeclarableOpsTests5, random_shuffle_test3) {
     
-    NDArray<float> input('c', {1, 3, 2});
+    NDArray<float> input('c', {3, 2, 1});
     NDArrayFactory<float>::linspace(1, input);
-    NDArray<float> exp('c', {1, 3, 2}, {1, 2,  3, 4, 5, 6});    
+    NDArray<float> exp('c', {3, 2, 1}, {5, 6,  1, 2,  3, 4});    
 
     nd4j::ops::random_shuffle<float> op;
     ResultSet<float>* results = op.execute({&input}, {}, {});
