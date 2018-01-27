@@ -3,7 +3,7 @@
 //
 
 #include <ops/declarable/CustomOperations.h>
-#include <unordered_set>
+#include <numeric>
 
 namespace nd4j {
 namespace ops {
