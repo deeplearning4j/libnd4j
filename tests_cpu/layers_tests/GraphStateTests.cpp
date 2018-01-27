@@ -37,7 +37,7 @@ public:
 TEST_F(GraphStateTests, Basic_Tests_1) {
     NativeOps nativeOps;
 
-    auto state = nativeOps.getGraphStateFloat(117L);
+    auto state = (GraphState<float> *) nativeOps.getGraphStateFloat(117L);
     ASSERT_EQ(117L, state->id());
 
     // this call will create scope internally
@@ -63,7 +63,7 @@ TEST_F(GraphStateTests, Basic_Tests_1) {
 TEST_F(GraphStateTests, Basic_Tests_2) {
     NativeOps nativeOps;
 
-    auto state = nativeOps.getGraphStateDouble(117L);
+    auto state = (GraphState<double> *) nativeOps.getGraphStateDouble(117L);
     ASSERT_EQ(117L, state->id());
 
     // this call will create scope internally
@@ -100,7 +100,7 @@ TEST_F(GraphStateTests, Stateful_Execution_1) {
 TEST_F(GraphStateTests, Stateful_Execution_2) {
     NativeOps nativeOps;
 
-    auto state = nativeOps.getGraphStateFloat(117L);
+    auto state = (GraphState<float> *) nativeOps.getGraphStateFloat(117L);
 
     state->registerScope(22);
     state->registerScope(33);
@@ -129,7 +129,7 @@ TEST_F(GraphStateTests, Stateful_Execution_3) {
     NDArray<float> res2(0.0f);
 
     // registering our GraphState holder
-    auto state = nativeOps.getGraphStateFloat(117L);
+    auto state = (GraphState<float> *) nativeOps.getGraphStateFloat(117L);
 
     // we're prepping pointers to input/output buffers
     Nd4jPointer ptrBuffers[] = {(Nd4jPointer) var0.buffer(), (Nd4jPointer) var1.buffer(), (Nd4jPointer)var2.buffer()};
@@ -214,7 +214,7 @@ TEST_F(GraphStateTests, Stateful_Execution_4) {
 
 
     // registering our GraphState holder
-    auto state = nativeOps.getGraphStateFloat(117L);
+    auto state = (GraphState<float> *) nativeOps.getGraphStateFloat(117L);
 
     // we're prepping pointers to input/output buffers
     Nd4jPointer ptrBuffers[] = {(Nd4jPointer) var0.buffer(), (Nd4jPointer) var1.buffer()};
@@ -292,7 +292,7 @@ TEST_F(GraphStateTests, Stateful_Execution_5) {
 
 
     // registering our GraphState holder
-    auto state = nativeOps.getGraphStateFloat(117L);
+    auto state = (GraphState<float> *) nativeOps.getGraphStateFloat(117L);
 
     // we're prepping pointers to input/output buffers
     Nd4jPointer ptrBuffers[] = {(Nd4jPointer) var0.buffer(), (Nd4jPointer) var1.buffer()};
