@@ -63,6 +63,9 @@
 #endif
 
 #include <curand.h>
+#include <Status.h>
+
+using namespace nd4j;
 
 cudaDeviceProp *deviceProperties;
 cudaFuncAttributes *funcAttributes = new cudaFuncAttributes[64];
