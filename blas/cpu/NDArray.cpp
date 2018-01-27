@@ -189,6 +189,7 @@ NDArray<T>::NDArray(T scalar) {
     _isShapeAlloc = true;
 }
 
+#ifndef __JAVACPP_HACK__
     template <typename T>
     NDArray<T>::NDArray(std::initializer_list<T> v, nd4j::memory::Workspace* workspace) {
         std::vector<T> values(v);
@@ -213,6 +214,7 @@ NDArray<T>::NDArray(T scalar) {
         _isShapeAlloc = true;
         _workspace = workspace;
     }
+#endif
 
 ////////////////////////////////////////////////////////////////////////
 // creates new NDArray using shape information from "shapeInfo" array, set all elements in new array to be zeros
@@ -2472,6 +2474,8 @@ bool NDArray<T>::isUnitary() {
     NDArray<T>* NDArray<T>::varianceAlongDimension(const bool biasCorrected, const std::vector<int>& dimensions) const {
     
         std::vector<int> copy(dimensions);
+        if (copy.size() > 1)
+            std::sort(copy.begin(), copy.end());
             
         int* newShape = ShapeUtils<T>::evalReduceShapeInfo('c', copy, *this);
         NDArray<T>* result = new NDArray<T>(newShape, _workspace);
@@ -2492,6 +2496,27 @@ bool NDArray<T>::isUnitary() {
     NDArray<T>* NDArray<T>::varianceAlongDimension(const bool biasCorrected, const std::initializer_list<int>& dimensions) const {
     
         return varianceAlongDimension<OpName>(biasCorrected, std::vector<int>(dimensions));
+    }
+
+    template<typename T>
+    template<typename OpName>
+    void NDArray<T>::varianceAlongDimension(const NDArray<T> *target, const bool biasCorrected, const std::vector<int>& dimensions) {
+        std::vector<int> copy(dimensions);
+        if (copy.size() > 1)
+            std::sort(copy.begin(), copy.end());
+
+        if(rankOf() == copy.size())
+            target->_buffer[0] = functions::summarystats::SummaryStatsReduce<T>::template execScalar<OpName>(biasCorrected, _buffer, _shapeInfo, nullptr);
+        else
+            functions::summarystats::SummaryStatsReduce<T>::template exec<OpName>(biasCorrected, _buffer, _shapeInfo, nullptr,
+                                                                                  target->_buffer, target->_shapeInfo, copy.data(), copy.size());
+
+    }
+
+    template<typename T>
+    template<typename OpName>
+    void NDArray<T>::varianceAlongDimension(const NDArray<T> *target, const bool biasCorrected, const std::initializer_list<int>& dimensions) {
+         varianceAlongDimension<OpName>(target, biasCorrected, std::vector<int>(dimensions));
     }
 
     ////////////////////////////////////////////////////////////////////////
@@ -3011,6 +3036,32 @@ void NDArray<T>::tileToShape(const std::initializer_list<int>& shape, NDArray<T>
     tileToShape(shapeV, target);
 }
 
+////////////////////////////////////////////////////////////////////////
+template<typename T>
+T NDArray<T>::getTrace() const {
+    
+    int  rank    = rankOf();
+    int* shape   = shapeOf();
+    int* strides = stridesOf();
+    int  minDim  = 100000000;
+    
+    int indices[MAX_RANK];
+    for(int j = 0; j < rank; ++j) 
+        indices[j] = 1;
+    
+    Nd4jIndex offset = shape::getOffset(0, shape, strides, indices, rank);
+    
+    for(int i = 0; i < rank; ++i) 
+        if(minDim > shape[i])
+            minDim = shape[i];
+    T sum = 0.;
+
+#pragma omp parallel for reduction(sumT:sum) if(minDim > Environment::getInstance()->elementwiseThreshold()) schedule(guided) 
+    for(int i = 0; i < minDim; ++i)
+        sum += _buffer[i*offset];
+
+    return sum;
+}
 
 
 template class ND4J_EXPORT NDArray<float>;
