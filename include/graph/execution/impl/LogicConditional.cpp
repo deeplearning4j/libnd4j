@@ -71,6 +71,9 @@ namespace nd4j {
                 if (node->opType() == OpType_LOGIC && node->opNum() == 40) {
                     isReturn = true;
                     LogicReturn<T>::processNode(graph, node);
+                } else {
+                    GraphExecutioner<T>::executeFlatNode(graph, node, __variableSpace);
+                    lastNode = node->id();
                 }
             } else {
                 auto scopeTrue = graph->scopeById(scopeTrueIndex);
@@ -87,6 +90,9 @@ namespace nd4j {
                 if (node->opType() == OpType_LOGIC && node->opNum() == 40) {
                     isReturn = true;
                     LogicReturn<T>::processNode(graph, node);
+                } else {
+                    GraphExecutioner<T>::executeFlatNode(graph, node, __variableSpace);
+                    lastNode = node->id();
                 }
             }
 
