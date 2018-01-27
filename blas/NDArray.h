@@ -72,6 +72,7 @@ namespace nd4j {
         NDArray(T *buffer = nullptr, int *shapeInfo = nullptr, nd4j::memory::Workspace* workspace = nullptr);
 
         NDArray(std::initializer_list<int> shape, nd4j::memory::Workspace* workspace = nullptr);
+
         
         /**
          * Constructor for scalar NDArray
@@ -83,6 +84,8 @@ namespace nd4j {
         */
         NDArray(const NDArray<T>& other);
 
+#ifndef __JAVACPP_HACK__
+        // this method only available out of javacpp
         /**
          * This constructor creates vector of T
          *
@@ -90,6 +93,7 @@ namespace nd4j {
          */
         NDArray(std::initializer_list<T> values, nd4j::memory::Workspace* workspace = nullptr);
         NDArray(std::vector<T> &values, nd4j::memory::Workspace* workspace = nullptr);
+#endif
 
         /**
         *  constructor, create empty array stored at given workspace
@@ -713,6 +717,12 @@ namespace nd4j {
         NDArray<T>* varianceAlongDimension(const bool biasCorrected, const std::vector<int>& dimensions) const;
         template<typename OpName>
         NDArray<T>* varianceAlongDimension(const bool biasCorrected, const std::initializer_list<int>& dimensions) const;
+
+
+        template<typename OpName>
+        void varianceAlongDimension(const NDArray<T>* target, const bool biasCorrected, const std::vector<int>& dimensions);
+        template<typename OpName>
+        void varianceAlongDimension(const NDArray<T>* target, const bool biasCorrected, const std::initializer_list<int>& dimensions);
 
         /**
         *  operator returns sub-array with buffer pointing at this->_buffer with offset defined by given intervals
