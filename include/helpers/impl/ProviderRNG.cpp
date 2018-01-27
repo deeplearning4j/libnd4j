@@ -14,9 +14,11 @@ ProviderRNG::ProviderRNG() {
     NativeOps nativeOps;    
     std::lock_guard<std::mutex> lock(_mutex);
     _rng = (nd4j::random::RandomBuffer *) nativeOps.initRandom(nullptr, 123, 100000, (Nd4jPointer) buffer);    
+    // if(_rng != nullptr)        
 }
 
 ProviderRNG& ProviderRNG::getInstance() {     
+    
     static ProviderRNG instance; 
     return instance;
 }
