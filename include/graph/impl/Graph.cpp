@@ -934,6 +934,11 @@ namespace nd4j {
         }
 
         template <typename T>
+        void Graph<T>::forgetVariableSpace() {
+            _variableSpace = nullptr;
+        }
+
+        template <typename T>
         Graph<T>* Graph<T>::clone() {
             auto clone = new Graph<T>();
             delete clone->_variableSpace;

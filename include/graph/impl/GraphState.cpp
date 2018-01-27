@@ -19,8 +19,14 @@ namespace graph {
     GraphState<T>::~GraphState() {
         // stupid. we should get rid of pointers here i think. no need to bother
         for (const auto &v: _scopes) {
+            v.second->forgetNodes();
             delete v.second;
         }
+
+        // we must remove reference to VariableSpace
+        _graph->forgetVariableSpace();
+
+        delete _graph;
     };
 
     template <typename T>

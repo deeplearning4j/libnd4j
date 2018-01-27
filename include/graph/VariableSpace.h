@@ -89,6 +89,9 @@ namespace nd4j {
             virtual void putVariable(int id, int idx, NDArray<T> *array);
             virtual void putVariable(int id, int idx, Variable<T> *array);
 
+            virtual void dropVariable(std::pair<int,int> &pair);
+            virtual void dropVariable(int id, int idx);
+
             virtual void trackList(nd4j::NDArrayList<T>* list);
 
             virtual void putOutputVariable(Variable<T> *variable);

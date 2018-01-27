@@ -3478,15 +3478,18 @@ Nd4jStatus execCustomOpWithScope(Nd4jPointer *extraPointers, nd4j::graph::GraphS
         auto buffer = (T *) outputBuffers[e];
         auto shapeInfo = (int *) outputShapes[e];
 
-        auto array = new NDArray<T>(buffer, shapeInfo, varSpace->workspace());
+        NDArray<T> array(buffer, shapeInfo, varSpace->workspace());
         
         // now we just put array to VarSpace to the same ID
         //varSpace->putVariable(0, e, array);
 
         auto t = varSpace->getVariable(0, e)->getNDArray();
-        array->assign(t);
+        array.assign(t);
+    }
 
-        delete array;
+    // removing input variables
+    for (int e = 0; e < numInputs; e++) {
+        varSpace->dropVariable(0, e);
     }
 
 

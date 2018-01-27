@@ -376,6 +376,16 @@ namespace nd4j {
         }
 
         template <typename T>
+        void VariableSpace<T>::dropVariable(std::pair<int,int> &pair) {
+            dropVariable(pair.first, pair.second);
+        }
+
+        template <typename T>
+        void VariableSpace<T>::dropVariable(int id, int idx) {
+
+        }
+
+        template <typename T>
         void VariableSpace<T>::setRNG(nd4j::random::RandomBuffer* rng) {
             _rng = rng;
         }

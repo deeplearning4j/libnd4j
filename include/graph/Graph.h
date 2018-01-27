@@ -151,6 +151,11 @@ namespace nd4j {
              * This method returns clone of the graph
              */
             Graph<T>* clone();
+
+            /**
+             * This method removes reference to VariableSpace from this Graph
+             */
+            void forgetVariableSpace();
         };
     }
 }
