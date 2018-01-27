@@ -6936,14 +6936,14 @@ Nd4jStatus execCustomOpWithScope(Nd4jPointer *extraPointers, nd4j::graph::GraphS
 
     // Node is dynamically created, and has nothing beyond it: only inputs and outputs
     // this node has id of 0, and inputs are
-    Node<T> node(OpType_LOGIC, opHash, 0);
+    nd4j::graph::Node<T> node(OpType_LOGIC, opHash, 0);
 
     // mapping inputs
     for (int e = 0; e < numInputs; e++) {
         auto buffer = (T *) inputBuffers[e];
         auto shapeInfo = (int *) inputShapes[e];
 
-        auto array = new NDArray<T>(buffer, shapeInfo, varSpace->workspace());
+        auto array = new nd4j::NDArray<T>(buffer, shapeInfo, varSpace->workspace());
 
         // now we just put array to VarSpace
         varSpace->putVariable(0, e, array);
@@ -6971,7 +6971,7 @@ Nd4jStatus execCustomOpWithScope(Nd4jPointer *extraPointers, nd4j::graph::GraphS
         auto buffer = (T *) outputBuffers[e];
         auto shapeInfo = (int *) outputShapes[e];
 
-        NDArray<T> array(buffer, shapeInfo, varSpace->workspace());
+        nd4j::NDArray<T> array(buffer, shapeInfo, varSpace->workspace());
 
         // now we just put array to VarSpace to the same ID
         //varSpace->putVariable(0, e, array);
