@@ -79,7 +79,8 @@ OP_IMPL(random_shuffle, 1, 1, true) {
             std::iota(indeces.begin(), indeces.end(), 0);        
 // #pragma omp parallel for schedule(guided)        
             for(int i = firstDim-1; i > 0; --i) {
-                int r = rng->nextInt(0, i);                        
+                int r = rng->nextInt(0, i);  
+                std::cout<<i<<" "<<r<<std::endl;
                 subArrsListOut->at(i)->assign(subArrsListIn->at(indeces[r]));
                 if(i == r)
                     continue;
