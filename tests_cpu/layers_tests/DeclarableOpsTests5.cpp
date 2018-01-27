@@ -1139,3 +1139,22 @@ TEST_F(DeclarableOpsTests5, trace_test5) {
     delete results;
 }
 
+//////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests5, random_shuffle_test1) {
+    
+    NDArray<float> input('c', {2, 2, 2});
+    NDArrayFactory<float>::linspace(1, input);
+    NDArray<float> exp('c', {2, 2, 2}, {5, 6,  7, 8,  1, 2,  3, 4});
+
+    nd4j::ops::random_shuffle<float> op;
+    ResultSet<float>* results = op.execute({&input}, {}, {});
+    NDArray<float>* output = results->at(0);    
+    
+    ASSERT_EQ(Status::OK(), results->status());
+    ASSERT_TRUE(exp.isSameShape(output));
+    ASSERT_TRUE(exp.equalsTo(output));
+
+    delete results;
+}
+
+

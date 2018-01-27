@@ -26,56 +26,48 @@ OP_IMPL(random_shuffle, 1, 1, true) {
         
         return Status::OK();
     }
-
-    // generate randomly shuffle map of indexes to swap elements between    
+    
+    // get instance of random generator
     nd4j::random::RandomBuffer* rng = block.getRNG();    
-    const int middle = firstDim / 2;
-    std::unordered_set<int> shuffleSet;    
-    while(shuffleSet.size() < middle)
-        shuffleSet.insert(rng->nextInt(0, middle - 1));
-    rng->rewind(middle);
-    std::vector<int> shuffleVec(shuffleSet.begin(), shuffleSet.end());
-
-    // evaluate sub-arrays of input array through all dimensions excluding first one
+    
+    // evaluate sub-arrays list of input array through all dimensions excluding first one
     std::vector<int> dimensions = ShapeUtils<T>::evalDimsToExclude(input->rankOf(), {0});       
     ResultSet<T>* subArrsListIn = NDArrayFactory<T>::allTensorsAlongDimension(input, dimensions);
 
-    
+    // apply Fisher-Yates shuffle
     if(block.isInplace()) {
-
 // #pragma omp parallel for schedule(guided)        
-        for(int i = 0; i < middle; ++i)
-            subArrsListIn->at(shuffleVec[i])->swapUnsafe(*(subArrsListIn->at(shuffleVec[i] + middle)));
-        
-        // if firstDim is odd then swap randomly middle sub-array
-        if(firstDim % 2) {
-            int randomForMiddle = rng->nextInt(0, firstDim - 1);
-            if(randomForMiddle != middle)
-                subArrsListIn->at(middle)->swapUnsafe(*(subArrsListIn->at(randomForMiddle))); 
-            rng->rewind(1);
-        }
+        for(int i = firstDim-1; i > 0; --i) {
+            int r = rng->nextInt(0, i);
+            if(i == r)
+                continue;
+            subArrsListIn->at(i)->swapUnsafe(*subArrsListIn->at(r));
+        }        
     }
     else {
-        
+        // evaluate sub-arrays list of output array through all dimensions excluding first one        
         ResultSet<T>* subArrsListOut = NDArrayFactory<T>::allTensorsAlongDimension(output, dimensions);        
+        // in not-in-place case we have to check whether zero element was shuffled
+        bool isZeroElemShuffled = false;
+// #pragma omp parallel for schedule(guided)        
+        for(int i = firstDim-1; i > 0; --i) {
+            int r = rng->nextInt(0, i);            
+            if(r == 0)
+                isZeroElemShuffled = true;
+            subArrsListOut->at(i)->assign(subArrsListIn->at(r));
+            if(i == r)
+                continue;
+            subArrsListOut->at(r)->assign(subArrsListIn->at(i));
+        }           
 
-// #pragma omp parallel for schedule(guided)                
-        for(int i = 0; i < middle; ++i) {
-            subArrsListOut->at(shuffleVec[i])->assign(*(subArrsListIn->at(shuffleVec[i] + middle)));
-            subArrsListOut->at(shuffleVec[i] + middle)->assign(*(subArrsListIn->at(shuffleVec[i])));
-        }
-     
-        // if firstDim is odd then swap randomly middle sub-array
-        if(firstDim % 2) {
-            int randomForMiddle = rng->nextInt(0, firstDim - 1);
-            if(randomForMiddle != middle)
-                subArrsListOut->at(middle)->swapUnsafe(*(subArrsListOut->at(randomForMiddle))); 
-            rng->rewind(1);
-        }   
-        
+        if(!isZeroElemShuffled)
+            subArrsListOut->at(0)->assign(subArrsListIn->at(0));
+
         delete subArrsListOut;
     }
-            
+    
+    rng->rewindH(firstDim-1);
+
     delete subArrsListIn;
 
     return Status::OK();

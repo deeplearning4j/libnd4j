@@ -3,6 +3,7 @@
 //
 
 #include <ops/declarable/DeclarableOp.h>
+#include <helpers/ProviderRNG.h>
 
 namespace nd4j {
     namespace ops {
@@ -423,6 +424,8 @@ namespace nd4j {
         template <typename T>
         Nd4jStatus nd4j::ops::DeclarableOp<T>::execute(std::vector<NDArray<T>*>& inputs, std::vector<NDArray<T>*>& outputs, std::vector<T>& tArgs, std::vector<int>& iArgs, bool isInplace) {
             VariableSpace<T> variableSpace;
+
+            random::RandomBuffer* rng = ProviderRNG::getInstance().getRNG();            
 
             int cnt = -1;
             std::vector<int> in;
