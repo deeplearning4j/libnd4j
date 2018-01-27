@@ -3009,14 +3009,18 @@ public:
     void deleteVariablesSetHalf(Nd4jPointer pointer);
 
     // GraphState creation
-    nd4j::graph::GraphState<float> *getGraphStateFloat(Nd4jIndex id);
-    nd4j::graph::GraphState<double> *getGraphStateDouble(Nd4jIndex id);
-    void deleteGraphStateFloat(nd4j::graph::GraphState<float> *state);
-    void deleteGraphStateDouble(nd4j::graph::GraphState<double> *state);
+    Nd4jPointer getGraphStateHalf(Nd4jIndex id);
+    Nd4jPointer getGraphStateFloat(Nd4jIndex id);
+    Nd4jPointer getGraphStateDouble(Nd4jIndex id);
+
+    void deleteGraphStateHalf(Nd4jPointer state);
+    void deleteGraphStateFloat(Nd4jPointer state);
+    void deleteGraphStateDouble(Nd4jPointer state);
 
     // this method executes op that requires scope to be present: if/while/cond/whatever
-    Nd4jStatus execCustomOpWithScopeFloat(Nd4jPointer *extraPointers, nd4j::graph::GraphState<float> *state, Nd4jIndex opHash, Nd4jIndex *scopes, int numScopes, Nd4jPointer *inputBuffers, Nd4jPointer *inputShapes, int numInputs, Nd4jPointer *outputBuffers, Nd4jPointer *outputShapes, int numOutputs);
-    Nd4jStatus execCustomOpWithScopeDouble(Nd4jPointer *extraPointers, nd4j::graph::GraphState<double> *state, Nd4jIndex opHash, Nd4jIndex *scopes, int numScopes, Nd4jPointer *inputBuffers, Nd4jPointer *inputShapes, int numInputs, Nd4jPointer *outputBuffers, Nd4jPointer *outputShapes, int numOutputs);
+    Nd4jStatus execCustomOpWithScopeHalf(Nd4jPointer *extraPointers, Nd4jPointer state, Nd4jIndex opHash, Nd4jIndex *scopes, int numScopes, Nd4jPointer *inputBuffers, Nd4jPointer *inputShapes, int numInputs, Nd4jPointer *outputBuffers, Nd4jPointer *outputShapes, int numOutputs);
+    Nd4jStatus execCustomOpWithScopeFloat(Nd4jPointer *extraPointers, Nd4jPointer state, Nd4jIndex opHash, Nd4jIndex *scopes, int numScopes, Nd4jPointer *inputBuffers, Nd4jPointer *inputShapes, int numInputs, Nd4jPointer *outputBuffers, Nd4jPointer *outputShapes, int numOutputs);
+    Nd4jStatus execCustomOpWithScopeDouble(Nd4jPointer *extraPointers, Nd4jPointer state, Nd4jIndex opHash, Nd4jIndex *scopes, int numScopes, Nd4jPointer *inputBuffers, Nd4jPointer *inputShapes, int numInputs, Nd4jPointer *outputBuffers, Nd4jPointer *outputShapes, int numOutputs);
 };
 
 

@@ -3415,20 +3415,31 @@ const char* NativeOps::getAllOperations() {
     return nd4j::OpTracker::getInstance()->exportOperations();
 }
 
-nd4j::graph::GraphState<float> *NativeOps::getGraphStateFloat(Nd4jIndex id) {
-    return new nd4j::graph::GraphState<float>(id);
+Nd4jPointer NativeOps::getGraphStateHalf(Nd4jIndex id) {
+    return (Nd4jPointer) new nd4j::graph::GraphState<float16>(id);
 }
 
-nd4j::graph::GraphState<double> *NativeOps::getGraphStateDouble(Nd4jIndex id) {
-    return new nd4j::graph::GraphState<double>(id);
+Nd4jPointer NativeOps::getGraphStateFloat(Nd4jIndex id) {
+    return (Nd4jPointer) new nd4j::graph::GraphState<float>(id);
 }
 
-void NativeOps::deleteGraphStateFloat(nd4j::graph::GraphState<float> *state) {
-    delete state;
+Nd4jPointer NativeOps::getGraphStateDouble(Nd4jIndex id) {
+    return (Nd4jPointer) new nd4j::graph::GraphState<double>(id);
 }
 
-void NativeOps::deleteGraphStateDouble(nd4j::graph::GraphState<double> *state) {
-    delete state;
+void NativeOps::deleteGraphStateHalf(Nd4jPointer state) {
+    auto stateP = (nd4j::graph::GraphState<float16> *) state;
+    delete stateP;
+}
+
+void NativeOps::deleteGraphStateFloat(Nd4jPointer state) {
+    auto stateP = (nd4j::graph::GraphState<float> *) state;
+    delete stateP;
+}
+
+void NativeOps::deleteGraphStateDouble(Nd4jPointer state) {
+    auto stateP = (nd4j::graph::GraphState<double> *) state;
+    delete stateP;
 }
 
 template <typename T>
@@ -3497,12 +3508,16 @@ Nd4jStatus execCustomOpWithScope(Nd4jPointer *extraPointers, nd4j::graph::GraphS
     return Status::OK();
 }
 
-Nd4jStatus NativeOps::execCustomOpWithScopeFloat(Nd4jPointer *extraPointers, nd4j::graph::GraphState<float> *state, Nd4jIndex opHash, Nd4jIndex *scopes, int numScopes, Nd4jPointer *inputBuffers, Nd4jPointer *inputShapes, int numInputs, Nd4jPointer *outputBuffers, Nd4jPointer *outputShapes, int numOutputs) {
-    return execCustomOpWithScope<float>(extraPointers, state, opHash, scopes, numScopes, inputBuffers, inputShapes, numInputs, outputBuffers, outputShapes, numOutputs);
+Nd4jStatus NativeOps::execCustomOpWithScopeHalf(Nd4jPointer *extraPointers, Nd4jPointer state, Nd4jIndex opHash, Nd4jIndex *scopes, int numScopes, Nd4jPointer *inputBuffers, Nd4jPointer *inputShapes, int numInputs, Nd4jPointer *outputBuffers, Nd4jPointer *outputShapes, int numOutputs) {
+    return execCustomOpWithScope<float16>(extraPointers, (nd4j::graph::GraphState<float16> *) state, opHash, scopes, numScopes, inputBuffers, inputShapes, numInputs, outputBuffers, outputShapes, numOutputs);
 }
 
-Nd4jStatus NativeOps::execCustomOpWithScopeDouble(Nd4jPointer *extraPointers, nd4j::graph::GraphState<double> *state, Nd4jIndex opHash, Nd4jIndex *scopes, int numScopes, Nd4jPointer *inputBuffers, Nd4jPointer *inputShapes, int numInputs, Nd4jPointer *outputBuffers, Nd4jPointer *outputShapes, int numOutputs) {
-    return execCustomOpWithScope<double>(extraPointers, state, opHash, scopes, numScopes, inputBuffers, inputShapes, numInputs, outputBuffers, outputShapes, numOutputs);
+Nd4jStatus NativeOps::execCustomOpWithScopeFloat(Nd4jPointer *extraPointers, Nd4jPointer state, Nd4jIndex opHash, Nd4jIndex *scopes, int numScopes, Nd4jPointer *inputBuffers, Nd4jPointer *inputShapes, int numInputs, Nd4jPointer *outputBuffers, Nd4jPointer *outputShapes, int numOutputs) {
+    return execCustomOpWithScope<float>(extraPointers, (nd4j::graph::GraphState<float> *) state, opHash, scopes, numScopes, inputBuffers, inputShapes, numInputs, outputBuffers, outputShapes, numOutputs);
+}
+
+Nd4jStatus NativeOps::execCustomOpWithScopeDouble(Nd4jPointer *extraPointers, Nd4jPointer state, Nd4jIndex opHash, Nd4jIndex *scopes, int numScopes, Nd4jPointer *inputBuffers, Nd4jPointer *inputShapes, int numInputs, Nd4jPointer *outputBuffers, Nd4jPointer *outputShapes, int numOutputs) {
+    return execCustomOpWithScope<double>(extraPointers, (nd4j::graph::GraphState<double> *) state, opHash, scopes, numScopes, inputBuffers, inputShapes, numInputs, outputBuffers, outputShapes, numOutputs);
 }
 
 
