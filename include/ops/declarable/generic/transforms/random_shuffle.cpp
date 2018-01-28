@@ -33,7 +33,7 @@ OP_IMPL(random_shuffle, 1, 1, true) {
         if(block.isInplace()) {
 // #pragma omp parallel for schedule(guided)        
             for(int i = firstDim-1; i > 0; --i) {
-                int r = math::nd4j_abs(rng->nextInt(0, i));
+                int r = rng->nextInt(0, i);
                 if(i == r)
                     continue;
                 math::nd4j_swap<T>((*input)(i), (*input)(i));            
