@@ -33,7 +33,7 @@ OP_IMPL(random_shuffle, 1, 1, true) {
         if(block.isInplace()) {
 // #pragma omp parallel for schedule(guided)        
             for(int i = firstDim-1; i > 0; --i) {
-                int r = rng->nextInt(0, i);
+                int r = math::nd4j_abs(rng->nextInt(0, i));
                 if(i == r)
                     continue;
                 math::nd4j_swap<T>((*input)(i), (*input)(i));            
@@ -42,9 +42,10 @@ OP_IMPL(random_shuffle, 1, 1, true) {
         else {        
             std::vector<int> indeces(firstDim);        
             std::iota(indeces.begin(), indeces.end(), 0);        
+            (*output)(0) = (*input)(0);
 // #pragma omp parallel for schedule(guided)        
             for(int i = firstDim-1; i > 0; --i) {
-                int r = rng->nextInt(0, i);                        
+                int r = math::nd4j_abs(rng->nextInt(0, i));
                 (*output)(i) = (*input)(indeces[r]);
                 if(i == r)
                     continue;
@@ -66,7 +67,7 @@ OP_IMPL(random_shuffle, 1, 1, true) {
         if(block.isInplace()) {
 // #pragma omp parallel for schedule(guided)        
             for(int i = firstDim-1; i > 0; --i) {
-                int r = rng->nextInt(0, i);
+                int r = math::nd4j_abs(rng->nextInt(0, i));
                 if(i == r)
                     continue;
                 subArrsListIn->at(i)->swapUnsafe(*subArrsListIn->at(r));
@@ -77,16 +78,20 @@ OP_IMPL(random_shuffle, 1, 1, true) {
             ResultSet<T>* subArrsListOut = NDArrayFactory<T>::allTensorsAlongDimension(output, dimensions);        
             std::vector<int> indeces(firstDim);        
             std::iota(indeces.begin(), indeces.end(), 0);        
+            bool isZeroShuffled = false;
 // #pragma omp parallel for schedule(guided)        
             for(int i = firstDim-1; i > 0; --i) {
-                int r = rng->nextInt(0, i);  
-                std::cout<<i<<" "<<r<<std::endl;
+                int r = math::nd4j_abs(rng->nextInt(0, i));
                 subArrsListOut->at(i)->assign(subArrsListIn->at(indeces[r]));
+                if(r == 0)
+                    isZeroShuffled = true;
                 if(i == r)
                     continue;
                 subArrsListOut->at(r)->assign(subArrsListIn->at(indeces[i]));
                 math::nd4j_swap<int>(indeces[i], indeces[r]);
             }           
+            if(!isZeroShuffled)
+                subArrsListOut->at(0)->assign(subArrsListIn->at(0));
             delete subArrsListOut;
         }
         rng->rewindH(firstDim-1);
