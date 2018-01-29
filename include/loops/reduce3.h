@@ -1043,17 +1043,11 @@ template<typename OpType>
                 shape::printShapeInfoLinear(resultShapeInfoBuffer);
                 shape::printShapeInfoLinear(tadShapeInfo);
 
+                int xCoord[MAX_RANK];
+                int yCoord[MAX_RANK];
 
-
-#pragma  omp parallel for proc_bind(AFFINITY) default(shared)
+//#pragma  omp parallel for proc_bind(AFFINITY) default(shared)
                 for (int r = 0; r < tads; r++) {
-                    int xCoord[MAX_RANK];
-                    int yCoord[MAX_RANK];
-
-                    nd4j_printf("XShape: [%p]; XStride: [%p];\n", (void *) xShape, (void *) xStride);
-                    nd4j_printf("YShape: [%p]; YStride: [%p];\n", (void *) yShape, (void *) yStride);
-                    nd4j_printf("TSp: [%p]; TOp: [%p]\n", (void *) tadShapeInfo, (void *) tadOffsets);
-
                     Nd4jIndex offset = tadOffsets[r];
 
                     T *localExtraParams = nullptr;
@@ -1062,10 +1056,6 @@ template<typename OpType>
                     for (int extraParamsIdx = 0; extraParamsIdx < OpType::extraParamsLen; extraParamsIdx++) {
                         localExtraParams[extraParamsIdx] = startingVal;
                     }
-
-
-//                    nd4j_printf("LEp: [%p]\n", (void *) localExtraParams);
-                    //nd4j_printf("LE[0]: %f\n", localExtraParams[0]);
 
                     for (int f = 0; f < tadLength; f++) {
                         if (shape::order(tadShapeInfo) == 'c') {
@@ -1078,8 +1068,6 @@ template<typename OpType>
 
                         Nd4jIndex xOffset = shape::getOffset(offset, xShape, xStride, xCoord, xRank);
                         Nd4jIndex yOffset = shape::getOffset(0, yShape, yStride, yCoord, yRank);
-
-//                        nd4j_printf("xOffset: [%lld]; yOffset: [%lld]\n", xOffset, yOffset);
 
                         result[r] = OpType::update(result[r], OpType::op(x[xOffset], y[yOffset], localExtraParams), localExtraParams);
                     }
