@@ -60,5 +60,7 @@ namespace nd4j {
          * 0: optional, learning rate
          */
         DECLARE_CONFIGURABLE_OP(apply_sgd, 2, 1, true, -2, 0);   
+
+        DECLARE_CUSTOM_OP(fused_batch_norm, 3, 1, false, 1, 2);
     }
 }
