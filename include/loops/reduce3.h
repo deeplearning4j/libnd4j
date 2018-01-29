@@ -1053,7 +1053,7 @@ template<typename OpType>
                     }
 
                     nd4j_printf("LEp: [%p]\n", (void *) localExtraParams);
-                    nd4j_printf("LE[0]: %f\n", localExtraParams[0]);
+                    //nd4j_printf("LE[0]: %f\n", localExtraParams[0]);
 
                     for (int f = 0; f < tadLength; f++) {
                         if (shape::order(tadShapeInfo) == 'c') {
@@ -1066,6 +1066,8 @@ template<typename OpType>
 
                         Nd4jIndex xOffset = shape::getOffset(offset, xShape, xStride, xCoord, xRank);
                         Nd4jIndex yOffset = shape::getOffset(0, yShape, yStride, yCoord, yRank);
+
+                        nd4j_printf("xOffset: [%lld]; yOffset: [%lld]\n", xOffset, yOffset);
 
                         result[r] = OpType::update(result[r], OpType::op(x[xOffset], y[yOffset], localExtraParams), localExtraParams);
                     }
