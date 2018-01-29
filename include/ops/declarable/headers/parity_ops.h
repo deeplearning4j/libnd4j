@@ -439,5 +439,11 @@ namespace nd4j {
          */
         DECLARE_CUSTOM_OP(moments, 1, 2, false, 0, -2);
 
+        /**
+         * embedding_lookup - search for submatrices in given matrix and retunts them
+         * accordingly to index array given.
+         */
+        DECLARE_CUSTOM_OP(embedding_lookup, 2, 1, false, 0, 1);
+
     }
 }

@@ -1447,3 +1447,38 @@ TEST_F(DeclarableOpsTests5, random_shuffle_test7) {
     delete results;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////
+
+TEST_F(DeclarableOpsTests5, EmbeddingLookup_1) {
+    
+    NDArray<float> x('c', {3, 4, 2}, {10, 20, 11, 21, 12, 22, 13, 23, 
+                                      14, 24, 15, 25, 16, 26, 17, 27,
+                                      18, 28, 19, 29, 20, 30, 21, 31});
+    
+    NDArray<float> y({1.f, 1.f, 1.f, 0.f, 0.f, 0.f, 2.f, 2.f, 2.f});
+    NDArray<float> exp('c', {9, 4, 2}, {14, 24, 15, 25, 16, 26, 17, 27, 14, 24, 15, 25,
+                                        16, 26, 17, 27, 14, 24, 15, 25, 16, 26, 17, 27,
+                                        10, 20, 11, 21, 12, 22, 13, 23, 10, 20, 11, 21,
+                                        12, 22, 13, 23, 10, 20, 11, 21, 12, 22, 13, 23,
+                                        18, 28, 19, 29, 20, 30, 21, 31, 18, 28, 19, 29,
+                                        20, 30, 21, 31, 18, 28, 19, 29, 20, 30, 21, 31});
+
+    y.printShapeInfo("y shape");
+    y.printIndexedBuffer("y buffer");
+
+    nd4j::ops::embedding_lookup<float> op;
+    ResultSet<float>* result = op.execute({&x, &y}, {}, {0});
+    NDArray<float>* output = result->at(0);    
+    x.printShapeInfo("Input");
+    output->printShapeInfo("Output");
+    exp.printShapeInfo("Expected");
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    ASSERT_TRUE(exp.isSameShape(output));
+    //output->printIndexedBuffer("Output");
+    //exp.printIndexedBuffer("Expect");
+    
+    ASSERT_TRUE(exp.equalsTo(output));
+
+    delete result;
+}
+
