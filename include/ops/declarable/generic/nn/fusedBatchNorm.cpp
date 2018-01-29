@@ -20,19 +20,22 @@ CUSTOM_OP_IMPL(fused_batch_norm, 3, 1, false, 1, 2) {
     const bool dataFormat = (bool)INT_ARG(0);  // 0->NHWC, 1->NCHW
     const bool isTraining = (bool)INT_ARG(1);    
 
-
     REQUIRE_TRUE(x->rankOf() == 4, 0, "CUSTOM_OP fused_batch_norm: the rank of input x array must be equal to 4 !");
     REQUIRE_TRUE(scale->rankOf() == 1, 0, "CUSTOM_OP fused_batch_norm: the rank of input scale array must be equal to 1 !");
     REQUIRE_TRUE(offset->rankOf() == 1, 0, "CUSTOM_OP fused_batch_norm: the rank of input offset array must be equal to 1 !");    
 
-    NDArray<T>* xR = x->dup();
-    if(dataFormat)
-        xR->reshapei(xR->ordering(), {0,2,3,1});
-
-    const int bS = xR->sizeAt(0);           // batch size
-    const int iH = xR->sizeAt(1);           // input height
-    const int iW = xR->sizeAt(2);           // input width
-    const int iD = xR->sizeAt(3);           // input iD or number of channels
+    int bS = x->sizeAt(0);              // batch size
+    int iH, iW, iD;                     // input height, input width, input depth(number of channels)        
+    if(dataFormat) {
+        iD = x->sizeAt(1);
+        iH = x->sizeAt(2);
+        iW = x->sizeAt(3);
+    }
+    else {
+        iH = x->sizeAt(1);
+        iW = x->sizeAt(2);
+        iD = x->sizeAt(3);   
+    }    
 
     REQUIRE_TRUE(scale->sizeAt(0)  == iD, 0, "CUSTOM_OP fused_batch_norm: the length of input scale array must be number of channels (input iD) !");
     REQUIRE_TRUE(offset->sizeAt(0) == iD, 0, "CUSTOM_OP fused_batch_norm: the length of input offset array must be number of channels (input iD) !");
@@ -61,34 +64,34 @@ CUSTOM_OP_IMPL(fused_batch_norm, 3, 1, false, 1, 2) {
     
     epsilon = epsilon > (T)1.001e-5 ? epsilon : (T)1.001e-5;    
     
-    
-    const int restSize = xR->lengthOf() / iD;
-    xR->reshapei(xR->ordering(), {restSize, iD});
+    const int restSize = x->lengthOf() / iD;    
+    NDArray<T> xAffected(x->ordering(), {restSize, iD}, block.getWorkspace());
+    xAffected.assign(x);
 
     const int restSizeMinusOne = (restSize > 1) ? (restSize - 1) : 1;
     T restSizeInv = (T)1.0 / restSize;
     T restSizeAdjust = (T)restSize / restSizeMinusOne;
 
     if(isTraining) {
-        NDArray<T>* sum = xR->sum({0});
-        mean->assign((*sum) * restSizeInv);
-        batchMean->assign(mean);
+        NDArray<T>* sum = xAffected.sum({0});
+        *mean = (*sum) * restSizeInv;            
         delete sum;
     }
+    *batchMean = *mean;
     
-    *xR -= *mean;
+    xAffected -= *mean;
 
     if(isTraining) {        
         T power = 2.;
-        NDArray<T>* sum = xR->template transform<simdOps::Pow<T>>(&power).sum({0});
-        variance->assign((*sum) * restSizeInv);
-        batchVar->assign(variance);
+        NDArray<T>* sum = xAffected.template transform<simdOps::Pow<T>>(&power).sum({0});
+        *variance = (*sum) * restSizeInv;        
+        *batchVar  = (*variance) * restSizeAdjust;
         delete sum;
     }
+    else 
+        *batchVar  = *variance;      
 
-    y->assign( (*xR) * (*scale) * (*variance + epsilon).template transform<simdOps::RSqrt<T>>() + (*offset) );
-
-    delete xR;
+    y->assign( xAffected * (*variance + epsilon).template transform<simdOps::RSqrt<T>>() * (*scale) + (*offset) );    
 
     if(isTraining) {
         delete mean;
