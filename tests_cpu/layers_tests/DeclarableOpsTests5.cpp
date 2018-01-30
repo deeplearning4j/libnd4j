@@ -1554,7 +1554,7 @@ TEST_F(DeclarableOpsTests5, DynamicPartition_3) {
     NDArray<float> x('c', {2, 4}, {0.1f, -1.f, 5.2f, 4.3f, -1.f, 7.4f, 0.0f, -2.2f});
     NDArray<float> y('c', {2, 4}, {0, 1, 0, 2, 0, 2, 3, 0});
 
-    std::vector<NDArray<float>> exp( {NDArray<float>({-0.1f, 5.2f, -1.f, -2.2f}),
+    std::vector<NDArray<float>> exp( {NDArray<float>({0.1f, 5.2f, -1.f, -2.2f}),
                                       NDArray<float>({-1.f}),
                                       NDArray<float>({4.3f, 7.4f}),
                                       NDArray<float>({0.0f})
