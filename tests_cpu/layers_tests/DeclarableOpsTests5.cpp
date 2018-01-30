@@ -1515,4 +1515,78 @@ TEST_F(DeclarableOpsTests5, DynamicPartition_1) {
     delete result;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
+TEST_F(DeclarableOpsTests5, DynamicPartition_2) {
+    
+    NDArray<float> x('c', {2, 4}, {0.1f, -1.f, 5.2f, 4.3f, -1.f, 7.4f, 0.0f, -2.2f});
+    NDArray<float> y('c', {2, 4}, {1, 2, 1, 2, 1, 2, 3, 0});
+
+    std::vector<NDArray<float>> exp( {NDArray<float>({-2.2f}),
+                                      NDArray<float>('c', {3}, {0.1f, 5.2f, -1.f}),
+                                      NDArray<float>('c', {3}, {-1.f, 4.3f, 7.4f}),
+                                      NDArray<float>({0.0f})
+                                     });
+
+    nd4j::ops::dynamic_partition<float> op;
+    int numPartition = 4;
+    ResultSet<float>* result = op.execute({&x, &y}, {}, {numPartition});
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    ASSERT_EQ(result->size(), numPartition); // result has the same size as given param 4
+
+    for (int e = 0; e < result->size(); e++) {
+        NDArray<float>* output = result->at(e);
+        output->printShapeInfo("Output shape> ");
+        exp[e].printShapeInfo("Expected shape> ");
+        output->printIndexedBuffer("Output data> ");
+
+        ASSERT_TRUE(exp[e].isSameShape(output));
+        ASSERT_TRUE(exp[e].equalsTo(output));
+    }
+
+    delete result;
+}
+
+
+TEST_F(DeclarableOpsTests5, DynamicPartition_3) {
+    
+    NDArray<float> x('c', {2, 4}, {0.1f, -1.f, 5.2f, 4.3f, -1.f, 7.4f, 0.0f, -2.2f});
+    NDArray<float> y('c', {2, 4}, {0, 1, 0, 2, 0, 2, 3, 0});
+
+    std::vector<NDArray<float>> exp( {NDArray<float>({-0.1f, 5.2f, -1.f, -2.2f}),
+                                      NDArray<float>({-1.f}),
+                                      NDArray<float>({4.3f, 7.4f}),
+                                      NDArray<float>({0.0f})
+                                     });
+
+    nd4j::ops::dynamic_partition<float> op;
+    int numPartition = 4;
+    ResultSet<float>* result = op.execute({&x, &y}, {}, {numPartition});
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    ASSERT_EQ(result->size(), numPartition); // result has the same size as given param 4
+
+    for (int e = 0; e < result->size(); e++) {
+        NDArray<float>* output = result->at(e);
+        if (output)
+        {
+            output->printShapeInfo("Output shape> ");
+            exp[e].printShapeInfo("Expected shape> ");
+            output->printIndexedBuffer("Output data> ");
+        
+            ASSERT_TRUE(exp[e].isSameShape(output));
+            ASSERT_TRUE(exp[e].equalsTo(output));
+        }
+        else
+        {
+            ASSERT_TRUE(exp[e].lengthOf() == 0);
+        }
+    }
+
+    delete result;
+}
+
+
+
 
