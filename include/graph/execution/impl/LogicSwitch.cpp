@@ -12,6 +12,7 @@ namespace nd4j {
         Nd4jStatus LogicSwitch<T>::processNode(Graph<T>* graph, Node<T>* node) {
             auto __variableSpace = graph->getVariableSpace();
             auto __flowPath = __variableSpace->flowPath();
+
             Context<T> ctx(node->getContextPrototype(), __variableSpace);
 
             // this can be either  our format, or compatible format.
@@ -63,6 +64,12 @@ namespace nd4j {
                 std::pair<int, int> pair0(node->id(), 0);
                 std::pair<int, int> pair1(node->id(), 1);
 
+                if (!__variableSpace->hasVariable(pair0))
+                    __variableSpace->putVariable(pair0, new Variable<T>(nullptr, nullptr, node->id(), 0));
+
+                if (!__variableSpace->hasVariable(pair1))
+                    __variableSpace->putVariable(pair1, new Variable<T>(nullptr, nullptr, node->id(), 1));
+
                 if (boolean->getScalar(0) == (T) 0.0) {
                     // false
                     nd4j_debug("Node_%i: FALSE branch active\n", node->id());
@@ -72,7 +79,7 @@ namespace nd4j {
                 } else {
                     //true
                     nd4j_debug("Node_%i: TRUE branch active\n", node->id());
-                    __flowPath->markBranch(node->id(), 0);
+                    __flowPath->markBranch(node->id(), 1);
                     __variableSpace->getVariable(pair1)->setNDArray(input);
                     __variableSpace->getVariable(pair1)->markRemovable(false);
                 }

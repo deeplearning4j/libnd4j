@@ -120,7 +120,7 @@ TEST_F(ConditionalTests, Flat_Test_2) {
 
     auto graph = GraphExecutioner<float>::importFromFlatBuffers("./resources/simpleif_0.fb");
     auto varSpace = graph->getVariableSpace();
-    varSpace->getVariable(1)->getNDArray()->assign(3.0);
+    varSpace->getVariable(1)->getNDArray()->assign(-1.0);
 
     graph->printOut();
 

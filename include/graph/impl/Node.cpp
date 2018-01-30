@@ -74,7 +74,9 @@ namespace nd4j {
         bool nd4j::graph::Node<T>::isDivergencePoint() {
             if (hasCustomOp()) {
                 return _customOp->getOpDescriptor()->isDivergent();
-            } else
+            } else if (opType() == OpType_LOGIC && opNum() == 30)
+                return true;
+            else
                 return false;
         }
 
