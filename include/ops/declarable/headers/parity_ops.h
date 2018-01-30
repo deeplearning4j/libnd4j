@@ -217,7 +217,7 @@ namespace nd4j {
         /**
          * This operation return one-hot encoded n-dimensional array
          * Expected arguments:
-         * input: N-dimensional array
+         * input: 1-dimensional array
          * 
          * T args:
          * 0: 'on' value
@@ -228,6 +228,21 @@ namespace nd4j {
          * 1: axis
          */
         DECLARE_CUSTOM_OP(onehot, 1, 1, false, 2, 2);
+
+
+        /**
+         * This operation calculate the confusion matrix for a
+         * pair of prediction and label 1-D arrays.
+         * Expected arguments:
+         * Input arrays:
+         *   0 - predictions: 1-D array
+         *   1 - labels: 1-D array
+         *   2 - weights : optional
+         * Int args:
+         *   0 - num_classes: optional
+         *
+         */
+        DECLARE_CUSTOM_OP(confusion_matrix, 2, 1, false, 0, -2);
 
         /**
 		 * This operation stacks a list of rank tensors into one rank-(R+1) tensor.
