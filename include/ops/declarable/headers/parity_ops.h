@@ -217,7 +217,7 @@ namespace nd4j {
         /**
          * This operation return one-hot encoded n-dimensional array
          * Expected arguments:
-         * input: 1-dimensional array
+         * input: N-dimensional array
          * 
          * T args:
          * 0: 'on' value
