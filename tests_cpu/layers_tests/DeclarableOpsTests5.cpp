@@ -1482,6 +1482,42 @@ TEST_F(DeclarableOpsTests5, EmbeddingLookup_1) {
     delete result;
 }
 
+TEST_F(DeclarableOpsTests5, EmbeddingLookup_2) {
+    
+    NDArray<float> x('c', {3, 4, 2}, {10, 20, 30, 40, 50, 60, 
+                                      70, 80, 90, 10, 11, 12, 
+                                      13, 14, 15, 16, 17, 18, 
+                                      19, 20, 21, 22, 23, 24});
+                    //1,   0,   1,   0,   1,   0
+    NDArray<float> y({1.f, 0.f, 1.f, 0.f, 1.f, 0.f});
+    NDArray<float> exp('c', {6, 4, 2}, {90, 10, 11, 12, 13, 14,
+                                        15, 16, 10, 20, 30, 40,
+                                        50, 60, 70, 80, 90, 10,
+                                        11, 12, 13, 14, 15, 16,
+                                        10, 20, 30, 40, 50, 60,
+                                        70, 80, 90, 10, 11, 12,
+                                        13, 14, 15, 16, 10, 20,
+                                        30, 40, 50, 60, 70, 80});
+
+    y.printShapeInfo("y shape");
+    y.printIndexedBuffer("y buffer");
+
+    nd4j::ops::embedding_lookup<float> op;
+    ResultSet<float>* result = op.execute({&x, &y}, {}, {0});
+    NDArray<float>* output = result->at(0);    
+    x.printShapeInfo("Input");
+    output->printShapeInfo("Output");
+    exp.printShapeInfo("Expected");
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    ASSERT_TRUE(exp.isSameShape(output));
+    output->printIndexedBuffer("Output");
+    exp.printIndexedBuffer("Expect");
+    
+    ASSERT_TRUE(exp.equalsTo(output));
+
+    delete result;
+}
+
 TEST_F(DeclarableOpsTests5, DynamicPartition_1) {
     
     NDArray<float> x('c', {3, 4, 2}, {10, 20, 11, 21, 12, 22, 
