@@ -4,6 +4,7 @@
 
 #include "testlayers.h"
 #include <Graph.h>
+#include <GraphExecutioner.h>
 #include <Node.h>
 #include <ops/declarable/CustomOperations.h>
 
@@ -12,7 +13,15 @@ using namespace nd4j::graph;
 
 class ConditionalTests : public testing::Test {
 public:
+    ConditionalTests(){
+        Environment::getInstance()->setVerbose(true);
+        Environment::getInstance()->setDebug(true);
+    }
 
+    ~ConditionalTests(){
+        Environment::getInstance()->setVerbose(false);
+        Environment::getInstance()->setDebug(false);
+    }
 };
 
 
@@ -80,5 +89,27 @@ TEST_F(ConditionalTests, BasicTests_1) {
     ASSERT_NE(nullptr, conditionalResult);
 
     ASSERT_NEAR(6.0, conditionalResult->meanNumber(), 1e-5);
+}
 
+
+TEST_F(ConditionalTests, Flat_Test_1) {
+    nd4j::ops::identity<float> op0;
+
+    auto graph = GraphExecutioner<float>::importFromFlatBuffers("./resources/simpleif_0.fb");
+    auto varSpace = graph->getVariableSpace();
+
+    graph->printOut();
+
+    auto status = GraphExecutioner<float>::execute(graph);
+    ASSERT_EQ(Status::OK(), status);
+
+    ASSERT_TRUE(varSpace->hasVariable(15));
+
+    auto z = varSpace->getVariable(15)->getNDArray();
+
+    ASSERT_NE(nullptr, z);
+
+    z->printShapeInfo("z shape");
+
+    delete graph;
 }

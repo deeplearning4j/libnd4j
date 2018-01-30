@@ -49,6 +49,7 @@ template <typename T>
  Nd4jStatus GraphExecutioner<T>::executeFlatNode(Graph<T> *graph, Node<T> *node, VariableSpace<T> *variableSpace) {
     OpType opType = node->opType();
     int opNum = node->opNum();
+    std::string opName = *(node->getCustomOp()->getOpName());
 
     if (opType == OpType_BOOLEAN) {
         nd4j_debug("Executing boolean graph node_%i", node->id());
@@ -205,6 +206,7 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* varia
 //#pragma omp parallel for if (layerSize > 1 && pe) schedule(dynamic) proc_bind(spread)
         for (int n = 0; n < layerSize; n++) {
             Node<T>* node = graph->getOnion()->at(l)->at(n);
+            std::string name = *(node->getCustomOp()->getOpName());
 
             /**
              * If this LOGIC op, we'll use another execution model here
