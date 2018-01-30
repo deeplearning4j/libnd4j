@@ -189,6 +189,7 @@ NDArray<T>::NDArray(T scalar) {
     _isShapeAlloc = true;
 }
 
+#ifndef __JAVACPP_HACK__
     template <typename T>
     NDArray<T>::NDArray(std::initializer_list<T> v, nd4j::memory::Workspace* workspace) {
         std::vector<T> values(v);
@@ -213,6 +214,7 @@ NDArray<T>::NDArray(T scalar) {
         _isShapeAlloc = true;
         _workspace = workspace;
     }
+#endif
 
 ////////////////////////////////////////////////////////////////////////
 // creates new NDArray using shape information from "shapeInfo" array, set all elements in new array to be zeros
@@ -386,6 +388,71 @@ template <typename T>
                 Nd4jIndex zOffset = shape::getOffset(0, target->shapeOf(), target->stridesOf(), zCoord, target->rankOf());
 
                 target->_buffer[zOffset] = func(this->_buffer[xOffset]);
+            }
+        }
+    }
+
+    template<typename T>
+    void NDArray<T>::applyIndexedLambda(const std::function<T(Nd4jIndex, T)>& func, NDArray<T>* target) {
+        if (target == nullptr)
+            target = this;
+
+        if (this->ordering() == target->ordering() && (this->ews() == 1 && target->ews() == 1)) {
+#pragma omp parallel for simd schedule(guided)
+            for (int e = 0; e < this->lengthOf(); e++)
+                target->_buffer[e] = func((Nd4jIndex) e, this->_buffer[e]);
+        } else {
+            int xCoord[MAX_RANK];
+            int zCoord[MAX_RANK];
+
+#pragma omp parallel for schedule(guided) private(xCoord, zCoord)
+            for (int e = 0; e < this->lengthOf(); e++) {
+                shape::ind2subC(this->rankOf(), this->shapeOf(), e, xCoord);
+                shape::ind2subC(target->rankOf(), target->shapeOf(), e, zCoord);
+
+                Nd4jIndex xOffset = shape::getOffset(0, this->shapeOf(), this->stridesOf(), xCoord, this->rankOf());
+                Nd4jIndex zOffset = shape::getOffset(0, target->shapeOf(), target->stridesOf(), zCoord, target->rankOf());
+
+                target->_buffer[zOffset] = func((Nd4jIndex) e, this->_buffer[xOffset]);
+            }
+        }
+    }
+
+    template<typename T>
+    void NDArray<T>::applyIndexedPairwiseLambda(NDArray<T>* other, const std::function<T(Nd4jIndex, T, T)>& func, NDArray<T>* target) {
+        if (target == nullptr)
+            target = this;
+
+        if (other == nullptr) {
+            nd4j_printf("applyIndexedPairwiseLambda requires both operands to be valid NDArrays, but Y is NULL\n","");
+            throw "Other is null";
+        }
+
+        if (this->lengthOf() != other->lengthOf()) {
+            nd4j_printf("applyIndexedPairwiseLambda requires both operands to have the same shape\n","");
+            throw "Shapes mismach";
+        }
+
+        if (this->ordering() == other->ordering() && this->ordering() == target->ordering() && (this->ews() == 1 && target->ews() == 1) && this->ews() == other->ews()) {
+#pragma omp parallel for simd schedule(guided)
+            for (int e = 0; e < this->lengthOf(); e++)
+                target->_buffer[e] = func((Nd4jIndex) e, this->_buffer[e], other->_buffer[e]);
+        } else {
+            int xCoord[MAX_RANK];
+            int yCoord[MAX_RANK];
+            int zCoord[MAX_RANK];
+
+#pragma omp parallel for schedule(guided) private(xCoord, yCoord, zCoord)
+            for (int e = 0; e < this->lengthOf(); e++) {
+                shape::ind2subC(this->rankOf(), this->shapeOf(), e, xCoord);
+                shape::ind2subC(other->rankOf(), other->shapeOf(), e, yCoord);
+                shape::ind2subC(target->rankOf(), target->shapeOf(), e, zCoord);
+
+                Nd4jIndex xOffset = shape::getOffset(0, this->shapeOf(), this->stridesOf(), xCoord, this->rankOf());
+                Nd4jIndex yOffset = shape::getOffset(0, other->shapeOf(), other->stridesOf(), yCoord, other->rankOf());
+                Nd4jIndex zOffset = shape::getOffset(0, target->shapeOf(), target->stridesOf(), zCoord, target->rankOf());
+
+                target->_buffer[zOffset] = func((Nd4jIndex) e, this->_buffer[xOffset], other->_buffer[yOffset]);
             }
         }
     }
@@ -2472,6 +2539,8 @@ bool NDArray<T>::isUnitary() {
     NDArray<T>* NDArray<T>::varianceAlongDimension(const bool biasCorrected, const std::vector<int>& dimensions) const {
     
         std::vector<int> copy(dimensions);
+        if (copy.size() > 1)
+            std::sort(copy.begin(), copy.end());
             
         int* newShape = ShapeUtils<T>::evalReduceShapeInfo('c', copy, *this);
         NDArray<T>* result = new NDArray<T>(newShape, _workspace);
@@ -2492,6 +2561,27 @@ bool NDArray<T>::isUnitary() {
     NDArray<T>* NDArray<T>::varianceAlongDimension(const bool biasCorrected, const std::initializer_list<int>& dimensions) const {
     
         return varianceAlongDimension<OpName>(biasCorrected, std::vector<int>(dimensions));
+    }
+
+    template<typename T>
+    template<typename OpName>
+    void NDArray<T>::varianceAlongDimension(const NDArray<T> *target, const bool biasCorrected, const std::vector<int>& dimensions) {
+        std::vector<int> copy(dimensions);
+        if (copy.size() > 1)
+            std::sort(copy.begin(), copy.end());
+
+        if(rankOf() == copy.size())
+            target->_buffer[0] = functions::summarystats::SummaryStatsReduce<T>::template execScalar<OpName>(biasCorrected, _buffer, _shapeInfo, nullptr);
+        else
+            functions::summarystats::SummaryStatsReduce<T>::template exec<OpName>(biasCorrected, _buffer, _shapeInfo, nullptr,
+                                                                                  target->_buffer, target->_shapeInfo, copy.data(), copy.size());
+
+    }
+
+    template<typename T>
+    template<typename OpName>
+    void NDArray<T>::varianceAlongDimension(const NDArray<T> *target, const bool biasCorrected, const std::initializer_list<int>& dimensions) {
+         varianceAlongDimension<OpName>(target, biasCorrected, std::vector<int>(dimensions));
     }
 
     ////////////////////////////////////////////////////////////////////////
@@ -2827,18 +2917,18 @@ NDArray<T> NDArray<T>::operator+(const NDArray<T>& other) const {
         if(_buffer == nullptr || other._buffer == nullptr)
             throw "NDArray::swapUnsafe method: input array should not be empty!";
 
-        if(_buffer == other._buffer)
-            throw "NDArray::swapUnsafe method: the buffers of input arrays should not point on the same address!";
+        // if(_buffer == other._buffer)
+        //     throw "NDArray::swapUnsafe method: the buffers of input arrays should not point on the same address!";
 
         if(lengthOf() != other.lengthOf())
             throw "NDArray::swapUnsafe method: input arrays should have the same length!";
 
         T temp;
-#pragma omp parallel for simd schedule(static) private(temp)
+#pragma omp parallel for schedule(static) private(temp)
         for (int i = 0; i < lengthOf(); ++i) {
-            temp = _buffer[i];
-            _buffer[i] = other._buffer[i];
-            other._buffer[i] = temp;            
+            temp = (*this)(i);
+            (*this)(i) = other(i);
+            other(i) = temp;            
         }
     }
 

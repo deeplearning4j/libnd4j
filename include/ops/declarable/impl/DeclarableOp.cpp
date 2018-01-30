@@ -3,6 +3,7 @@
 //
 
 #include <ops/declarable/DeclarableOp.h>
+#include <helpers/ProviderRNG.h>
 
 namespace nd4j {
     namespace ops {
@@ -361,9 +362,9 @@ namespace nd4j {
                 auto v = block.variable(p);
                 if (v == nullptr) {
                     if (this->getOpName() != nullptr) {
-                        nd4j_printf("Node [%i:<%s>]: Variable [%i] (%i:%i) is NULL\n", block.getNodeId(), this->getOpName()->c_str(), cnt, 0, 0);
+                        nd4j_printf("Node [%i:<%s>]: Variable [%i] (%i:%i) is NULL\n", block.getNodeId(), this->getOpName()->c_str(), cnt, p.first, p.second);
                     } else {
-                        nd4j_printf("Node [%i:<noname>]: Variable [%i] (%i:%i) is NULL\n", block.getNodeId(), cnt, 0, 0);
+                        nd4j_printf("Node [%i:<noname>]: Variable [%i] (%i:%i) is NULL\n", block.getNodeId(), cnt, p.first, p.second);
                     }
                     return ND4J_STATUS_BAD_INPUT;
                 }
@@ -373,9 +374,9 @@ namespace nd4j {
 
                     if (aV == nullptr || !aV->nonNull()) {
                         if (this->getOpName() != nullptr) {
-                            nd4j_printf("Node [%i:<%s>]: NDArray [%i] (%i:%i) is NULL\n", block.getNodeId(), this->getOpName()->c_str(), cnt, 0, 0);
+                            nd4j_printf("Node [%i:<%s>]: NDArray [%i] (%i:%i) is NULL\n", block.getNodeId(), this->getOpName()->c_str(), cnt, p.first, p.second);
                         } else {
-                            nd4j_printf("Node [%i:<noname>]: NDArray [%i] (%i:%i) is NULL\n", block.getNodeId(), cnt, 0, 0);
+                            nd4j_printf("Node [%i:<noname>]: NDArray [%i] (%i:%i) is NULL\n", block.getNodeId(), cnt, p.first, p.second);
                         }
                         return ND4J_STATUS_BAD_INPUT;
                     }
@@ -422,7 +423,7 @@ namespace nd4j {
 
         template <typename T>
         Nd4jStatus nd4j::ops::DeclarableOp<T>::execute(std::vector<NDArray<T>*>& inputs, std::vector<NDArray<T>*>& outputs, std::vector<T>& tArgs, std::vector<int>& iArgs, bool isInplace) {
-            VariableSpace<T> variableSpace;
+            VariableSpace<T> variableSpace;            
 
             int cnt = -1;
             std::vector<int> in;
@@ -446,7 +447,7 @@ namespace nd4j {
 
             Context<T> block(1, &variableSpace, false);
             block.fillInputs(in);
-            block.markInplace(isInplace);
+            block.markInplace(isInplace);            
 
             for (int e = 0; e < tArgs.size(); e++)
                 block.getTArguments()->emplace_back(tArgs.at(e));
@@ -480,10 +481,11 @@ namespace nd4j {
                 in.push_back(cnt);
                 variableSpace.putVariable(cnt--, var);
             }
-
+            
             Context<T> block(1, &variableSpace, false);
             block.fillInputs(in);
             block.markInplace(isInplace);
+            block.setRNG(ProviderRNG::getInstance().getRNG());
 
             for (int e = 0; e < tArgs.size(); e++)
                 block.getTArguments()->emplace_back(tArgs.at(e));
