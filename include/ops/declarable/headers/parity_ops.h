@@ -455,7 +455,22 @@ namespace nd4j {
          * 
          * returns a num of NDArrays as output
          */
+
         DECLARE_CUSTOM_OP(dynamic_partition, 2, 1, false, 0, 1);
+
+        /**
+         * dynamic_stitch - merge partitions from the second param a input tensor 
+         * into a single tensor accordingly to index array given.
+         *
+         * the first param - index array
+         * the second params - tensors to be merged
+         * 
+         * returns a num of NDArrays as output
+         * 
+         * the operation is inversion od dynamic_partition
+         */
+        DECLARE_CUSTOM_OP(dynamic_stitch, 2, 1, false, 0, 0);
+
 
     }
 }
