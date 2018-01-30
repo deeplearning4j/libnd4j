@@ -12,7 +12,6 @@ namespace nd4j {
             NDArray<T>* weights = nullptr;
             if(block.width() > 2){
                 weights = INPUT_VARIABLE(2);
-                weights->printIndexedBuffer();
                 REQUIRE_TRUE(weights->isSameShape(predictions),0, "Weights and predictions should have equal shape");
             }
             auto output = OUTPUT_VARIABLE(0);
