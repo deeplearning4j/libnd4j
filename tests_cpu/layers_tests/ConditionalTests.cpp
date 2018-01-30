@@ -110,6 +110,31 @@ TEST_F(ConditionalTests, Flat_Test_1) {
     ASSERT_NE(nullptr, z);
 
     z->printShapeInfo("z shape");
+    z->printIndexedBuffer("z buffer");
+
+    delete graph;
+}
+
+TEST_F(ConditionalTests, Flat_Test_2) {
+    nd4j::ops::identity<float> op0;
+
+    auto graph = GraphExecutioner<float>::importFromFlatBuffers("./resources/simpleif_0.fb");
+    auto varSpace = graph->getVariableSpace();
+    varSpace->getVariable(1)->getNDArray()->assign(3.0);
+
+    graph->printOut();
+
+    auto status = GraphExecutioner<float>::execute(graph);
+    ASSERT_EQ(Status::OK(), status);
+
+    ASSERT_TRUE(varSpace->hasVariable(15));
+
+    auto z = varSpace->getVariable(15)->getNDArray();
+
+    ASSERT_NE(nullptr, z);
+
+    z->printShapeInfo("z shape");
+    z->printIndexedBuffer("z buffer");
 
     delete graph;
 }

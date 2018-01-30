@@ -206,7 +206,7 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* varia
 //#pragma omp parallel for if (layerSize > 1 && pe) schedule(dynamic) proc_bind(spread)
         for (int n = 0; n < layerSize; n++) {
             Node<T>* node = graph->getOnion()->at(l)->at(n);
-            std::string name = *(node->getCustomOp()->getOpName());
+            //std::string name = *(node->getCustomOp()->getOpName());
 
             /**
              * If this LOGIC op, we'll use another execution model here

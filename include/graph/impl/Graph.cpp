@@ -995,6 +995,11 @@ namespace nd4j {
             return clone;
         }
 
+        template <typename T>
+        bool Graph<T>::hasScope(int id) {
+            return _mappedScopes.count(id) > 0;
+        }
+
         template class ND4J_EXPORT Graph<float>;
         template class ND4J_EXPORT Graph<float16>;
         template class ND4J_EXPORT Graph<double>;

@@ -148,6 +148,13 @@ namespace nd4j {
             Scope<T>* scopeById(int id);
 
             /**
+             * This method returns TRUE if specified ID refers to Scope, and false otherwise
+             * @param id
+             * @return
+             */
+            bool hasScope(int id);
+
+            /**
              * This method returns clone of the graph
              */
             Graph<T>* clone();

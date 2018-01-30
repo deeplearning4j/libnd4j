@@ -90,6 +90,13 @@ namespace nd4j {
 
         template <typename T>
         ContextPrototype<T> * nd4j::graph::Node<T>::getContextPrototype() {
+            if (_protoContext == nullptr)
+                _protoContext = new ContextPrototype<T>(this->id());
+            if (_protoContext->inputs()->empty()) {
+                for (int e = 0; e < this->input()->size(); e++) {
+                    _protoContext->inputs()->emplace_back(this->input()->at(e));
+                }
+            }
             return _protoContext;
         }
 
