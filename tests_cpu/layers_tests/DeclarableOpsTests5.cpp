@@ -1482,3 +1482,37 @@ TEST_F(DeclarableOpsTests5, EmbeddingLookup_1) {
     delete result;
 }
 
+TEST_F(DeclarableOpsTests5, DynamicPartition_1) {
+    
+    NDArray<float> x('c', {3, 4, 2}, {10, 20, 11, 21, 12, 22, 
+                                      13, 23, 14, 24, 15, 25, 16, 26, 17, 27,
+                                      18, 28, 19, 29, 20, 30, 21, 31});
+    
+    NDArray<float> y({0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 
+                      2.f, 2.f, 2.f, 2.f, 2.f, 2.f, 2.f, 2.f, 2.f, 2.f, 
+                      1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f 
+                    }
+    );
+    int numPartition = 3;
+    std::vector<NDArray<float>> exp( { NDArray<float>('c', {6}, {10, 20, 11, 21, 12, 22}), 
+                                      NDArray<float>('c', {8}, {18, 28, 19, 29, 20, 30, 21, 31}),
+                                      NDArray<float>('c', {10}, {13, 23, 14, 24, 15, 25, 16, 26, 17, 27})});
+
+    nd4j::ops::dynamic_partition<float> op;
+    ResultSet<float>* result = op.execute({&x, &y}, {}, {numPartition});
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    ASSERT_EQ(result->size(), numPartition); // result has the same size as given param 4
+
+    for (int e = 0; e < result->size(); e++) {
+        NDArray<float>* output = result->at(e);
+        output->printShapeInfo("Output shape> ");
+        output->printIndexedBuffer("Output data> ");
+        ASSERT_TRUE(exp[e].isSameShape(output));
+        ASSERT_TRUE(exp[e].equalsTo(output));
+    }
+
+    delete result;
+}
+
+

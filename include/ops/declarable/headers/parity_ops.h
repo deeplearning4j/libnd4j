@@ -445,5 +445,17 @@ namespace nd4j {
          */
         DECLARE_CUSTOM_OP(embedding_lookup, 2, 1, false, 0, 1);
 
+        /**
+         * dynamic_partition - partition a input tensor onto num_partitions 
+         * accordingly to index array given.
+         *
+         * the first param - NDArray to be partitioned.
+         * the second param - index array
+         * the third param (integer param) - num or partitions.
+         * 
+         * returns a num of NDArrays as output
+         */
+        DECLARE_CUSTOM_OP(dynamic_partition, 2, 1, false, 0, 1);
+
     }
 }
