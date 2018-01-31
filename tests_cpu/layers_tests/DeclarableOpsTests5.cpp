@@ -1885,3 +1885,30 @@ TEST_F(DeclarableOpsTests5, ZeroFraction_3) {
     
     delete res;
 }
+
+////////////////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests5, XWPlusB_1) {
+
+    NDArray<float> x('c', {2,3}, { 1.f, 11.f,  3.f, 14.f,  5.f,  6.f});
+    NDArray<float> y('c', {3,2}, { 11.f,  3.f, 4.f,  5.f, 6.f,  2.f});
+    NDArray<float> b({100.f, 200.f});
+
+    NDArray<float> exp('c', {2,2}, {173.f, 264.f, 310.f, 279.f});
+
+    nd4j::ops::xw_plus_b<float> op;
+    ResultSet<float>* result = op.execute({&x, &y, &b}, {}, {});
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    NDArray<float>* output = result->at(0);
+
+    output->printShapeInfo("Output shape> ");
+    exp.printShapeInfo("Expected shape> ");
+    output->printIndexedBuffer("Output data> ");
+    exp.printIndexedBuffer("Expected res>");    
+
+    ASSERT_TRUE(exp.isSameShape(output));
+    ASSERT_TRUE(exp.equalsTo(output));
+
+    delete result;
+}
