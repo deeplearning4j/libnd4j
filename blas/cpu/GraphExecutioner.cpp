@@ -49,7 +49,7 @@ template <typename T>
  Nd4jStatus GraphExecutioner<T>::executeFlatNode(Graph<T> *graph, Node<T> *node, VariableSpace<T> *variableSpace) {
     OpType opType = node->opType();
     int opNum = node->opNum();
-    std::string opName = *(node->getCustomOp()->getOpName());
+//    std::string opName = *(node->getCustomOp()->getOpName());
 
     if (opType == OpType_BOOLEAN) {
         nd4j_debug("Executing boolean graph node_%i", node->id());
