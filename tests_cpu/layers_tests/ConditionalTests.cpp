@@ -109,8 +109,9 @@ TEST_F(ConditionalTests, Flat_Test_1) {
 
     ASSERT_NE(nullptr, z);
 
-    z->printShapeInfo("z shape");
-    z->printIndexedBuffer("z buffer");
+    NDArray<float> exp('c', {2, 2}, {-2, -2, -2, -2});
+
+    ASSERT_TRUE(exp.equalsTo(z));
 
     delete graph;
 }
@@ -133,9 +134,9 @@ TEST_F(ConditionalTests, Flat_Test_2) {
 
     ASSERT_NE(nullptr, z);
 
-    z->printShapeInfo("z shape");
-    z->printIndexedBuffer("z buffer");
+    NDArray<float> exp('c', {2, 2}, {1, 1, 1, 1});
 
+    ASSERT_TRUE(exp.equalsTo(z));
     delete graph;
 }
 
