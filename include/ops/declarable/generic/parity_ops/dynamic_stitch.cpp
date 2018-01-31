@@ -8,26 +8,30 @@
 namespace nd4j {
 namespace ops {
     CUSTOM_OP_IMPL(dynamic_stitch, 2, 1, false, 0, 0) {
-        NDArray<T>* indices = INPUT_VARIABLE(0);
-        NDArray<T>* firstData = INPUT_VARIABLE(1);
-        int numOfData = block.width() - 1;
-        NDArray<T>* output = OUTPUT_VARIABLE(0); 
-        NDArray<T>* data = INPUT_VARIABLE(1);
-        int k = 0;
+        int numOfData = block.width();
+//        int k = 0;
+        REQUIRE_TRUE(numOfData % 2 == 0, 0, 
+            "dynamic_stitch: The input params should contains"
+            " both indeces and data lists with same length.");
+        numOfData /= 2;
 
-        for (int e = 0, i = 1; e < indices->lengthOf(); e++) {
-            T val = (*data)(k++); 
-            nd4j_printf("%i. from %i\n", e, output->lengthOf());
-            int pos = (*indices)(e);
-            nd4j_printf("%i. pos is %i\n", e, pos);
-            output->putScalar(pos, val);
-            if (k >= data->lengthOf())
-            {
-                if (++i <= numOfData)
-                    data = INPUT_VARIABLE(i);
-                else
-                    break;
-                k = 0;
+        NDArray<T>* output = OUTPUT_VARIABLE(0); 
+        for (int e = 0; e < numOfData; e++) {
+            NDArray<T>* data = INPUT_VARIABLE(numOfData + e);
+            NDArray<T>* index = INPUT_VARIABLE(e);
+            REQUIRE_TRUE(data->lengthOf() == index->lengthOf(), 0, 
+                "dynamic_stitch: The length of proper index and data arrays should be equal. But %i and %i were given.", 
+                index->lengthOf(), data->lengthOf());
+
+            for (int i = 0; i < index->lengthOf(); i++) {
+                T val = (*data)(i); 
+                int pos = (*index)(i);
+                REQUIRE_TRUE(pos >= 0, 0, "dynamic_stitch: Index value should be non-negative."
+                    " But %i was given", pos);
+                REQUIRE_TRUE(pos < output->lengthOf(), 0, 
+                    "dynamic_stitch: Index should be less than %i. But %i was given", 
+                    output->lengthOf(), pos);
+                output->putScalar(pos, val);
             }
         }
         
@@ -35,13 +39,17 @@ namespace ops {
     }
 
     DECLARE_SHAPE_FN(dynamic_stitch) {
-        int numOfData = block.width() - 1;
-        NDArray<T>* input = INPUT_VARIABLE(0);
-        int maxValue = input->getScalar(0);
 
-        for (int e = 1; e < input->lengthOf(); ++e) {
-            if (T(maxValue) < (*input)(e))
-                maxValue = static_cast<int>((*input)(e));
+        int maxValue = 0;
+        int numOfData = block.width();
+        numOfData /= 2; // only index part it's needed to review
+        for(int i = 0; i < numOfData; i++) {
+            NDArray<T>* input = INPUT_VARIABLE(i);
+            
+            for (int e = 0; e < input->lengthOf(); ++e) {
+                if (T(maxValue) < (*input)(e))
+                    maxValue = static_cast<int>((*input)(e));
+            }
         }
 
         auto shapes = new ShapeList();

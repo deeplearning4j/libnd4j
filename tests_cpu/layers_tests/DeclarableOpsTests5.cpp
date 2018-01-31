@@ -1627,15 +1627,45 @@ TEST_F(DeclarableOpsTests5, DynamicPartition_3) {
 
 TEST_F(DeclarableOpsTests5, DynamicStitch_1) {
     
-    NDArray<float> x({1.f, 3.f, 5.f, 0.f, 2.f, 4.f});
-    NDArray<float> y({-1.f, -1.f});
-    NDArray<float> z({0.1f, 5.2f, 4.3f, 7.4f});
+    NDArray<float> x1({1.f, 3.f, 5.f, 0.f});
+    NDArray<float> x2({2.f, 4.f});
+    NDArray<float> y2({-1.f, -1.f});
+    NDArray<float> y1({0.1f, 5.2f, 4.3f, 7.4f});
+
+    
+    NDArray<float> exp({7.4f, 0.1f, -1.f, 5.2f, -1.f, 4.3f});
+
+    nd4j::ops::dynamic_stitch<float> op;
+    ResultSet<float>* result = op.execute({&x1, &x2, &y1, &y2}, {}, {});
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    NDArray<float>* output = result->at(0);
+
+    output->printShapeInfo("Output shape> ");
+    exp.printShapeInfo("Expected shape> ");
+    output->printIndexedBuffer("Output data> ");
+    exp.printIndexedBuffer("Expected res>");    
+    ASSERT_TRUE(exp.isSameShape(output));
+    ASSERT_TRUE(exp.equalsTo(output));
+
+    delete result;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+TEST_F(DeclarableOpsTests5, DynamicStitch_2) {
+    
+    NDArray<float> x1({1.f, 3.f});
+    NDArray<float> x2({5.f, 0.f, 2.f, 4.f});
+    NDArray<float> y1({-1.f, -1.f});
+    NDArray<float> y2({0.1f, 5.2f, 4.3f, 7.4f});
 
     
     NDArray<float> exp({5.2f, -1.f, 4.3f, -1.f, 7.4f, 0.1f});
 
     nd4j::ops::dynamic_stitch<float> op;
-    ResultSet<float>* result = op.execute({&x, &y, &z}, {}, {});
+    ResultSet<float>* result = op.execute({&x1, &x2, &y1, &y2}, {}, {});
 
     ASSERT_EQ(ND4J_STATUS_OK, result->status());
 
