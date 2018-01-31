@@ -471,6 +471,13 @@ namespace nd4j {
          */
         DECLARE_CUSTOM_OP(dynamic_stitch, 2, 1, false, 0, 0);
 
-
+        /**
+         * zero_fraction op.
+         * compute a fraction of zeros in given array
+         *
+         * input param - an array (tensor)
+         * output value - a real number with given type (e.g. float or double)
+         */
+        DECLARE_CUSTOM_OP(zero_fraction, 1, 1, false, 0, 0);
     }
 }

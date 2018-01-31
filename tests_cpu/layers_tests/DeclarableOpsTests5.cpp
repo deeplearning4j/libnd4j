@@ -1835,3 +1835,53 @@ TEST_F(DeclarableOpsTests5, fusedBatchNorm_test5) {
 
     delete results;
 }
+
+////////////////////////////////////////////////////////////////////////////////
+
+TEST_F(DeclarableOpsTests5, ZeroFraction_1) {
+    
+    NDArray<float> x('c', {3, 4, 2}, {0, 20, 30, 0, 50, 0, 
+                                      70, 0, 90, 0, 11, 12, 
+                                      13, 14, 15, 16, 17, 18, 
+                                      19, 0, 21, 22, 23, 24});
+
+    nd4j::ops::zero_fraction<float> op;
+    ResultSet<float>* res = op.execute({&x}, {}, {});
+    
+    ASSERT_EQ(Status::OK(), res->status());
+    ASSERT_TRUE(res->at(0)->isScalar());
+    ASSERT_EQ(res->at(0)->getScalar(0), 0.25f);
+    
+    delete res;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests5, ZeroFraction_2) {
+    
+    NDArray<float> x('c', {2, 2, 2}, {5.5f, 0.f, 0.3f, 5.5f, 8.6f, 0.f, 0.f, 0.4f});
+
+    nd4j::ops::zero_fraction<float> op;
+    ResultSet<float>* res = op.execute({&x}, {}, {});
+    
+    ASSERT_EQ(Status::OK(), res->status());
+    ASSERT_TRUE(res->at(0)->isScalar());
+    ASSERT_EQ(res->at(0)->getScalar(0), 0.375f);
+    
+    delete res;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+TEST_F(DeclarableOpsTests5, ZeroFraction_3) {
+    
+    NDArray<float> x('f', {2, 2, 2}, {5.5f, 0.f, 0.3f, 5.5f, 8.6f, 0.f, 0.f, 0.4f});
+
+    nd4j::ops::zero_fraction<float> op;
+    ResultSet<float>* res = op.execute({&x}, {}, {});
+    
+    ASSERT_EQ(Status::OK(), res->status());
+    ASSERT_TRUE(res->at(0)->isScalar());
+    ASSERT_EQ(res->at(0)->getScalar(0), 0.375f);
+    
+    delete res;
+}
