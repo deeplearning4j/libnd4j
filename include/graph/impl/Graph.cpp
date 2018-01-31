@@ -237,15 +237,24 @@ namespace nd4j {
             if (node->getLayer() < 0)
                 throw std::runtime_error("Only nodes with non-negative layer defined can be inserted");
 
+            std::pair<int, Node<T> *> pair(node->id(), node);
+            if (_mapped->count(pair.first) > 0)
+                return;
+
             nd4j_debug("Node_%i mapped to layer_%i\n", node->id(), node->getLayer());
 
-            std::pair<int, Node<T> *> pair(node->id(), node);
+
             _onion->at(node->getLayer())->push_back(node);
             _mapped->insert(pair);
+
+            _unmapped.erase(node->id());
         }
 
         template <typename T>
         void Graph<T>::expandOnion(int newLayer) {
+            if (_onion->count(newLayer) > 0)
+                return;
+
             std::vector<Node<T> *> *rootList = new std::vector<Node<T> *>();
             std::pair<int, std::vector<Node<T> *>*> pair(newLayer, rootList);
             _onion->insert(pair);
@@ -474,13 +483,10 @@ namespace nd4j {
                     if (automapAllowed) {
                         auto parent = _mapped->at(node->input()->at(0).first);
                         int nLayer = parent->getLayer() + 1;
-                        if (_onion->count(nLayer) != 1) {
-                            expandOnion(nLayer);
-                        }
 
+                        expandOnion(nLayer);
                         node->setLayer(nLayer);
-                        _onion->at(nLayer)->push_back(node);
-                        _mapped->insert(pair);
+                        injectNode(node);
 
                         nd4j_logger("B Node_%i mapped to layer_%i; Output: %i;\n", node->id(), node->getLayer(), node->output()->at(0));
 
@@ -495,8 +501,10 @@ namespace nd4j {
 
         template <typename T>
         Nd4jStatus Graph<T>::buildGraph() {
-            if (_built.load())
+            if (_built.load()) {
+                prepareOutputs();
                 return ND4J_STATUS_OK;
+            }
 
             int buildCnt = 0;
             int buildLimit = _unmapped.size() * 2;
@@ -636,7 +644,7 @@ namespace nd4j {
                             }
                         }
 
-                        _unmapped.erase(node->id());
+
                     }
                 }
 
@@ -656,6 +664,13 @@ namespace nd4j {
             if (_unmapped.size() == 0)
                 _built.store(true);
 
+            prepareOutputs();
+
+            return ND4J_STATUS_OK;
+        }
+
+        template <typename T>
+        void Graph<T>::prepareOutputs() {
             // if we're dumping everything out there - we'll add external variables as well
             if (_configuration->_outputMode == OutputMode_VARIABLE_SPACE) {
                 auto ext = _variableSpace->getExternalVariables();
@@ -736,7 +751,6 @@ namespace nd4j {
                     }
                 }
             }
-            return ND4J_STATUS_OK;
         }
 
         template <typename T>
@@ -812,8 +826,8 @@ namespace nd4j {
                     auto nnode = new Node<T>(node);
                     expandOnion(e);
                     nnode->setLayer(e);
-                    (*_onion)[e]->emplace_back(nnode);
                     this->addNode(nnode);
+                    injectNode(nnode);
                 }
 
                 _built = true;

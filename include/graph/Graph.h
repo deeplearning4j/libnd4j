@@ -59,6 +59,8 @@ namespace nd4j {
             void pushToOutputOnce(int id);
 
             void printOutNode(Node<T>* node);
+
+            void prepareOutputs();
         public:
             Graph(const FlatGraph *flatGraph = nullptr, VariableSpace<T> *variableSpace = nullptr);
 
