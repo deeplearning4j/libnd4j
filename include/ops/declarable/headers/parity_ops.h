@@ -229,6 +229,21 @@ namespace nd4j {
          */
         DECLARE_CUSTOM_OP(onehot, 1, 1, false, 2, 2);
 
+
+        /**
+         * This operation calculate the confusion matrix for a
+         * pair of prediction and label 1-D arrays.
+         * Expected arguments:
+         * Input arrays:
+         *   0 - predictions: 1-D array
+         *   1 - labels: 1-D array
+         *   2 - weights : optional
+         * Int args:
+         *   0 - num_classes: optional
+         *
+         */
+        DECLARE_CUSTOM_OP(confusion_matrix, 2, 1, false, 0, -2);
+
         /**
 		 * This operation stacks a list of rank tensors into one rank-(R+1) tensor.
 		 * Expected arguments:
@@ -438,6 +453,39 @@ namespace nd4j {
          * Axes can be put as the second NDArray or as int vector.
          */
         DECLARE_CUSTOM_OP(moments, 1, 2, false, 0, -2);
+
+        /**
+         * embedding_lookup - search for submatrices in given matrix and retunts them
+         * accordingly to index array given.
+         */
+        DECLARE_CUSTOM_OP(embedding_lookup, 2, 1, false, 0, 1);
+
+        /**
+         * dynamic_partition - partition a input tensor onto num_partitions 
+         * accordingly to index array given.
+         *
+         * the first param - NDArray to be partitioned.
+         * the second param - index array
+         * the third param (integer param) - num or partitions.
+         * 
+         * returns a num of NDArrays as output
+         */
+
+        DECLARE_CUSTOM_OP(dynamic_partition, 2, 1, false, 0, 1);
+
+        /**
+         * dynamic_stitch - merge partitions from the second param a input tensor 
+         * into a single tensor accordingly to index array given.
+         *
+         * the first param - index array
+         * the second params - tensors to be merged
+         * 
+         * returns a num of NDArrays as output
+         * 
+         * the operation is inversion od dynamic_partition
+         */
+        DECLARE_CUSTOM_OP(dynamic_stitch, 2, 1, false, 0, 0);
+
 
     }
 }
