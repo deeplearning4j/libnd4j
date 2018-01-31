@@ -12,22 +12,27 @@ namespace nd4j {
             NDArray<T>* weights = nullptr;
             if(block.width() > 2){
                 weights = INPUT_VARIABLE(2);
-                REQUIRE_TRUE(weights->isSameShape(predictions),0, "Weights and predictions should have equal shape");
+                REQUIRE_TRUE(weights->isSameShape(predictions),0, "CONFUSION_MATRIX: Weights and predictions should have equal shape");
             }
             auto output = OUTPUT_VARIABLE(0);
 
-            REQUIRE_TRUE(labels->isVector(), 0, "Labels input should be a Vector, but got %iD instead", labels->rankOf());
-            REQUIRE_TRUE(predictions->isVector(), 0, "Predictions input should be Vector, but got %iD instead", predictions->rankOf());
-            REQUIRE_TRUE(labels->isSameShape(predictions),0, "Labels and predictions should have equal shape");
+            int minPrediction = predictions->template reduceNumber<simdOps::Min<T>>();
+            int minLabel = labels->template reduceNumber<simdOps::Min<T>>();
+
+            REQUIRE_TRUE(minLabel >=0, 0, "CONFUSION_MATRIX: Labels contains negative values !");
+            REQUIRE_TRUE(minPrediction >=0, 0, "CONFUSION_MATRIX: Predictions contains negative values !");
+            REQUIRE_TRUE(labels->isVector(), 0, "CONFUSION_MATRIX: Labels input should be a Vector, but got %iD instead", labels->rankOf());
+            REQUIRE_TRUE(predictions->isVector(), 0, "CONFUSION_MATRIX: Predictions input should be Vector, but got %iD instead", predictions->rankOf());
+            REQUIRE_TRUE(labels->isSameShape(predictions),0, "CONFUSION_MATRIX: Labels and predictions should have equal shape");
 
             ResultSet<T>* arrs = NDArrayFactory<T>::allTensorsAlongDimension(output, {1});
 
 
             for (int j = 0; j < labels->lengthOf(); ++j){
-                Nd4jIndex label = labels->getScalar(j);
-                Nd4jIndex pred = predictions->getScalar(j);
-                T value = (weights==nullptr) ? (T)1.0 : weights->getScalar(j);
-                arrs->at(label)->putScalar(pred, value);
+                Nd4jIndex label = (*labels)(j);
+                Nd4jIndex pred = (*predictions)(j);
+                T value = (weights==nullptr) ? (T)1.0 : (*weights)(j);
+                (*arrs->at(label))(pred) = value;
             }
 
             delete arrs;
@@ -42,28 +47,13 @@ namespace nd4j {
 
             int numClasses = 0;
 
-            int minPrediction = predictions->template reduceNumber<simdOps::Min<T>>();
-
-            if(minPrediction <0)
-                throw "Predictions contains negative values";
-
-            int minLabel = labels->template reduceNumber<simdOps::Min<T>>();
-
-            if(minLabel <0)
-                throw "Labels contains negative values";
-
             if (block.getIArguments()->size() > 0) {
                 numClasses = INT_ARG(0);
             }
             else  {
-
                 int maxPrediction = predictions->template reduceNumber<simdOps::Max<T>>();
                 int maxLabel = labels->template reduceNumber<simdOps::Max<T>>();
-                if(maxPrediction >= maxLabel)
-                    numClasses =  maxPrediction+1;
-                else
-                    numClasses = maxLabel+1;
-
+                numClasses = (maxPrediction >= maxLabel) ?  maxPrediction+1 : maxLabel+1;
             }
 
             int *newShape;
