@@ -56,7 +56,7 @@ namespace ops {
         int *newShape;
         ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(1), int);
 
-        ShapeBuilder::shapeVector(maxValue + 1, newShape);
+        shape::shapeVector(maxValue + 1, newShape);
 
         shapes->push_back(newShape);
         return shapes;

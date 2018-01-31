@@ -40,7 +40,7 @@ namespace ops {
         for (int e = 0; e < numPartition; e++) {
             int *newShape;
             ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(1), int);
-            ShapeBuilder::shapeVector(partitionSizes[e], newShape);
+            shape::shapeVector(partitionSizes[e], newShape);
 
             shapes->push_back(newShape);
         }
