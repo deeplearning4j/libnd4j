@@ -138,3 +138,18 @@ TEST_F(ConditionalTests, Flat_Test_2) {
 
     delete graph;
 }
+
+TEST_F(ConditionalTests, Flat_Test_3) {
+    nd4j::ops::identity<float> op0;
+
+    auto graph = GraphExecutioner<float>::importFromFlatBuffers("./resources/simplewhile_0.fb");
+    auto varSpace = graph->getVariableSpace();
+
+    graph->printOut();
+
+    auto status = GraphExecutioner<float>::execute(graph);
+    ASSERT_EQ(Status::OK(), status);
+
+
+    delete graph;
+}
