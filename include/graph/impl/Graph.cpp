@@ -745,7 +745,8 @@ namespace nd4j {
             this->_mapped = new std::map<int, Node<T> *> ();
             this->_nodes = new std::vector<int>();
             this->_variableSpace = variableSpace == nullptr ? new VariableSpace<T>() : variableSpace;
-            
+            bool trusted = flatGraph != nullptr;
+
             // creating RNG for this instance
 #ifndef __CUDABLAS__
             // we temporary skip this random init
@@ -800,7 +801,6 @@ namespace nd4j {
 
             // rolling through nodes
             if (flatGraph != nullptr && flatGraph->nodes() != nullptr && flatGraph->nodes()->size() > 0) {
-
                 for (unsigned int e = 0; e < flatGraph->nodes()->size(); e++) {
                     auto node = flatGraph->nodes()->Get(e);
 
@@ -810,9 +810,15 @@ namespace nd4j {
 
                     nd4j_debug("Node name: [%s]\n", node->name()->c_str());
                     auto nnode = new Node<T>(node);
+                    expandOnion(e);
+                    nnode->setLayer(e);
+                    (*_onion)[e]->emplace_back(nnode);
                     this->addNode(nnode);
                 }
+
+                _built = true;
             }
+
         }
 
 

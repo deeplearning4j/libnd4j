@@ -33,7 +33,7 @@ namespace nd4j {
                     auto array = var->getNDArray();
                     lvar->setNDArray(array);
                     lvar->markReadOnly(true);
-                    //lvar->markExternal(false);
+                    //lvar->markExternal(false);h
 
                     break;
                 }
