@@ -10,6 +10,10 @@
 #include <graph/execution/LogicReturn.h>
 #include <graph/execution/LogicExpose.h>
 #include <graph/execution/LogicMerge.h>
+#include <graph/execution/LogicEnter.h>
+#include <graph/execution/LogicExit.h>
+#include <graph/execution/LogicLoopCond.h>
+#include <graph/execution/LogicNextIteration.h>
 
 
 namespace nd4j {
@@ -31,6 +35,8 @@ namespace nd4j {
                     return LogicExpose<T>::processNode(graph, node);
                 case 60:
                     return LogicMerge<T>::processNode(graph, node);
+                case 100:
+                    return LogicEnter<T>::processNode(graph, node);
             }
 
             if (node->getName() == nullptr) {

@@ -582,6 +582,7 @@ namespace nd4j {
                         if (node->getName() == nullptr) {
                             nd4j_debug("Trying MI Node_%i\n", node->id());
                         } else {
+                            std::string np = *(node->getName());
                             nd4j_debug("Trying MI Node_%i:[%s]\n", node->id(), node->getName()->c_str());
                         }
 
@@ -596,11 +597,13 @@ namespace nd4j {
 
                                 if (maxLayer < iNode->getLayer())
                                     maxLayer = iNode->getLayer();
-                            } else {
+                            } else 
+                                if (node->opType() == OpType_LOGIC) {
+                                    // just allow it?
+                            } else // checking if that's static variable
                                 if (nodeId > 0 && !_variableSpace->hasExternalVariable(nodeId)) {
                                     breaker = true;
                                     break;
-                                }
                             }
                         }
 
