@@ -17,6 +17,7 @@ namespace nd4j {
 
             // this can be either  our format, or compatible format.
             if (graph->hasScope(node->input()->at(0).first)) {
+                nd4j_debug("Node_%i: Scoped mode.\n", node->id());
                 // first input is Scope, so it's ours
                 int scopeConditionIndex = node->input()->at(0).first;
                 auto input = ctx.variable(1);
@@ -53,7 +54,7 @@ namespace nd4j {
                 }
             } else {
                 // first input is NOT a Scope, so it's compatible format
-                nd4j_debug("Compatible mode\n", "");
+                nd4j_debug("Node_%i: Compatible mode.\n", node->id());
 
                 auto input = ctx.variable(0)->getNDArray();
                 auto boolean = ctx.variable(1)->getNDArray();

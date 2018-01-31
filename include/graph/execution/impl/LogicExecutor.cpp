@@ -35,6 +35,12 @@ namespace nd4j {
                     return LogicExpose<T>::processNode(graph, node);
                 case 60:
                     return LogicMerge<T>::processNode(graph, node);
+                case 70:
+                    return LogicLoopCond<T>::processNode(graph, node);
+                case 80:
+                    return LogicNextIeration<T>::processNode(graph, node);
+                case 90:
+                    return LogicExit<T>::processNode(graph, node);
                 case 100:
                     return LogicEnter<T>::processNode(graph, node);
             }
