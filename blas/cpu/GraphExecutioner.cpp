@@ -203,22 +203,12 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* varia
     for (int l = 0; l < (int) graph->getOnion()->size(); l++) {
         int layerSize = graph->getOnion()->count(l) == 1 ? graph->getOnion()->at(l)->size() : 0;
 
-//#pragma omp parallel for if (layerSize > 1 && pe) schedule(dynamic) proc_bind(spread)
-        for (int n = 0; n < layerSize; n++) {
+        int n = 0;
+//#pragma omp parallel for if (layerSize > 1 && pe) schedule(dynamic) proc_bind(spread) private(n)
+        for (; n < layerSize; n++) {
             Node<T>* node = graph->getOnion()->at(l)->at(n);
             //std::string name = *(node->getCustomOp()->getOpName());
 
-            /**
-             * If this LOGIC op, we'll use another execution model here
-             */
-            if (node->opType() == OpType_LOGIC) {
-                auto status = LogicExecutor<T>::processNode(graph, node);
-
-                if (status == ND4J_STATUS_OK)
-                    continue;
-                else
-                    return status;
-            }
 
             bool shouldSkip = false;
             // let's check for input nodes, if they are disabled or contain divergents
@@ -251,6 +241,32 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* varia
 
             if (shouldSkip)
                 continue;
+
+            if (node->opType() == OpType_LOGIC && node->opNum() == 80L) {
+                /**
+                 * NextIteration is special case: after successful execution of this op - we're changing execution position
+                 */
+                auto status = LogicExecutor<T>::processNode(graph, node);
+
+                auto nextLayer = node->getRewindLayer();
+                l = nextLayer.first - 1;
+
+                nd4j_debug("Node_%i rewind to Node_%i at [%i:%i]\n", node->id(), node->getRewindNode(), nextLayer.first, nextLayer.second);
+
+                break;
+            } else if (node->opType() == OpType_LOGIC) {
+                /**
+                 * If this LOGIC op, we'll use another execution model here
+                 */
+                auto status = LogicExecutor<T>::processNode(graph, node);
+
+                if (status == ND4J_STATUS_OK)
+                    continue;
+                else
+                    return status;
+            }
+
+
 
             auto timeStart = std::chrono::system_clock::now();
 

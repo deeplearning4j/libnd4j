@@ -33,16 +33,12 @@ namespace nd4j {
 
             }
 
-
-
-            // basically, first non-null variable is our target
-            for (int e = 0; e < node->input()->size(); e++) {
-                auto inputAddr = node->input()->at(e);
-
-                if (__variableSpace->hasVariable(inputAddr)) {
-                    auto var = __variableSpace->getVariable(inputAddr);
-                    if (!var->hasNDArray())
-                        continue;
+            // FIXME: we don't need this check. Just last input should survive, IF it exists
+            if (isWhile){
+                bool hasVar = __variableSpace->hasVariable(inputAddr1);
+                if ( hasVar && __variableSpace->getVariable(inputAddr1)->hasNDArray()) {
+                    nd4j_debug("Node_%i: propagating second input\n", node->id());
+                    auto var = __variableSpace->getVariable(inputAddr1);
 
                     Variable<T> *lvar = nullptr;
                     if (__variableSpace->hasVariable(node->id(), 0))
@@ -50,15 +46,63 @@ namespace nd4j {
                     else
                         lvar = new Variable<T>(nullptr, node->getName()->c_str(), node->id(), 0);
 
-                    if (lvar->hasNDArray())
-                        delete lvar->getNDArray();
+//                    if (lvar->hasNDArray())
+//                        delete lvar->getNDArray();
+
+                    auto array = var->getNDArray();
+
+                    array->printIndexedBuffer("propagated");
+
+                    lvar->setNDArray(array);
+                    lvar->markReadOnly(true);
+
+
+                } else {
+                    nd4j_debug("Node_%i: propagating first input\n", node->id());
+                    auto var = __variableSpace->getVariable(inputAddr0);
+
+                    Variable<T> *lvar = nullptr;
+                    if (__variableSpace->hasVariable(node->id(), 0))
+                        lvar = __variableSpace->getVariable(node->id(), 0);
+                    else
+                        lvar = new Variable<T>(nullptr, node->getName()->c_str(), node->id(), 0);
+
+//                    if (lvar->hasNDArray())
+//                        delete lvar->getNDArray();
 
                     auto array = var->getNDArray();
                     lvar->setNDArray(array);
                     lvar->markReadOnly(true);
-                    //lvar->markExternal(false);h
 
-                    break;
+
+                }
+            } else {
+
+                // basically, first non-null variable is our target
+                for (int e = 0; e < node->input()->size(); e++) {
+                    auto inputAddr = node->input()->at(e);
+
+                    if (__variableSpace->hasVariable(inputAddr)) {
+                        auto var = __variableSpace->getVariable(inputAddr);
+                        if (!var->hasNDArray())
+                            continue;
+
+                        Variable<T> *lvar = nullptr;
+                        if (__variableSpace->hasVariable(node->id(), 0))
+                            lvar = __variableSpace->getVariable(node->id(), 0);
+                        else
+                            lvar = new Variable<T>(nullptr, node->getName()->c_str(), node->id(), 0);
+
+                        if (lvar->hasNDArray())
+                            delete lvar->getNDArray();
+
+                        auto array = var->getNDArray();
+                        lvar->setNDArray(array);
+                        lvar->markReadOnly(true);
+                        //lvar->markExternal(false);h
+
+                        break;
+                    }
                 }
             }
 

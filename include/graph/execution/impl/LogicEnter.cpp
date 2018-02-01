@@ -29,8 +29,8 @@ namespace nd4j {
                     else
                         lvar = new Variable<T>(nullptr, node->getName()->c_str(), node->id(), 0);
 
-                    if (lvar->hasNDArray())
-                        delete lvar->getNDArray();
+//                    if (lvar->hasNDArray())
+//                        delete lvar->getNDArray();
 
                     auto array = var->getNDArray();
                     lvar->setNDArray(array);
