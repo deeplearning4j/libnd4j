@@ -650,7 +650,7 @@ ShapeUtils<T>::matrixProductShape(int* theFirstShape, int* theSecondShape,
     int *inA = theFirstShape;
     int *inB = theSecondShape;
     int *shape;
-    ALLOCATE(shape, workspace, 2, int);
+    ALLOCATE(shape, workspace, shape::shapeInfoLength(2), int);
 
     int *tmpA, *tmpB;
     COPY_SHAPE_EX(inA, tmpA, workspace);
