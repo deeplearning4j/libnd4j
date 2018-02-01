@@ -1835,3 +1835,210 @@ TEST_F(DeclarableOpsTests5, fusedBatchNorm_test5) {
 
     delete results;
 }
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests5, log_softmax_test1) {
+
+    NDArray<double> input('c', {3, 3, 3}, {-1, 1, -2, 2, -3, 3, -4, 4, -5,5 ,-6,6, -7,7, -8,8, -9,9, -10,10, -11,11, -12,12, -13,13, 14});
+    NDArray<double> expOutput('c', {3, 3, 3}, {-2.16985e+00,-1.69846e-01,-3.16985e+00, -1.31507e+00,-6.31507e+00,-3.15072e-01, -8.00046e+00,-4.58767e-04,-9.00046e+00, -1.31327e+00,-1.23133e+01,-3.13266e-01, -1.40000e+01,-1.13743e-06,-1.50000e+01, -1.31326e+00,-1.83133e+01,-3.13262e-01, -2.00000e+01,-2.81941e-09,-2.10000e+01, -1.31326e+00,-2.43133e+01,-3.13262e-01, -2.73133e+01,-1.31326e+00,-3.13262e-01});
+
+    nd4j::ops::log_softmax<double> op;
+    ResultSet<double>*  results = op.execute({&input}, {}, {});
+    NDArray<double>* z = results->at(0);    
+
+    ASSERT_EQ(Status::OK(), results->status());
+    ASSERT_TRUE(expOutput.isSameShape(z));
+    ASSERT_TRUE(expOutput.equalsTo(z));    
+
+    delete results;
+}
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests5, log_softmax_test2) {
+
+    NDArray<double> input('c', {3, 3, 3}, {-1, 1, -2, 2, -3, 3, -4, 4, -5,5 ,-6,6, -7,7, -8,8, -9,9, -10,10, -11,11, -12,12, -13,13, 14});
+    NDArray<double> expOutput('c', {3, 3, 3}, {-3.05095e+00,-3.04946e+00,-5.00705e+00, -5.09458e-02,-7.04946e+00,-7.04851e-03, -6.05095e+00,-4.94556e-02,-8.00705e+00, -3.04859e+00,-1.30000e+01,-3.04859e+00, -1.50486e+01,-2.37286e-06,-1.70486e+01, -4.85876e-02,-1.60000e+01,-4.85874e-02, -2.10000e+01,-3.04859e+00,-2.51269e+01, -7.96007e-10,-2.50486e+01,-2.12693e+00, -2.40000e+01,-4.85874e-02,-1.26928e-01});
+
+    nd4j::ops::log_softmax<double> op;
+    ResultSet<double>*  results = op.execute({&input}, {}, {1});
+    NDArray<double>* z = results->at(0);    
+
+    ASSERT_EQ(Status::OK(), results->status());
+    ASSERT_TRUE(expOutput.isSameShape(z));
+    ASSERT_TRUE(expOutput.equalsTo(z));    
+
+    delete results;
+}
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests5, log_softmax_test3) {
+
+    NDArray<double> input('c', {3, 3, 3}, {-1, 1, -2, 2, -3, 3, -4, 4, -5,5 ,-6,6, -7,7, -8,8, -9,9, -10,10, -11,11, -12,12, -13,13, 14});
+    NDArray<double> expOutput('c', {3, 3, 3}, {-2.16985e+00,-1.69846e-01,-3.16985e+00, -1.31507e+00,-6.31507e+00,-3.15072e-01, -8.00046e+00,-4.58767e-04,-9.00046e+00, -1.31327e+00,-1.23133e+01,-3.13266e-01, -1.40000e+01,-1.13743e-06,-1.50000e+01, -1.31326e+00,-1.83133e+01,-3.13262e-01, -2.00000e+01,-2.81941e-09,-2.10000e+01, -1.31326e+00,-2.43133e+01,-3.13262e-01, -2.73133e+01,-1.31326e+00,-3.13262e-01});
+
+    nd4j::ops::log_softmax<double> op;
+    ResultSet<double>*  results = op.execute({&input}, {}, {2});
+    NDArray<double>* z = results->at(0);    
+
+    ASSERT_EQ(Status::OK(), results->status());
+    ASSERT_TRUE(expOutput.isSameShape(z));
+    ASSERT_TRUE(expOutput.equalsTo(z));    
+
+    delete results;
+}
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests5, log_softmax_test5) {
+
+    NDArray<double> input('c', {3, 3}, {-1, 1, -2, 2, -3, 3, -4, 4, 5});
+    NDArray<double> expOutput('c', {3, 3}, {-2.16985, -0.16985, -3.16985, -1.31507, -6.31507, -0.31507, -9.31335, -1.31335, -0.31335});
+
+    nd4j::ops::log_softmax<double> op;
+    ResultSet<double>*  results = op.execute({&input}, {}, {});
+    NDArray<double>* z = results->at(0);    
+
+    ASSERT_EQ(Status::OK(), results->status());
+    ASSERT_TRUE(expOutput.isSameShape(z));
+    ASSERT_TRUE(expOutput.equalsTo(z));    
+
+    delete results;
+}
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests5, log_softmax_test6) {
+
+    NDArray<double> input('c', {3, 3}, {-1, 1, -2, 2, -3, 3, -4, 4, 5});
+    NDArray<double> expOutput('c', {3, 3}, {-3.05095,-3.04946,-7.12773, -0.05095,-7.04946,-2.12773, -6.05095,-0.04946,-0.12773});
+
+    nd4j::ops::log_softmax<double> op;
+    ResultSet<double>*  results = op.execute({&input}, {}, {0});
+    NDArray<double>* z = results->at(0);    
+
+    ASSERT_EQ(Status::OK(), results->status());
+    ASSERT_TRUE(expOutput.isSameShape(z));
+    ASSERT_TRUE(expOutput.equalsTo(z));    
+
+    delete results;
+}
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests5, log_softmax_test7) {
+
+    NDArray<double> input('c', {1, 5}, {-1, 1, -2, 2, 3});
+    NDArray<double> expOutput('c', {1, 5}, {-4.42414, -2.42414, -5.42414, -1.42414, -0.42414});
+
+    nd4j::ops::log_softmax<double> op;
+    ResultSet<double>*  results = op.execute({&input}, {}, {});
+    NDArray<double>* z = results->at(0);    
+
+    ASSERT_EQ(Status::OK(), results->status());
+    ASSERT_TRUE(expOutput.isSameShape(z));
+    ASSERT_TRUE(expOutput.equalsTo(z));    
+
+    delete results;
+}
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests5, log_softmax_test8) {
+
+    NDArray<double> input('c', {1, 5}, {-1, 1, -2, 2, 3});
+    NDArray<double> expOutput('c', {1, 5}, {0, 0, 0, 0, 0});
+
+    nd4j::ops::log_softmax<double> op;
+    ResultSet<double>*  results = op.execute({&input}, {}, {0});
+    NDArray<double>* z = results->at(0);    
+
+    ASSERT_EQ(Status::OK(), results->status());
+    ASSERT_TRUE(expOutput.isSameShape(z));
+    ASSERT_TRUE(expOutput.equalsTo(z));    
+
+    delete results;
+}
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests5, log_softmax_test9) {
+
+    NDArray<double> input('c', {5, 1}, {-1, 1, -2, 2, 3});
+    NDArray<double> expOutput('c', {5, 1}, {0, 0, 0, 0, 0});
+
+    nd4j::ops::log_softmax<double> op;
+    ResultSet<double>*  results = op.execute({&input}, {}, {});
+    NDArray<double>* z = results->at(0);    
+
+    ASSERT_EQ(Status::OK(), results->status());
+    ASSERT_TRUE(expOutput.isSameShape(z));
+    ASSERT_TRUE(expOutput.equalsTo(z));    
+
+    delete results;
+}
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests5, log_softmax_test10) {
+
+    NDArray<double> input('c', {5, 1}, {-1, 1, -2, 2, 3});
+    NDArray<double> expOutput('c', {5, 1}, {-4.42414, -2.42414, -5.42414, -1.42414, -0.42414});
+
+    nd4j::ops::log_softmax<double> op;
+    ResultSet<double>*  results = op.execute({&input}, {}, {0});
+    NDArray<double>* z = results->at(0);    
+
+    ASSERT_EQ(Status::OK(), results->status());
+    ASSERT_TRUE(expOutput.isSameShape(z));
+    ASSERT_TRUE(expOutput.equalsTo(z));    
+
+    delete results;
+}
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests5, log_softmax_test11) {
+
+    NDArray<double> input('c', {5}, {-1, 1, -2, 2, 3});
+    NDArray<double> expOutput('c', {5}, {-4.42414, -2.42414, -5.42414, -1.42414, -0.42414});
+
+    nd4j::ops::log_softmax<double> op;
+    ResultSet<double>*  results = op.execute({&input}, {}, {});
+    NDArray<double>* z = results->at(0);    
+
+    ASSERT_EQ(Status::OK(), results->status());
+    ASSERT_TRUE(expOutput.isSameShape(z));
+    ASSERT_TRUE(expOutput.equalsTo(z));    
+
+    delete results;
+}
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests5, log_softmax_bp_test1) {
+
+    NDArray<double> input  ('c', {2, 2}, {1,2,3,4});
+    NDArray<double> epsilon('c', {2, 2}, {0.1, 0.2, 0.3, 0.4});    
+    NDArray<double> exp('c', {2, 2}, {-0.07311,0.02689, -0.07311,0.02689});
+    
+    nd4j::ops::log_softmax_bp<double> op;
+    ResultSet<double>*  results = op.execute({&input, &epsilon}, {}, {});
+    NDArray<double>* output = results->at(0);    
+
+    ASSERT_EQ(Status::OK(), results->status());
+    ASSERT_TRUE(exp.isSameShape(output));
+    ASSERT_TRUE(exp.equalsTo(output));    
+
+    delete results;
+}
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests5, log_softmax_bp_test2) {
+
+    NDArray<double> input  ('c', {2, 2}, {1,2,3,4});
+    NDArray<double> epsilon('c', {2, 2}, {0.1, 0.2, 0.3, 0.4});    
+    NDArray<double> exp('c', {2, 2}, {-0.17616, -0.17616, 0.02384,  0.02384});
+    
+    nd4j::ops::log_softmax_bp<double> op;
+    ResultSet<double>*  results = op.execute({&input, &epsilon}, {}, {0});
+    NDArray<double>* output = results->at(0);    
+
+    ASSERT_EQ(Status::OK(), results->status());
+    ASSERT_TRUE(exp.isSameShape(output));
+    ASSERT_TRUE(exp.equalsTo(output));    
+
+    delete results;
+}
+

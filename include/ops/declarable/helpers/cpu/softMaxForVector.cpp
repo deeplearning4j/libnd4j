@@ -1,5 +1,5 @@
 //
-// Created by Yurii Shyrma on 31.01.2017.
+// Created by Yurii Shyrma on 31.01.2018
 //
 
 #include<ops/declarable/helpers/softMaxForVector.h>
