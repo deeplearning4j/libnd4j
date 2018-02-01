@@ -1019,6 +1019,16 @@ namespace nd4j {
         }
 
         template <typename T>
+        bool Graph<T>::hasNode(int id) {
+            return _mapped->count(id) > 0;
+        }
+
+        template <typename T>
+        Node<T>* Graph<T>::nodeById(int id) {
+            return _mapped->at(id);
+        }
+
+        template <typename T>
         bool Graph<T>::hasScope(int id) {
             return _mappedScopes.count(id) > 0;
         }

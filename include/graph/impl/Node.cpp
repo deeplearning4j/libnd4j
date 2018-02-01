@@ -563,6 +563,27 @@ namespace nd4j {
         }
 
         template <typename T>
+        int nd4j::graph::Node<T>::getRewindNode() {
+            return _rewindNode;
+        }
+
+        template <typename T>
+        void nd4j::graph::Node<T>::setRewindNode(int nodeId) {
+            _rewindNode = nodeId;
+        }
+
+        template <typename T>
+        std::pair<int, int>& nd4j::graph::Node<T>::getRewindLayer() {
+            return _rewindLayer;
+        };
+
+        template <typename T>
+        void nd4j::graph::Node<T>::setRewindLayer(int layerId, int stepId) {
+            _rewindLayer.first = layerId;
+            _rewindLayer.second = stepId;
+        }
+
+        template <typename T>
         bool nd4j::graph::Node<T>::equals(Node *other) {
             if (_opType == other->_opType && _dataType == other->_dataType && _opNum == other->_opNum)
                 return true;

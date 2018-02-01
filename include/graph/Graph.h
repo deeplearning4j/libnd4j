@@ -165,6 +165,18 @@ namespace nd4j {
              * This method removes reference to VariableSpace from this Graph
              */
             void forgetVariableSpace();
+
+            /**
+             * This method returns Node with given Id
+             */
+            Node<T>* nodeById(int nodeId);
+
+            /**
+             * This method returns True if node with given ID exists, False otherwise
+             * @param nodeId
+             * @return
+             */
+            bool hasNode(int nodeId);
         };
     }
 }

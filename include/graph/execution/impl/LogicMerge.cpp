@@ -9,8 +9,31 @@ namespace nd4j {
     namespace graph {
         template<typename T>
         Nd4jStatus LogicMerge<T>::processNode(Graph<T> *graph, Node<T> *node) {
-            // at merge node only one of inputs exist (?)
+            // at merge node only one of inputs exist if that's just switch and other node isn't LogicNextItration
             auto __variableSpace = graph->getVariableSpace();
+
+            // merge MUST have 2 inputs
+            auto inputAddr0 = node->input()->at(0);
+            auto inputAddr1 = node->input()->at(1);
+
+            bool isWhile = false;
+
+            // now we want to check if second input is NextIteration
+            if (graph->hasNode(inputAddr1.first)) {
+                auto secondNode = graph->nodeById(inputAddr1.first);
+
+                // checking for NextIteration
+                if (secondNode->opType() == OpType_LOGIC && secondNode->opNum() == 80L) {
+                    isWhile = true;
+
+                    // notifying NextIteration node for rewind index
+                    secondNode->setRewindLayer(node->getLayer());
+                    secondNode->setRewindNode(node->id());
+                }
+
+            }
+
+
 
             // basically, first non-null variable is our target
             for (int e = 0; e < node->input()->size(); e++) {
