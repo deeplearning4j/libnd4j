@@ -6,13 +6,9 @@
 
 namespace nd4j {
     namespace ops {
-        /**
-         * This is generic SoftMax implementation
-         * Expected arguments:
-         * 0: 2D array
-         */
-        DECLARE_OP(softmax, 1, 1, true);
-        DECLARE_OP(softmax_bp, 2, 1, true);
+
+        DECLARE_CONFIGURABLE_OP(softmax, 1, 1, true, 0, 0);
+        DECLARE_CONFIGURABLE_OP(softmax_bp, 2, 1, true, 0, 0);
 
         /**
          * Local response normalization implementation.

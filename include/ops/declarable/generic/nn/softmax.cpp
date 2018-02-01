@@ -3,51 +3,58 @@
 //
 
 #include <ops/declarable/CustomOperations.h>
+#include <ops/declarable/helpers/softMaxForVector.h>
 
 namespace nd4j {
-    namespace ops {
-        OP_IMPL(softmax, 1, 1, true) {
-            // YaY
-            auto input = INPUT_VARIABLE(0);
-            auto z = OUTPUT_VARIABLE(0);
+namespace ops {
 
-            FIXME: 
-            input->template applyTransform<simdOps::SoftMax<T>>(z, nullptr);
 
-            STORE_RESULT(*z);
+CONFIGURABLE_OP_IMPL(softmax, 1, 1, true, 0, 0) {
+    
+    NDArray<T>* input  = INPUT_VARIABLE(0);
+    NDArray<T>* output = OUTPUT_VARIABLE(0);
+    
+    int rank = input->rankOf();
+    int dim  = block.getIArguments()->size() > 0 ? INT_ARG(0) : rank - 1;
 
-            return ND4J_STATUS_OK;
-        }
+    REQUIRE_TRUE(dim < rank, 0, "SOFTMAX op: the value of input integer parameter (dimension) must be less than rank of input array !");
 
-        OP_IMPL(softmax_bp, 2, 1, true) {
-            NDArray<T>* input = INPUT_VARIABLE(0);
-            NDArray<T>* epsInput = INPUT_VARIABLE(1);
-
-            NDArray<T>* z = OUTPUT_VARIABLE(0);
-            /*
-                INDArray out = Nd4j.getExecutioner().execAndReturn(new SoftMax(in));
-
-                INDArray x = out.mul(epsilon).sum(1);
-                INDArray dLdz = out.mul(epsilon.subColumnVector(x));
-            */
-
-            auto tmp_ = new NDArray<T>(input);
-            input->template applyTransform<simdOps::SoftMax<T>>(z, nullptr);
-            z->template applyPairwiseTransform<simdOps::Multiply<T>>(epsInput, tmp_, nullptr);
-
-            auto sum = tmp_->template reduceAlongDimension<simdOps::Sum<T>>({1}, false, true);
-
-            tmp_->assign(epsInput);
-            tmp_->template applyBroadcast<simdOps::Subtract<T>>({0}, sum);
-
-            z->template applyPairwiseTransform<simdOps::Multiply<T>>(tmp_, z, nullptr);
-
-            STORE_RESULT(*z);
-
-            delete sum;
-            delete tmp_;
-
-            return ND4J_STATUS_OK;
-        }
+    if(input->isVector()) {
+        
+        if(rank == 1 || input->sizeAt(dim) != 1)
+            helpers::softMaxForVector<T>(*input, *output);
+        else
+            *output = 1.;
     }
+    else {
+        
+        NDArray<T> exponents = input->template transform<simdOps::Exp<T>>();
+        NDArray<T> sumAlongDim = exponents.template reduceAlongDims<simdOps::Sum<T>>({dim}, true);        
+        output->assign(exponents / sumAlongDim);
+    }
+    
+    return Status::OK();
+}
+
+
+CONFIGURABLE_OP_IMPL(softmax_bp, 2, 1, true, 0, 0) {
+    
+    NDArray<T>* input    = INPUT_VARIABLE(0);
+    NDArray<T>* epsInput = INPUT_VARIABLE(1);
+    NDArray<T>* output   = OUTPUT_VARIABLE(0);    
+
+    int rank = input->rankOf();
+    int dim  = block.getIArguments()->size() > 0 ? INT_ARG(0) : rank - 1;
+    softmax<T> op;
+    ResultSet<T>* results = op.execute({input}, {}, {dim});    
+    output->assign(results->at(0));
+    
+    NDArray<T> sumAlongDim = (*output * *epsInput).template reduceAlongDims<simdOps::Sum<T>>({dim}, true);            
+    *output *= (*epsInput - sumAlongDim);
+
+    delete results;
+    return Status::OK();
+}
+
+}
 }
