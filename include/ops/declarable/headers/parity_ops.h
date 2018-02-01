@@ -229,6 +229,21 @@ namespace nd4j {
          */
         DECLARE_CUSTOM_OP(onehot, 1, 1, false, 2, 2);
 
+
+        /**
+         * This operation calculate the confusion matrix for a
+         * pair of prediction and label 1-D arrays.
+         * Expected arguments:
+         * Input arrays:
+         *   0 - predictions: 1-D array
+         *   1 - labels: 1-D array
+         *   2 - weights : optional
+         * Int args:
+         *   0 - num_classes: optional
+         *
+         */
+        DECLARE_CUSTOM_OP(confusion_matrix, 2, 1, false, 0, -2);
+
         /**
 		 * This operation stacks a list of rank tensors into one rank-(R+1) tensor.
 		 * Expected arguments:
@@ -471,6 +486,33 @@ namespace nd4j {
          */
         DECLARE_CUSTOM_OP(dynamic_stitch, 2, 1, false, 0, 0);
 
+        /**
+         * zero_fraction op.
+         * compute a fraction of zeros in given array
+         *
+         * input param - an array (tensor)
+         * output value - a real number with given type (e.g. float or double)
+         */
+        DECLARE_CUSTOM_OP(zero_fraction, 1, 1, false, 0, 0);
+
+        /**
+         * xw_plus_b op.
+         * multiply two first matrices and add third vector to each row of result
+         *
+         * input params:
+         *   - 2D matrix NxM
+         *   - 2D matrix MxN
+         *   - 1D vector with N elements
+         * output value - 2D matrix NxN as multiply of matrixes and add vector
+         */
+        DECLARE_CUSTOM_OP(xw_plus_b, 3, 1, false, 0, 0);
+
+        /**
+         * This operation is missed due it simplicy.
+         * Input and output params are the same after operation.
+         * Input - NDArray, output - NDArray with the same shape.
+         */
+        DECLARE_OP(stop_gradient, 1, 1, true);
 
     }
 }
