@@ -12,10 +12,11 @@ namespace nd4j {
 
             REQUIRE_TRUE(output->isScalar(), 0, "Rank output should be scalar");
             int numZeros = 0;
-            for (int e = 0; e < input->lengthOf(); e++)
-                if ((*input)(e) == T(0))
-                    numZeros++;
-            T fraction = ((T)(0) + numZeros) / input->lengthOf();
+//            for (int e = 0; e < input->lengthOf(); e++)
+//                if ((*input)(e) == T(0))
+//                    numZeros++;
+            T fraction = input->template reduceNumber<simdOps::CountZero<T>>();//((T)(0) + numZeros) / input->lengthOf();
+            fraction /= input->lengthOf();
             output->putScalar(0, fraction);
 
             return ND4J_STATUS_OK;
