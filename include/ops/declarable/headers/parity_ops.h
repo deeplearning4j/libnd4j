@@ -507,5 +507,12 @@ namespace nd4j {
          */
         DECLARE_CUSTOM_OP(xw_plus_b, 3, 1, false, 0, 0);
 
+        /**
+         * This operation is missed due it simplicy.
+         * Input and output params are the same after operation.
+         * Input - NDArray, output - NDArray with the same shape.
+         */
+        DECLARE_OP(stop_gradient, 1, 1, true);
+
     }
 }

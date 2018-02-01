@@ -1973,3 +1973,48 @@ TEST_F(DeclarableOpsTests5, XWPlusB_1) {
     delete result;
 }
 
+TEST_F(DeclarableOpsTests5, StopGradient_1) {
+
+    NDArray<float> x('c', {2,3}, { 1.f, 11.f,  3.f, 14.f,  5.f,  6.f});
+
+    nd4j::ops::stop_gradient<float> op;
+    ResultSet<float>* result = op.execute({&x}, {}, {});
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    NDArray<float>* output = result->at(0);
+
+    output->printShapeInfo("Output shape> ");
+    x.printShapeInfo("Expected shape> ");
+    output->printIndexedBuffer("Output data> ");
+    x.printIndexedBuffer("Expected res>");    
+
+    ASSERT_TRUE(x.isSameShape(output));
+    ASSERT_TRUE(x.equalsTo(output));
+
+    delete result;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests5, StopGradient_2) {
+
+    NDArray<float> x('f', {2,3}, { 1.f, 11.f,  3.f, 14.f,  5.f,  6.f});
+
+    nd4j::ops::stop_gradient<float> op;
+    ResultSet<float>* result = op.execute({&x}, {}, {});
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+
+    NDArray<float>* output = result->at(0);
+
+    output->printShapeInfo("Output shape> ");
+    x.printShapeInfo("Expected shape> ");
+    output->printIndexedBuffer("Output data> ");
+    x.printIndexedBuffer("Expected res>");    
+
+    ASSERT_TRUE(x.isSameShape(output));
+    ASSERT_TRUE(x.equalsTo(output));
+
+    delete result;
+}
+
