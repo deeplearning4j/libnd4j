@@ -38,6 +38,7 @@ namespace nd4j {
 
             std::map<int, std::vector<nd4j::graph::Node<T> *> *> *_onion;
             std::map<int, nd4j::graph::Node<T> *> _unmapped;
+            std::vector<int> _unmappedMap; // macOS?
 
             std::mutex _mutexPreprocessing;
             std::atomic<bool> _built;

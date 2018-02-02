@@ -247,7 +247,7 @@ namespace nd4j {
             _onion->at(node->getLayer())->push_back(node);
             _mapped->insert(pair);
 
-            _unmapped.erase(node->id());
+            //_unmapped.erase(node->id());
         }
 
         template <typename T>
@@ -456,6 +456,7 @@ namespace nd4j {
             }
 
             std::pair<int, Node<T> *> pair(node->id(), node);
+            nd4j_printf("Adding node_%i\n", node->id());
             // if model has only external variables as input - it goes to first layer, no matter what.
             if (node->hasExternalInputs() && !node->hasInternalInputs()) {
                 node->setLayer(0);
@@ -488,14 +489,28 @@ namespace nd4j {
                         node->setLayer(nLayer);
                         injectNode(node);
 
-                        nd4j_logger("B Node_%i mapped to layer_%i; Output: %i;\n", node->id(), node->getLayer(), node->output()->at(0));
+                        nd4j_logger("Node_%i mapped to layer_%i; Output: %i;\n", node->id(), node->getLayer(), node->output()->at(0));
 
                         return;
                     }
-                }
+                } /*else if (node->opType() == OpType_LOGIC && node->opNum() == 10) {
+                    // Scopes are just being added. They won't be executed on their own anyway.
 
+                    int nLayer = _onion->size();                    
+
+                    expandOnion(nLayer);
+                    node->setLayer(nLayer);
+                    injectNode(node);
+
+                    nd4j_logger("Node_%i mapped Scope to layer_%i; Output: %i;\n", node->id(), node->getLayer(), node->output()->at(0));
+
+                    return;
+                }
+*/
                 // otherwise we're putting it to unmapped space for further sorting
                 _unmapped.insert(pair);
+                _unmappedMap.emplace_back(pair.first);
+                nd4j_printf("adding: %i\n", pair.first);
             }
         }
 
@@ -506,14 +521,37 @@ namespace nd4j {
                 return ND4J_STATUS_OK;
             }
 
+            typename std::map<int, Node<T> *>::iterator fit;
+            int cnts = 0;
+            for ( fit = _unmapped.begin(); fit != _unmapped.end(); fit++ ) {
+                int tK = fit->first;
+                int tF = _unmappedMap.at(cnts++);
+
+                nd4j_printf("Firtst: %i; tF: %i\n", tK, tF);
+            }
+
             int buildCnt = 0;
             int buildLimit = _unmapped.size() * 2;
             while (_unmapped.size() > 0) {
 
+                int sz = _unmapped.size();
+                int sf = _unmappedMap.size();
+
+                std::vector<int> queue;
+
                 // first pass for unmapped nodes, we try to build tale here
                 typename std::map<int, Node<T> *>::iterator it;
+                int cntf = 0;
+                nd4j_printf("-----------\n","");
                 for ( it = _unmapped.begin(); it != _unmapped.end(); it++ ) {
                     auto node = it->second;
+                    int tK = it->first;
+                    int tF = _unmappedMap.at(cntf++);
+
+                    nd4j_printf("tK: %i; tF: %i\n", tK, tF);
+                //for (int f = 0; f < sz; f++) {
+                //    auto node = _unmapped.at(_unmappedMap.at(f));
+                
 
                     // single-input node
                     if (node->input()->size() == 1) {
@@ -531,7 +569,6 @@ namespace nd4j {
                             expandOnion(lastLayer);
 
                             node->setLayer(lastLayer);
-
                             this->injectNode(node);
 
                             if (node->hasCustomOp()) {
@@ -584,7 +621,8 @@ namespace nd4j {
                         } else
                             continue;
 
-                        _unmapped.erase(node->id());
+                        //_unmapped.erase(node->id());
+                        queue.emplace_back(node->id());
                     } else {
                         // multi-input node
                         if (node->getName() == nullptr) {
@@ -624,6 +662,7 @@ namespace nd4j {
 
                         node->setLayer(maxLayer);
                         injectNode(node);
+                        queue.emplace_back(node->id());
 
                         if (node->hasCustomOp()) {
                             ContextPrototype<T>* block = nullptr;
@@ -643,10 +682,11 @@ namespace nd4j {
                                 }
                             }
                         }
-
-
                     }
                 }
+
+                for (auto &v: queue)
+                    _unmapped.erase(v);
 
                 // second pass is mover, we'll be moving onion layers around here
                 buildCnt++;
