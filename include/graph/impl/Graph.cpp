@@ -461,10 +461,11 @@ namespace nd4j {
             if (node->hasExternalInputs() && !node->hasInternalInputs()) {
                 node->setLayer(0);
 
-                _onion->at(0)->push_back(node);
-                _mapped->insert(pair);
+                injectNode(node);
 
                 nd4j_logger("A Node_%i mapped to layer_%i; Output: %i;\n", node->id(), node->getLayer(), node->output()->at(0));
+                
+                return;
             } else {
                 // in some cases we're able to put stuff immediately
                 if (node->hasInternalInputs() && !node->hasExternalInputs() && node->input()->size() == 1) {
@@ -598,6 +599,7 @@ namespace nd4j {
                                 expandOnion(maxLayer);
 
                             this->injectNode(node);
+                            queue.emplace_back(node->id());
 
                             if (node->hasCustomOp()) {
                                 ContextPrototype<T>* block = nullptr;
@@ -868,6 +870,7 @@ namespace nd4j {
                     nnode->setLayer(e);
                     this->addNode(nnode);
                     injectNode(nnode);
+                    _unmapped.erase(nnode->id());
                 }
 
                 _built = true;
