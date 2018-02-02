@@ -197,8 +197,11 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* varia
 
     bool pe = graph->getExecutorConfiguration()->_executionMode == ExecutionMode_AUTO;
 
-    // TODO: add code divergence support here
+
     // basically if at some point code diverges, code branch might be _DISABLED_, and all nodes within that branch will be disabled as well
+
+    bool rewindPlanned = false;
+    int rewindPosition = -1;
 
     // we loop through op layers here
     for (int l = 0; l < (int) graph->getOnion()->size(); l++) {
@@ -208,7 +211,7 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* varia
 //#pragma omp parallel for if (layerSize > 1 && pe) schedule(dynamic) proc_bind(spread) private(n)
         for (; n < layerSize; n++) {
             Node<T>* node = graph->getOnion()->at(l)->at(n);
-            //std::string name = *(node->getCustomOp()->getOpName());
+
 
             if (node->opType() == OpType_LOGIC && node->opNum() == 80L) {
                 /**
@@ -216,6 +219,8 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* varia
                  */
                 bool shouldSkip = false;
                 auto inputId = node->input()->at(0);
+
+                std::string name = *(node->getName());
 
                 /**
                  * We can skip current NextIteration node, in one cases:
@@ -235,12 +240,40 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* varia
                 if (status != Status::OK())
                     return status;
 
-                auto nextLayer = node->getRewindLayer();
-                l = nextLayer.first - 1;
 
-                nd4j_debug("Node_%i rewind to Node_%i at [%i:%i]\n", node->id(), node->getRewindNode(), nextLayer.first, nextLayer.second);
 
-                break;
+
+
+                if (!rewindPlanned) {
+                    auto nextLayer = node->getRewindLayer();
+
+                    nd4j_debug("Node_%i planned rewind to Node_%i at [%i:%i]\n", node->id(), node->getRewindNode(), nextLayer.first, nextLayer.second);
+
+                    rewindPlanned = true;
+                    rewindPosition = nextLayer.first - 1;
+                }
+
+                continue;
+            } else if (node->opType() == OpType_LOGIC && node->opNum() == 90L) {
+                // Exit node is another special case: it can rewind executioner to specific point in graph
+
+                if (rewindPlanned) {
+                    // just break loop here
+                    l = rewindPosition;
+
+                    rewindPlanned = false;
+                    rewindPosition = -1;
+
+                    break;
+                } else {
+                    // execute Exit node otherwise
+
+                    auto status = LogicExecutor<T>::processNode(graph, node);
+                    if (status != Status::OK())
+                        return status;
+                }
+
+
             } else if (node->opType() == OpType_LOGIC) {
                 /**
                  * If this LOGIC op, we'll use another execution model here

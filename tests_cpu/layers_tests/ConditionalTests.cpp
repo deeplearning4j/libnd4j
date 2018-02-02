@@ -229,3 +229,33 @@ TEST_F(ConditionalTests, Flat_Test_5) {
 
     delete graph;
 }
+
+/**
+ * While loop with multiple variables
+ */
+TEST_F(ConditionalTests, Flat_Test_6) {
+    nd4j::ops::identity<float> op0;
+
+    auto graph = GraphExecutioner<float>::importFromFlatBuffers("./resources/simplewhile_1.fb");
+    auto varSpace = graph->getVariableSpace();
+    varSpace->getVariable(1)->getNDArray()->assign(-4.0f);
+    varSpace->getVariable(2)->getNDArray()->assign(1.0f);
+
+    graph->printOut();
+
+    auto status = GraphExecutioner<float>::execute(graph);
+    ASSERT_EQ(Status::OK(), status);
+
+    ASSERT_TRUE(varSpace->hasVariable(25));
+
+    auto z = varSpace->getVariable(25)->getNDArray();
+
+    ASSERT_NE(nullptr, z);
+
+    z->printIndexedBuffer();
+
+    NDArray<float> exp('c', {2, 2}, {-1, -1, -1, -1});
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete graph;
+}
