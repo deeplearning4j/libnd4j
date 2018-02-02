@@ -2223,3 +2223,21 @@ TEST_F(DeclarableOpsTests5, log_softmax_bp_test2) {
 
     delete results;
 }
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests5, L2_Loss_1) {
+
+    NDArray<double> input  ('c', {2, 2, 2}, { -1.,  2. , 1.5, -1.4, 1.,   2.,  2.,   1.});
+    double exp(9.605);
+    
+    nd4j::ops::l2_loss<double> op;
+    ResultSet<double>* results = op.execute({&input}, {}, {});
+    NDArray<double>* output = results->at(0);    
+
+    ASSERT_EQ(Status::OK(), results->status());
+    ASSERT_TRUE(output->isScalar());
+    ASSERT_EQ((*output)(0), exp);    
+
+    delete results;
+}
+

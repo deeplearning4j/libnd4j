@@ -514,5 +514,14 @@ namespace nd4j {
          */
         DECLARE_OP(stop_gradient, 1, 1, true);
 
+        /**
+         * l2_loss op.
+         * compute a l2 norm for given array.
+         *
+         * input param - an array (tensor)
+         * output value - a real number with given type (e.g. float or double)
+         */
+        DECLARE_CUSTOM_OP(l2_loss, 1, 1, false, 0, 0);
+
     }
 }
