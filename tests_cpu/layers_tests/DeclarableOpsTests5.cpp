@@ -2225,6 +2225,18 @@ TEST_F(DeclarableOpsTests5, log_softmax_bp_test2) {
 }
 
 //////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests5, ELU_1) {
+
+    NDArray<double> input  ('c', {2, 2, 2}, { -1.,  2. , 1.5, -1.4, 1.,   2.,  2.,   1.});
+    NDArray<double> exp    ('c', {2, 2, 2}, { -0.63212055,  2. , 1.5, -0.753403, 1.,   2.,  2.,   1.});
+    NDArray<double> res    ('c', {2, 2, 2});
+    
+    input.applyTransform<simdOps::ELU<double>>(&res);
+
+    ASSERT_TRUE(res.equalsTo(&exp));
+}
+
+//////////////////////////////////////////////////////////////////////
 TEST_F(DeclarableOpsTests5, L2_Loss_1) {
 
     NDArray<double> input  ('c', {2, 2, 2}, { -1.,  2. , 1.5, -1.4, 1.,   2.,  2.,   1.});
