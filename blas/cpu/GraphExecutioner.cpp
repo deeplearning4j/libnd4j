@@ -31,6 +31,7 @@
 #include <helpers/BitwiseUtils.h>
 #include <generated/array_generated.h>
 #include <helpers/ShapeUtils.h>
+#include <Status.h>
 
 namespace nd4j{
 namespace graph {
@@ -49,6 +50,7 @@ template <typename T>
  Nd4jStatus GraphExecutioner<T>::executeFlatNode(Graph<T> *graph, Node<T> *node, VariableSpace<T> *variableSpace) {
     OpType opType = node->opType();
     int opNum = node->opNum();
+//    std::string opName = *(node->getCustomOp()->getOpName());
 
     if (opType == OpType_BOOLEAN) {
         nd4j_debug("Executing boolean graph node_%i", node->id());
@@ -202,14 +204,47 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* varia
     for (int l = 0; l < (int) graph->getOnion()->size(); l++) {
         int layerSize = graph->getOnion()->count(l) == 1 ? graph->getOnion()->at(l)->size() : 0;
 
-//#pragma omp parallel for if (layerSize > 1 && pe) schedule(dynamic) proc_bind(spread)
-        for (int n = 0; n < layerSize; n++) {
+        int n = 0;
+//#pragma omp parallel for if (layerSize > 1 && pe) schedule(dynamic) proc_bind(spread) private(n)
+        for (; n < layerSize; n++) {
             Node<T>* node = graph->getOnion()->at(l)->at(n);
+            //std::string name = *(node->getCustomOp()->getOpName());
 
-            /**
-             * If this LOGIC op, we'll use another execution model here
-             */
-            if (node->opType() == OpType_LOGIC) {
+            if (node->opType() == OpType_LOGIC && node->opNum() == 80L) {
+                /**
+                 * NextIteration is special case: after successful execution of this op - we're changing execution position
+                 */
+                bool shouldSkip = false;
+                auto inputId = node->input()->at(0);
+
+                /**
+                 * We can skip current NextIteration node, in one cases:
+                 * 1) If previous node was disabled
+                 */
+                Node<T>* prevNode = graph->getMapped()->at(inputId.first);
+                if (!flowPath->isActive(inputId.first)) {
+                    shouldSkip = true;
+                    //node->setActive(false);
+                    flowPath->markActive(node->id(), false);
+                }
+
+                if (shouldSkip)
+                    continue;
+
+                auto status = LogicExecutor<T>::processNode(graph, node);
+                if (status != Status::OK())
+                    return status;
+
+                auto nextLayer = node->getRewindLayer();
+                l = nextLayer.first - 1;
+
+                nd4j_debug("Node_%i rewind to Node_%i at [%i:%i]\n", node->id(), node->getRewindNode(), nextLayer.first, nextLayer.second);
+
+                break;
+            } else if (node->opType() == OpType_LOGIC) {
+                /**
+                 * If this LOGIC op, we'll use another execution model here
+                 */
                 auto status = LogicExecutor<T>::processNode(graph, node);
 
                 if (status == ND4J_STATUS_OK)
@@ -249,6 +284,10 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* varia
 
             if (shouldSkip)
                 continue;
+
+
+
+
 
             auto timeStart = std::chrono::system_clock::now();
 
