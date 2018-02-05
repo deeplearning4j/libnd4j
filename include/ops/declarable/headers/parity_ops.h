@@ -523,5 +523,14 @@ namespace nd4j {
          */
         DECLARE_CUSTOM_OP(l2_loss, 1, 1, false, 0, 0);
 
+        /**
+         * This op calculates logarithmic loss of poison distributed input
+         * Input arguments
+         *  0 - target
+         *  1 - input
+         *  optional int - boolean value compute_full_loss: 0 (default) or 1 (compute)
+         */
+        DECLARE_CONFIGURABLE_OP(log_poison_loss, 2, 1, true, 0, 0);
+
     }
 }
