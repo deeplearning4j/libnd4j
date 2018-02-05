@@ -906,6 +906,148 @@ TEST_F(DeclarableOpsTests4, Test_StridedSlice_Alex_2) {
 }
 
 //////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests4, parallel_stack_test1) {
+
+    NDArray<float> x1('c', {2,2,2});
+    NDArray<float> x2('c', {2,2,2});
+    NDArray<float> x3('c', {2,2,2});
+    NDArrayFactory<float>::linspace(1, x1);
+    NDArrayFactory<float>::linspace(9, x2);
+    NDArrayFactory<float>::linspace(17,x3);
+
+    NDArray<float> expected('c', {3,2,2,2});
+    NDArrayFactory<float>::linspace(1, expected);
+    
+    nd4j::ops::parallel_stack<float> op;
+    ResultSet<float>*  results = op.execute({&x1, &x2, &x3}, {}, {});
+    NDArray<float>* output = results->at(0);        
+
+    ASSERT_EQ(Status::OK(), results->status());
+    ASSERT_TRUE(expected.isSameShape(output));
+    ASSERT_TRUE(expected.equalsTo(output));    
+
+    delete results;
+}
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests4, parallel_stack_test2) {
+
+    NDArray<float> x1('c', {1,2}, {1,2});
+    NDArray<float> x2('c', {1,2}, {3,4});
+    NDArray<float> x3('c', {1,2}, {5,6});
+    
+    NDArray<float> expected('c', {3,1,2}, {1,2,3,4,5,6});    
+    
+    nd4j::ops::parallel_stack<float> op;
+    ResultSet<float>*  results = op.execute({&x1, &x2, &x3}, {}, {});
+    NDArray<float>* output = results->at(0);        
+
+    ASSERT_EQ(Status::OK(), results->status());
+    ASSERT_TRUE(expected.isSameShape(output));
+    ASSERT_TRUE(expected.equalsTo(output));    
+
+
+    delete results;
+}
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests4, parallel_stack_test3) {
+
+    NDArray<float> x1('c', {2,1}, {1,2});
+    NDArray<float> x2('c', {2,1}, {3,4});
+    NDArray<float> x3('c', {2,1}, {5,6});
+    
+    NDArray<float> expected('c', {3,2,1}, {1,2,3,4,5,6});    
+    
+    nd4j::ops::parallel_stack<float> op;
+    ResultSet<float>*  results = op.execute({&x1, &x2, &x3}, {}, {});
+    NDArray<float>* output = results->at(0);        
+
+    ASSERT_EQ(Status::OK(), results->status());
+    ASSERT_TRUE(expected.isSameShape(output));
+    ASSERT_TRUE(expected.equalsTo(output));    
+
+    delete results;
+}
+\
+//////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests4, parallel_stack_test4) {
+
+    NDArray<float> x1('c', {2}, {1,2});
+    NDArray<float> x2('c', {2}, {3,4});
+    NDArray<float> x3('c', {2}, {5,6});
+    
+    NDArray<float> expected('c', {3,2}, {1,2,3,4,5,6});    
+    
+    nd4j::ops::parallel_stack<float> op;
+    ResultSet<float>*  results = op.execute({&x1, &x2, &x3}, {}, {});
+    NDArray<float>* output = results->at(0);        
+
+    ASSERT_EQ(Status::OK(), results->status());
+    ASSERT_TRUE(expected.isSameShape(output));
+    ASSERT_TRUE(expected.equalsTo(output));    
+
+    delete results;
+} 
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests4, parallel_stack_test5) {
+
+    NDArray<float> x1('c', {1}, {1});
+    NDArray<float> x2('c', {1}, {3});
+    NDArray<float> x3('c', {1}, {5});
+    
+    NDArray<float> expected('c', {3,1}, {1,3,5});    
+    
+    nd4j::ops::parallel_stack<float> op;
+    ResultSet<float>*  results = op.execute({&x1, &x2, &x3}, {}, {});
+    NDArray<float>* output = results->at(0);        
+
+    ASSERT_EQ(Status::OK(), results->status());
+    ASSERT_TRUE(expected.isSameShape(output));
+    ASSERT_TRUE(expected.equalsTo(output));    
+
+    delete results;
+}
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests4, parallel_stack_test6) {
+
+    NDArray<float> x1(1.);
+    NDArray<float> x2(3.);
+    NDArray<float> x3(5.);
+    
+    NDArray<float> expected('c', {3}, {1,3,5});    
+    
+    nd4j::ops::parallel_stack<float> op;
+    ResultSet<float>*  results = op.execute({&x1, &x2, &x3}, {}, {});
+    NDArray<float>* output = results->at(0);        
+
+    ASSERT_EQ(Status::OK(), results->status());
+    ASSERT_TRUE(expected.isSameShape(output));
+    ASSERT_TRUE(expected.equalsTo(output));    
+
+    delete results;
+}
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests4, parallel_stack_test7) {
+
+    NDArray<float> x1(1.);   
+    NDArray<float> expected('c', {1}, {1.});    
+    
+    nd4j::ops::parallel_stack<float> op;
+    ResultSet<float>*  results = op.execute({&x1}, {}, {});
+    NDArray<float>* output = results->at(0);        
+
+    ASSERT_EQ(Status::OK(), results->status());
+    ASSERT_TRUE(expected.isSameShape(output));
+    ASSERT_TRUE(expected.equalsTo(output));    
+
+    delete results;
+}
+
+//////////////////////////////////////////////////////////////////////
 TEST_F(DeclarableOpsTests4, meshgrid_test1) {
 
     NDArray<float> in0('c', {2}, {1, 2});
@@ -1109,7 +1251,6 @@ TEST_F(DeclarableOpsTests4, meshgrid_test8) {
     ASSERT_EQ(Status::OK(), results->status());
     ASSERT_TRUE(exp0.isSameShape(out0));
     ASSERT_TRUE(exp0.equalsTo(out0));    
-    
 
     delete results;
 }
@@ -1128,7 +1269,6 @@ TEST_F(DeclarableOpsTests4, meshgrid_test9) {
     ASSERT_TRUE(exp0.isSameShape(out0));
     ASSERT_TRUE(exp0.equalsTo(out0));    
     
-
     delete results;
 }
 
