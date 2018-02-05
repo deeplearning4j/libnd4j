@@ -21,7 +21,7 @@ CUSTOM_OP_IMPL(meshgrid, -1, -1, false, 0, 0) {
         return Status::OK();
     }
 
-    int inIndices[rank];
+    int* inIndices = new int[rank];
     std::iota(inIndices, inIndices + rank, 0);
     if(swapFirst2Dims && rank > 1) {
         inIndices[0] = 1;
@@ -35,6 +35,8 @@ CUSTOM_OP_IMPL(meshgrid, -1, -1, false, 0, 0) {
 
         delete list;
     }    
+
+    delete []inIndices;
 
     return Status::OK();
 }
