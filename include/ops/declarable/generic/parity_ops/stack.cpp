@@ -90,7 +90,7 @@ namespace nd4j {
     		for(int i=1; i <= newRank; ++i)
     			outShapeInfo[i] = outShape[i-1];
 	
-    		shape::updateStrides(outShapeInfo, shape::order(inShapeInfo));    
+    		shape::updateStrides(outShapeInfo, shape::order(inShapeInfo));
 
     		return new ShapeList(outShapeInfo);
 		}
