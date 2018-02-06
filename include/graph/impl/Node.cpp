@@ -90,6 +90,16 @@ namespace nd4j {
             return _active;
         }
 
+        template<typename T>
+        Nd4jIndex Node<T>::getFrameId() {
+            return _frameId;
+        }
+
+        template<typename T>
+        void Node<T>::setFrameId(Nd4jIndex frameId) {
+            _frameId = frameId;
+        }
+
         template <typename T>
         ContextPrototype<T> * nd4j::graph::Node<T>::getContextPrototype() {
             if (_protoContext == nullptr)
@@ -466,6 +476,15 @@ namespace nd4j {
                         _dimensions.push_back(node->dimensions()->Get(e));
                         _dim[e] = node->dimensions()->Get(e);
                     }
+                }
+
+                if (this->opType() == OpType_LOGIC && this->opNum() == 100L) {
+                    if (node->extraInteger()->size() < 1) {
+                        nd4j_printf("Node_%i is type of Enter, but has no FrameID defined\n", this->id());
+                        throw "Enter node must have FrameID specified";
+                    }
+
+                    this->setFrameId(node->extraInteger()->Get(0));
                 }
 
 

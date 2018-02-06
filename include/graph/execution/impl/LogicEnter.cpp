@@ -9,10 +9,11 @@ namespace nd4j {
     namespace graph {
         template <typename T>
         Nd4jStatus LogicEnter<T>::processNode(Graph<T> *graph, Node<T> *node) {
-            // this op is basically no-op
-            // we just know it exists
+            // this op replicates input variable into the frame. basically happens once for single loop.
+            // sure, if there's inner loop within outer loop, it'll be called once for outer loop and multiple times for inner loop
 
             auto __variableSpace = graph->getVariableSpace();
+            auto __flowPath = __variableSpace->flowPath();
 
             // basically, first non-null variable is our target
             for (int e = 0; e < node->input()->size(); e++) {
@@ -35,7 +36,7 @@ namespace nd4j {
                     auto array = var->getNDArray();
                     lvar->setNDArray(array);
                     lvar->markReadOnly(true);
-                    //lvar->markExternal(false);h
+
 
                     break;
                 }

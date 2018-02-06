@@ -69,32 +69,46 @@ namespace nd4j {
             _states[nodeId].markBranch(index);
         }
 
-        bool FlowPath::isFrameActive(int frameId) {
+        bool FlowPath::isFrameActive(Nd4jIndex frameId) {
             ensureFrame(frameId);
 
             return _frames[frameId].wasActivated();
         }
 
-        void FlowPath::markFrameActive(int frameId, bool isActive) {
+        void FlowPath::markFrameActive(Nd4jIndex frameId, bool isActive) {
             ensureFrame(frameId);
 
             _frames[frameId].markActivated(isActive);
         }
 
-        bool FlowPath::isResetPlanned(int frameId) {
+        bool FlowPath::isRewindPlanned(Nd4jIndex frameId) {
             return _frames[frameId].isRewindPlanned();
         }
 
-        void FlowPath::planRewind(int frameId, bool reallyRewind) {
+        void FlowPath::planRewind(Nd4jIndex frameId, bool reallyRewind) {
             _frames[frameId].planRewind(reallyRewind);
         }
 
-        int FlowPath::getRewindPosition(int frameId) {
+        int FlowPath::getRewindPosition(Nd4jIndex frameId) {
             return _frames[frameId].getRewindPosition();
         }
 
-        void FlowPath::setRewindPositionOnce(int frameId, int position) {
+        void FlowPath::setRewindPosition(Nd4jIndex frameId, int position) {
+            _frames[frameId].setRewindPosition(position);
+        }
+
+        void FlowPath::setRewindPositionOnce(Nd4jIndex frameId, int position) {
             _frames[frameId].setRewindPositionOnce(position);
+        }
+
+        void FlowPath::registerFrame(Nd4jIndex frameId) {
+            if (_frames.count(frameId) == 0)
+                ensureFrame(frameId);
+        }
+
+        void FlowPath::forgetFrame(Nd4jIndex frameId) {
+            if (_frames.count(frameId) > 0)
+                _frames.erase(frameId);
         }
     }
 }

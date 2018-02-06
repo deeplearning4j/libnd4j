@@ -23,6 +23,15 @@ namespace nd4j {
             __variableSpace->getVariable(pair0)->setNDArray(input);
             __variableSpace->getVariable(pair0)->markRemovable(false);
 
+            // pass further
+            if (input->getScalar(0) > 0.0) {
+                // if condition is TRUE body will be invoked some time soon
+                __flowPath->markFrameActive(node->getFrameId(), true);
+            } else {
+                // body won't be activated
+                __flowPath->markFrameActive(node->getFrameId(), false);
+            }
+
             return ND4J_STATUS_OK;
         }
 

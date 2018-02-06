@@ -6,6 +6,7 @@
 #define LIBND4J_GNODE_H
 
 #include <atomic>
+#include <pointercast.h>
 #include <string>
 #include <NDArray.h>
 #include "Context.h"
@@ -72,6 +73,8 @@ namespace nd4j {
             int _rewindNode = -1;
             std::pair<int, int> _rewindLayer = {-1, -1};
 
+            Nd4jIndex _frameId = -1;
+
         public:
             Node(OpType opType = OpType_TRANSFORM, int opNum = 0, int id = 0, std::initializer_list<int> input = {}, std::initializer_list<int> output = {},  std::initializer_list<int> dimensions = {}, float scalar = 0.0f, std::initializer_list<T> tArgs = {}, std::initializer_list<int> iArgs = {});
             Node(const nd4j::graph::FlatNode *node);
@@ -84,6 +87,9 @@ namespace nd4j {
             int id();
             std::vector<std::pair<int,int>> *input();
             std::vector<std::pair<int, int>> *output();
+
+            Nd4jIndex getFrameId();
+            void setFrameId(Nd4jIndex frameId);
 
             int getRewindNode();
             void setRewindNode(int nodeId);

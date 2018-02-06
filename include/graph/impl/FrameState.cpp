@@ -7,7 +7,7 @@
 
 namespace nd4j {
     namespace graph {
-        FrameState::FrameState(int id) {
+        FrameState::FrameState(Nd4jIndex id) {
             this->_id = id;
         }
 

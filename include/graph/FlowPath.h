@@ -16,7 +16,7 @@ namespace nd4j {
         class ND4J_EXPORT FlowPath {
         private:
             std::map<int, NodeState> _states;
-            std::map<int, FrameState> _frames;
+            std::map<Nd4jIndex, FrameState> _frames;
 
             void ensureNode(int nodeId);
             void ensureFrame(int nodeId);
@@ -38,14 +38,18 @@ namespace nd4j {
 
             // Frame-related methods
 
-            bool isFrameActive(int frameId);
-            void markFrameActive(int frameId, bool isActive);
+            void registerFrame(Nd4jIndex frameId);
+            void forgetFrame(Nd4jIndex frameId);
 
-            bool isResetPlanned(int frameId);
-            void planRewind(int frameId, bool reallyRewind);
+            bool isFrameActive(Nd4jIndex frameId);
+            void markFrameActive(Nd4jIndex frameId, bool isActive);
 
-            int getRewindPosition(int frameId);
-            void setRewindPositionOnce(int frameId, int position);
+            bool isRewindPlanned(Nd4jIndex frameId);
+            void planRewind(Nd4jIndex frameId, bool reallyRewind);
+
+            int getRewindPosition(Nd4jIndex frameId);
+            void setRewindPosition(Nd4jIndex frameId, int position);
+            void setRewindPositionOnce(Nd4jIndex frameId, int position);
         };
     }
 }

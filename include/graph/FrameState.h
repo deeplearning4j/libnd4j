@@ -6,20 +6,21 @@
 #define LIBND4J_FRAMESTATE_H
 
 #include <string>
+#include <pointercast.h>
 
 namespace nd4j {
     namespace graph {
         class FrameState {
         private:
             std::string _name;
-            int _id = 0;
+            Nd4jIndex _id = 0;
             int _numberOfCycles = 0;
             bool _activated = false;
 
             bool _rewindPlanned = false;
             int _rewindPosition = -1;
         public:
-             FrameState(int id = 0);
+             FrameState(Nd4jIndex id = 0);
             ~FrameState() = default;
 
             /**
