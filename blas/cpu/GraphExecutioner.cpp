@@ -227,10 +227,10 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* varia
                  * 1) If previous node was disabled
                  */
                 Node<T>* prevNode = graph->getMapped()->at(inputId.first);
-                if (!flowPath->isActive(inputId.first)) {
+                if (!flowPath->isNodeActive(inputId.first)) {
                     shouldSkip = true;
                     //node->setActive(false);
-                    flowPath->markActive(node->id(), false);
+                    flowPath->markNodeActive(node->id(), false);
                 }
 
                 if (shouldSkip)
@@ -301,16 +301,16 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* varia
                  * 2) If previous node was divergent node (i.e. IF op) and code went other way
                  */
                 Node<T>* prevNode = graph->getMapped()->at(inputId.first);
-                if (!flowPath->isActive(inputId.first)) {
+                if (!flowPath->isNodeActive(inputId.first)) {
                     shouldSkip = true;
                     //node->setActive(false);
-                    flowPath->markActive(node->id(), false);
+                    flowPath->markNodeActive(node->id(), false);
 
                 } else if (prevNode->isDivergencePoint()) {
                     if (flowPath->branch(inputId.first) != inputId.second) {
                         shouldSkip = true;
                         //node->setActive(false);
-                        flowPath->markActive(node->id(), false);
+                        flowPath->markNodeActive(node->id(), false);
                     }
                 }
             }

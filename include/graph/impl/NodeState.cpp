@@ -6,6 +6,9 @@
 
 namespace nd4j {
     namespace graph {
+        NodeState::NodeState(int id) {
+            _id = id;
+        }
 
         void NodeState::setInnerTime(Nd4jIndex time) {
             _inner = time;

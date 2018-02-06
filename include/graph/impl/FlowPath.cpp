@@ -9,8 +9,15 @@ namespace nd4j {
 
         void FlowPath::ensureNode(int nodeId) {
             if (_states.count(nodeId) == 0) {
-                NodeState state;
+                NodeState state(nodeId);
                 _states[nodeId] = state;
+            }
+        }
+
+        void FlowPath::ensureFrame(int frameId) {
+            if (_frames.count(frameId) == 0) {
+                FrameState state(frameId);
+                _frames[frameId] = state;
             }
         }
 
@@ -38,13 +45,13 @@ namespace nd4j {
             return _states[nodeId].outerTime();
         }
 
-        bool FlowPath::isActive(int nodeId) {
+        bool FlowPath::isNodeActive(int nodeId) {
             ensureNode(nodeId);
 
             return _states[nodeId].isActive();
         }
             
-        void FlowPath::markActive(int nodeId, bool isActive) {
+        void FlowPath::markNodeActive(int nodeId, bool isActive) {
             ensureNode(nodeId);
 
             _states[nodeId].markActive(isActive);
@@ -60,6 +67,18 @@ namespace nd4j {
             ensureNode(nodeId);
 
             _states[nodeId].markBranch(index);
+        }
+
+        bool FlowPath::isFrameActive(int frameId) {
+            ensureFrame(frameId);
+
+            return _frames[frameId].wasActivated();
+        }
+
+        void FlowPath::markFrameActive(int frameId, bool isActive) {
+            ensureFrame(frameId);
+
+            _frames[frameId].markActivated(isActive);
         }
     }
 }

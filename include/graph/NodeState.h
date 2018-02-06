@@ -23,8 +23,9 @@ namespace nd4j {
             // active divergence branch
             int _branch = 0;
 
+            int _id = 0;
         public:
-            NodeState() = default;
+            NodeState(int id = 0);
             ~NodeState() = default;
 
             void setInnerTime(Nd4jIndex time);

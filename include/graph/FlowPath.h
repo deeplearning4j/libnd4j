@@ -8,6 +8,7 @@
 #include <map>
 #include <pointercast.h>
 #include <graph/NodeState.h>
+#include <graph/FrameState.h>
 #include <dll.h>
 
 namespace nd4j {
@@ -15,8 +16,10 @@ namespace nd4j {
         class ND4J_EXPORT FlowPath {
         private:
             std::map<int, NodeState> _states;
+            std::map<int, FrameState> _frames;
 
             void ensureNode(int nodeId);
+            void ensureFrame(int nodeId);
         public:
             FlowPath() = default;
             ~FlowPath() = default;
@@ -27,12 +30,15 @@ namespace nd4j {
             Nd4jIndex innerTime(int nodeId);
             Nd4jIndex outerTime(int nodeId);
 
-            bool isActive(int nodeId);
-            
-            void markActive(int nodeId, bool isActive);
+            bool isNodeActive(int nodeId);
+            void markNodeActive(int nodeId, bool isActive);
 
             int branch(int nodeId);
             void markBranch(int nodeId, int index);
+
+
+            bool isFrameActive(int frameId);
+            void markFrameActive(int frameId, bool isActive);
         };
     }
 }
