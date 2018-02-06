@@ -217,5 +217,7 @@ namespace nd4j {
          * 0: isSameMode
          */
         DECLARE_CUSTOM_OP(dilation2d, 2, 1, false, 0, 1);
+
+        DECLARE_CUSTOM_OP(conv3d, 3, 1, false, 0, 1);
     }
 }
