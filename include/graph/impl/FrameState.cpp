@@ -30,5 +30,26 @@ namespace nd4j {
         std::string &FrameState::getFrameName() {
             return _name;
         }
+
+        bool FrameState::isRewindPlanned() {
+            return _rewindPlanned;
+        }
+
+        int FrameState::getRewindPosition() {
+            return _rewindPosition;
+        }
+
+        void FrameState::setRewindPosition(int pos) {
+            _rewindPosition = pos;
+        }
+
+        void FrameState::setRewindPositionOnce(int pos) {
+            if (_rewindPosition < 0)
+                _rewindPosition = pos;
+        }
+
+        void FrameState::planRewind(bool reallyPlanning) {
+            _rewindPlanned = reallyPlanning;
+        }
     }
 }

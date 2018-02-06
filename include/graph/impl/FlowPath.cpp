@@ -80,5 +80,21 @@ namespace nd4j {
 
             _frames[frameId].markActivated(isActive);
         }
+
+        bool FlowPath::isResetPlanned(int frameId) {
+            return _frames[frameId].isRewindPlanned();
+        }
+
+        void FlowPath::planRewind(int frameId, bool reallyRewind) {
+            _frames[frameId].planRewind(reallyRewind);
+        }
+
+        int FlowPath::getRewindPosition(int frameId) {
+            return _frames[frameId].getRewindPosition();
+        }
+
+        void FlowPath::setRewindPositionOnce(int frameId, int position) {
+            _frames[frameId].setRewindPositionOnce(position);
+        }
     }
 }

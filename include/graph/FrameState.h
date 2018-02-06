@@ -15,6 +15,9 @@ namespace nd4j {
             int _id = 0;
             int _numberOfCycles = 0;
             bool _activated = false;
+
+            bool _rewindPlanned = false;
+            int _rewindPosition = -1;
         public:
              FrameState(int id = 0);
             ~FrameState() = default;
@@ -48,6 +51,36 @@ namespace nd4j {
              * @return
              */
             std::string& getFrameName();
+
+            /**
+             * This method returns TRUE if reset is planned for this Frame
+             * @return
+             */
+            bool isRewindPlanned();
+
+            /**
+             * This method allows you to toggle flag for planned rewind
+             * @param reallyPlanning
+             */
+            void planRewind(bool reallyPlanning);
+
+            /**
+             * This method returns planned reset position for given Frame
+             * @return
+             */
+            int getRewindPosition();
+
+            /**
+             * This method allows to set rewind position for this Frame
+             * @param pos
+             */
+            void setRewindPosition(int pos);
+
+            /**
+             * This method allows to set rewind position for this Frame, but only if it wasn't set earlier
+             * @param pos
+             */
+            void setRewindPositionOnce(int pos);
         };
     }
 }

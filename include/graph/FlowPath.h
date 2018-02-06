@@ -36,9 +36,16 @@ namespace nd4j {
             int branch(int nodeId);
             void markBranch(int nodeId, int index);
 
+            // Frame-related methods
 
             bool isFrameActive(int frameId);
             void markFrameActive(int frameId, bool isActive);
+
+            bool isResetPlanned(int frameId);
+            void planRewind(int frameId, bool reallyRewind);
+
+            int getRewindPosition(int frameId);
+            void setRewindPositionOnce(int frameId, int position);
         };
     }
 }
