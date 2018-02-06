@@ -286,3 +286,27 @@ TEST_F(ConditionalTests, Flat_Test_7) {
 
     delete graph;
 }
+
+/**
+ * This test checks nested while execution
+ */
+TEST_F(ConditionalTests, Flat_Test_8) {
+    auto graph = GraphExecutioner<float>::importFromFlatBuffers("./resources/simplewhile_nested.fb");
+    auto varSpace = graph->getVariableSpace();
+    graph->printOut();
+
+    auto status = GraphExecutioner<float>::execute(graph);
+    ASSERT_EQ(Status::OK(), status);
+
+    ASSERT_TRUE(varSpace->hasVariable(50));
+
+    auto z = varSpace->getVariable(50)->getNDArray();
+
+    ASSERT_NE(nullptr, z);
+
+    //val exp = Nd4j.create(2, 2).assign(15.0);
+    NDArray<float> exp('c', {2, 2}, {15, 15, 15, 15});
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete graph;
+}
