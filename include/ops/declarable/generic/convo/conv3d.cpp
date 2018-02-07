@@ -4,71 +4,109 @@
 
 
 #include <ops/declarable/CustomOperations.h>
-// #include <ops/declarable/generic/helpers/convolutions.h>
+#include <ops/declarable/generic/helpers/convolutions.h>
 
 namespace nd4j {
 namespace ops  {
 
-CUSTOM_OP_IMPL(conv3d, 3, 1, false, 0, 1) {
+CUSTOM_OP_IMPL(conv3dNew, 2, 1, false, 0, 12) {
     
-    NDArray<T> *input     = INPUT_VARIABLE(0);      // [bS, iD, iH, iW, iC] or [bS, iC, iD, iH, iW]
-    NDArray<T> *filter    = INPUT_VARIABLE(1);      // [kD, kH, kW, iC, oC]
-    NDArray<T> *strides   = INPUT_VARIABLE(2);      // [5]
-    NDArray<T> *output    = OUTPUT_VARIABLE(2);     // [bS, oD, oH, oW, oC] or [bS, oC, oD, oH, oW]
-
-    // NDArray<T> *dilations = nullptr;                // [5]
-    // if (block.width() > 3)
-    //     dilations = INPUT_VARIABLE(3);
-    // else
-    //     dilations = new NDArray<T>(input->ordering(), {5}, {1,1,1,1,1});
-    NDArray<T> *dilations = new NDArray<T>(input->ordering(), {5}, {1,1,1,1,1});
-
-    int padding    = INT_ARG(0);                                            // 0-SAME,  1-VALID;
-    int dataFormat = block.getTArguments()->size() > 1 ? T_ARG(1) : 0;      // 0-NDHWC, 1-NCDHW     
-
-    REQUIRE_TRUE(input->rankOf()  == 5, 0, "CONFIGURABLE CONV3D OP: rank of input array must be equal to 5 !");
-    REQUIRE_TRUE(filter->rankOf() == 5, 0, "CONFIGURABLE CONV3D OP: rank of filter array must be equal to 5 !");
-    REQUIRE_TRUE(strides->rankOf()   == 1 && strides->lengthOf()   == 5, 0, "CONFIGURABLE CONV3D OP: rank of strides array must be equal to 1 and length to 5 !");
-    REQUIRE_TRUE(dilations->rankOf() == 1 && dilations->lengthOf() == 5, 0, "CONFIGURABLE CONV3D OP: rank of dilations array must be equal to 1 and length to 5 !");
+    NDArray<T> *input   = INPUT_VARIABLE(0);                                        // [bS, iD, iH, iW, iC] (NDHWC) or [bS, iC, iD, iH, iW] (NCDHW)
+    NDArray<T> *weights = INPUT_VARIABLE(1);                                        // [kD, kH, kW, iC, oC] (NDHWC) or [oC, iC, kD, kH, kW] (NCDHW)
+    NDArray<T> *bias    = block.width() > 2 ? INPUT_VARIABLE(2) : nullptr;            // [oC]
+    NDArray<T> *output  = OUTPUT_VARIABLE(2);                                       // [bS, oD, oH, oW, oC] (NDHWC) or [bS, oC, oD, oH, oW] (NCDHW)
     
-    int indD = dataFormat == 0 ? 1 : 2;
-    int indC = dataFormat == 0 ? 4 : 1;
-
-    int bS = input  ->sizeAt(0);                 // batch size
-    int iD = input  ->sizeAt(indD);              // input depth
-    int iH = input  ->sizeAt(indD+1);            // input height
-    int iW = input  ->sizeAt(indD+2);            // input width
-    int iC = input  ->sizeAt(indC);              // input channels        
-    int kD = filter ->sizeAt(0);                 // filter(kernel) depth
-    int kH = filter ->sizeAt(1);                 // filter(kernel) height
-    int kW = filter ->sizeAt(2);                 // filter(kernel) width
-    int oC = filter ->sizeAt(4);                 // output channels
-    int sD = strides->sizeAt(indD);              // strides depth
-    int sH = strides->sizeAt(indD+1);            // strides height
-    int sW = strides->sizeAt(indD+2);            // strides width
-
-    REQUIRE_TRUE(filter->sizeAt(3)     == iC, 0, "CONFIGURABLE CONV3D OP: the third dimension of filter array must be equal to the fourth (or first in case of NCDHW) dimension of input array !");
-    REQUIRE_TRUE(strides->sizeAt(0)    == 1,  0, "CONFIGURABLE CONV3D OP: there must be condition strides[0] == 1, current implementation does not yet support other cases !");    
-    REQUIRE_TRUE(strides->sizeAt(indC) == 1,  0, "CONFIGURABLE CONV3D OP: there must be condition strides[indC] == 1, current implementation does not yet support other cases !");
+    REQUIRE_TRUE(input->rankOf()   == 5, 0, "CUSTOM CONV3D OP: rank of input array must be equal to 5 !");
+    REQUIRE_TRUE(weights->rankOf() == 5, 0, "CUSTOM CONV3D OP: rank of weights array must be equal to 5 !");
+    REQUIRE_TRUE(bias->rankOf()    == 1, 0, "CUSTOM CONV3D OP: rank of biases array must be equal to 1 !");
+                                     
+    int kD = INT_ARG(0);                                                        // filter(kernel) depth
+    int kH = INT_ARG(1);                                                        // filter(kernel) height
+    int kW = INT_ARG(2);                                                        // filter(kernel) width
+    int sD = INT_ARG(3);                                                        // strides depth
+    int sH = INT_ARG(4);                                                        // strides height
+    int sW = INT_ARG(5);                                                        // strides width
+    int pD = INT_ARG(6);                                                        // paddings depth
+    int pH = INT_ARG(7);                                                        // paddings height
+    int pW = INT_ARG(8);                                                        // paddings width
+    int dD = INT_ARG(9);                                                        // dilations depth
+    int dH = INT_ARG(10);                                                       // dilations height
+    int dW = INT_ARG(11);                                                       // dilations width
+    int paddingMode = INT_ARG(12);                                              // 0-SAME,  1-VALID;
+    int dataFormat  = block.getIArguments()->size() > 13 ? INT_ARG(13) : 0;     // 0-NDHWC, 1-NCDHW
     
-    int oD = output->sizeAt(indD);               // output depth
-    int oH = output->sizeAt(indD+1);             // output height
-    int oW = output->sizeAt(indD+2);             // output width
+    int indID = dataFormat == 0 ? 1 : 2;
+    int indIC = dataFormat == 0 ? 4 : 1;    
+    int indOC = dataFormat == 0 ? 4 : 0;
+    int indWC = dataFormat == 0 ? 3 : 1;
+    int indKD = dataFormat == 0 ? 0 : 2;
+
+    int bS = input->sizeAt(0);                 // batch size
+    int iD = input->sizeAt(indID);             // input depth
+    int iH = input->sizeAt(indID+1);           // input height
+    int iW = input->sizeAt(indID+2);           // input width
+    int iC = input->sizeAt(indIC);             // input channels        
+    int oC = weights->sizeAt(indOC);           // output channels
+    
+    REQUIRE_TRUE(weights->sizeAt(indWC)   == iC, 0, "CUSTOM CONV3D OP: the wrong shape of weights array, input_inChannels != weights_inChannels");
+    REQUIRE_TRUE(weights->sizeAt(indKD)   == kD, 0, "CUSTOM CONV3D OP: weights array has wrong shape, take a careful look at int arguments !");
+    REQUIRE_TRUE(weights->sizeAt(indKD+1) == kH, 0, "CUSTOM CONV3D OP: weights array has wrong shape, take a careful look at int arguments !");
+    REQUIRE_TRUE(weights->sizeAt(indKD+2) == kW, 0, "CUSTOM CONV3D OP: weights array has wrong shape, take a careful look at int arguments !");
+    if (bias)
+        REQUIRE_TRUE(oC == bias->lengthOf(), 0, "CUSTOM CONV3D OP:: length of bias array must be equal to outChannels, but got %i instead", bias->lengthOf());
+        
+    int oD = output->sizeAt(indID);               // output depth
+    int oH = output->sizeAt(indID+1);             // output height
+    int oW = output->sizeAt(indID+2);             // output width
     
     std::vector<int> kDims = {iC*kD*kH*kW, oC};    
     std::vector<int> preContractDims  = {bS*oD*oH*oW, iC*kD*kH*kW};
+    // columns, nInputPlane*kT*kW*kH, outputDepth*outputHeight*outputWidth);
     std::vector<int> contractDims     = {1, 0};
     std::vector<int> postContractDims = {bS, oD, oH, oW, oC};
 
+    ResultSet<T>* inSubArrsList  = NDArrayFactory<T>::allExamples(input);           // inSubArrsList.size() = outSubArrsList.size() = bS
+    ResultSet<T>* outSubArrsList = NDArrayFactory<T>::allExamples(output);
 
-(derived(), patch_planes, patch_rows, patch_cols, plane_stride, row_stride, col_stride, 1, 1, 1, 1, 1, 1, padding_type, padding_value);
+    for(int i = 0; i < bS; ++i)
+        ConvolutionUtils<T>::vol2col(inSubArrsList->at(i)->getBuffer(), oC, oD, oH, oW, iD, iH, iW, kD, kH, kW, pD, pH, pW, sD, sH, sW, dD, dH, dW, outSubArrsList->at(i)->getBuffer());
 
 
-choose( Cond<internal::traits<Input>::Layout == ColMajor>(),
-           
+    delete inSubArrsList;
+    delete outSubArrsList;
+
+
+//      static void _vol2col(const T* data_col, const int channels, const int depth, const int height, const int width, const int out_depth, const int out_height, const int out_width, 
+//         const int kT, const int kH, const int kW, 
+//         const int pT, const int pH, const int pW, 
+//         const int dT, const int dH, const int dW, 
+//         const int dilationT, const int dilationH, const int dilationW, 
+//         T* data_vol);
+
+
+// (derived(), patch_planes, patch_rows, patch_cols, plane_stride, row_stride, col_stride, 1, 1, 1, 1, 1, 1, padding_type, padding_value);
+
             
-input.extract_volume_patches(kD, kH, kW, sD, sH, sW,padding_type).reshape(preContractDims) .contract(kernel.reshape(kernel_dims), contractDims).reshape(postContractDims)
-);
+// input.extract_volume_patches(kD, kH, kW, sD, sH, sW,padding_type).reshape(preContractDims) .contract(kernel.reshape(kDims), contractDims).reshape(postContractDims)
+
+
+//   THNN_(vol2col)(
+//       THTensor_(data)(input_n),
+//       nInputPlane, inputDepth, inputHeight, inputWidth,
+//       kT, kH, kW, padT, padH, padW, dT, dH, dW,
+//       dilationT, dilationH, dilationW,
+//       THTensor_(data)(columns)
+//     );
+
+
+
+
+// // std::unique_ptr<NDArray<T>> col(new NDArray<T>('c', {batchSize, oY, oX, inDepth, kY, kX}));
+// //             std::unique_ptr<NDArray<T>> col2(col.get()->permute({0, 3, 4, 5, 1, 2}));
+
+// //             std::vector<T> extrasIm2Col({(T) kY, (T) kX, (T) sY, (T) sX, (T) pY, (T) pX, (T) dY, (T) dX, isSameMode ? (T) 1.0f : (T) 0.0f});
+
+// //             input->template applyTransform<simdOps::Im2col<T>>(col2.get(), extrasIm2Col.data());
 
 
 
@@ -76,64 +114,59 @@ input.extract_volume_patches(kD, kH, kW, sD, sH, sW,padding_type).reshape(preCon
 
 
 
+    
+    delete bias;
 
-
-
-
-
-
-
-    // if (block.width() > 3)
-    delete dilations;
-
+    
     return Status::OK();
 }
 
 
-DECLARE_SHAPE_FN(conv3d) {
+DECLARE_SHAPE_FN(conv3dNew) {
 
-    int padding    = INT_ARG(0);
-    int dataFormat = block.getTArguments()->size() > 1 ? T_ARG(1) : 0;      // 0-NDHWC, 1-NCDHW     
+    int kD = INT_ARG(0);                                                        // filter(kernel) depth
+    int kH = INT_ARG(1);                                                        // filter(kernel) height
+    int kW = INT_ARG(2);                                                        // filter(kernel) width
+    int sD = INT_ARG(3);                                                        // strides depth
+    int sH = INT_ARG(4);                                                        // strides height
+    int sW = INT_ARG(5);                                                        // strides width
+    int pD = INT_ARG(6);                                                        // paddings depth
+    int pH = INT_ARG(7);                                                        // paddings height
+    int pW = INT_ARG(8);                                                        // paddings width
+    int dD = INT_ARG(9);                                                        // dilations depth
+    int dH = INT_ARG(10);                                                       // dilations height
+    int dW = INT_ARG(11);                                                       // dilations width
+    int paddingMode = INT_ARG(12);                                              // 0-SAME,  1-VALID;
+    int dataFormat  = block.getIArguments()->size() > 13 ? INT_ARG(13) : 0;     // 0-NDHWC, 1-NCDHW
+    
+    int indID  = dataFormat == 0 ? 1 : 2;
+    int indIC  = dataFormat == 0 ? 4 : 1;
+    int indOC = dataFormat == 0 ? 4 : 0;
 
     int* inputShapeInfo   = inputShape->at(0);
-    int* filterShapeInfo  = inputShape->at(1);
-    int* stridesShapeInfo = inputShape->at(2);
+    int* weightsShapeInfo = inputShape->at(1);
 
-    int indD = dataFormat == 0 ? 1 : 2;
-    int indC = dataFormat == 0 ? 4 : 1;    
+    int bS = inputShapeInfo[1];                         // batch size
+    int iD = inputShapeInfo[indID+1];                    // input depth
+    int iH = inputShapeInfo[indID+2];                    // input height
+    int iW = inputShapeInfo[indID+3];                    // input width
+    int iC = inputShapeInfo[indIC+1];                    // input channels        
+    int oC = weightsShapeInfo[indOC+1];                 // output channels
 
-    int bS = inputShapeInfo[1];                  // batch size
-    int iD = inputShapeInfo[indD+1];             // input depth
-    int iH = inputShapeInfo[indD+2];             // input height
-    int iW = inputShapeInfo[indD+3];             // input width
-    int kD = filterShapeInfo[1];                 // filter(kernel) depth
-    int kH = filterShapeInfo[2];                 // filter(kernel) height
-    int kW = filterShapeInfo[3];                 // filter(kernel) width
-    int oC = filterShapeInfo[5];                 // output channels
-    int sD = stridesShapeInfo[indD+1];           // strides depth
-    int sH = stridesShapeInfo[indD+2];           // strides height
-    int sW = stridesShapeInfo[indD+3];           // strides width
+    int oD, oH, oW;                         // output depth, height, width
+    ConvolutionUtils<T>::calcOutSizePool3D(oD, oH, oW, kD, kH, kW, sD, sH, sW, pD, pH, pW, dD, dH, dW, iD, iH, iW, paddingMode);
 
-    int oD, oH, oW;                     // output depth, height, width
-    if(padding) {                       // VALID
-        oD = (iD - kD + sD) / sD;
-        oH = (iH - kH + sH) / sH;
-        oW = (iW - kW + sW) / sW;
-    }
-    else {                              // SAME        
-        oD = (iD + sD - 1) / sD;
-        oH = (iH + sH - 1) / sH;
-        oW = (iW + sW - 1) / sW;
-    }    
-
+    if(!paddingMode)                        // SAME
+        ConvolutionUtils<T>::calcPadding3D(pD, pH, pW, oD, oH, oW, iD, iH, iW, kD, kH, kW, sD, sH, sW, dD, dH, dW);
+    
     int* outputShapeInfo = nullptr;
     ALLOCATE(outputShapeInfo, block.getWorkspace(), shape::shapeInfoLength(inputShapeInfo), int);
     outputShapeInfo[0]      = 5;
     outputShapeInfo[1]      = bS;
-    outputShapeInfo[indD+1] = oD;
-    outputShapeInfo[indD+2] = oH;
-    outputShapeInfo[indD+3] = oW;
-    outputShapeInfo[indC+1] = oC;
+    outputShapeInfo[indID+1] = oD;
+    outputShapeInfo[indID+2] = oH;
+    outputShapeInfo[indID+3] = oW;
+    outputShapeInfo[indIC+1] = oC;
     
     shape::updateStrides(outputShapeInfo, shape::order(inputShapeInfo));
     

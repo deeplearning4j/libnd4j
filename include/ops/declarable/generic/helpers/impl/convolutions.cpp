@@ -53,6 +53,62 @@ namespace nd4j {
             pW = ((oW - 1) * sW + eKW - inW) / 2;
         }
 
+
+        template<typename T>
+        void ConvolutionUtils<T>::calcPadding3D(int& pD, int& pH, int& pW, const int oD, const int oH, const int oW, const int iD, const int iH, const int iW, const int kD, const int kH, const int kW, const int sD, const int sH, const int sW, const int dD, const int dH, const int dW) {
+
+            int eKD, eKH, eKW;
+            
+            if (dD == 1 && dH == 1 && dW == 1) {
+                eKD = kD;
+                eKH = kH;
+                eKW = kW;
+            } else {
+                eKD = kD + (kD - 1) * (dD - 1);
+                eKH = kH + (kH - 1) * (dH - 1);
+                eKW = kW + (kW - 1) * (dW - 1);
+            }
+
+            pD = ((oD - 1) * sD + eKD - iD) / 2;       // Note that padBottom is 1 bigger than this if bracketed term is not divisible by 2
+            pH = ((oH - 1) * sH + eKH - iH) / 2; 
+            pW = ((oW - 1) * sW + eKW - iW) / 2;
+
+        }
+
+        template<typename T>
+        void ConvolutionUtils<T>::vol2col(const T *data_vol, const int channels, const int depth, const int height, const int width, const int out_depth, const int out_height, const int out_width, const int kT, const int kH, const int kW, const int pT, const int pH, const int pW, const int dT, const int dH, const int dW, const int dilationT, const int dilationH, const int dilationW, T *data_col) {
+            int c, t, h, w;
+            int channels_col = channels * kT * kH * kW;
+            for (c = 0; c < channels_col; ++c)
+            {
+                int w_offset = c % kW;
+                int h_offset = (c / kW) % kH;
+                int t_offset = (c / kW / kH) % kT;
+                int c_vol = c / kT / kH / kW;
+                for (t = 0; t < out_depth; ++t)
+                {
+                    for (h = 0; h < out_height; ++h)
+                    {
+                        for (w = 0; w < out_width; ++w)
+                        {
+                            int t_pad = t * dT - pT + t_offset * dilationT;
+                            int h_pad = h * dH - pH + h_offset * dilationH;
+                            int w_pad = w * dW - pW + w_offset * dilationW;
+                            if (t_pad >= 0 && t_pad < depth &&
+                                h_pad >= 0 && h_pad < height &&
+                                w_pad >= 0 && w_pad < width)
+                                data_col[((c * out_depth + t) * out_height + h) * out_width + w] =
+                                        data_vol[((c_vol * depth + t_pad) * height + h_pad) * width + w_pad];
+                            else
+                                data_col[((c * out_depth + t) * out_height + h) * out_width + w] = 0;
+                        }
+                    }
+                }
+            }
+        }
+
+
+
         template<typename T>
         void ConvolutionUtils<T>::_vol2col(const T *data_vol, const int channels, const int depth, const int height, const int width, const int kT, const int kH, const int kW, const int pT, const int pH, const int pW, const int dT, const int dH, const int dW, const int dilationT, const int dilationH, const int dilationW, T *data_col) {
             int c, t, h, w;
@@ -658,9 +714,9 @@ namespace nd4j {
         }
 
 //////////////////////////////////////////////////////////////////////////
-// calculation of output height and width during 2D pooling procedure
+// calculation of output height and width in 2D pooling procedure
         template<typename T>
-        void ConvolutionUtils<T>::calcOutHWpool2D(int& oH, int& oW, const int kH, const int kW, const int sH, const int sW, const int pH, const int pW, const int dH, const int dW, const int iH, const int iW, const int isSameMode) {
+        void ConvolutionUtils<T>::calcOutSizePool2D(int& oH, int& oW, const int kH, const int kW, const int sH, const int sW, const int pH, const int pW, const int dH, const int dW, const int iH, const int iW, const int isSameMode) {
             if(isSameMode > 0) {
                 oH = (int) nd4j::math::nd4j_ceil(iH * 1.f / sH);
                 oW = (int) nd4j::math::nd4j_ceil(iW * 1.f / sW);
@@ -671,9 +727,34 @@ namespace nd4j {
             }
         }
 
+//////////////////////////////////////////////////////////////////////////
+// calculation of output depth, height and width in conv3d procedure        
+        template<typename T>
+        void ConvolutionUtils<T>::calcOutSizePool3D(int& oD, int& oH, int& oW, const int kD, const int kH, const int kW, const int sD, const int sH, const int sW, const int pD, const int pH, const int pW, const int dD, const int dH, const int dW, const int iD, const int iH, const int iW, const int paddingMode) {
+
+            if(paddingMode) {                                           // valid
+                
+                oD = (iD - (kD + (kD - 1) * (dD - 1)) + 2 * pD) / sD + 1;
+                oH = (iH - (kH + (kH - 1) * (dH - 1)) + 2 * pH) / sH + 1;
+                oW = (iW - (kW + (kW - 1) * (dW - 1)) + 2 * pW) / sW + 1;
+            }
+            else {                                                      // same
+                
+                oD = (int) nd4j::math::nd4j_ceil(iD * 1.f / sD);
+                oH = (int) nd4j::math::nd4j_ceil(iH * 1.f / sH);
+                oW = (int) nd4j::math::nd4j_ceil(iW * 1.f / sW);
+            }
+        }
+
+    
+
+
+
+
 
         template class ND4J_EXPORT ConvolutionUtils<float>;
         template class ND4J_EXPORT ConvolutionUtils<float16>;
         template class ND4J_EXPORT ConvolutionUtils<double>;
+    
     }
 }
