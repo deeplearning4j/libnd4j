@@ -215,7 +215,7 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* varia
 // this omp block will probably never be the case
 //#pragma omp parallel for if (layerSize > 1 && pe) schedule(dynamic) proc_bind(spread) private(n)
         for (; n < layerSize; n++) {
-            if (++exec_counter > 400) {
+            if (++exec_counter > 10000) {
                 l = graph->getOnion()->size();
                 return Status::THROW("Early termination hit");
             }
