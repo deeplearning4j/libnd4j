@@ -61,11 +61,13 @@ CUSTOM_OP_IMPL(conv3d, 3, 1, false, 0, 1) {
     std::vector<int> postContractDims = {bS, oD, oH, oW, oC};
 
 
+(derived(), patch_planes, patch_rows, patch_cols, plane_stride, row_stride, col_stride, 1, 1, 1, 1, 1, 1, padding_type, padding_value);
+
+
 choose( Cond<internal::traits<Input>::Layout == ColMajor>(),
            
-kernel.reshape(kernel_dims).contract(input.extract_volume_patches(kD, kH, kW, sD,sH, sW, padding_type).reshape(pre_contract_dims),contract_dims).reshape(post_contract_dims),
             
-input.extract_volume_patches(kD, kH, kW, sD, sH, sW,padding_type).reshape(pre_contract_dims) .contract(kernel.reshape(kernel_dims), contract_dims).reshape(post_contract_dims)
+input.extract_volume_patches(kD, kH, kW, sD, sH, sW,padding_type).reshape(preContractDims) .contract(kernel.reshape(kernel_dims), contractDims).reshape(postContractDims)
 );
 
 
