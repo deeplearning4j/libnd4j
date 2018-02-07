@@ -220,11 +220,14 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* varia
                 return Status::THROW("Early termination hit");
             }
 
-
             Node<T>* node = graph->getOnion()->at(l)->at(n);
+
+
+            nd4j_debug("Step: %lld; Node: %i\n", exec_counter, node->id());
 
             // on first non-Exit node after loop we can rewind (if planned)
             if (!(node->opType() == OpType_LOGIC && node->opNum() == 90L)) {
+                // VALIDATED
 
                 // if we're out of frame - let's remove it from queue
                 if (leftFrame) {
@@ -285,12 +288,14 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* varia
 
             if (node->opType() == OpType_LOGIC && node->opNum() == 100L) {
                 // Enter operation
+                // VALIDATED
 
                 // we expect this node to have frameId set
                 auto frame_id = node->getFrameId();
 
                 // new frame starts here
                 if (frames.size() == 0 || (frames.size() > 0 && frames.back() != frame_id)) {
+                    flowPath->registerFrame(frame_id);
                     frames.emplace_back(frame_id);
                     inFrame = true;
                 }
@@ -304,6 +309,7 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* varia
                 /**
                  * NextIteration is special case: after successful execution of this op - we're changing execution position
                  */
+                // VALIDATED
                 auto inputId = node->input()->at(0);
 
                 auto status = LogicExecutor<T>::processNode(graph, node);
@@ -313,6 +319,7 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* varia
                 auto frame_id = frames.back();
 
                 flowPath->markNodeActive(node->id(), true);
+                flowPath->markExecuted(node->id(), true);
 
                 if (!flowPath->isRewindPlanned(frame_id)) {
                     auto nextLayer = node->getRewindLayer();
@@ -328,6 +335,7 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* varia
 
             } else if (node->opType() == OpType_LOGIC && node->opNum() == 90L) {
                 // Exit node is another special case: it can rewind executioner to specific point in graph
+                // VALIDATED
 
                 auto frame_id = frames.back();
 
@@ -352,6 +360,8 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* varia
                     auto status = LogicExecutor<T>::processNode(graph, node);
                     if (status != Status::OK())
                         return status;
+
+                    leftFrame = true;
                 }
 
 

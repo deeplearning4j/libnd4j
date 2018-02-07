@@ -41,5 +41,13 @@ namespace nd4j {
         void NodeState::markBranch(int index) {
             _branch = index;
         }
+
+        bool NodeState::wasExecuted() {
+            return _executed;
+        }
+
+        void NodeState::markExecuted(bool wasExecuted) {
+            _executed = wasExecuted;
+        }
     }
 }

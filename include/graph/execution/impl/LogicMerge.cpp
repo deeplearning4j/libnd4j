@@ -11,6 +11,7 @@ namespace nd4j {
         Nd4jStatus LogicMerge<T>::processNode(Graph<T> *graph, Node<T> *node) {
             // at merge node only one of inputs exist if that's just switch and other node isn't LogicNextItration
             auto __variableSpace = graph->getVariableSpace();
+            auto __flowPath = __variableSpace->flowPath();
 
             // merge MUST have 2 inputs
             auto inputAddr0 = node->input()->at(0);
@@ -36,7 +37,7 @@ namespace nd4j {
             // FIXME: we don't need this check. Just last input should survive, IF it exists
             if (isWhile){
                 bool hasVar = __variableSpace->hasVariable(inputAddr1);
-                if ( hasVar && __variableSpace->getVariable(inputAddr1)->hasNDArray()) {
+                if ( hasVar && __flowPath->wasExecuted(inputAddr1.first)) {
                     nd4j_debug("Node_%i: propagating second input\n", node->id());
                     auto var = __variableSpace->getVariable(inputAddr1);
 
@@ -55,6 +56,8 @@ namespace nd4j {
 
                     lvar->setNDArray(array);
                     lvar->markReadOnly(true);
+
+                    __flowPath->markExecuted(inputAddr1.first, false);
 
 
                 } else {

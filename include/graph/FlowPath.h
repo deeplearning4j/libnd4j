@@ -33,6 +33,9 @@ namespace nd4j {
             bool isNodeActive(int nodeId);
             void markNodeActive(int nodeId, bool isActive);
 
+            bool wasExecuted(int nodeId);
+            void markExecuted(int nodeId, bool wasExecuted);
+
             int branch(int nodeId);
             void markBranch(int nodeId, int index);
 
@@ -50,6 +53,9 @@ namespace nd4j {
             int getRewindPosition(Nd4jIndex frameId);
             void setRewindPosition(Nd4jIndex frameId, int position);
             void setRewindPositionOnce(Nd4jIndex frameId, int position);
+
+            void incrementNumberOfCycles(Nd4jIndex frameId);
+            Nd4jIndex getNumberOfCycles(Nd4jIndex frameId);
         };
     }
 }

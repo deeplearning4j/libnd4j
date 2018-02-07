@@ -27,6 +27,7 @@ namespace nd4j {
             if (input->getScalar(0) > 0.0) {
                 // if condition is TRUE body will be invoked some time soon
                 __flowPath->markFrameActive(node->getFrameId(), true);
+                //__flowPath->i
             } else {
                 // body won't be activated
                 __flowPath->markFrameActive(node->getFrameId(), false);

@@ -110,5 +110,22 @@ namespace nd4j {
             if (_frames.count(frameId) > 0)
                 _frames.erase(frameId);
         }
+
+        void FlowPath::incrementNumberOfCycles(Nd4jIndex frameId) {
+            _frames[frameId].incrementNumberOfCycles();
+        }
+
+        Nd4jIndex FlowPath::getNumberOfCycles(Nd4jIndex frameId) {
+            return _frames[frameId].getNumberOfCycles();
+        }
+
+
+        bool FlowPath::wasExecuted(int nodeId) {
+            return _states[nodeId].wasExecuted();
+        }
+
+        void FlowPath::markExecuted(int nodeId, bool wasExecuted) {
+            _states[nodeId].markExecuted(wasExecuted);
+        }
     }
 }
