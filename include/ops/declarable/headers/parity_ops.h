@@ -514,8 +514,40 @@ namespace nd4j {
          */
         DECLARE_OP(stop_gradient, 1, 1, true);
 
+        /**
+         * l2_loss op.
+         * compute a l2 norm for given array.
+         *
+         * input param - an array (tensor)
+         * output value - a real number with given type (e.g. float or double)
+         */
+        DECLARE_CUSTOM_OP(l2_loss, 1, 1, false, 0, 0);
 
         DECLARE_CUSTOM_OP(parallel_stack, -1, 1, false, 0, 0);
+
+	/**
+         * This op calculates logarithmic loss of poison distributed input
+         * Input arguments
+         *  0 - target
+         *  1 - input
+         *  optional int - boolean value compute_full_loss: 0 (default) or 1 (compute)
+         */
+        DECLARE_CONFIGURABLE_OP(log_poison_loss, 2, 1, true, 0, 0);
+
+        /**
+         * normalize_moments operation normalize already calculated mean and variation 
+         * accordingly to shift and count.
+         * input params:
+         *  - count of data
+         *  - tensor with mean
+         *  - tensor with variance (the same shape as before)
+         *
+         *  - optional floating point param shift.
+         * 
+         *  returns a normalized pair mean and variance with the same shapes as input
+         */
+        DECLARE_CUSTOM_OP(normalize_moments, 3, 2, false, 1, 0);
+
 
     }
 }

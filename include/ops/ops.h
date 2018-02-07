@@ -18,6 +18,8 @@
 #ifndef M_E
 #define M_E 2.718281828459
 #endif
+#define DOUBLE_PI_T T(2.0 * 3.14159265358979323846)
+
 
 #define no_op_exec_special 	static const bool requiresSpecial = false; static void execSpecial(T *dx, int *xShapeBuffer, T *result, int *resultShapeBuffer, T *extraParams, int *tadShapeInfo, Nd4jIndex *tadOffsets) {}
 #define no_op_exec_special_accumulation 	static const bool requiresSpecialAccumulation = false; static void execSpecial(T *x, int *xShapeInfo, T *extraParams, T *result, int *resultShapeInfoBuffer, int *dimension, int dimensionLength, int *tadShapeInfo, Nd4jIndex *tadOffset){}
@@ -180,6 +182,51 @@ namespace simdOps {
 		// op for MetaOps
 		op_def static T op(T d1, T *params) {
 			return params[0] - d1;
+		}
+	};
+
+        
+	template<typename T>
+	class LogPoisonLossFull {
+
+	public:
+		op_def static T op(T z, T c) {
+			return (exp(c) - z * c  + (z * log(z) - z + (T)0.5 * log(DOUBLE_PI_T * z)));
+		}
+
+		op_def static T op(T z, T c, T *params) {
+			return (exp(c) - z * c  + (z * log(z) - z + (T)0.5 * log(DOUBLE_PI_T * z)));
+		}
+
+		op_def static T op(T z) {
+			return (z * log(z) - z + (T)0.5 * log(DOUBLE_PI_T * z));
+		}
+
+		// op for MetaOps
+		op_def static T op(T z, T *params) {
+			return (exp(params[0]) - z * params[0]  + (z * log(z) - z + (T)0.5 * log(DOUBLE_PI_T * z)));
+		}
+	};
+
+	template<typename T>
+	class LogPoisonLoss {
+
+	public:
+		op_def static T op(T z, T c) {
+			return (exp(c) - z * c);
+		}
+
+		op_def static T op(T z, T c, T *params) {
+			return (exp(c) - z * c);
+		}
+
+		op_def static T op(T z) {
+			return (z);
+		}
+
+		// op for MetaOps
+		op_def static T op(T z, T *params) {
+			return (exp(params[0]) - z * params[0]);
 		}
 	};
 
@@ -889,6 +936,30 @@ namespace simdOps {
 			return (T(1.0f)/d1);
 		}
 	};
+
+	template<typename T>
+	class Sqr {
+	public:
+		no_op_exec_special
+		no_op_exec_special_cuda
+
+		op_def static T op(T d1, T *params) {
+			return nd4j::math::nd4j_pow<T>(d1, (T)2);
+		}
+
+//		op_def static T op(T d1, T d2) {
+//			return nd4j::math::nd4j_pow<T>(d1, 2);
+//		}
+
+//		op_def static T op(T d1, T d2, T *params) {
+//			return nd4j::math::nd4j_pow<T>(d1, d2);
+//		}
+
+		op_def static T op(T d1) {
+			return nd4j::math::nd4j_pow<T>(d1, (T)2);
+		}
+	};
+
 
 	template<typename T>
 	class Pow {
