@@ -223,7 +223,7 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* varia
             Node<T>* node = graph->getOnion()->at(l)->at(n);
 
 
-            nd4j_debug("Step: %lld; Node: %i\n", exec_counter, node->id());
+            nd4j_debug("Step: %lld; Node: %i <%s>\n", exec_counter, node->id(), node->name()->c_str());
 
             // on first non-Exit node after loop we can rewind (if planned)
             if (!(node->opType() == OpType_LOGIC && node->opNum() == 90L)) {
@@ -285,6 +285,8 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* varia
             if (frames.size() > 0 && node->getFrameId() < 0)
                 node->setFrameId(frames.back());
 
+
+            flowPath->markNodeActive(node->id(), true);
 
             if (node->opType() == OpType_LOGIC && node->opNum() == 100L) {
                 // Enter operation
@@ -414,7 +416,7 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* varia
             }
 
             // if node was executed - tag it as active
-            flowPath->markNodeActive(node->id(), true);
+            flowPath->markExecuted(node->id(), true);
         }
     }
 

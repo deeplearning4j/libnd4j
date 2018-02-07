@@ -36,6 +36,10 @@ namespace nd4j {
 
             // FIXME: we don't need this check. Just last input should survive, IF it exists
             if (isWhile){
+
+                if (node->getFrameId() >= 0)
+                    __flowPath->markFrameActive(node->getFrameId(), true);
+
                 bool hasVar = __variableSpace->hasVariable(inputAddr1);
                 if ( hasVar && __flowPath->wasExecuted(inputAddr1.first)) {
                     nd4j_debug("Node_%i: propagating second input\n", node->id());

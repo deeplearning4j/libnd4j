@@ -298,9 +298,9 @@ TEST_F(ConditionalTests, Flat_Test_8) {
     auto status = GraphExecutioner<float>::execute(graph);
     ASSERT_EQ(Status::OK(), status);
 
-    ASSERT_TRUE(varSpace->hasVariable(50));
+    ASSERT_TRUE(varSpace->hasVariable(52));
 
-    auto z = varSpace->getVariable(50)->getNDArray();
+    auto z = varSpace->getVariable(52)->getNDArray();
 
     ASSERT_NE(nullptr, z);
 
