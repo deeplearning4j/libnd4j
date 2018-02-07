@@ -242,37 +242,46 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* varia
 
                 // TODO: move inactivity check right here
                 bool shouldSkip = false;
-                // let's check for input nodes, if they are disabled or contain divergents
-                for (int e = 0; e < node->input()->size(); e++) {
-                    auto inputId = node->input()->at(e);
+                if (node->opType() == OpType_LOGIC && node->opNum() == 60L) {
+                    // Merge node has own checkout logic
 
-                    // we're skipping external variables here
-                    if (inputId.first < 0 || __variableSpace->hasExternalVariable(inputId.first))
-                        continue;
+                    auto inputId0 = node->input()->at(0);
+                    auto inputId1 = node->input()->at(1);
 
-                    // we're not checking Merge nodes whose input is NextIteration
-                    if (node->opType() == OpType_LOGIC && node->opNum() == 60L)
-                        if (graph->hasNode(inputId.first))
-                            if (graph->getMapped()->at(inputId.first)->opType() == OpType_LOGIC && graph->getMapped()->at(inputId.first)->opNum() == 80L)
-                                continue;
-
-                    /**
-                     * We can skip current node, in two cases:
-                     * 1) If previous node was disabled
-                     * 2) If previous node was divergent node (i.e. IF op) and code went other way
-                     */
-                    Node<T>* prevNode = graph->getMapped()->at(inputId.first);
-                    if (!flowPath->isNodeActive(inputId.first)) {
+                    // Merge node can be skipped only both inputs are inactive
+                    if (!flowPath->isNodeActive(inputId0.first) && !flowPath->isNodeActive(inputId1.first))
                         shouldSkip = true;
-                        flowPath->markNodeActive(node->id(), false);
 
-                        nd4j_debug("Skipping Node_%i due to inactive input [%i]\n", node->id(), inputId.first);
+                } else {
+                    // let's check for input nodes, if they are disabled or contain divergents
+                    for (int e = 0; e < node->input()->size(); e++) {
+                        auto inputId = node->input()->at(e);
 
-                    } else if (prevNode->isDivergencePoint()) { // literally checking for switch here
-                        if (flowPath->branch(inputId.first) != inputId.second) {
+                        // we're skipping external variables here
+                        if (inputId.first < 0 || __variableSpace->hasExternalVariable(inputId.first))
+                            continue;
+
+                        /**
+                         * We can skip current node, in two cases:
+                         * 1) If previous node was disabled
+                         * 2) If previous node was divergent node (i.e. IF op) and code went other way
+                         */
+                        Node<T> *prevNode = graph->getMapped()->at(inputId.first);
+                        if (!flowPath->isNodeActive(inputId.first)) {
                             shouldSkip = true;
                             flowPath->markNodeActive(node->id(), false);
-                            nd4j_debug("Skipping Node_%i due to divergent branch [%i]\n", node->id(), inputId.first);
+
+                            nd4j_debug("Skipping Node_%i due to inactive input [%i]\n", node->id(), inputId.first);
+                            break;
+
+                        } else if (prevNode->isDivergencePoint()) { // literally checking for switch here
+                            if (flowPath->branch(inputId.first) != inputId.second) {
+                                shouldSkip = true;
+                                flowPath->markNodeActive(node->id(), false);
+                                nd4j_debug("Skipping Node_%i due to divergent branch [%i]\n", node->id(),
+                                           inputId.first);
+                                break;
+                            }
                         }
                     }
                 }
