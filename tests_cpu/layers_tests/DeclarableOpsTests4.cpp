@@ -1272,3 +1272,147 @@ TEST_F(DeclarableOpsTests4, meshgrid_test9) {
     delete results;
 }
 
+
+//////////////////////////////////////////////////////////////////////
+// TEST_F(DeclarableOpsTests4, conv3d_test1) {
+    
+//     int bS = 2;
+//     int iD = 3;
+//     int iH = 4;
+//     int iW = 3;
+//     int iC = 4;
+//     int oC = 3;
+//     int kD = 2;
+//     int kH = 3;
+//     int kW = 2;    
+//     int sD = 1;
+//     int sH = 1;
+//     int sW = 1;
+//     int pD = 0;
+//     int pH = 0;
+//     int pW = 0;
+//     int dD = 1;
+//     int dH = 1;
+//     int dW = 1;
+//     int paddingMode = 0;             // 0-SAME,  1-VALID;
+//     int dataFormat = 0;              // 0-NDHWC, 1-NCDHW
+
+//     NDArray<float> input   ('c', {bS, iD, iH, iW, iC});
+//     NDArray<float> weights ('c', {kD, kH, kW, iC, oC});
+//     NDArray<float> expected('c', {2, 3, 4, 3, 3}, {32., 32., 32., 32., 32., 32., 16., 16., 16., 48., 48., 48., 48., 48., 48., 24., 24., 24., 48., 48., 48., 48., 48., 48., 
+//                                                    24., 24., 24., 32., 32., 32., 32., 32., 32., 16., 16., 16., 32., 32., 32., 32., 32., 32., 16., 16., 16., 48., 48., 48., 
+//                                                    48., 48., 48., 24., 24., 24., 48., 48., 48., 48., 48., 48., 24., 24., 24., 32., 32., 32., 32., 32., 32., 16., 16., 16., 
+//                                                    16., 16., 16., 16., 16., 16., 8.,  8.,  8.,  24., 24., 24., 24., 24., 24., 12., 12., 12., 24., 24., 24., 24., 24., 24., 
+//                                                    12., 12., 12., 16., 16., 16., 16., 16., 16., 8.,  8.,  8.,  32., 32., 32., 32., 32., 32., 16., 16., 16., 48., 48., 48., 
+//                                                    48., 48., 48., 24., 24., 24., 48., 48., 48., 48., 48., 48., 24., 24., 24., 32., 32., 32., 32., 32., 32., 16., 16., 16., 
+//                                                    32., 32., 32., 32., 32., 32., 16., 16., 16., 48., 48., 48., 48., 48., 48., 24., 24., 24., 48., 48., 48., 48., 48., 48., 
+//                                                    24., 24., 24., 32., 32., 32., 32., 32., 32., 16., 16., 16., 16., 16., 16., 16., 16., 16., 8.,  8.,  8.,  24., 24., 24.,
+//                                                    24., 24., 24., 12., 12., 12., 24., 24., 24., 24., 24., 24., 12., 12., 12., 16., 16., 16., 16., 16., 16., 8.,  8.,  8.});
+//     input = 2.;
+//     weights = 0.5;
+    
+//     nd4j::ops::conv3dNew<float> op;
+//     ResultSet<float>* results = op.execute({&input, &weights}, {}, {kD,kH,kW,  sD,sH,sW,  pD,pH,pW,  dD,dH,dW, paddingMode, dataFormat});
+//     NDArray<float>* output = results->at(0);
+    
+//     output->printIndexedBuffer();
+
+//     ASSERT_EQ(Status::OK(), results->status());
+//     ASSERT_TRUE(expected.isSameShape(output));
+//     ASSERT_TRUE(expected.equalsTo(output));    
+    
+//     delete results;
+// }
+
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests4, conv3d_test2) {
+    
+    int bS = 2;
+    int iD = 3;
+    int iH = 4;
+    int iW = 3;
+    int iC = 4;
+    int oC = 3;
+    int kD = 2;
+    int kH = 3;
+    int kW = 2;    
+    int sD = 1;
+    int sH = 1;
+    int sW = 1;
+    int pD = 0;
+    int pH = 0;
+    int pW = 0;
+    int dD = 1;
+    int dH = 1;
+    int dW = 1;
+    int paddingMode = 1;             // 0-SAME,  1-VALID;
+    int dataFormat = 1;              // 0-NDHWC, 1-NCDHW
+
+    NDArray<float> input   ('c', {bS, iC, iD, iH, iW});
+    NDArray<float> weights ('c', {oC, iC, kD, kH, kW});
+    NDArray<float> expected('c', {2, 3, 2, 2, 2});
+    input = 2.;
+    weights = 0.5;
+    expected = 48.;
+    
+    nd4j::ops::conv3dNew<float> op;
+    ResultSet<float>* results = op.execute({&input, &weights}, {}, {kD,kH,kW,  sD,sH,sW,  pD,pH,pW,  dD,dH,dW, paddingMode, dataFormat});
+    NDArray<float>* output = results->at(0);
+    
+    output->printIndexedBuffer();
+
+    ASSERT_EQ(Status::OK(), results->status());
+    ASSERT_TRUE(expected.isSameShape(output));
+    ASSERT_TRUE(expected.equalsTo(output));    
+    
+    delete results;
+}
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests4, conv3d_test3) {
+    
+    int bS = 2;
+    int iD = 3;
+    int iH = 4;
+    int iW = 3;
+    int iC = 4;
+    int oC = 3;
+    int kD = 2;
+    int kH = 3;
+    int kW = 2;    
+    int sD = 1;
+    int sH = 1;
+    int sW = 1;
+    int pD = 0;
+    int pH = 0;
+    int pW = 0;
+    int dD = 1;
+    int dH = 1;
+    int dW = 1;
+    int paddingMode = 1;             // 0-SAME,  1-VALID;
+    int dataFormat = 1;              // 0-NDHWC, 1-NCDHW
+
+    NDArray<float> input   ('c', {bS, iC, iD, iH, iW});
+    NDArray<float> weights ('c', {oC, iC, kD, kH, kW});
+    NDArray<float> bias    ('c', {oC});
+    NDArray<float> expected('c', {2, 3, 2, 2, 2});
+
+    input = 2.;
+    weights = 0.5;
+    expected = 49.;
+    bias = 1.;
+    
+    nd4j::ops::conv3dNew<float> op;
+    ResultSet<float>* results = op.execute({&input, &weights, &bias}, {}, {kD,kH,kW,  sD,sH,sW,  pD,pH,pW,  dD,dH,dW, paddingMode, dataFormat});
+    NDArray<float>* output = results->at(0);
+    
+    output->printIndexedBuffer();
+
+    ASSERT_EQ(Status::OK(), results->status());
+    ASSERT_TRUE(expected.isSameShape(output));
+    ASSERT_TRUE(expected.equalsTo(output));    
+    
+    delete results;
+}
+
