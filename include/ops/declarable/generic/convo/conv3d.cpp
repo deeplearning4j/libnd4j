@@ -48,7 +48,7 @@ CUSTOM_OP_IMPL(conv3dNew, 2, 1, false, 0, 12) {
     int iC = input->sizeAt(indIC);             // input channels        
     int oC = weights->sizeAt(indOC);           // output channels
     
-    REQUIRE_TRUE(weights->sizeAt(indWC)   == iC, 0, "CUSTOM CONV3D OP: the wrong shape of weights array, input_inChannels != weights_inChannels");
+    REQUIRE_TRUE(weights->sizeAt(indWC)   == iC, 0, "CUSTOM CONV3D OP: wrong shape of weights array, input_inChannels != weights_inChannels");
     REQUIRE_TRUE(weights->sizeAt(indKD)   == kD, 0, "CUSTOM CONV3D OP: weights array has wrong shape, take a careful look at int arguments !");
     REQUIRE_TRUE(weights->sizeAt(indKD+1) == kH, 0, "CUSTOM CONV3D OP: weights array has wrong shape, take a careful look at int arguments !");
     REQUIRE_TRUE(weights->sizeAt(indKD+2) == kW, 0, "CUSTOM CONV3D OP: weights array has wrong shape, take a careful look at int arguments !");
@@ -59,21 +59,26 @@ CUSTOM_OP_IMPL(conv3dNew, 2, 1, false, 0, 12) {
     int oH = output->sizeAt(indID+1);             // output height
     int oW = output->sizeAt(indID+2);             // output width
     
-    std::vector<int> kDims = {iC*kD*kH*kW, oC};    
-    std::vector<int> preContractDims  = {bS*oD*oH*oW, iC*kD*kH*kW};
-    // columns, nInputPlane*kT*kW*kH, outputDepth*outputHeight*outputWidth);
+    
+    std::vector<int> preContractDims  = {bS*oD*oH*oW, iC*kD*kH*kW};    
     std::vector<int> contractDims     = {1, 0};
     std::vector<int> postContractDims = {bS, oD, oH, oW, oC};
 
-    ResultSet<T>* inSubArrsList  = NDArrayFactory<T>::allExamples(input);           // inSubArrsList.size() = outSubArrsList.size() = bS
-    ResultSet<T>* outSubArrsList = NDArrayFactory<T>::allExamples(output);
+    std::vector<int> weightsReShape = dataFormat == 0 ? {iC*kD*kH*kW, oC}           : {oC, iC*kD*kH*kW};
+    std::vector<int> columnsShape   = dataFormat == 0 ? {bS, oD*oH*oW, iC*kD*kH*kW} : {bS, iC*kD*kW*kH, oD*oH*oW};
+    std::vector<int> columnsReShape = dataFormat == 0 ? {bS*oD*oH*oW, iC*kD*kH*kW}  : {bS*iC*kD*kW*kH, oD*oH*oW};    
+    
+    NDArray<T> columns(input->ordering(), columnsShape);
+    ConvolutionUtils<T>::im2col3D(*input, columns, dataFormat, oD, oH, oW, kD, kH, kW, sD, sH, sW, pT, pH, pW, dD, dH, dW);
 
-    for(int i = 0; i < bS; ++i)
-        ConvolutionUtils<T>::vol2col(inSubArrsList->at(i)->getBuffer(), oC, oD, oH, oW, iD, iH, iW, kD, kH, kW, pD, pH, pW, sD, sH, sW, dD, dH, dW, outSubArrsList->at(i)->getBuffer());
+    columns.reshapei(columnsReShape);
+    NDArray<T>* reshapedWeights = weights->reshape(weightsReShape);
 
 
-    delete inSubArrsList;
-    delete outSubArrsList;
+
+
+    delete reshapedWeights
+
 
 
 //      static void _vol2col(const T* data_col, const int channels, const int depth, const int height, const int width, const int out_depth, const int out_height, const int out_width, 
@@ -87,7 +92,7 @@ CUSTOM_OP_IMPL(conv3dNew, 2, 1, false, 0, 12) {
 // (derived(), patch_planes, patch_rows, patch_cols, plane_stride, row_stride, col_stride, 1, 1, 1, 1, 1, 1, padding_type, padding_value);
 
             
-// input.extract_volume_patches(kD, kH, kW, sD, sH, sW,padding_type).reshape(preContractDims) .contract(kernel.reshape(kDims), contractDims).reshape(postContractDims)
+// input.extract_volume_patches(kD, kH, kW, sD, sH, sW,padding_type).reshape(preContractDims) .contract(kernel.reshape(weightsReShape), contractDims).reshape(postContractDims)
 
 
 //   THNN_(vol2col)(

@@ -5,7 +5,8 @@
 #include <ops/declarable/generic/helpers/convolutions.h>
 
 namespace nd4j {
-    namespace ops {
+namespace ops  {
+
 
         template<typename T>
         void ConvolutionUtils<T>::_im2col(const T* data_im, const int channels,
@@ -76,7 +77,7 @@ namespace nd4j {
         }
 
         template<typename T>
-        void ConvolutionUtils<T>::vol2col(const T *data_vol, const int channels, const int depth, const int height, const int width, const int out_depth, const int out_height, const int out_width, const int kT, const int kH, const int kW, const int pT, const int pH, const int pW, const int dT, const int dH, const int dW, const int dilationT, const int dilationH, const int dilationW, T *data_col) {
+        void ConvolutionUtils<T>::im2col3D(const T* data_vol, const int channels, const int depth, const int height, const int width, const int out_depth, const int out_height, const int out_width, const int kT, const int kH, const int kW, const int pT, const int pH, const int pW, const int dT, const int dH, const int dW, const int dilationT, const int dilationH, const int dilationW, T *data_col) {
             int c, t, h, w;
             int channels_col = channels * kT * kH * kW;
             for (c = 0; c < channels_col; ++c)
@@ -746,15 +747,71 @@ namespace nd4j {
             }
         }
 
+
+//////////////////////////////////////////////////////////////////////////    
+// input shape:  [bS, iD, iH, iW, iC] (NDHWC)        or [bS, iC, iD, iH, iW] (NCDHW)
+// output shape: [bS, oD*oH*oW, iC*kD*kH*kW] (NDHWC) or [bS, iC*kD*kW*kH, oD*oH*oW] (NCDHW)  
+        template<typename T>
+        void ConvolutionUtils<T>::im2col3D( const NDArray<T>& input, NDArray<T>& output, const int dataFormat, 
+                                            const int oD, const int oH, const int oW, 
+                                            const int kD, const int kH, const int kW, 
+                                            const int sD, const int sH, const int sW,
+                                            const int pT, const int pH, const int pW, 
+                                            const int dD, const int dH, const int dW ) {
+
+            // dataFormat: 0-NDHWC, 1-NCDHW
+            int indID = dataFormat == 0 ? 1 : 2;
+            int indIC = dataFormat == 0 ? 4 : 1;    
     
+            int bS = input.sizeAt(0);                 // batch size
+            int iD = input.sizeAt(indID);             // input depth
+            int iH = input.sizeAt(indID+1);           // input height
+            int iW = input.sizeAt(indID+2);           // input width
+            int iC = input.sizeAt(indIC);             // input channels        
+    
+            int channelsCol = iC*kD*kH*kW;
+    
+            ResultSet<T>* inSubArrsList  = NDArrayFactory<T>::allExamples(*input);           // inSubArrsList.size() = outSubArrsList.size() = bS
+            ResultSet<T>* outSubArrsList = NDArrayFactory<T>::allExamples(*output);
+    
+            for(int i = 0; i < bS; ++i) {
+                
+                const T* inBuff  = inSubArrsList->at(i)->getBuffer();
+                const T* outBuff = outSubArrsList->at(i)->getBuffer();
+                int c, d, h, w;
+                
+                for (c = 0; c < channelsCol; ++c) {
+                    
+                    int w_offset = c % kW;
+                    int h_offset = (c / kW) % kH;
+                    int d_offset = (c / kW / kH) % kD;
+                    int c_vol = c / kD / kH / kW;
+                    
+                    for (d = 0; d < oD; ++d) {
+                        for (h = 0; h < oH; ++h) {
+                            for (w = 0; w < oW; ++w) {
 
-
-
+                                int d_pad = d * sD - pT + d_offset * dD;
+                                int h_pad = h * sH - pH + h_offset * dH;
+                                int w_pad = w * sW - pW + w_offset * dW;
+                                
+                                if (d_pad >= 0 && d_pad < iD && h_pad >= 0 && h_pad < iH && w_pad >= 0 && w_pad < iW)
+                                    outBuff[((c * oD + d) * oH + h) * oW + w] = inBuff[((c_vol * iD + d_pad) * iH + h_pad) * iW + w_pad];
+                                else
+                                    outBuff[((c * oD + d) * oH + h) * oW + w] = 0;
+                            }
+                        }
+                    }
+                }
+            }
+            delete inSubArrsList;
+            delete outSubArrsList;
+        }
 
 
         template class ND4J_EXPORT ConvolutionUtils<float>;
         template class ND4J_EXPORT ConvolutionUtils<float16>;
         template class ND4J_EXPORT ConvolutionUtils<double>;
     
-    }
+}
 }
