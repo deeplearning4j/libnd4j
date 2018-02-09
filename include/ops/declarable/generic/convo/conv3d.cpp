@@ -32,39 +32,37 @@ CUSTOM_OP_IMPL(conv3dNew, 2, 1, false, 0, 13) {
     int dH = INT_ARG(10);                                                       // dilations height
     int dW = INT_ARG(11);                                                       // dilations width
     int paddingMode = INT_ARG(12);                                              // 0-SAME,  1-VALID
-    int dataFormat  = block.getIArguments()->size() > 13 ? INT_ARG(13) : 0;     // 0-NDHWC, 1-NCDHW
-
+    int dataFormat  = block.getIArguments()->size() > 13 ? INT_ARG(13) : 0;     // 0-NDHWC, 1-NCDHW    
 
     // vol2col (im2col for 3d case) works only with NCDHW format    
     if(!dataFormat) {
-        input = input->permute({0, 4, 1, 2, 3});        
+        input   = input->permute({0, 4, 1, 2, 3});                              // [bS, iD, iH, iW, iC] -> [bS, iC, iD, iH, iW]        
+        weights = weights->permute({4, 3, 0, 1, 2});                            // [kD, kH, kW, iC, oC] -> [oC, iC, kD, kH, kW] 
+        output  = output->permute({0, 4, 1, 2, 3});                             // [bS, oD, oH, oW, oC] -> [bS, oC, oD, oH, oW]
+    }
 
-    int indID = dataFormat == 0 ? 1 : 2;
-    int indIC = dataFormat == 0 ? 3 : 1;
-    int indOC = dataFormat == 0 ? 4 : 0;
-    int indKD = dataFormat == 0 ? 0 : 2;
-
-    int bS = input->sizeAt(0);                      // batch size
-    int iC = input->sizeAt(1);                      // input channels        
-    int iD = input->sizeAt(2);                      // input depth
-    int iH = input->sizeAt(3);                      // input height
-    int iW = input->sizeAt(4);                      // input width
-    int oC = weights->sizeAt(indOC);                // output channels    
-    int oD = output->sizeAt(indID);                 // output depth
-    int oH = output->sizeAt(indID+1);               // output height
-    int oW = output->sizeAt(indID+2);               // output width    
+    int bS = input->sizeAt(0);           // batch size
+    int iC = input->sizeAt(1);           // input channels        
+    int iD = input->sizeAt(2);           // input depth
+    int iH = input->sizeAt(3);           // input height
+    int iW = input->sizeAt(4);           // input width
+    int oC = weights->sizeAt(0);         // output channels    
+    int oD = output->sizeAt(2);          // output depth
+    int oH = output->sizeAt(3);          // output height
+    int oW = output->sizeAt(4);          // output width    
     
-    NDArray<T>* reshapedBias = nullptr;
-
-    REQUIRE_TRUE(weights->sizeAt(indIC)   == iC, 0, "CUSTOM CONV3D OP: wrong shape of weights array, input_inChannels != weights_inChannels");
-    REQUIRE_TRUE(weights->sizeAt(indKD)   == kD, 0, "CUSTOM CONV3D OP: weights array has wrong shape, take a careful look at int arguments !");
-    REQUIRE_TRUE(weights->sizeAt(indKD+1) == kH, 0, "CUSTOM CONV3D OP: weights array has wrong shape, take a careful look at int arguments !");
-    REQUIRE_TRUE(weights->sizeAt(indKD+2) == kW, 0, "CUSTOM CONV3D OP: weights array has wrong shape, take a careful look at int arguments !");
+    REQUIRE_TRUE(weights->sizeAt(1) == iC, 0, "CUSTOM CONV3D OP: wrong shape of weights array, input_inChannels != weights_inChannels");
+    REQUIRE_TRUE(weights->sizeAt(2) == kD, 0, "CUSTOM CONV3D OP: weights array has wrong shape, take a careful look at int arguments !");
+    REQUIRE_TRUE(weights->sizeAt(3) == kH, 0, "CUSTOM CONV3D OP: weights array has wrong shape, take a careful look at int arguments !");
+    REQUIRE_TRUE(weights->sizeAt(4) == kW, 0, "CUSTOM CONV3D OP: weights array has wrong shape, take a careful look at int arguments !");
     if (bias) {
         REQUIRE_TRUE(bias->rankOf() == 1,    0, "CUSTOM CONV3D OP: rank of biases array must be equal to 1 !");
         REQUIRE_TRUE(oC == bias->lengthOf(), 0, "CUSTOM CONV3D OP:: length of bias array must be equal to outChannels, but got %i instead", bias->lengthOf());        
-    }        
+    }            
     
+    if(!paddingMode)                       // SAME
+        ConvolutionUtils<T>::calcPadding3D(pD, pH, pW, oD, oH, oW, iD, iH, iW, kD, kH, kW, sD, sH, sW, dD, dH, dW);    
+
     NDArray<T>* reshapedWeights = weights->reshape(weights->ordering(), {oC, iC*kD*kH*kW});
     NDArray<T>* reshapedOutput  = output->reshape(output->ordering(), {bS, oC, oD*oH*oW});    
     NDArray<T> columns(input->ordering(), {iC*kD*kW*kH, oD*oH*oW});
@@ -85,45 +83,15 @@ CUSTOM_OP_IMPL(conv3dNew, 2, 1, false, 0, 13) {
     delete outSubArrsList;
     delete reshapedWeights;
     delete reshapedOutput;
-    
-    if(!dataFormat)
+   
+    if(!dataFormat) {
         delete input;
+        delete weights;
+        delete output;        
+    }
     
     return Status::OK();
 }
-
-
-//      static void _vol2col(const T* data_col, const int channels, const int depth, const int height, const int width, const int out_depth, const int out_height, const int out_width, 
-//         const int kT, const int kH, const int kW, 
-//         const int pT, const int pH, const int pW, 
-//         const int dT, const int dH, const int dW, 
-//         const int dilationT, const int dilationH, const int dilationW, 
-//         T* data_vol);
-
-
-// (derived(), patch_planes, patch_rows, patch_cols, plane_stride, row_stride, col_stride, 1, 1, 1, 1, 1, 1, padding_type, padding_value);
-
-            
-// input.extract_volume_patches(kD, kH, kW, sD, sH, sW,padding_type).reshape(preContractDims) .contract(kernel.reshape(newWeightsShape), contractDims).reshape(postContractDims)
-
-
-//   THNN_(vol2col)(
-//       THTensor_(data)(input_n),
-//       nInputPlane, inputDepth, inputHeight, inputWidth,
-//       kT, kH, kW, padT, padH, padW, dT, dH, dW,
-//       dilationT, dilationH, dilationW,
-//       THTensor_(data)(columns)
-//     );
-
-
-
-
-// // std::unique_ptr<NDArray<T>> col(new NDArray<T>('c', {batchSize, oY, oX, inDepth, kY, kX}));
-// //             std::unique_ptr<NDArray<T>> col2(col.get()->permute({0, 3, 4, 5, 1, 2}));
-
-// //             std::vector<T> extrasIm2Col({(T) kY, (T) kX, (T) sY, (T) sX, (T) pY, (T) pX, (T) dY, (T) dX, isSameMode ? (T) 1.0f : (T) 0.0f});
-
-// //             input->template applyTransform<simdOps::Im2col<T>>(col2.get(), extrasIm2Col.data());
 
 
 DECLARE_SHAPE_FN(conv3dNew) {
