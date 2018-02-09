@@ -26,12 +26,16 @@ public:
 TEST_F(DeclarableOpsTests6, Test_Dilation2D_Again_1) {
     NDArray<float> x('c', {4, 128, 128, 4});
     NDArray<float> w('c', {4, 5, 4});
+    NDArray<float> exp('c', {4, 64, 43, 4});
+
 
     nd4j::ops::dilation2d<float> op;
     auto result = op.execute({&x, &w}, {}, {1, 1,5,7,1, 1,2,3,1});
     ASSERT_EQ(Status::OK(), result->status());
 
     auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
 
     delete result;
 }
