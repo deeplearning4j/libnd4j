@@ -221,6 +221,22 @@ TEST_F(DeclarableOpsTests5, Test_SpaceToBatch_1) {
     delete result;
 }
 
+TEST_F(DeclarableOpsTests5, Test_SpaceToBatch_1_1) {
+    NDArray<float> x('c', {1, 2, 2, 3}, {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12});
+    NDArray<float> exp('c', {4, 1, 1, 3}, {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12});
+
+    nd4j::ops::space_to_batch<float> op;
+    auto result = op.execute({&x}, {}, {2, 2, 0, 0, 0, 0});
+    ASSERT_EQ(Status::OK(), result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}
+
 TEST_F(DeclarableOpsTests5, Test_SpaceToBatch_2) {
     NDArray<float> x('c', {1, 2, 2, 1}, {1, 2, 3, 4});
     NDArray<float> blocks('c', {2}, {2, 2});

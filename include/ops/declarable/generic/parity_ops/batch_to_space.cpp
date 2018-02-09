@@ -23,7 +23,7 @@ namespace nd4j {
 namespace ops {
     const int kMaxSpaceToBatchBlockDims = 4;
 
-    CUSTOM_OP_IMPL(batch_to_space, 3, 1, false, 0, -2) {
+    CUSTOM_OP_IMPL(batch_to_space, 1, 1, false, 0, -2) {
         auto input = INPUT_VARIABLE(0);
         auto blocks = INPUT_VARIABLE(1);
         auto crops = INPUT_VARIABLE(2);
