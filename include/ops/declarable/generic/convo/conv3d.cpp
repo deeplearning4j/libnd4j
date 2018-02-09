@@ -11,10 +11,10 @@ namespace ops  {
 
 CUSTOM_OP_IMPL(conv3dNew, 2, 1, false, 0, 13) {
     
-    NDArray<T> *input   = INPUT_VARIABLE(0);                                        // [bS, iD, iH, iW, iC] (NDHWC) or [bS, iC, iD, iH, iW] (NCDHW)
-    NDArray<T> *weights = INPUT_VARIABLE(1);                                        // [kD, kH, kW, iC, oC] (NDHWC) or [oC, iC, kD, kH, kW] (NCDHW)
-    NDArray<T> *bias    = block.width() > 2 ? INPUT_VARIABLE(2) : nullptr;          // [oC]
-    NDArray<T> *output  = OUTPUT_VARIABLE(0);                                       // [bS, oD, oH, oW, oC] (NDHWC) or [bS, oC, oD, oH, oW] (NCDHW)
+    NDArray<T> *input   = INPUT_VARIABLE(0);                                    // [bS, iD, iH, iW, iC] (NDHWC) or [bS, iC, iD, iH, iW] (NCDHW)
+    NDArray<T> *weights = INPUT_VARIABLE(1);                                    // [kD, kH, kW, iC, oC] (NDHWC) or [oC, iC, kD, kH, kW] (NCDHW)
+    NDArray<T> *bias    = block.width() > 2 ? INPUT_VARIABLE(2) : nullptr;      // [oC]
+    NDArray<T> *output  = OUTPUT_VARIABLE(0);                                   // [bS, oD, oH, oW, oC] (NDHWC) or [bS, oC, oD, oH, oW] (NCDHW)
     
     REQUIRE_TRUE(input->rankOf()   == 5, 0, "CUSTOM CONV3D OP: rank of input array must be equal to 5 !");
     REQUIRE_TRUE(weights->rankOf() == 5, 0, "CUSTOM CONV3D OP: rank of weights array must be equal to 5 !");
@@ -31,79 +31,63 @@ CUSTOM_OP_IMPL(conv3dNew, 2, 1, false, 0, 13) {
     int dD = INT_ARG(9);                                                        // dilations depth
     int dH = INT_ARG(10);                                                       // dilations height
     int dW = INT_ARG(11);                                                       // dilations width
-    int paddingMode = INT_ARG(12);                                              // 0-SAME,  1-VALID;
+    int paddingMode = INT_ARG(12);                                              // 0-SAME,  1-VALID
     int dataFormat  = block.getIArguments()->size() > 13 ? INT_ARG(13) : 0;     // 0-NDHWC, 1-NCDHW
-    
+
+
+    // vol2col (im2col for 3d case) works only with NCDHW format    
+    if(!dataFormat) {
+        input = input->permute({0, 4, 1, 2, 3});        
+
     int indID = dataFormat == 0 ? 1 : 2;
-    int indIC = dataFormat == 0 ? 4 : 1;    
+    int indIC = dataFormat == 0 ? 3 : 1;
     int indOC = dataFormat == 0 ? 4 : 0;
-    int indWC = dataFormat == 0 ? 3 : 1;
     int indKD = dataFormat == 0 ? 0 : 2;
 
-    int bS = input->sizeAt(0);                 // batch size
-    int iD = input->sizeAt(indID);             // input depth
-    int iH = input->sizeAt(indID+1);           // input height
-    int iW = input->sizeAt(indID+2);           // input width
-    int iC = input->sizeAt(indIC);             // input channels        
-    int oC = weights->sizeAt(indOC);           // output channels
+    int bS = input->sizeAt(0);                      // batch size
+    int iC = input->sizeAt(1);                      // input channels        
+    int iD = input->sizeAt(2);                      // input depth
+    int iH = input->sizeAt(3);                      // input height
+    int iW = input->sizeAt(4);                      // input width
+    int oC = weights->sizeAt(indOC);                // output channels    
+    int oD = output->sizeAt(indID);                 // output depth
+    int oH = output->sizeAt(indID+1);               // output height
+    int oW = output->sizeAt(indID+2);               // output width    
     
-    REQUIRE_TRUE(weights->sizeAt(indWC)   == iC, 0, "CUSTOM CONV3D OP: wrong shape of weights array, input_inChannels != weights_inChannels");
+    NDArray<T>* reshapedBias = nullptr;
+
+    REQUIRE_TRUE(weights->sizeAt(indIC)   == iC, 0, "CUSTOM CONV3D OP: wrong shape of weights array, input_inChannels != weights_inChannels");
     REQUIRE_TRUE(weights->sizeAt(indKD)   == kD, 0, "CUSTOM CONV3D OP: weights array has wrong shape, take a careful look at int arguments !");
     REQUIRE_TRUE(weights->sizeAt(indKD+1) == kH, 0, "CUSTOM CONV3D OP: weights array has wrong shape, take a careful look at int arguments !");
     REQUIRE_TRUE(weights->sizeAt(indKD+2) == kW, 0, "CUSTOM CONV3D OP: weights array has wrong shape, take a careful look at int arguments !");
     if (bias) {
         REQUIRE_TRUE(bias->rankOf() == 1,    0, "CUSTOM CONV3D OP: rank of biases array must be equal to 1 !");
-        REQUIRE_TRUE(oC == bias->lengthOf(), 0, "CUSTOM CONV3D OP:: length of bias array must be equal to outChannels, but got %i instead", bias->lengthOf());
-    }
-        
-    int oD = output->sizeAt(indID);               // output depth
-    int oH = output->sizeAt(indID+1);             // output height
-    int oW = output->sizeAt(indID+2);             // output width    
+        REQUIRE_TRUE(oC == bias->lengthOf(), 0, "CUSTOM CONV3D OP:: length of bias array must be equal to outChannels, but got %i instead", bias->lengthOf());        
+    }        
     
-    // std::vector<int> preContractDims  = {bS*oD*oH*oW, iC*kD*kH*kW};    
-    // std::vector<int> postContractDims = {bS, oD, oH, oW, oC};
-
-    std::vector<int> newWeightsShape = dataFormat == 0 ? std::vector<int>({iC*kD*kH*kW, oC})        : std::vector<int>({oC, iC*kD*kH*kW});
-    std::vector<int> newOutShape     = dataFormat == 0 ? std::vector<int>({oD*oH*oW, oC})           : std::vector<int>({oC, oD*oH*oW});
-    std::vector<int> columnsShape    = dataFormat == 0 ?  std::vector<int>({oD*oH*oW, iC*kD*kH*kW}) : std::vector<int>({iC*kD*kW*kH, oD*oH*oW});
-    
-    NDArray<T>* reshapedWeights = weights->reshape(weights->ordering(), newWeightsShape);
-    NDArray<T> columns(input->ordering(), columnsShape);
+    NDArray<T>* reshapedWeights = weights->reshape(weights->ordering(), {oC, iC*kD*kH*kW});
+    NDArray<T>* reshapedOutput  = output->reshape(output->ordering(), {bS, oC, oD*oH*oW});    
+    NDArray<T> columns(input->ordering(), {iC*kD*kW*kH, oD*oH*oW});
     
     ResultSet<T>* inSubArrsList  = NDArrayFactory<T>::allExamples(input);
-    ResultSet<T>* outSubArrsList = NDArrayFactory<T>::allExamples(output);
-         
-    NDArray<T>* biasReshaped = nullptr;
-    if(dataFormat && bias)
-        biasReshaped = bias->reshape(bias->ordering(), {oC,1});
-
-
+    ResultSet<T>* outSubArrsList = NDArrayFactory<T>::allExamples(reshapedOutput);
 
     for(int i = 0; i < bS; ++i) {
         
-        ConvolutionUtils<T>::vol2col(inSubArrsList->at(i)->getBuffer(), columns.getBuffer(), iC, iD, iH, iW, oD, oH, oW, kD, kH, kW, sD, sH, sW, pD, pH, pW, dD, dH, dW);        
-        NDArray<T>* outSubArr = outSubArrsList->at(i)->reshape(outSubArrsList->at(i)->ordering(), newOutShape);
-
-        if(dataFormat) {
-            
-            NDArrayFactory<T>::mmulHelper(reshapedWeights, &columns, outSubArr, 1.0, 0.0);      // [oC, iC*kD*kH*kW] x [iC*kD*kW*kH, oD*oH*oW] = [oC, oD*oH*oW]
-            if(bias)
-                *outSubArr += *biasReshaped;
-        }
-        else {
-            
-            NDArrayFactory<T>::mmulHelper(&columns, reshapedWeights, outSubArr, 1.0, 0.0);      // [oD*oH*oW, iC*kD*kW*kH] x [iC*kD*kH*kW, oC] = [oD*oH*oW, oC]
-            if(bias)
-                *outSubArr += *bias;   
-        }                
-        delete outSubArr;
+        ConvolutionUtils<T>::vol2col(inSubArrsList->at(i)->getBuffer(), columns.getBuffer(), iC, iD, iH, iW, oD, oH, oW, kD, kH, kW, sD, sH, sW, pD, pH, pW, dD, dH, dW);                
+        NDArrayFactory<T>::mmulHelper(reshapedWeights, &columns, outSubArrsList->at(i), 1.0, 0.0);      // [oC, iC*kD*kH*kW] x [iC*kD*kW*kH, oD*oH*oW] = [oC, oD*oH*oW]
+                            
+        if(bias)
+            outSubArrsList->at(i)->template applyBroadcast<simdOps::Add<T>>({0}, bias);
     }
 
-    delete reshapedWeights;
     delete inSubArrsList;
     delete outSubArrsList;
-    delete bias;
-    delete biasReshaped;
+    delete reshapedWeights;
+    delete reshapedOutput;
+    
+    if(!dataFormat)
+        delete input;
     
     return Status::OK();
 }
