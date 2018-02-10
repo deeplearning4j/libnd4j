@@ -30,13 +30,14 @@ namespace ops {
         std::vector<int> padding_shape;
 
         auto output = OUTPUT_VARIABLE(0);
-
+        output->printShapeInfo("spaceToBatchOutputShape");
 
         const int xRank = input->rankOf();
         int block_dims = 0;
 
 
         if (block.width() >= 3) {
+            nd4j_printf("going through imported way\n","");
             auto blocks = INPUT_VARIABLE(1);
             auto padding = INPUT_VARIABLE(2);
 
@@ -56,6 +57,10 @@ namespace ops {
 
             for (int e = 0; e < padding->lengthOf(); e++)
                 padding_shape[e] = (int) padding->getScalar(e);
+
+            nd4j_printv("blocks_shape:", block_shape);
+            nd4j_printv("padding_shape:", padding_shape);
+
         } else if (block.numI() > 0) {
             int totalArgs = block.numI();
 
@@ -157,6 +162,8 @@ namespace ops {
 
         helpers::_spaceToBatch(internal_block_dims, input, output, internal_input_shape, internal_output_shape, block_shape, padding_shape);
 
+        T mean = output->meanNumber();
+        nd4j_debug("space_to_batch mean: [%f]\n", (float) mean);
 
         return Status::OK();
     }

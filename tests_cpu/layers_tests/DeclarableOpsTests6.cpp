@@ -100,3 +100,23 @@ TEST_F(DeclarableOpsTests6, Test_Conv3D_NDHWC_11) {
     shapes->destroy();
     delete shapes;
 }
+
+
+TEST_F(DeclarableOpsTests6, Test_StB_1) {
+    NDArray<float> x('c', {4, 64, 64, 4});
+    NDArray<float> blocks('c', {2}, {8, 8});
+    NDArray<float> paddings('c', {2, 2}, {12, 12, 16, 16});
+
+    x.assign(1.0f);
+
+    nd4j::ops::space_to_batch<float> op;
+    auto result = op.execute({&x, &blocks, &paddings}, {}, {});
+    ASSERT_EQ(Status::OK(), result->status());
+
+    auto z = result->at(0);
+
+    nd4j_printf("Mean: %f\n", z->meanNumber());
+
+    delete result;
+
+}
