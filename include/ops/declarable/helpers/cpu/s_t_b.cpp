@@ -32,7 +32,8 @@ namespace helpers {
     struct SpaceToBatchHelper<0, B2S> {
         template <typename T>
         static void run(T *ptrSpace, const int *space_shape, const int *space_strides, const int *block_shape, const int *pad_start, const int *block_offsets, T *ptrBatch, const int *batch_shape, const int *batch_strides) {
-            for (int i = 0; i < batch_strides[-1]; i++)
+            int str = batch_strides[-1];
+            for (int i = 0; i < str; i++)
                 if (B2S)
                     ptrSpace[i] = ptrBatch[i];
                 else

@@ -120,3 +120,23 @@ TEST_F(DeclarableOpsTests6, Test_StB_1) {
     delete result;
 
 }
+
+TEST_F(DeclarableOpsTests6, Test_StB_2) {
+    NDArray<float> x('c', {2, 6, 6, 2});
+    NDArray<float> blocks('c', {2}, {2, 2});
+    NDArray<float> paddings('c', {2, 2}, {2, 2, 2, 2});
+
+    x.assign(1.0f);
+
+    nd4j::ops::space_to_batch<float> op;
+    auto result = op.execute({&x, &blocks, &paddings}, {}, {});
+    ASSERT_EQ(Status::OK(), result->status());
+
+    auto z = result->at(0);
+
+    nd4j_printf("Mean: %f\n", z->meanNumber());
+
+    delete result;
+
+}
+

@@ -48,15 +48,8 @@ namespace ops {
             REQUIRE_TRUE(padding->rankOf() == 2, 0, "SpaceToBatch: padding should have rank of 2, but got %i instead", padding->rankOf());
             REQUIRE_TRUE(padding->columns() == 2 && blocks->lengthOf() == padding->rows(), 0, "SpaceToBatch: padding should have M rows and 2 columns");
 
-
-            block_shape.resize(block_dims);
-            padding_shape.resize(padding->lengthOf());
-
-            for (int e = 0; e < block_dims; e++)
-                block_shape[e] = (int) blocks->getScalar(e);
-
-            for (int e = 0; e < padding->lengthOf(); e++)
-                padding_shape[e] = (int) padding->getScalar(e);
+            block_shape = blocks->template asVectorT<int>();
+            padding_shape = padding->template asVectorT<int>();
 
             nd4j_printv("blocks_shape:", block_shape);
             nd4j_printv("padding_shape:", padding_shape);
@@ -159,8 +152,11 @@ namespace ops {
         internal_input_shape.emplace_back(depth);
         internal_output_shape.emplace_back(depth);
 
+        int* internal_paddings = &padding_shape.data()[2 * removed_prefix_block_dims];
+        int* internal_block_shape = &block_shape.data()[removed_prefix_block_dims];
 
-        helpers::_spaceToBatch(internal_block_dims, input, output, internal_input_shape, internal_output_shape, block_shape, padding_shape);
+
+        helpers::_spaceToBatch(internal_block_dims, input, output, internal_input_shape, internal_output_shape, internal_block_shape, internal_paddings);
 
         T mean = output->meanNumber();
         nd4j_debug("space_to_batch mean: [%f]\n", (float) mean);
