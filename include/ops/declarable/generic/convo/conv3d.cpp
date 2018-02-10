@@ -40,9 +40,8 @@ CUSTOM_OP_IMPL(conv3dNew, 2, 1, false, 0, 13) {
         weights = weights->permute({4, 3, 0, 1, 2});                            // [kD, kH, kW, iC, oC] -> [oC, iC, kD, kH, kW] 
         output  = output->permute({0, 4, 1, 2, 3});                             // [bS, oD, oH, oW, oC] -> [bS, oC, oD, oH, oW]
 
-        //input->streamline('c');
-        //weights->streamline('c');
-        //output->streamline('c');
+        input->streamline('c');
+        weights->streamline('c');
     }
 
     int bS = input->sizeAt(0);           // batch size
