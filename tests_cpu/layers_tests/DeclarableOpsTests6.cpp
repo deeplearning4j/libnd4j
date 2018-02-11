@@ -140,3 +140,19 @@ TEST_F(DeclarableOpsTests6, Test_StB_2) {
 
 }
 
+TEST_F(DeclarableOpsTests6, Test_BtS_1) {
+    NDArray<float> x('f', {256, 8, 8, 2});
+    NDArray<float> blocks('c',{2}, {8, 8});
+    NDArray<float> crops('c', {2, 2});
+
+    nd4j::ops::batch_to_space<float> op;
+    auto result = op.execute({&x, &blocks, &crops}, {}, {});
+    ASSERT_EQ(Status::OK(), result->status());
+
+    auto z = result->at(0);
+
+    z->printShapeInfo("BtS shape");
+
+    delete result;
+}
+

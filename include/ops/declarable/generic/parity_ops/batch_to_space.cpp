@@ -26,6 +26,11 @@ namespace ops {
     CUSTOM_OP_IMPL(batch_to_space, 1, 1, false, 0, -2) {
         auto input = INPUT_VARIABLE(0);
 
+        bool order_changed = false;
+        if (input->ordering() != 'c') {
+            order_changed = true;
+            input = input->dup('c');
+        }
 
         auto output = OUTPUT_VARIABLE(0);
 
@@ -148,6 +153,9 @@ namespace ops {
         int* internal_block_shape = &block_shape.data()[removed_prefix_block_dims];
 
         helpers::_batchToSpace(internal_block_dims, output, input, internal_output_shape, internal_input_shape, internal_block_shape, internal_crops);
+
+        if (order_changed)
+            delete input;
 
         return Status::OK();
     }

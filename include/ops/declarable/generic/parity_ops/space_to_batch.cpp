@@ -29,11 +29,17 @@ namespace ops {
         std::vector<int> block_shape;
         std::vector<int> padding_shape;
 
+        bool order_changed = false;
+        if (input->ordering() != 'c') {
+            order_changed = true;
+            input = input->dup('c');
+        }
+
         auto output = OUTPUT_VARIABLE(0);
-        output->printShapeInfo("spaceToBatchOutputShape");
 
         const int xRank = input->rankOf();
         int block_dims = 0;
+
 
 
         if (block.width() >= 3) {
@@ -156,6 +162,9 @@ namespace ops {
         int* internal_block_shape = &block_shape.data()[removed_prefix_block_dims];
 
         helpers::_spaceToBatch(internal_block_dims, input, output, internal_input_shape, internal_output_shape, internal_block_shape, internal_paddings);
+
+        if (order_changed)
+            delete input;
 
         return Status::OK();
     }
