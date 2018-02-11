@@ -137,11 +137,6 @@ DECLARE_SHAPE_FN(conv3dNew) {
     int* outputShapeInfo = nullptr;
     ALLOCATE(outputShapeInfo, block.getWorkspace(), shape::shapeInfoLength(inputShapeInfo), int);
 
-    shape::printShapeInfoLinear("input shape", inputShapeInfo);
-    shape::printShapeInfoLinear("weights shape", weightsShapeInfo);
-
-    nd4j_printf("values: Kernel: [%i, %i, %i]; Strides: [%i, %i, %i]; Padding: [%i, %i, %i]; Dilation: [%i, %i, %i]; isValidMode: [%i]; isHCDHW: [%i]\n", kD,kH,kW,  sD,sH,sW, pD,pH,pW, dD,dH,dW, paddingMode, dataFormat);
-
     if (dataFormat) {
         outputShapeInfo[0] = 5;
         outputShapeInfo[1] = bS;
@@ -160,8 +155,6 @@ DECLARE_SHAPE_FN(conv3dNew) {
     
     shape::updateStrides(outputShapeInfo, shape::order(inputShapeInfo));
 
-    shape::printShapeInfoLinear("conv3d calculated shape", outputShapeInfo);
-    
     return new ShapeList(outputShapeInfo);
 }
 
