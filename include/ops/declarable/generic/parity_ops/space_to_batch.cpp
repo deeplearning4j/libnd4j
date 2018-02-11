@@ -155,11 +155,7 @@ namespace ops {
         int* internal_paddings = &padding_shape.data()[2 * removed_prefix_block_dims];
         int* internal_block_shape = &block_shape.data()[removed_prefix_block_dims];
 
-
         helpers::_spaceToBatch(internal_block_dims, input, output, internal_input_shape, internal_output_shape, internal_block_shape, internal_paddings);
-
-        T mean = output->meanNumber();
-        nd4j_debug("space_to_batch mean: [%f]\n", (float) mean);
 
         return Status::OK();
     }
