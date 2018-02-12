@@ -216,3 +216,19 @@ TEST_F(DeclarableOpsTests6, Test_CumSum_Exclusive_Reverse_2) {
 
     delete result;
 }
+
+TEST_F(DeclarableOpsTests6, Test_CumSum_Exclusive_Reverse_2_1) {
+    NDArray<float> x('c', {3, 3}, {1, 2, 3, 4, 5, 6, 7, 8, 9});
+    NDArray<float> axis('c', {1}, {1});
+    NDArray<float> exp('c', {3, 3}, {5.f, 3.f, 0.f, 11.f, 6.f, 0.f, 17.f, 9.f, 0.f});
+
+    nd4j::ops::cumsum<float> op;
+    auto result = op.execute({&x, &axis}, {}, {1, 1});
+    ASSERT_EQ(Status::OK(), result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}

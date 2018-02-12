@@ -20,8 +20,18 @@ namespace nd4j {
             } else {
                 std::vector<int> dims(block.numI() - 2);
 
-                for (int e = 0; e < block.numI() - 2; e++)
-                    dims[e] = INT_ARG(e+2);
+                if (block.width() == 1) {
+
+                    for (int e = 0; e < block.numI() - 2; e++)
+                        dims[e] = INT_ARG(e + 2);
+                } else {
+                    auto ax = INPUT_VARIABLE(1);
+                    dims = ax->template asVectorT<int>();
+                }
+
+                for (int e = 0; e < dims.size(); e++)
+                    if (dims[e] < 0)
+                        dims[e] += input->rankOf();
 
                 nd4j::ops::helpers::_prefix<T, simdOps::Add<T>>(input, output, dims, exclusive, reverse);
             }
