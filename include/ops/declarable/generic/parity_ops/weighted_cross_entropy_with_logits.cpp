@@ -3,13 +3,12 @@
 //
 
 #include <ops/declarable/headers/parity_ops.h>
-#include <ops/declarable/headers/blas.h>
 #include <ops/declarable/helpers/cross.h>
 
 namespace nd4j {
 namespace ops {
 
-    CONFIGURABLE_OP_IMPL(weighted_cross_entropy_with_logits, 3, 1, true, 0, 0) {
+    OP_IMPL(weighted_cross_entropy_with_logits, 3, 1, true) {
 
         NDArray<T>* targets = INPUT_VARIABLE(0);
         NDArray<T>* input = INPUT_VARIABLE(1);
@@ -22,8 +21,6 @@ namespace ops {
 
         if (weights->isScalar()) {
             posWeight = weights->getScalar(0);
-//        else
-//            posWeight = weights->getScalar(0);
             auto mainRoutine = LAMBDA_TT(_x, _z, posWeight) {
                 T targetWeight = (1 + (posWeight - 1) * _z);
                 return (1 - _z) * _x + 
