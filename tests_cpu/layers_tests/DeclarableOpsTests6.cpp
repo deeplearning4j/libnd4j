@@ -164,6 +164,7 @@ TEST_F(DeclarableOpsTests6, Test_Order_1) {
     auto z = result->at(0);
 
     ASSERT_TRUE(exp.equalsTo(z));
+    ASSERT_NE(x.ordering(), z->ordering());
 
     delete result;
 }
