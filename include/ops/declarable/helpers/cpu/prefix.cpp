@@ -18,15 +18,22 @@ namespace nd4j {
                 if (reverse) {
                     if (shape::elementWiseStride(xShapeInfo) == 1 && shape::elementWiseStride(zShapeInfo) == 1 &&
                         shape::order(xShapeInfo) == 'c' && shape::order(zShapeInfo) == 'c') {
+                        T prevSum = (T) 0;
                         T sum = (T) 0;
-#pragma omp simd
+
                         for (int e = length - 1; e >= 0; --e) {
                             sum = OpName::op(sum, x[e]);
-                            z[e] = sum;
+                            if (!exclusive)
+                                prevSum = sum;
+
+                            z[e] = prevSum;
+
+                            prevSum = sum;
                         }
                     } else {
                         int xCoord[MAX_RANK];
                         int zCoord[MAX_RANK];
+                        T prevSum = (T) 0;
                         T sum = (T) 0;
 
                         int xRank = shape::rank(xShapeInfo);
@@ -46,21 +53,34 @@ namespace nd4j {
                             Nd4jIndex zOffset = shape::getOffset(0, zShape, zStride, zCoord, zRank);
 
                             sum = OpName::op(sum, x[xOffset]);
-                            z[zOffset] = sum;
+                            if (!exclusive)
+                                prevSum = sum;
+
+                            z[zOffset] = prevSum;
+
+                            prevSum = sum;
                         }
                     }
                 } else {
                     if (shape::elementWiseStride(xShapeInfo) == 1 && shape::elementWiseStride(zShapeInfo) == 1 &&
                         shape::order(xShapeInfo) == 'c' && shape::order(zShapeInfo) == 'c') {
+                        T prevSum = (T) 0;
                         T sum = (T) 0;
-#pragma omp simd
+
                         for (int e = 0; e < length; e++) {
                             sum = OpName::op(sum, x[e]);
-                            z[e] = sum;
+
+                            if (!exclusive)
+                                prevSum = sum;
+
+                            z[e] = prevSum;
+
+                            prevSum = sum;
                         }
                     } else {
                         int xCoord[MAX_RANK];
                         int zCoord[MAX_RANK];
+                        T prevSum = (T) 0;
                         T sum = (T) 0;
 
                         int xRank = shape::rank(xShapeInfo);
@@ -80,7 +100,13 @@ namespace nd4j {
                             Nd4jIndex zOffset = shape::getOffset(0, zShape, zStride, zCoord, zRank);
 
                             sum = OpName::op(sum, x[xOffset]);
-                            z[zOffset] = sum;
+
+                            if (!exclusive)
+                                prevSum = sum;
+
+                            z[zOffset] = prevSum;
+
+                            prevSum = sum;
                         }
                     }
                 }

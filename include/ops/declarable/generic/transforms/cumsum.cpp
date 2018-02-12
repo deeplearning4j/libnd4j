@@ -14,11 +14,14 @@ namespace nd4j {
             const bool exclusive = INT_ARG(0) == 1;
             const bool reverse = INT_ARG(1) == 1;
 
-            if (block.getIArguments()->size() == 0 && block.width() == 1) {
+            if (block.getIArguments()->size() == 2 && block.width() == 1) {
                 // all at once case
                 nd4j::ops::helpers::_prefix<T, simdOps::Add<T>>(input->buffer(), input->shapeInfo(), output->buffer(), output->shapeInfo(), exclusive, reverse);
             } else {
-                std::vector<int> dims = *(block.getIArguments());
+                std::vector<int> dims(block.numI() - 2);
+
+                for (int e = 0; e < block.numI() - 2; e++)
+                    dims[e] = INT_ARG(e+2);
 
                 nd4j::ops::helpers::_prefix<T, simdOps::Add<T>>(input, output, dims, exclusive, reverse);
             }
