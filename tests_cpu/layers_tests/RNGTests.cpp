@@ -415,3 +415,27 @@ TEST_F(RNGTests, Test_ExponentialDistribution_1) {
 
     delete result;
 }
+
+TEST_F(RNGTests, Test_ExponentialDistribution_2) {
+    NDArray<float> x('c', {2}, {10, 10});
+    NDArray<float> y('c', {10, 10});
+    NDArray<float> exp0('c', {10, 10});
+
+    y.assign(1.0);
+
+
+    nd4j::ops::random_exponential<float> op;
+    auto result = op.execute({&x, &y}, {0.25f}, {0});
+    ASSERT_EQ(Status::OK(), result->status());
+
+    auto z = result->at(0);
+    ASSERT_TRUE(exp0.isSameShape(z));
+    ASSERT_FALSE(exp0.equalsTo(z));
+
+
+    ASSERT_FALSE(nexp0->equalsTo(z));
+    ASSERT_FALSE(nexp1->equalsTo(z));
+    ASSERT_FALSE(nexp2->equalsTo(z));
+
+    delete result;
+}
