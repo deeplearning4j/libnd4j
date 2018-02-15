@@ -1,11 +1,4 @@
 //
-// implementation of operation for LSTM cell with peep hole connections:
-// http://www.bioinf.jku.at/publications/older/2604.pdf
-// S. Hochreiter and J. Schmidhuber. "Long Short-Term Memory". Neural Computation, 9(8):1735-1780, 1997.
-// and 
-// https://research.google.com/pubs/archive/43905.pdf
-// Hasim Sak, Andrew Senior, and Francoise Beaufays. "Long short-term memory recurrent neural network architectures for large scale acoustic modeling." INTERSPEECH, 2014.
-//
 // created by Yurii Shyrma on 30.11.2017
 //
 
@@ -25,9 +18,9 @@ CUSTOM_OP_IMPL(lstmCell, 8, 2, false, 3, 2) {
 
     NDArray<T>* Wx   = INPUT_VARIABLE(3);                   // input-to-hidden  weights, [inSize  x 4*numUnits] 
     NDArray<T>* Wh   = INPUT_VARIABLE(4);                   // hidden-to-hidden weights, [numProj x 4*numUnits] 
-    NDArray<T>* Wc   = INPUT_VARIABLE(5);                   // diagonal weights for peephole connections [1 x 3*numUnits] 
+    NDArray<T>* Wc   = INPUT_VARIABLE(5);                   // diagonal weights for peephole connections [3*numUnits] 
     NDArray<T>* Wp   = INPUT_VARIABLE(6);                   // projection weights [numUnits x numProj] 
-    NDArray<T>* b    = INPUT_VARIABLE(7);                   // biases, [1 x 4*numUnits] 
+    NDArray<T>* b    = INPUT_VARIABLE(7);                   // biases, [4*numUnits] 
     
     NDArray<T>* ht   =  OUTPUT_VARIABLE(0);                 // current cell output [batchSize x numProj], that is at current time step t
     NDArray<T>* ct   =  OUTPUT_VARIABLE(1);                 // current cell state  [batchSize x numUnits], that is at current time step t
@@ -52,11 +45,11 @@ CUSTOM_OP_IMPL(lstmCell, 8, 2, false, 3, 2) {
     // check shape of hidden-to-hidden  weights
     REQUIRE_TRUE((INPUT_VARIABLE(4))->isSameShape({numProj, 4*numUnits}),0,"CUSTOM_OP lstmCell: the shape of hidden-to-hidden weights is wrong !");
     // check shape of diagonal weights
-    REQUIRE_TRUE((INPUT_VARIABLE(5))->isSameShape({1, 3*numUnits}), 0, "CUSTOM_OP lstmCell: the shape of diagonal weights is wrong !");
+    REQUIRE_TRUE((INPUT_VARIABLE(5))->isSameShape({3*numUnits}), 0, "CUSTOM_OP lstmCell: the shape of diagonal weights is wrong !");
     // check shape of projection weights
     REQUIRE_TRUE((INPUT_VARIABLE(6))->isSameShape({numUnits, numProj}), 0, "CUSTOM_OP lstmCell: the shape of projection weights is wrong !");
     // check shape of biases
-    REQUIRE_TRUE((INPUT_VARIABLE(7))->isSameShape({1, 4*numUnits}), 0, "CUSTOM_OP lstmCell: the shape of biases is wrong !");
+    REQUIRE_TRUE((INPUT_VARIABLE(7))->isSameShape({4*numUnits}), 0, "CUSTOM_OP lstmCell: the shape of biases is wrong !");
     REQUIRE_TRUE(!(!projection && numUnits != numProj), 0, "CUSTOM_OP lstmCell: projection option is switched of, and in this case output dimensionality for the projection matrices (numProj) must be equal to number of units in lstmCell !");
 
     // calculations

@@ -1,5 +1,5 @@
 //
-// Created by Yurii Shyrma on 14.02.2018
+// Created by Yurii Shyrma on 15.02.2018
 //
 
 #ifndef LIBND4J_LSTMCELL_H
@@ -13,7 +13,7 @@ namespace helpers {
 
 
 	template <typename T>
-	void lstmCell(const std::vector<NDArray<T>*>& inArrs, const std::vector<NDArray<T>*>& outArrs, const std::vector<T>& params);
+	void gruCell(const std::vector<NDArray<T>*>& inArrs, NDArray<T>* outArrs);
 	
     
 

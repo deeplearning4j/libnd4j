@@ -2,16 +2,13 @@
 // Created by Yurii Shyrma on 14.02.2018
 //
 
-
 // implementation of operation for LSTM cell with peep hole connections:
 // http://www.bioinf.jku.at/publications/older/2604.pdf
 // S. Hochreiter and J. Schmidhuber. "Long Short-Term Memory". Neural Computation, 9(8):1735-1780, 1997.
 // and 
 // https://research.google.com/pubs/archive/43905.pdf
 // Hasim Sak, Andrew Senior, and Francoise Beaufays. "Long short-term memory recurrent neural network architectures for large scale acoustic modeling." INTERSPEECH, 2014.
-//
-// created by Yurii Shyrma on 30.11.2017
-//
+
 
 #include<ops/declarable/helpers/lstmCell.h>
 
@@ -60,9 +57,9 @@ void lstmCell(const std::vector<NDArray<T>*>& inArrs, const std::vector<NDArray<
 
     NDArray<T>* Wx   = inArrs[3];                   // input-to-hidden  weights, [inSize  x 4*numUnits] 
     NDArray<T>* Wh   = inArrs[4];                   // hidden-to-hidden weights, [numProj x 4*numUnits] 
-    NDArray<T>* Wc   = inArrs[5];                   // diagonal weights for peephole connections [1 x 3*numUnits] 
+    NDArray<T>* Wc   = inArrs[5];                   // diagonal weights for peephole connections [3*numUnits] 
     NDArray<T>* Wp   = inArrs[6];                   // projection weights [numUnits x numProj] 
-    NDArray<T>* b    = inArrs[7];                   // biases, [1 x 4*numUnits] 
+    NDArray<T>* b    = inArrs[7];                   // biases, [4*numUnits] 
     
     NDArray<T>* ht   =  outArrs[0];                 // current cell output [batchSize x numProj], that is at current time step t
     NDArray<T>* ct   =  outArrs[1];                 // current cell state  [batchSize x numUnits], that is at current time step t
@@ -86,8 +83,8 @@ void lstmCell(const std::vector<NDArray<T>*>& inArrs, const std::vector<NDArray<
     NDArray<T> zot = z({{},{3*numUnits, 4*numUnits}});      	// z for output gate, = mmul(Wxo,xt) + mmul(Who,ht_1) + bo    = [batchSize x numUnits] 
 
     if(peephole) {                                              // add peephole connections: z  +  ct_1*Wc
-        zit += (*ct_1) * (*Wc)({{},{0,          numUnits}});    // add peephole connections to input gate
-        zft += (*ct_1) * (*Wc)({{},{numUnits, 2*numUnits}});    // add peephole connections to forget gate
+        zit += (*ct_1) * (*Wc)({{0,          numUnits}});    // add peephole connections to input gate
+        zft += (*ct_1) * (*Wc)({{numUnits, 2*numUnits}});    // add peephole connections to forget gate
     }
 
     // current sell state = ft*ct_1 + it*activation(mmul(Wxc,xt) + mmul(Whc,ht_1) + bc
@@ -98,7 +95,7 @@ void lstmCell(const std::vector<NDArray<T>*>& inArrs, const std::vector<NDArray<
         clipping(ct, clippingCellValue);
 
     if(peephole) 
-        zot += (*ct) * (*Wc)({{},{2*numUnits, 3*numUnits}});            // add peephole connections to output gate zot + ct*Wc
+        zot += (*ct) * (*Wc)({{2*numUnits, 3*numUnits}});            // add peephole connections to output gate zot + ct*Wc
 
     // current cell output = ot*activation(ct)   
     NDArray<T> htNoPeepHole = sigmoid<T>(zot) * activation<T>(*ct);      // = [batchSize x numUnits]
