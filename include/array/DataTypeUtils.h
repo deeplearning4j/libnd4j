@@ -5,7 +5,7 @@
 #ifndef DATATYPEUTILS_H
 #define DATATYPEUTILS_H
 
-
+#include <types/float16.h>
 #include <array/DataType.h>
 #include <graph/generated/array_generated.h>
 #include <op_boilerplate.h>
@@ -42,38 +42,37 @@ namespace nd4j {
 
 ///////////////////////////////////////////////////////////////////
 // returns the smallest finite value of the given type
-template<typename T>
-FORCEINLINE T DataTypeUtils::min() {
-    
-    switch (sizeof(T)) {
-        case 8:                // T = double            
-            return std::numeric_limits<double>::min();    
-        case 4:                // T = float            
-            return std::numeric_limits<float>::min();    
-        case 2:                // T = float16        
-            return 6.1035e-05;    
-        default:
-            throw("DataTypeUtils::min function: type of T is undefined !");    
-        }
+template<>
+FORCEINLINE float DataTypeUtils::min<float>() {         
+    return 1.175494e-38;    
+}
+
+template<>
+FORCEINLINE float16 DataTypeUtils::min<float16>() {
+    return (float16) 6.1035e-05;    
+}
+
+template<>
+FORCEINLINE double DataTypeUtils::min<double>() {       
+    return 2.2250738585072014e-308;    
 }
 
 ///////////////////////////////////////////////////////////////////
 // returns the largest finite value of the given type
-template <typename T>
-FORCEINLINE T DataTypeUtils::max() {
-
-	switch (sizeof(T)) {
-        case 8:                // T = double            
-            return std::numeric_limits<double>::max();    
-        case 4:                // T = float            
-            return std::numeric_limits<float>::max();    
-        case 2:                // T = float16        
-            return 65504.;    
-        default:
-            throw("DataTypeUtils::max function: type of T is undefined !");    
-        }
+template <>
+FORCEINLINE float DataTypeUtils::max<float>() {    
+    return 3.402823e+38;
 }
 
+template <>
+FORCEINLINE double DataTypeUtils::max<double>() {       
+    return 1.7976931348623157E308;   
+}
+
+template <>
+FORCEINLINE float16 DataTypeUtils::max<float16>() {       
+    return (float16) 65504.f;   
+}
 
 ///////////////////////////////////////////////////////////////////
 // returns the difference between 1.0 and the next representable value of the given floating-point type 
