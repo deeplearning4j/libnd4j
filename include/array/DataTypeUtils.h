@@ -23,11 +23,11 @@ namespace nd4j {
 
         // returns the smallest finite value of the given type
         template <typename T>
-        FORCEINLINE static T min();
+        FORCEINLINE static _CUDA_HD T min();
 
         // returns the largest finite value of the given type
         template <typename T>
-        FORCEINLINE static T max();
+        FORCEINLINE static _CUDA_HD T max();
 
         // returns the difference between 1.0 and the next representable value of the given floating-point type 
         template <typename T>
@@ -43,34 +43,34 @@ namespace nd4j {
 ///////////////////////////////////////////////////////////////////
 // returns the smallest finite value of the given type
 template<>
-FORCEINLINE float DataTypeUtils::min<float>() {         
+FORCEINLINE _CUDA_HD float DataTypeUtils::min<float>() {         
     return 1.175494e-38;    
 }
 
 template<>
-FORCEINLINE float16 DataTypeUtils::min<float16>() {
+FORCEINLINE _CUDA_HD float16 DataTypeUtils::min<float16>() {
     return (float16) 6.1035e-05;    
 }
 
 template<>
-FORCEINLINE double DataTypeUtils::min<double>() {       
+FORCEINLINE _CUDA_HD double DataTypeUtils::min<double>() {       
     return 2.2250738585072014e-308;    
 }
 
 ///////////////////////////////////////////////////////////////////
 // returns the largest finite value of the given type
 template <>
-FORCEINLINE float DataTypeUtils::max<float>() {    
+FORCEINLINE _CUDA_HD float DataTypeUtils::max<float>() {    
     return 3.402823e+38;
 }
 
 template <>
-FORCEINLINE double DataTypeUtils::max<double>() {       
+FORCEINLINE _CUDA_HD double DataTypeUtils::max<double>() {       
     return 1.7976931348623157E308;   
 }
 
 template <>
-FORCEINLINE float16 DataTypeUtils::max<float16>() {       
+FORCEINLINE _CUDA_HD float16 DataTypeUtils::max<float16>() {       
     return (float16) 65504.f;   
 }
 
