@@ -99,7 +99,7 @@ namespace nd4j {
         DECLARE_CUSTOM_OP(Where, 1, 1, false, 0, 0);
 
         /**
-         * This op takes 2 n-dimensional arrays as input, and return 
+         * This op takes 2 n-dimensional array as input, and return
          * array of the same shape, with elements, either from x or y, depending on the condition.
          */
         DECLARE_CUSTOM_OP(select, 3, 1, false, 0, 0);
