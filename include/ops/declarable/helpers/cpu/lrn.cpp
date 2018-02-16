@@ -39,8 +39,10 @@ namespace helpers {
     template <typename T>
     int lrnFunctorEx(NDArray<T>* input, NDArray<T>* output, NDArray<T>* unitScale, NDArray<T>* scale, int depth, T bias, T alpha, T beta) {
     
-        int halfDepth = (int) ( (T) depth / (T) 2.f);
+        depth = nd4j::math::nd4j_min(depth, input->sizeAt(1));
 
+        int halfDepth = (int) ( (T) depth / (T) 2.f);
+        halfDepth = nd4j::math::nd4j_max(halfDepth, 0);
         const int channel =  input->sizeAt(1);
 
         std::unique_ptr<NDArray<T>> activitySqr(NDArrayFactory<T>::createUninitialized(input));

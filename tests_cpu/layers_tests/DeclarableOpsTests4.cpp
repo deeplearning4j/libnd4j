@@ -1729,7 +1729,7 @@ TEST_F(DeclarableOpsTests4, LrnTest_5) {
     NDArray<double> exp('c', {2, 2, 2, 4});
 
     nd4j::ops::lrn_bp<double> op;
-    ResultSet<double>*  results = op.execute({&x, &eps}, {1.0, 1.0, 0.5}, {2});
+    ResultSet<double>*  results = op.execute({&x, &eps}, {1.0, 1.0, 0.5}, {5});
     NDArray<double>* out = results->at(0);
         
     ASSERT_EQ(Status::OK(), results->status());
