@@ -1632,6 +1632,45 @@ TEST_F(DeclarableOpsTests4, gru_test1) {
     delete results;
 } 
 
+///////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests4, relu6_test1) {
+    
+    NDArray<float> input ('c', {2,4}, {-13.,10,-5,0,2,7,6,12});
+    NDArray<float> expected ('c', {2,4}, {0., 6., 0., 0.,2., 6., 6., 6.});
+    
+    nd4j::ops::relu6<float> op;
+    nd4j::ResultSet<float>* results = op.execute({&input}, {0.}, {});    
 
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<float>* output = results->at(0);    
+
+    ASSERT_TRUE(expected.isSameShape(output));
+    ASSERT_TRUE(expected.equalsTo(output));    
+
+    delete results;
+} 
+
+
+///////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests4, relu6_bp_test1) {
+    
+    NDArray<float> input ('c', {2,4}, {-13.,10, -5,  0,  2,  7,  6,  5});
+    NDArray<float> gradO ('c', {2,4}, {-1., -2., 0., 4., 5., 6., 7., 8.});    
+    
+    NDArray<float> expected ('c', {2,4}, {0., 0., 0., 0., 5., 0., 0., 8.});
+    
+    nd4j::ops::relu6_bp<float> op;
+    nd4j::ResultSet<float>* results = op.execute({&input, &gradO}, {0.}, {});    
+
+    ASSERT_EQ(ND4J_STATUS_OK, results->status());
+
+    NDArray<float>* output = results->at(0);        
+
+    ASSERT_TRUE(expected.isSameShape(output));
+    ASSERT_TRUE(expected.equalsTo(output));    
+
+    delete results;
+} 
 
 
