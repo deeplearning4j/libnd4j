@@ -77,8 +77,6 @@ DECLARE_SHAPE_FN(gru) {
 
 
 
-
-
 }
 }
 
