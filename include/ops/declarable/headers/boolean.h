@@ -103,5 +103,10 @@ namespace nd4j {
          * array of the same shape, with elements, either from x or y, depending on the condition.
          */
         DECLARE_CUSTOM_OP(select, 3, 1, false, 0, 0);
+
+        /**
+         * This op takes 1 n-dimensional arrays as input, and returns true if for every adjacent pair we have x[i] <= x[i+1]
+         */
+        DECLARE_BOOLEAN_OP(is_non_decreasing, 1, true);
     }
 }
