@@ -29,8 +29,12 @@ CONFIGURABLE_OP_IMPL(dropout, 1, 1, true, 1, 1) {
         *output = *input;
         return ND4J_STATUS_OK;
     }
+    nd4j::random::RandomBuffer* rng = block.getRNG();
+    
+    if (rng == nullptr)
+        return ND4J_STATUS_BAD_RNG;
 
-    return helpers::dropOutFunctor(input, output, reduceShape, seed, probValue);
+    return helpers::dropOutFunctor(rng, input, output, reduceShape, seed, probValue);
 }
 
 }
