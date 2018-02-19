@@ -86,7 +86,6 @@ DECLARE_SHAPE_FN(avgpool3dnew) {
     int indOC = dataFormat == 0 ? 4 : 0;
 
     int* inputShapeInfo   = inputShape->at(0);
-    int* weightsShapeInfo = inputShape->at(1);
 
     int bS = inputShapeInfo[1];                          // batch size
     int iD = inputShapeInfo[indID+1];                    // input depth

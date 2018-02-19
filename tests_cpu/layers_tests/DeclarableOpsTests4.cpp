@@ -1714,9 +1714,9 @@ TEST_F(DeclarableOpsTests4, avgpool3d_test1) {
                                                         119.0465,120.0512,122.0605,123.0651,131.1023,132.107 ,134.1163,135.1209,155.2139,156.2186,158.2279,159.2326,
                                                         167.2698,168.2744,170.2837,171.2884,191.3814,192.386 ,194.3953,195.4   ,203.4372,204.4418,206.4512,207.4558});
     
-    NDArrayFactory<double>::linspace(1, input);
-
-    nd4j::ops::avgpool3d<double> op;
+    NDArrayFactory<double>::linspace(1., input);
+    
+    nd4j::ops::avgpool3dnew<double> op;
     ResultSet<double>* results = op.execute({&input}, {}, {kD,kH,kW,  sD,sH,sW,  pD,pH,pW,  paddingMode, dataFormat});
     NDArray<double>* output = results->at(0);    
 
