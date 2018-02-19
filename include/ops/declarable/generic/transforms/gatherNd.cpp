@@ -98,6 +98,8 @@ DECLARE_SHAPE_FN(gather_nd) {
 
 	shape::updateStrides(outShapeInfo, shape::order(inShapeInfo0));
 
+    shape::printShapeInfoLinear("gather_nd shape", outShapeInfo);
+
     return new ShapeList(outShapeInfo);    
 }
 
