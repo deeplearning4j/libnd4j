@@ -101,6 +101,21 @@ TEST_F(DeclarableOpsTests6, Test_Conv3D_NDHWC_11) {
     delete shapes;
 }
 
+TEST_F(DeclarableOpsTests6, Test_gather_Edge_1) {
+    NDArray<float> x('c', {2, 4, 3, 2});
+    NDArray<float> indices('c', {2}, {1.f, 0.f});
+
+    nd4j::ops::gather<float> op;
+    auto result = op.execute({&x, &indices}, {}, {-2});
+    ASSERT_EQ(Status::OK(), result->status());
+
+    auto z = result->at(0);
+
+    z->printShapeInfo("z shape");
+
+    delete result;
+}
+
 
 TEST_F(DeclarableOpsTests6, Test_StB_1) {
     NDArray<float> x('c', {4, 64, 64, 4});
