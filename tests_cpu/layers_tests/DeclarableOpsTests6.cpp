@@ -118,6 +118,7 @@ TEST_F(DeclarableOpsTests6, Test_gatherNd_Edge_1) {
     NDArray<float> x('c', {2, 4, 2, 2});
     NDArray<float> indices('c', {3, 3}, {0,2,1, 0,1,0, 1,3,1});
     NDArray<float> exp('c', {3,2}, {11.f, 12.f, 5.f, 6.f, 31.f, 32.f});
+    NDArrayFactory<float>::linspace(1, x);
 
     nd4j::ops::gather_nd<float> op;
     auto result = op.execute({&x, &indices}, {}, {});
