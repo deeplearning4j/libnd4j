@@ -28,7 +28,7 @@ CUSTOM_OP_IMPL(gather_nd, 2, 1, false, 0, 0) {
     REQUIRE_TRUE(lastIndDim <= rank0, 0, "GATHER_ND custom operation: the last dimension of indices array must be <= rank of input array !");
     
     std::vector<int> tadDims(rank0 - lastIndDim);
-    std::iota(tadDims.begin(), tadDims.end(), rank0-1);
+    std::iota(tadDims.begin(), tadDims.end(), rank1-1);
     ResultSet<T>* innerMostOut = NDArrayFactory<T>::allTensorsAlongDimension(output, tadDims); 
 
     ResultSet<T>* innerMost1 = NDArrayFactory<T>::allTensorsAlongDimension(indices, {rank1-1});	
@@ -97,8 +97,6 @@ DECLARE_SHAPE_FN(gather_nd) {
         outShapeInfo[inRank1 + i] = inShapeInfo0[lastIndDim + i + 1];
 
 	shape::updateStrides(outShapeInfo, shape::order(inShapeInfo0));
-
-    shape::printShapeInfoLinear("gather_nd shape", outShapeInfo);
 
     return new ShapeList(outShapeInfo);    
 }

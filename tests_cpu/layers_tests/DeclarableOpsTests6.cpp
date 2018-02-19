@@ -126,6 +126,7 @@ TEST_F(DeclarableOpsTests6, Test_gatherNd_Edge_1) {
 
     auto z = result->at(0);
 
+    z->printIndexedBuffer();
     z->printShapeInfo("z shape");
 
     ASSERT_TRUE(exp.isSameShape(z));
