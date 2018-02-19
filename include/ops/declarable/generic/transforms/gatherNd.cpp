@@ -21,6 +21,12 @@ CUSTOM_OP_IMPL(gather_nd, 2, 1, false, 0, 0) {
 
     REQUIRE_TRUE(indices->rankOf() > 0, 0, "GATHER_ND custom operation: input array of indexes can't be single scalar, the requirement is: rank > 0 !");
 
+    if (input->ordering() != 'c')
+        input->streamline('c');
+
+    if (indices->ordering() != 'c')
+        indices->streamline('c');
+
     int rank0 = input->rankOf();
     int rank1 = indices->rankOf();
     int lastIndDim = indices->sizeAt(-1);
@@ -96,7 +102,7 @@ DECLARE_SHAPE_FN(gather_nd) {
     for(int i = 0; i < inRank0-lastIndDim; ++i)
         outShapeInfo[inRank1 + i] = inShapeInfo0[lastIndDim + i + 1];
 
-	shape::updateStrides(outShapeInfo, shape::order(inShapeInfo0));
+	shape::updateStrides(outShapeInfo, 'c');
 
     return new ShapeList(outShapeInfo);    
 }
