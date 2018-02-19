@@ -311,7 +311,7 @@ namespace nd4j {
                 for (int e = 5; e < block.getIArguments()->size(); e++)
                     args.emplace_back(INT_ARG(e));
 
-                REQUIRE_TRUE(delta == 0, 0, "Number of Integer arguments should be equal to input rank x 3 = %i, but got %i instead", (x->rankOf() * 3), dim_values);
+                REQUIRE_TRUE(delta == 0, 0, "StridedSlice: Number of Integer arguments should be equal to input rank x 3 = %i, but got %i instead", (x->rankOf() * 3), dim_values);
 
                 ShapeUtils<T>::copyVectorPart(begin, args, elements, 0);
                 ShapeUtils<T>::copyVectorPart(end, args, elements, elements);
@@ -325,7 +325,7 @@ namespace nd4j {
 
                 elements = v_begin->lengthOf();
 
-                REQUIRE_TRUE(v_begin->lengthOf() == v_end->lengthOf(), 0, "Length of begin/end should match, but got %i vs %i instead", (int) v_begin->lengthOf(), (int) v_end->lengthOf());
+                REQUIRE_TRUE(v_begin->lengthOf() == v_end->lengthOf(), 0, "StridedSlice: Length of begin/end should match, but got %i vs %i instead", (int) v_begin->lengthOf(), (int) v_end->lengthOf());
 
                 for (int e = 0; e < v_begin->lengthOf(); e++)
                     begin.emplace_back((int) v_begin->getIndexedScalar(e));
@@ -336,7 +336,7 @@ namespace nd4j {
                 if (block.width() >= 4) {
                     auto v_stride = INPUT_VARIABLE(3);
 
-                    REQUIRE_TRUE(v_stride->lengthOf() == v_begin->lengthOf(), 0, "Length of begin/end/stride should match, but got %i vs %i vs %i instead", (int) v_begin->lengthOf(), (int) v_end->lengthOf(), (int) v_stride->lengthOf());
+                    REQUIRE_TRUE(v_stride->lengthOf() == v_begin->lengthOf(), 0, "StridedSlice: Length of begin/end/stride should match, but got %i vs %i vs %i instead", (int) v_begin->lengthOf(), (int) v_end->lengthOf(), (int) v_stride->lengthOf());
 
                     for (int e = 0; e < v_stride->lengthOf(); e++)
                         strides.emplace_back((int) v_stride->getIndexedScalar(e));
@@ -345,7 +345,7 @@ namespace nd4j {
                         strides.emplace_back(1);
                 }
             } else {
-                REQUIRE_TRUE(false, 0, "Can't find begin/end/stride information neither in IArguments or in input arrays");
+                REQUIRE_TRUE(false, 0, "StridedSlice: Can't find begin/end/stride information neither in IArguments or in input arrays");
             }
 
             IndicesList indices;
@@ -491,7 +491,7 @@ namespace nd4j {
                 for (int e = 5; e < block.getIArguments()->size(); e++)
                     args.emplace_back(INT_ARG(e));
 
-                REQUIRE_TRUE(delta == 0, 0, "Number of Integer arguments should be equal to input rank x 3 = %i, but got %i instead", (x->rankOf() * 3), dim_values);
+                REQUIRE_TRUE(delta == 0, 0, "StridedSliceBP: Number of Integer arguments should be equal to input rank x 3 = %i, but got %i instead", (x->rankOf() * 3), dim_values);
 
                 ShapeUtils<T>::copyVectorPart(begin, args, elements, 0);
                 ShapeUtils<T>::copyVectorPart(end, args, elements, elements);
@@ -505,7 +505,7 @@ namespace nd4j {
 
                 elements = v_begin->lengthOf();
 
-                REQUIRE_TRUE(v_begin->lengthOf() == v_end->lengthOf(), 0, "Length of begin/end should match, but got %i vs %i instead", (int) v_begin->lengthOf(), (int) v_end->lengthOf());
+                REQUIRE_TRUE(v_begin->lengthOf() == v_end->lengthOf(), 0, "StridedSliceBP: Length of begin/end should match, but got %i vs %i instead", (int) v_begin->lengthOf(), (int) v_end->lengthOf());
 
                 for (int e = 0; e < v_begin->lengthOf(); e++)
                     begin.emplace_back((int) v_begin->getIndexedScalar(e));
@@ -516,7 +516,7 @@ namespace nd4j {
                 if (block.width() >= 4) {
                     auto v_stride = INPUT_VARIABLE(3);
 
-                    REQUIRE_TRUE(v_stride->lengthOf() == v_begin->lengthOf(), 0, "Length of begin/end/stride should match, but got %i vs %i vs %i instead", (int) v_begin->lengthOf(), (int) v_end->lengthOf(), (int) v_stride->lengthOf());
+                    REQUIRE_TRUE(v_stride->lengthOf() == v_begin->lengthOf(), 0, "StridedSliceBP: Length of begin/end/stride should match, but got %i vs %i vs %i instead", (int) v_begin->lengthOf(), (int) v_end->lengthOf(), (int) v_stride->lengthOf());
 
                     for (int e = 0; e < v_stride->lengthOf(); e++)
                         strides.emplace_back((int) v_stride->getIndexedScalar(e));
@@ -525,7 +525,7 @@ namespace nd4j {
                         strides.emplace_back(1);
                 }
             } else {
-                REQUIRE_TRUE(false, 0, "Can't find begin/end/stride information neither in IArguments or in input arrays");
+                REQUIRE_TRUE(false, 0, "StridedSliceBP: Can't find begin/end/stride information neither in IArguments or in input arrays");
             }
 
             IndicesList indices;
@@ -537,7 +537,7 @@ namespace nd4j {
 
             // FIXME: remove this method once we get 1D vectors supported
             vectorize(input_shape);
-            REQUIRE_TRUE(_preprocess_strided_slice(&indices, &final_shape, input_shape, begin, end, strides, begin_mask, ellipsis_mask, end_mask, new_axis_mask, shrink_axis_mask, &is_identity, &is_simple_slice, &is_dim0), 0, "StridedSlice: shape calculation failed");
+            REQUIRE_TRUE(_preprocess_strided_slice(&indices, &final_shape, input_shape, begin, end, strides, begin_mask, ellipsis_mask, end_mask, new_axis_mask, shrink_axis_mask, &is_identity, &is_simple_slice, &is_dim0), 0, "StridedSliceBP: shape calculation failed");
 
             auto sub = output->subarray(indices);
             sub->assign(epsNext);
