@@ -7,7 +7,7 @@
 namespace nd4j {
 namespace ops  {
 
-
+//////////////////////////////////////////////////////////////////////////
         template<typename T>
         void ConvolutionUtils<T>::_im2col(const T* data_im, const int channels,
                                 const int height, const int width, const int kernel_h, const int kernel_w,
@@ -38,6 +38,7 @@ namespace ops  {
             }
         }
 
+//////////////////////////////////////////////////////////////////////////
         template<typename T>
         void ConvolutionUtils<T>::_calcPadding2D(int& pH, int& pW, int oH, int oW, int inH, int inW, int kH, int kW, int sH, int sW, int dH, int dW) {
             int eKH, eKW;
@@ -54,7 +55,7 @@ namespace ops  {
             pW = ((oW - 1) * sW + eKW - inW) / 2;
         }
 
-
+//////////////////////////////////////////////////////////////////////////
         template<typename T>
         void ConvolutionUtils<T>::calcPadding3D(int& pD, int& pH, int& pW, const int oD, const int oH, const int oW, const int iD, const int iH, const int iW, const int kD, const int kH, const int kW, const int sD, const int sH, const int sW, const int dD, const int dH, const int dW) {
 
@@ -76,7 +77,7 @@ namespace ops  {
 
         }
 
-
+//////////////////////////////////////////////////////////////////////////
         template<typename T>
         void ConvolutionUtils<T>::vol2col(const T *inBuff, T* outBuff, const int iC, 
                                             const int iD, const int iH, const int iW, 
@@ -113,7 +114,7 @@ namespace ops  {
             }
         }
 
-
+//////////////////////////////////////////////////////////////////////////
         template<typename T>
         void ConvolutionUtils<T>::_vol2col(const T *data_vol, const int channels, const int depth, const int height, const int width, const int kT, const int kH, const int kW, const int pT, const int pH, const int pW, const int dT, const int dH, const int dW, const int dilationT, const int dilationH, const int dilationW, T *data_col) {
             int c, t, h, w;
@@ -149,6 +150,7 @@ namespace ops  {
             }
         }
 
+//////////////////////////////////////////////////////////////////////////
         template<typename T>
         void ConvolutionUtils<T>::_col2vol(const T* data_col, const int channels, const int depth, const int height, const int width, const int out_depth, const int out_height, const int out_width, const int kT, const int kH, const int kW, const int pT, const int pH, const int pW, const int dT, const int dH, const int dW, const int dilationT, const int dilationH, const int dilationW, T* data_vol) {
             int c, t, h, w;
@@ -183,6 +185,7 @@ namespace ops  {
             }
         }
 
+//////////////////////////////////////////////////////////////////////////
         template<typename T>
         void ConvolutionUtils<T>::_avgPool3D_bp(T *gradInput_p, T *gradOutput_p, Nd4jIndex nslices, Nd4jIndex itime, Nd4jIndex iwidth, Nd4jIndex iheight, Nd4jIndex otime, Nd4jIndex owidth, Nd4jIndex oheight, int kT, int kW, int kH, int dT, int dW, int dH, int padT, int padW, int padH, bool count_include_pad) {
             for (int k = 0; k < nslices; k++)
@@ -242,57 +245,58 @@ namespace ops  {
             }
         }
 
+//////////////////////////////////////////////////////////////////////////
         template<typename T>
-        void ConvolutionUtils<T>::_avgPool3D(T *input_p, T *output_p, Nd4jIndex nslices, Nd4jIndex itime, Nd4jIndex iwidth, Nd4jIndex iheight, Nd4jIndex otime, Nd4jIndex owidth, Nd4jIndex oheight, int kT, int kW, int kH, int dT, int dW, int dH, int padT, int padW, int padH, bool count_include_pad) {
-            for (Nd4jIndex k = 0; k < nslices; k++)
+        void ConvolutionUtils<T>::_avgPool3D(T *input_p, T *output_p, Nd4jIndex iC, Nd4jIndex iD, Nd4jIndex iH, Nd4jIndex iW, Nd4jIndex oD, Nd4jIndex oH, Nd4jIndex oW, int kD, int kH, int kW, int sD, int sH, int sW, int pD, int pH, int pW, bool count_include_pad) {
+            for (Nd4jIndex k = 0; k < iC; k++)
             {
                 long i, j, ti;
 
                 /* local pointers. */
-                T *ip = input_p + k * itime * iwidth * iheight;
-                T *op = output_p + k * otime * owidth * oheight;
-                for (i = 0; i < otime * oheight * owidth; ++i)
+                T *ip = input_p + k * iD * iW * iH;
+                T *op = output_p + k * oD * oW * oH;
+                for (i = 0; i < oD * oH * oW; ++i)
                     *(op + i) = 0;
 
                 /* loop over output */
-                for (ti = 0; ti < otime; ti++)
+                for (ti = 0; ti < oD; ti++)
                 {
-                    for (i = 0; i < oheight; i++)
+                    for (i = 0; i < oH; i++)
                     {
-                        for (j = 0; j < owidth; j++)
+                        for (j = 0; j < oW; j++)
                         {
                             /* compute pool range. */
-                            Nd4jIndex tstart = ti * dT - padT;
-                            Nd4jIndex hstart = i  * dH - padH;
-                            Nd4jIndex wstart = j  * dW - padW;
-                            Nd4jIndex tend = nd4j::math::nd4j_min<Nd4jIndex>(tstart + kT, itime + padT);
-                            Nd4jIndex hend = nd4j::math::nd4j_min<Nd4jIndex>(hstart + kH, iheight + padH);
-                            Nd4jIndex wend = nd4j::math::nd4j_min<Nd4jIndex>(wstart + kW, iwidth + padW);
-                            Nd4jIndex pool_size = (tend - tstart) * (hend - hstart) * (wend - wstart);
-                            tstart = nd4j::math::nd4j_max<Nd4jIndex>(tstart, 0);
+                            Nd4jIndex cstart = ti * sD - pD;
+                            Nd4jIndex hstart = i  * sH - pH;
+                            Nd4jIndex wstart = j  * sW - pW;
+                            Nd4jIndex cend = nd4j::math::nd4j_min<Nd4jIndex>(cstart + kD, iD + pD);
+                            Nd4jIndex hend = nd4j::math::nd4j_min<Nd4jIndex>(hstart + kH, iH + pH);
+                            Nd4jIndex wend = nd4j::math::nd4j_min<Nd4jIndex>(wstart + kW, iW + pW);
+                            Nd4jIndex pool_size = (cend - cstart) * (hend - hstart) * (wend - wstart);
+                            cstart = nd4j::math::nd4j_max<Nd4jIndex>(cstart, 0);
                             hstart = nd4j::math::nd4j_max<Nd4jIndex>(hstart, 0);
                             wstart = nd4j::math::nd4j_max<Nd4jIndex>(wstart, 0);
-                            tend = nd4j::math::nd4j_min<Nd4jIndex>(tend, itime);
-                            hend = nd4j::math::nd4j_min<Nd4jIndex>(hend, iheight);
-                            wend = nd4j::math::nd4j_min<Nd4jIndex>(wend, iwidth);
+                            cend = nd4j::math::nd4j_min<Nd4jIndex>(cend, iD);
+                            hend = nd4j::math::nd4j_min<Nd4jIndex>(hend, iH);
+                            wend = nd4j::math::nd4j_min<Nd4jIndex>(wend, iW);
 
                             Nd4jIndex divide_factor;
                             if (count_include_pad)
                                 divide_factor = pool_size;
                             else
-                                divide_factor = (tend - tstart) * (hend - hstart) * (wend - wstart);
+                                divide_factor = (cend - cstart) * (hend - hstart) * (wend - wstart);
 
                             /* compute local sum: */
                             T sum = (T) 0.0f;
                             long x, y, z;
 
-                            for (z = tstart; z < tend; z++)
+                            for (z = cstart; z < cend; z++)
                             {
                                 for (y = hstart; y < hend; y++)
                                 {
                                     for (x = wstart; x < wend; x++)
                                     {
-                                        sum +=  *(ip + z * iwidth * iheight + y * iwidth + x);
+                                        sum +=  *(ip + z * iW * iH + y * iW + x);
                                     }
                                 }
                             }
@@ -305,7 +309,7 @@ namespace ops  {
             }
         }
 
-
+//////////////////////////////////////////////////////////////////////////
         template<typename T>
         void ConvolutionUtils<T>::_dilatedMaxPool3D_bp(T *gradInput_p, T *gradOutput_p, T *indz_p, Nd4jIndex nslices, Nd4jIndex  itime, Nd4jIndex  iwidth, Nd4jIndex  iheight, Nd4jIndex otime, Nd4jIndex owidth, Nd4jIndex oheight, int dT, int dW, int dH, int pT, int pW, int pH, int dilationT, int dilationW, int dilationH) {
             for (int k = 0; k < nslices; k++)
@@ -338,6 +342,7 @@ namespace ops  {
             }
         }
 
+//////////////////////////////////////////////////////////////////////////
         template<typename T>
         void ConvolutionUtils<T>::_dilatedMaxPool3D(T *input_p, T *output_p, T *indz_p, Nd4jIndex nslices, Nd4jIndex itime, Nd4jIndex iwidth, Nd4jIndex iheight, Nd4jIndex otime, Nd4jIndex owidth, Nd4jIndex oheight, int kT, int kW, int kH, int dT, int dW, int dH, int pT, int pW, int pH, int dilationT, int dilationW, int dilationH) {
             Nd4jIndex k;
@@ -415,6 +420,7 @@ namespace ops  {
             }
         }
 
+//////////////////////////////////////////////////////////////////////////
         template<typename T>
         void ConvolutionUtils<T>::validXCorr3Dptr(T*r_, T alpha, T *t_, Nd4jIndex it, Nd4jIndex ir, Nd4jIndex ic, T *k_, Nd4jIndex kt, Nd4jIndex kr, Nd4jIndex kc, Nd4jIndex st, Nd4jIndex sr, Nd4jIndex sc) {
             Nd4jIndex tot = (it - kt) / st + 1;
@@ -448,6 +454,7 @@ namespace ops  {
             }
         }
 
+//////////////////////////////////////////////////////////////////////////
         template<typename T>
         void ConvolutionUtils<T>::validConv3Dptr(T*r_, T alpha, T *t_, Nd4jIndex it, Nd4jIndex ir, Nd4jIndex ic, T *k_, Nd4jIndex kt, Nd4jIndex kr, Nd4jIndex kc, Nd4jIndex st, Nd4jIndex sr, Nd4jIndex sc) {
             Nd4jIndex tot = (it - kt) / st + 1;
@@ -481,6 +488,7 @@ namespace ops  {
             }
         }
 
+//////////////////////////////////////////////////////////////////////////
         template<typename T>
         void ConvolutionUtils<T>::fullConv3Dptr(T*r_, T alpha, T *t_, Nd4jIndex it, Nd4jIndex ir, Nd4jIndex ic, T *k_, Nd4jIndex kt, Nd4jIndex kr, Nd4jIndex kc, Nd4jIndex st, Nd4jIndex sr, Nd4jIndex sc) {
             Nd4jIndex tor = (ir - 1) * sr + kr;
@@ -517,6 +525,7 @@ namespace ops  {
             }
         }
 
+//////////////////////////////////////////////////////////////////////////
         template<typename T>
         void ConvolutionUtils<T>::fullXCorr3Dptr(T*r_, T alpha, T *t_, Nd4jIndex it, Nd4jIndex ir, Nd4jIndex ic, T *k_, Nd4jIndex kt, Nd4jIndex kr, Nd4jIndex kc, Nd4jIndex st, Nd4jIndex sr, Nd4jIndex sc) {
             Nd4jIndex tor = (ir - 1) * sr + kr;
@@ -548,6 +557,7 @@ namespace ops  {
             }
         }
 
+//////////////////////////////////////////////////////////////////////////
         template<typename T>
         Nd4jIndex ConvolutionUtils<T>::convsize(Nd4jIndex x, Nd4jIndex k, Nd4jIndex s, const char* vf) {
             if (*vf == 'V')
@@ -556,6 +566,7 @@ namespace ops  {
                 return (x-1)*s + k;
         }
 
+//////////////////////////////////////////////////////////////////////////
         template<typename T>
         Nd4jStatus ConvolutionUtils<T>::conv3Dmv(NDArray<T>* r_, T beta, T alpha, NDArray<T>* t_, NDArray<T>* k_,
                                        Nd4jIndex sdepth, Nd4jIndex srow, Nd4jIndex scol, const char *vf, const char *xc) {
@@ -671,6 +682,7 @@ namespace ops  {
             return ND4J_STATUS_OK;
         }
 
+//////////////////////////////////////////////////////////////////////////
         template<typename T>
         Nd4jStatus ConvolutionUtils<T>::conv3D(T* output_data,
                                      T alpha,

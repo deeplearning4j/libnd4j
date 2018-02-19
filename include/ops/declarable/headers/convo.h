@@ -218,6 +218,9 @@ namespace nd4j {
          */
         DECLARE_CUSTOM_OP(dilation2d, 2, 1, false, 0, 1);
 
-        DECLARE_CUSTOM_OP(conv3dNew, 2, 1, false, 0, 13);
+        DECLARE_CUSTOM_OP(conv3dnew, 2, 1, false, 0, 13);
+        DECLARE_CUSTOM_OP(conv3dnew_bp, 3, 2, false, 0, 13);
+
+        DECLARE_CUSTOM_OP(avgpool3dnew, 1, 1, false, 0, 10);
     }
 }

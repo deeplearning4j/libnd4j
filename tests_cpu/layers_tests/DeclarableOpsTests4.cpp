@@ -1293,7 +1293,7 @@ TEST_F(DeclarableOpsTests4, conv3d_test1) {
     input = 2.;
     weights = 1.;
     
-    nd4j::ops::conv3dNew<float> op;
+    nd4j::ops::conv3dnew<float> op;
     ResultSet<float>* results = op.execute({&input, &weights}, {}, {kD,kH,kW,  sD,sH,sW,  pD,pH,pW,  dD,dH,dW, paddingMode, dataFormat});
     NDArray<float>* output = results->at(0);    
 
@@ -1325,7 +1325,7 @@ TEST_F(DeclarableOpsTests4, conv3d_test2) {
     input = 2.;
     NDArrayFactory<float>::linspace(0.1, weights, 0.1);
     
-    nd4j::ops::conv3dNew<float> op;
+    nd4j::ops::conv3dnew<float> op;
     ResultSet<float>* results = op.execute({&input, &weights}, {}, {kD,kH,kW,  sD,sH,sW,  pD,pH,pW,  dD,dH,dW, paddingMode, dataFormat});
     NDArray<float>* output = results->at(0);
     
@@ -1352,7 +1352,7 @@ TEST_F(DeclarableOpsTests4, conv3d_test3) {
     input = 2.;
     NDArrayFactory<float>::linspace(0.1, weights, 0.1);
     
-    nd4j::ops::conv3dNew<float> op;
+    nd4j::ops::conv3dnew<float> op;
     ResultSet<float>* results = op.execute({&input, &weights}, {}, {kD,kH,kW,  sD,sH,sW,  pD,pH,pW,  dD,dH,dW, paddingMode, dataFormat});
     NDArray<float>* output = results->at(0);
     
@@ -1378,7 +1378,7 @@ TEST_F(DeclarableOpsTests4, conv3d_test4) {
     weights = 0.5;
     expected = 48.;
     
-    nd4j::ops::conv3dNew<float> op;
+    nd4j::ops::conv3dnew<float> op;
     ResultSet<float>* results = op.execute({&input, &weights}, {}, {kD,kH,kW,  sD,sH,sW,  pD,pH,pW,  dD,dH,dW, paddingMode, dataFormat});
     NDArray<float>* output = results->at(0);    
 
@@ -1406,7 +1406,7 @@ TEST_F(DeclarableOpsTests4, conv3d_test5) {
     expected = 49.;
     bias = 1.;
     
-    nd4j::ops::conv3dNew<float> op;
+    nd4j::ops::conv3dnew<float> op;
     ResultSet<float>* results = op.execute({&input, &weights, &bias}, {}, {kD,kH,kW,  sD,sH,sW,  pD,pH,pW,  dD,dH,dW, paddingMode, dataFormat});
     NDArray<float>* output = results->at(0);
     
@@ -1435,7 +1435,7 @@ TEST_F(DeclarableOpsTests4, conv3d_test6) {
     input = 2.;
     weights = 0.5;    
     
-    nd4j::ops::conv3dNew<float> op;
+    nd4j::ops::conv3dnew<float> op;
     ResultSet<float>* results = op.execute({&input, &weights, &bias}, {}, {kD,kH,kW,  sD,sH,sW,  pD,pH,pW,  dD,dH,dW, paddingMode, dataFormat});
     NDArray<float>* output = results->at(0);
     
@@ -1465,11 +1465,37 @@ TEST_F(DeclarableOpsTests4, conv3d_test7) {
     input = 2.;
     NDArrayFactory<float>::linspace(0.1, weights, 0.1);
     
-    nd4j::ops::conv3dNew<float> op;
+    nd4j::ops::conv3dnew<float> op;
     ResultSet<float>* results = op.execute({&input, &weights, &bias}, {}, {kD,kH,kW,  sD,sH,sW,  pD,pH,pW,  dD,dH,dW, paddingMode, dataFormat});
     NDArray<float>* output = results->at(0);
     
     // output->printIndexedBuffer();
+
+    ASSERT_EQ(Status::OK(), results->status());
+    ASSERT_TRUE(expected.isSameShape(output));
+    ASSERT_TRUE(expected.equalsTo(output));    
+    
+    delete results;
+}
+
+////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests4, conv3d_test8) {
+    
+    int bS=2, iD=3,iH=4,iW=3,  iC=4,oC=3,  kD=2,kH=3,kW=2,  sD=1,sH=1,sW=1,  pD=0,pH=0,pW=0,  dD=1,dH=1,dW=1;
+    int paddingMode = 1;             // 0-SAME,  1-VALID;
+    int dataFormat = 1;              // 0-NDHWC, 1-NCDHW    
+
+    NDArray<float> input   ('c', {bS, iC, iD, iH, iW});
+    NDArray<float> weights ('c', {oC, iC, kD, kH, kW});    
+    NDArray<float> expected('c', {2, 3, 2, 2, 2},{235.2, 235.2, 235.2, 235.2, 235.2, 235.2, 235.2, 235.2, 696. , 696. , 696. , 696. , 696. , 696. , 696. , 696. ,
+                                                  1156.8,1156.8,1156.8,1156.8,1156.8,1156.8,1156.8,1156.8, 235.2, 235.2, 235.2, 235.2, 235.2, 235.2, 235.2, 235.2, 
+                                                  696. , 696. , 696. , 696. , 696. , 696. , 696. , 696. ,1156.8,1156.8,1156.8,1156.8,1156.8,1156.8,1156.8,1156.8});
+    input = 2.;
+    NDArrayFactory<float>::linspace(0.1, weights, 0.1);
+    
+    nd4j::ops::conv3dnew<float> op;
+    ResultSet<float>* results = op.execute({&input, &weights}, {}, {kD,kH,kW,  sD,sH,sW,  pD,pH,pW,  dD,dH,dW, paddingMode, dataFormat});
+    NDArray<float>* output = results->at(0);    
 
     ASSERT_EQ(Status::OK(), results->status());
     ASSERT_TRUE(expected.isSameShape(output));
@@ -1674,3 +1700,36 @@ TEST_F(DeclarableOpsTests4, relu6_bp_test1) {
 } 
 
 
+//////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests4, avgpool3d_test1) {
+
+    int bS=2, iD=3,iH=4,iW=3,  iC=3,  kD=2,kH=3,kW=2,  sD=1,sH=1,sW=1,  pD=0,pH=0,pW=0;
+    int oD=2,oH=2,oW=2;
+    int paddingMode = 0;             // 0-SAME,  1-VALID
+    int dataFormat  = 1;             // 0-NDHWC, 1-NCDHW
+
+    NDArray<double> input   ('c', {bS, iC, iD, iH, iW});
+    NDArray<double> expected('c', {bS, iC, oD, oH, oW}, {10.5442, 11.5488, 13.5581, 14.5628, 22.6   , 23.6047, 25.614 , 26.6186, 46.7116, 47.7163, 49.7256, 50.7302,
+                                                         58.7674, 59.7721, 61.7814, 62.786 , 82.8791, 83.8837, 85.893 , 86.8977, 94.9349, 95.9395, 97.9488, 98.9535,
+                                                        119.0465,120.0512,122.0605,123.0651,131.1023,132.107 ,134.1163,135.1209,155.2139,156.2186,158.2279,159.2326,
+                                                        167.2698,168.2744,170.2837,171.2884,191.3814,192.386 ,194.3953,195.4   ,203.4372,204.4418,206.4512,207.4558});
+    
+    NDArrayFactory<double>::linspace(1, input);
+
+    nd4j::ops::avgpool3d<double> op;
+    ResultSet<double>* results = op.execute({&input}, {}, {kD,kH,kW,  sD,sH,sW,  pD,pH,pW,  paddingMode, dataFormat});
+    NDArray<double>* output = results->at(0);    
+
+    output->printIndexedBuffer();
+    output->printShapeInfo();
+
+    ASSERT_EQ(Status::OK(), results->status());
+    ASSERT_TRUE(expected.isSameShape(output));
+    ASSERT_TRUE(expected.equalsTo(output));    
+    
+    delete results;
+}
+
+
+// [9.500000, 12.500000, 15.500000, 21.500000, 24.500000, 27.500000, 45.500000, 48.500000, 51.500000, 57.500000, 60.500000, 63.500000, 81.500000, 84.500000, 87.500000, 93.500000, 96.500000, 99.500000, 117.500000, 120.500000, 123.500000, 129.500000, 132.500000, 135.500000, 153.500000, 156.500000, 159.500000, 165.500000, 168.500000, 171.500000, 189.500000, 192.500000, 195.500000, 201.500000, 204.500000, 207.500000]
+// ShapeInfo: [5, 2, 3, 2, 3, 1, 18, 6, 3, 1, 1, 0, 1, 99]
