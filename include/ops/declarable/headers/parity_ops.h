@@ -194,6 +194,7 @@ namespace nd4j {
          * 
          */
         DECLARE_CUSTOM_OP(slice, 1, 1, false, 0, -1);
+        DECLARE_CUSTOM_OP(slice_bp, 2, 1, false, 0, -1);
 
         /**
          * This operation generate sequences. Basically from......to, with step used as increment.
