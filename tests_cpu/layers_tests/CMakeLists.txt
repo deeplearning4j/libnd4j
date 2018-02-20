@@ -28,7 +28,11 @@ if (APPLE)
 elseif(WIN32)    
     set(CMAKE_CXX_FLAGS  " -g -fPIC -std=c++11 -fassociative-math -funsafe-math-optimizations -fmax-errors=2")
 else()
-    set(CMAKE_CXX_FLAGS  " -g -fPIC -std=c++11 -fassociative-math -funsafe-math-optimizations -fmax-errors=2 -fsanitize=address")
+    if ("${_RELEASE}")
+        set(CMAKE_CXX_FLAGS  "-fPIC -std=c++11 -fassociative-math -funsafe-math-optimizations -fmax-errors=2 -march=native -mtune=native")
+    else()
+        set(CMAKE_CXX_FLAGS  " -g -fPIC -std=c++11 -fassociative-math -funsafe-math-optimizations -fmax-errors=2 -fsanitize=address")
+    endif()
 endif()
 
 
