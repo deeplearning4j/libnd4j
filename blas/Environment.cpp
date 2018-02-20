@@ -55,6 +55,14 @@ namespace nd4j {
         return _debug.load();
     }
 
+    bool Environment::isProfiling() {
+        return _profile.load();
+    }
+
+    void Environment::setProfiling(bool reallyProfile) {
+        _profile.store(reallyProfile);
+    }
+
     bool Environment::isDebugAndVerbose() {
         return this->isDebug() && this->isVerbose();
     }
