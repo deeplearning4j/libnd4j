@@ -38,9 +38,9 @@ CUSTOM_OP_IMPL(conv3dnew, 2, 1, false, 0, 13) {
 
     // vol2col (im2col for 3d case) works only with NCDHW format    
     if(!dataFormat) {
-        input   = input->permute({0, 4, 1, 2, 3});                              // [bS, iD, iH, iW, iC] -> [bS, iC, iD, iH, iW]
-        weights = weights->permute({4, 3, 0, 1, 2});                            // [kD, kH, kW, iC, oC] -> [oC, iC, kD, kH, kW] 
+        input   = input ->permute({0, 4, 1, 2, 3});                             // [bS, iD, iH, iW, iC] -> [bS, iC, iD, iH, iW]
         output  = output->permute({0, 4, 1, 2, 3});                             // [bS, oD, oH, oW, oC] -> [bS, oC, oD, oH, oW]
+        weights = weights->permute({4, 3, 0, 1, 2});                            // [kD, kH, kW, iC, oC] -> [oC, iC, kD, kH, kW] 
 
         input->streamline('c');
         weights->streamline('c');
@@ -132,9 +132,6 @@ DECLARE_SHAPE_FN(conv3dnew) {
 
     int oD, oH, oW;                         // output depth, height, width
     ConvolutionUtils<T>::calcOutSizePool3D(oD, oH, oW, kD, kH, kW, sD, sH, sW, pD, pH, pW, dD, dH, dW, iD, iH, iW, paddingMode);
-
-    if(!paddingMode)                        // SAME
-        ConvolutionUtils<T>::calcPadding3D(pD, pH, pW, oD, oH, oW, iD, iH, iW, kD, kH, kW, sD, sH, sW, dD, dH, dW);
     
     int* outputShapeInfo = nullptr;
     ALLOCATE(outputShapeInfo, block.getWorkspace(), shape::shapeInfoLength(inputShapeInfo), int);
