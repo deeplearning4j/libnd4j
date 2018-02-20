@@ -54,6 +54,12 @@ namespace nd4j {
              */
             void setExecutionTime(Nd4jIndex nanos);
 
+            /**
+             * These methods are just utility methods for time
+             */
+            static Nd4jIndex currentTime();
+            static Nd4jIndex relativeTime(Nd4jIndex time);
+
             void printOut();
         };
     }

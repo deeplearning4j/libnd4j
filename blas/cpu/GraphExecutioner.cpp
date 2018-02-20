@@ -187,6 +187,9 @@ template <typename T>
 template <typename T>
 Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* variableSpace) {
     graph->buildGraph();
+
+    Nd4jIndex timeStart = Environment::getInstance()->isProfiling() ? GraphProfile::currentTime() : 0L;
+
     auto __variableSpace = variableSpace == nullptr ? graph->getVariableSpace() : variableSpace;
 
     bool tempFlow = false;
@@ -427,6 +430,11 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* varia
             // if node was executed - tag it as active
             flowPath->markExecuted(node->id(), true);
         }
+    }
+
+    if (Environment::getInstance()->isProfiling()) {
+        flowPath->profile().setExecutionTime(GraphProfile::relativeTime(timeStart));
+        flowPath->profile().printOut();
     }
 
     if (tempFlow)

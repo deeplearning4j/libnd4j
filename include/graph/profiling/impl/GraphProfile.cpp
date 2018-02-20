@@ -4,6 +4,7 @@
 
 #include <graph/profiling/GraphProfile.h>
 #include <helpers/logger.h>
+#include <chrono>
 
 namespace nd4j {
     namespace graph {
@@ -35,6 +36,19 @@ namespace nd4j {
 
         void GraphProfile::setExecutionTime(Nd4jIndex nanos) {
             _executionTime = nanos;
+        }
+
+
+        Nd4jIndex GraphProfile::currentTime() {
+            auto t = std::chrono::system_clock::now();
+            auto v = std::chrono::time_point_cast<std::chrono::microseconds> (t);
+            auto epoch = v.time_since_epoch();
+            return std::chrono::duration_cast<std::chrono::microseconds>(epoch).count();
+        }
+        
+        Nd4jIndex GraphProfile::relativeTime(Nd4jIndex time) {
+            auto t1 = currentTime();
+            return t1 - time;
         }
 
         void GraphProfile::printOut() {
