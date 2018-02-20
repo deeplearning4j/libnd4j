@@ -15,6 +15,7 @@ namespace nd4j {
         _elementThreshold.store(1024);
         _verbose.store(false);
         _debug.store(false);
+        _profile.store(false);
 
 #ifndef ANDROID
         const char* omp_threads = std::getenv("OMP_NUM_THREADS");

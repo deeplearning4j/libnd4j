@@ -26,11 +26,35 @@ namespace nd4j {
             // time spent for graph construction
             Nd4jIndex _buildTime = 0L;
 
+            // time spent for graph execution
+            Nd4jIndex _executionTime = 0L;
+
+            // collection of pointers to profile results 
             std::vector<NodeProfile *> _profiles;
             std::map<int, NodeProfile *> _profilesById;
         public:
             GraphProfile() = default;
             ~GraphProfile();
+
+            /**
+             * These methods just adding amount of bytes to various counters
+             */
+            void addToTotal(Nd4jIndex bytes);
+            void addToActivations(Nd4jIndex bytes);
+            void addToTemporary(Nd4jIndex bytes);
+            void addToObjects(Nd4jIndex bytes);
+
+            /**
+             * This method allows to set graph construction (i.e. deserialization) time in nanoseconds
+             */
+            void setBuildTime(Nd4jIndex nanos);
+
+            /**
+             * This method sets graph execution time in nanoseconds.
+             */
+            void setExecutionTime(Nd4jIndex nanos);
+
+            void printOut();
         };
     }
 }

@@ -38,6 +38,8 @@ namespace nd4j {
             ~NodeProfile() = default;
 
             explicit NodeProfile(int id, const char *name);
+
+            void printOut();
         };
     }
 }
