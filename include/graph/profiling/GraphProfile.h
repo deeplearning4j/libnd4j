@@ -9,7 +9,9 @@
 #include <pointercast.h>
 #include <dll.h>
 #include <vector>
+#include <string>
 #include <map>
+#include <chrono>
 
 namespace nd4j {
     namespace graph {
@@ -32,8 +34,14 @@ namespace nd4j {
             // collection of pointers to profile results 
             std::vector<NodeProfile *> _profiles;
             std::map<int, NodeProfile *> _profilesById;
+
+            // collection of various timing reports
+            std::map<std::string, Nd4jIndex> _timings;
+            std::chrono::time_point<std::chrono::system_clock> _last;
+
+            void updateLast();
         public:
-            GraphProfile() = default;
+            GraphProfile();
             ~GraphProfile();
 
             /**
@@ -53,6 +61,15 @@ namespace nd4j {
              * This method sets graph execution time in nanoseconds.
              */
             void setExecutionTime(Nd4jIndex nanos);
+
+            void startEvent(const char *name);
+            void recordEvent(const char *name);
+            void deleteEvent(const char *name);
+
+            /**
+             * This method saves time as delta from last saved time
+             */
+            void spotEvent(const char *name);
 
             /**
              * These methods are just utility methods for time

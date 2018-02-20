@@ -252,3 +252,18 @@ TEST_F(PlaygroundTests, ScalarTest_2) {
     for (auto v: pool2)
         delete v;
 }
+
+TEST_F(PlaygroundTests, Test_Profile_1) {
+    GraphProfile prof;
+
+    prof.setBuildTime(70);
+    prof.setExecutionTime(130);
+
+    prof.spotEvent("alpha");
+    sleep(1);
+    prof.spotEvent("beta");
+    sleep(1);
+    prof.spotEvent("gamma");
+
+    prof.printOut();
+}

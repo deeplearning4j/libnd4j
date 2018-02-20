@@ -186,10 +186,6 @@ template <typename T>
  */
 template <typename T>
 Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* variableSpace) {
-    graph->buildGraph();
-
-    Nd4jIndex timeStart = Environment::getInstance()->isProfiling() ? GraphProfile::currentTime() : 0L;
-
     auto __variableSpace = variableSpace == nullptr ? graph->getVariableSpace() : variableSpace;
 
     bool tempFlow = false;
@@ -198,6 +194,15 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* varia
         __variableSpace->setFlowPath(new FlowPath());
     }
     auto flowPath = __variableSpace->flowPath();
+
+    Nd4jIndex tb0 = Environment::getInstance()->isProfiling() ? GraphProfile::currentTime() : 0L;
+    graph->buildGraph();
+
+    // optionally saving graph build time
+    if (Environment::getInstance()->isProfiling())
+        flowPath->profile().setBuildTime(GraphProfile::relativeTime(tb0));
+
+    Nd4jIndex timeStart = Environment::getInstance()->isProfiling() ? GraphProfile::currentTime() : 0L;
 
     bool pe = graph->getExecutorConfiguration()->_executionMode == ExecutionMode_AUTO;
 
@@ -432,6 +437,7 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* varia
         }
     }
 
+    // optionally saving execution time
     if (Environment::getInstance()->isProfiling()) {
         flowPath->profile().setExecutionTime(GraphProfile::relativeTime(timeStart));
         flowPath->profile().printOut();
