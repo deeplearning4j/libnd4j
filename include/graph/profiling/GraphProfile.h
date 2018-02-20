@@ -72,6 +72,12 @@ namespace nd4j {
             void spotEvent(const char *name);
 
             /**
+             * This method returns pointer to NodeProfile by ID
+             * PLEASE NOTE: this method will create new NodeProfile if there's none
+             */
+            NodeProfile* nodeById(int id, const char *name = nullptr);
+
+            /**
              * These methods are just utility methods for time
              */
             static Nd4jIndex currentTime();

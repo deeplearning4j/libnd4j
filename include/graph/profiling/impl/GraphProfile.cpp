@@ -81,21 +81,43 @@ namespace nd4j {
             updateLast();
         }
 
+        NodeProfile* GraphProfile::nodeById(int id, const char *name) {
+            if (_profilesById.count(id) == 0) {
+                auto node = new NodeProfile(id, name);
+                _profiles.emplace_back(node);
+                _profilesById[id] = node;
+                return node;
+            }
+
+            return _profilesById[id];
+        }
+
         void GraphProfile::printOut() {
             nd4j_printf("Graph report:\n", "");
             nd4j_printf("\nMemory:\n", "");
 
+            Nd4jIndex tmp = 0L;
+            Nd4jIndex obj = 0L;
+            Nd4jIndex act = 0L;
+            for (auto v: _profiles) {
+                tmp += v->getTemporarySize();
+                obj += v->getObjectsSize();
+                act += v->getActivationsSize();
+            }
+
+            nd4j_printf("ACT: %lld; TMP: %lld; OBJ: %lld; \n", act, tmp, obj);
+
             nd4j_printf("\nTime:\n", "");
-            nd4j_printf("Construction time: %lld\n", _buildTime);
-            nd4j_printf("Execution time: %lld\n", _executionTime);
+            nd4j_printf("Construction time: %lld us;\n", _buildTime);
+            nd4j_printf("Execution time: %lld us;\n", _executionTime);
 
             nd4j_printf("\nPer-node reports:\n", "");
             for (auto v: _profiles)
                 v->printOut();
             
-            nd4j_printf("\nTimers:\n", "");
+            nd4j_printf("\nSpecial timers:\n", "");
             for (auto v: _timings)
-                nd4j_printf("%s: %lld\n", v.first.c_str(), v.second);
+                nd4j_printf("%s: %lld us;\n", v.first.c_str(), v.second);
         }
     }
 }

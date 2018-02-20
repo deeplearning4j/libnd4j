@@ -39,6 +39,18 @@ namespace nd4j {
 
             explicit NodeProfile(int id, const char *name);
 
+            void setBuildTime(Nd4jIndex time);
+            void setPreparationTime(Nd4jIndex time);
+            void setExecutionTime(Nd4jIndex time);
+
+            void setActivationsSize(Nd4jIndex bytes);
+            void setTemporarySize(Nd4jIndex bytes);
+            void setObjectsSize(Nd4jIndex bytes);
+
+            Nd4jIndex getActivationsSize();
+            Nd4jIndex getTemporarySize();
+            Nd4jIndex getObjectsSize();
+
             void printOut();
         };
     }
