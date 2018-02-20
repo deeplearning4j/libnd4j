@@ -15,7 +15,7 @@ namespace nd4j {
         };
 
         void NodeProfile::printOut() {
-            nd4j_printf("Node: <%i/%s>\n", _id, _name.c_str());
+            nd4j_printf("Node: <%i:%s>\n", _id, _name.c_str());
             nd4j_printf("      Memory: ACT: %lld; TMP: %lld; OBJ: %lld;\n", _memoryActivations, _memoryTemporary, _memoryObjects);
             nd4j_printf("      Time: PREP: %lld us; EXEC: %lld us;\n", _preparationTime, _executionTime);
         };
