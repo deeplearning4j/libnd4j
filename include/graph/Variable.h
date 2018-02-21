@@ -80,6 +80,7 @@ namespace nd4j {
 
             int id();
             int index();
+            void setIndex(int index);
             void setId(int id);
             void setId(int id, int idx);
 

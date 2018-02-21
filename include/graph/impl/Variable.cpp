@@ -17,6 +17,20 @@ namespace nd4j {
         Variable<N>* Variable<T>::asT() {
             auto result = new Variable<N>(this->isPlaceholder());
 
+            result->markExternal(this->_external);
+            result->setId(this->_id);
+            result->markReadOnly(this->_readOnly);
+            result->setName(&this->_name);
+            result->setIndex(this->_index);
+
+            if (this->_ndarray != nullptr)
+                result->setNDArray(this->_ndarray->template asT<N>());
+
+            // FIXME: add support for ArrayList
+            if (this->_list != nullptr) {
+                nd4j_printf("ArrayList not supported yet\n", "");
+                throw "ArrayList not supported yet";
+            }
 
             return result;
         }
@@ -28,6 +42,7 @@ namespace nd4j {
             result->_id = this->_id;
             result->_readOnly = this->_readOnly;
             result->_name = this->_name;
+            result->_index = this->_index;
 
             if (this->_ndarray != nullptr)
                 result->_ndarray = this->_ndarray->dup(this->_ndarray->ordering());
@@ -36,6 +51,11 @@ namespace nd4j {
                 result->_list = this->_list->clone();
 
             return result;
+        }
+
+        template <typename T>
+        void nd4j::graph::Variable<T>::setIndex(int index) {
+            _index = index;
         }
 
         template <typename T>

@@ -2068,7 +2068,7 @@ namespace simdOps {
 									maxIdx = i;
 								}
 
-								dx[i] = 0.0;
+								result[i] = 0.0;
 
 							}
 						}
