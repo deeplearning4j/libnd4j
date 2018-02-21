@@ -11,6 +11,16 @@
 
 namespace nd4j {
     namespace graph {
+
+        template <typename T>
+        template <typename N>
+        Variable<N>* Variable<T>::asT() {
+            auto result = new Variable<N>(this->isPlaceholder());
+
+
+            return result;
+        }
+
         template <typename T>
         nd4j::graph::Variable<T>* nd4j::graph::Variable<T>::clone() {
             auto result = new Variable<T>(this->isPlaceholder());
@@ -261,5 +271,18 @@ namespace nd4j {
         template class ND4J_EXPORT Variable<float>;
         template class ND4J_EXPORT Variable<float16>;
         template class ND4J_EXPORT Variable<double>;
+
+
+        template Variable<float>* Variable<float>::asT<float>();
+        template Variable<float16>* Variable<float>::asT<float16>();
+        template Variable<double>* Variable<float>::asT<double>();
+
+        template Variable<float>* Variable<float16>::asT<float>();
+        template Variable<float16>* Variable<float16>::asT<float16>();
+        template Variable<double>* Variable<float16>::asT<double>();
+
+        template Variable<float>* Variable<double>::asT<float>();
+        template Variable<float16>* Variable<double>::asT<float16>();
+        template Variable<double>* Variable<double>::asT<double>();
     }
 }

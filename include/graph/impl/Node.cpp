@@ -637,6 +637,14 @@ namespace nd4j {
         }
 
         template <typename T>
+        template <typename N>
+        Node<N>* Node<T>::asT() {
+            auto clone = new Node<N>(_opType, _opNum, _id);
+
+            return clone;
+        }
+
+        template <typename T>
         Node<T>* Node<T>::clone() {
             auto clone = new Node<T>(_opType, _opNum, _id);
 
@@ -683,5 +691,18 @@ namespace nd4j {
         template class ND4J_EXPORT Node<float>;
         template class ND4J_EXPORT Node<float16>;
         template class ND4J_EXPORT Node<double>;
+
+
+        template Node<float>* Node<float>::asT<float>();
+        template Node<float16>* Node<float>::asT<float16>();
+        template Node<double>* Node<float>::asT<double>();
+
+        template Node<float>* Node<float16>::asT<float>();
+        template Node<float16>* Node<float16>::asT<float16>();
+        template Node<double>* Node<float16>::asT<double>();
+
+        template Node<float>* Node<double>::asT<float>();
+        template Node<float16>* Node<double>::asT<float16>();
+        template Node<double>* Node<double>::asT<double>();
     }
 }

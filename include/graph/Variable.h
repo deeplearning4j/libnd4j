@@ -46,6 +46,9 @@ namespace nd4j {
 
             Variable<T>* clone();
 
+            template <typename N>
+            Variable<N>* asT();
+
             bool hasNDArray();
             nd4j::NDArray<T>* getNDArray();
             void setNDArray(nd4j::NDArray<T> * array);

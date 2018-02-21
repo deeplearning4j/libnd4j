@@ -167,6 +167,10 @@ namespace nd4j {
             // clone Node
             Node<T>* clone();
 
+            // change Node data type
+            template <typename N>
+            Node<N>* asT();
+
             static nd4j::ops::DeclarableOp<T>* buildOpByType(OpType opType, int numInputs, int numIArgs, int numTArgs, int opNum, T scalar);
         };
     }

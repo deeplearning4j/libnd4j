@@ -162,6 +162,9 @@ namespace nd4j {
              */
             Graph<T>* clone();
 
+            template <typename N>
+            Graph<N>* asT();
+
             /**
              * This method removes reference to VariableSpace from this Graph
              */
@@ -178,6 +181,9 @@ namespace nd4j {
              * @return
              */
             bool hasNode(int nodeId);
+
+
+            void replaceState(VariableSpace<T> *state, ExecutorConfiguration *configuration);
         };
     }
 }

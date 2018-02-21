@@ -45,6 +45,14 @@ namespace nd4j {
         }
 
         template <typename T>
+        template <typename N>
+        nd4j::graph::VariableSpace<N>* nd4j::graph::VariableSpace<T>::asT() {
+            auto result = new VariableSpace<N>();
+
+            return result;
+        }
+
+        template <typename T>
         std::vector<nd4j::graph::Variable<T>*> * nd4j::graph::VariableSpace<T>::getPlaceholders() {
             return &_placeholders;
         }
@@ -413,5 +421,17 @@ namespace nd4j {
         template class ND4J_EXPORT VariableSpace<float>;
         template class ND4J_EXPORT VariableSpace<float16>;
         template class ND4J_EXPORT VariableSpace<double>;
+
+        template VariableSpace<float>* VariableSpace<float>::asT<float>();
+        template VariableSpace<float16>* VariableSpace<float>::asT<float16>();
+        template VariableSpace<double>* VariableSpace<float>::asT<double>();
+
+        template VariableSpace<float>* VariableSpace<float16>::asT<float>();
+        template VariableSpace<float16>* VariableSpace<float16>::asT<float16>();
+        template VariableSpace<double>* VariableSpace<float16>::asT<double>();
+
+        template VariableSpace<float>* VariableSpace<double>::asT<float>();
+        template VariableSpace<float16>* VariableSpace<double>::asT<float16>();
+        template VariableSpace<double>* VariableSpace<double>::asT<double>();
     }
 }
