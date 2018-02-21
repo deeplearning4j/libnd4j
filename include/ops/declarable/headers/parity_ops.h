@@ -188,12 +188,14 @@ namespace nd4j {
          * This operation extracts a strided (optionally) slice from a tensor, 
          */
         DECLARE_CUSTOM_OP(strided_slice, 1, 1, false, 0, 5); // TODO: new op type needed. that returns VIEW
+        DECLARE_CUSTOM_OP(strided_slice_bp, 2, 1, false, 0, 5);
 
         /**
          * This operation extracts a slice from a tensor.
          * 
          */
         DECLARE_CUSTOM_OP(slice, 1, 1, false, 0, -1);
+        DECLARE_CUSTOM_OP(slice_bp, 2, 1, false, 0, -1);
 
         /**
          * This operation generate sequences. Basically from......to, with step used as increment.
@@ -564,6 +566,18 @@ namespace nd4j {
          *  return value - a tensor with the same shape as target or input
          */
         DECLARE_OP(weighted_cross_entropy_with_logits, 3, 1, true);
+
+        /**
+         * This op calculates weighted logarithmic loss of input
+         * Input arguments
+         *  0 - input tensor
+         *  1 - noise_shape - (vector with shape to reduce) - optional
+         *  
+         *  int parameter - seed for random numbers
+         *  T parameter - probability (should be between 0 and 1)
+         *  return value - a tensor with the same shape as target or input
+         */
+        DECLARE_CONFIGURABLE_OP(dropout, 1, 1, true, 1, 1);
 
     }
 }
