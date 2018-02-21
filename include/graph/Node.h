@@ -171,8 +171,42 @@ namespace nd4j {
             template <typename N>
             Node<N>* asT();
 
+            template <typename N>
+            FORCEINLINE void pullValues(Node<N> *other);
+
             static nd4j::ops::DeclarableOp<T>* buildOpByType(OpType opType, int numInputs, int numIArgs, int numTArgs, int opNum, T scalar);
         };
+
+        template <typename T>
+        template <typename N>
+        FORCEINLINE void Node<T>::pullValues(Node<N> *other) {
+            this->_dataType = other->_dataType;
+            this->_protoContext = other->_protoContext->clone();
+            this->_scalar = other->_scalar;
+            this->_hasExternalInputs = other->_hasExternalInputs;
+            this->_hasExternalOutputs = other->_hasExternalOutputs;
+            this->_hasInternalInputs = other->_hasInternalInputs;
+            this->_hasInternalOutputs = other->_hasInternalOutputs;
+            this->_isInplace = other->_isInplace;
+            this->_isDeductable = other->_isDeductable;
+            this->_active = other->_active;
+            this->_scope_id = other->_scope_id;
+            this->_scope_name = other->_scope_name;
+            this->_layer = other->_layer;
+
+            if (this->_customOp != nullptr)
+                delete this->_customOp;
+
+            for (auto v: other->_input)
+                this->_input.emplace_back(v);
+
+            for (auto v: other->_output)
+                this->_output.emplace_back(v);
+
+            for (auto v: other->_dimensions)
+                this->_dimensions.emplace_back(v);
+
+        }
     }
 }
 

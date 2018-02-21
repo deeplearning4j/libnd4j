@@ -192,6 +192,11 @@ TEST_F(VariableSpaceTest, Test_DType_Conversion_1) {
 
     ASSERT_TRUE(sf->hasVariable(pair));
 
+    auto xf = sf->getVariable(pair)->getNDArray();
+
+    ASSERT_TRUE(arrayA->isSameShape(xf));
+    ASSERT_TRUE(arrayA->equalsTo(xf));
+
     delete sd;
     delete sf;
 }

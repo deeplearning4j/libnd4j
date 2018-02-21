@@ -641,6 +641,15 @@ namespace nd4j {
         Node<N>* Node<T>::asT() {
             auto clone = new Node<N>(_opType, _opNum, _id);
 
+            clone->pullValues(this);
+
+            if (!_isDeductable && this->_customOp != nullptr)
+                clone->setCustomOp(OpRegistrator::getInstance()->getOperationT<N>(this->_customOp->getOpHash()));
+            else if (_customOp != nullptr) {
+                auto c = dynamic_cast<nd4j::ops::LegacyOp<N>*>(_customOp);
+                clone->setCustomOp(c->clone());
+            }
+
             return clone;
         }
 
@@ -651,31 +660,7 @@ namespace nd4j {
             if (clone->_protoContext != nullptr)
                 delete clone->_protoContext;
 
-            clone->_dataType = _dataType;
-            clone->_protoContext = _protoContext->clone();
-            clone->_scalar = _scalar;
-            clone->_hasExternalInputs = _hasExternalInputs;
-            clone->_hasExternalOutputs = _hasExternalOutputs;
-            clone->_hasInternalInputs = _hasInternalInputs;
-            clone->_hasInternalOutputs = _hasInternalOutputs;
-            clone->_isInplace = _isInplace;
-            clone->_isDeductable = _isDeductable;
-            clone->_active = _active;
-            clone->_scope_id = _scope_id;
-            clone->_scope_name = _scope_name;
-            clone->_layer = _layer;
-
-            if (clone->_customOp != nullptr)
-                delete clone->_customOp;
-
-            for (auto v: _input)
-                clone->_input.emplace_back(v);
-            
-            for (auto v: _output)
-                clone->_output.emplace_back(v);
-
-            for (auto v: _dimensions)
-                clone->_dimensions.emplace_back(v);
+            clone->pullValues(this);
 
             // op time
             if (!_isDeductable)
