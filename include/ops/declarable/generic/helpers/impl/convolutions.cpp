@@ -187,55 +187,55 @@ namespace ops  {
 
 //////////////////////////////////////////////////////////////////////////
         template<typename T>
-        void ConvolutionUtils<T>::_avgPool3D_bp(T *gradInput_p, T *gradOutput_p, Nd4jIndex nslices, Nd4jIndex itime, Nd4jIndex iwidth, Nd4jIndex iheight, Nd4jIndex otime, Nd4jIndex owidth, Nd4jIndex oheight, int kT, int kW, int kH, int dT, int dW, int dH, int padT, int padW, int padH, bool count_include_pad) {
-            for (int k = 0; k < nslices; k++)
+        void ConvolutionUtils<T>::_avgPool3D_bp(T *gradI_p, T *gradO_p, Nd4jIndex iC, Nd4jIndex iD, Nd4jIndex iH, Nd4jIndex iW, Nd4jIndex oD, Nd4jIndex oH, Nd4jIndex oW, int kD, int kH, int kW, int sD, int sH, int sW, int pD, int pH, int pW, bool count_include_pad) {
+            for (int k = 0; k < iC; k++)
             {
                 Nd4jIndex i, j, ti;
 
                 /* local pointers */
-                T *ip = gradInput_p + k * itime * iwidth * iheight;
-                T *op = gradOutput_p + k * otime * owidth * oheight;
-                for (i = 0; i < itime*iwidth*iheight; i++)
+                T *ip = gradI_p + k * iD * iW * iH;
+                T *op = gradO_p + k * oD * oW * oH;
+                for (i = 0; i < iD*iW*iH; i++)
                     *(ip + i) = 0;
 
                 /* loop over output */
-                for (ti = 0; ti < otime; ti++)
+                for (ti = 0; ti < oD; ti++)
                 {
-                    for (i = 0; i < oheight; i++)
+                    for (i = 0; i < oH; i++)
                     {
-                        for (j = 0; j < owidth; j++)
+                        for (j = 0; j < oW; j++)
                         {
-                            Nd4jIndex tstart = ti * dT - padT;
-                            Nd4jIndex hstart = i  * dH - padH;
-                            Nd4jIndex wstart = j  * dW - padW;
-                            Nd4jIndex tend = nd4j::math::nd4j_min<Nd4jIndex>(tstart + kT, itime + padT);
-                            Nd4jIndex hend = nd4j::math::nd4j_min<Nd4jIndex>(hstart + kH, iheight + padH);
-                            Nd4jIndex wend = nd4j::math::nd4j_min<Nd4jIndex>(wstart + kW, iwidth + padW);
-                            Nd4jIndex pool_size = (tend -tstart) * (hend - hstart) * (wend - wstart);
-                            tstart = nd4j::math::nd4j_max<Nd4jIndex>(tstart, 0);
+                            Nd4jIndex cstart = ti * sD - pD;
+                            Nd4jIndex hstart = i  * sH - pH;
+                            Nd4jIndex wstart = j  * sW - pW;
+                            Nd4jIndex cend = nd4j::math::nd4j_min<Nd4jIndex>(cstart + kD, iD + pD);
+                            Nd4jIndex hend = nd4j::math::nd4j_min<Nd4jIndex>(hstart + kH, iH + pH);
+                            Nd4jIndex wend = nd4j::math::nd4j_min<Nd4jIndex>(wstart + kW, iW + pW);
+                            Nd4jIndex pool_size = (cend -cstart) * (hend - hstart) * (wend - wstart);
+                            cstart = nd4j::math::nd4j_max<Nd4jIndex>(cstart, 0);
                             hstart = nd4j::math::nd4j_max<Nd4jIndex>(hstart, 0);
                             wstart = nd4j::math::nd4j_max<Nd4jIndex>(wstart, 0);
-                            tend = nd4j::math::nd4j_min<Nd4jIndex>(tend, itime);
-                            hend = nd4j::math::nd4j_min<Nd4jIndex>(hend, iheight);
-                            wend = nd4j::math::nd4j_min<Nd4jIndex>(wend, iwidth);
+                            cend = nd4j::math::nd4j_min<Nd4jIndex>(cend, iD);
+                            hend = nd4j::math::nd4j_min<Nd4jIndex>(hend, iH);
+                            wend = nd4j::math::nd4j_min<Nd4jIndex>(wend, iW);
 
                             Nd4jIndex divide_factor;
                             if (count_include_pad)
                                 divide_factor = pool_size;
                             else
-                                divide_factor = (tend - tstart) * (hend - hstart) * (wend - wstart);
+                                divide_factor = (cend - cstart) * (hend - hstart) * (wend - wstart);
 
                             /* scatter gradients out to footprint: */
                             T val  = *op++;
 
                             long x,y,z;
-                            for (z = tstart; z < tend; z++)
+                            for (z = cstart; z < cend; z++)
                             {
                                 for (y = hstart; y < hend; y++)
                                 {
                                     for (x = wstart; x < wend; x++)
                                     {
-                                        *(ip + z * iheight * iwidth + y * iwidth + x) += val / divide_factor;
+                                        *(ip + z * iH * iW + y * iW + x) += val / divide_factor;
                                     }
                                 }
                             }
