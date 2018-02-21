@@ -17,6 +17,9 @@ namespace nd4j {
     namespace graph {
         class ND4J_EXPORT GraphProfile {
         private:
+            // this variable
+            Nd4jIndex _merges = 1L;
+
             /**
              * This is global memory values
              */
@@ -78,6 +81,14 @@ namespace nd4j {
              * PLEASE NOTE: this method will create new NodeProfile if there's none
              */
             NodeProfile* nodeById(int id, const char *name = nullptr);
+            bool nodeExists(int id);
+
+            /**
+             * This method merges values from other profile report
+             * @param other
+             */
+            void merge(GraphProfile *other);
+            void assign(GraphProfile *other);
 
             /**
              * These methods are just utility methods for time

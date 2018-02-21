@@ -16,6 +16,8 @@ namespace nd4j {
             int _id;
             std::string _name;
 
+            Nd4jIndex _merges = 1L;
+
             // time spent during deserialization
             Nd4jIndex _buildTime = 0L;
             
@@ -54,6 +56,11 @@ namespace nd4j {
             Nd4jIndex getActivationsSize();
             Nd4jIndex getTemporarySize();
             Nd4jIndex getObjectsSize();
+
+            std::string& name();
+
+            void merge(NodeProfile *other);
+            void assign(NodeProfile *other);
 
             void printOut();
         };

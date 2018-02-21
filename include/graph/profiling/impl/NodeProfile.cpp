@@ -16,8 +16,8 @@ namespace nd4j {
 
         void NodeProfile::printOut() {
             nd4j_printf("Node: <%i:%s>\n", _id, _name.c_str());
-            nd4j_printf("      Memory: ACT: %lld; TMP: %lld; OBJ: %lld;\n", _memoryActivations, _memoryTemporary, _memoryObjects);
-            nd4j_printf("      Time: PREP: %lld us; EXEC: %lld us; TTL: %lld us;\n", _preparationTime, _executionTime, _totalTime);
+            nd4j_printf("      Memory: ACT: %lld; TMP: %lld; OBJ: %lld;\n", _memoryActivations / _merges, _memoryTemporary / _merges, _memoryObjects / _merges);
+            nd4j_printf("      Time: PREP: %lld us; EXEC: %lld us; TTL: %lld us;\n", _preparationTime / _merges, _executionTime / _merges, _totalTime / _merges);
         };
 
         Nd4jIndex NodeProfile::getActivationsSize() {
@@ -59,6 +59,32 @@ namespace nd4j {
             
         void NodeProfile::setObjectsSize(Nd4jIndex bytes) {
             _memoryObjects = bytes;
+        }
+
+        void NodeProfile::merge(NodeProfile *other) {
+            _merges += other->_merges;
+            _memoryObjects += other->_memoryObjects;
+            _memoryActivations += other->_memoryActivations;
+            _memoryTemporary += other->_memoryTemporary;
+
+            _preparationTime += other->_preparationTime;
+            _executionTime += other->_executionTime;
+            _totalTime += other->_totalTime;
+        }
+
+        std::string& NodeProfile::name() {
+            return _name;
+        }
+
+        void NodeProfile::assign(NodeProfile *other) {
+            _merges = other->_merges;
+            _memoryObjects = other->_memoryObjects;
+            _memoryActivations = other->_memoryActivations;
+            _memoryTemporary = other->_memoryTemporary;
+
+            _preparationTime = other->_preparationTime;
+            _executionTime = other->_executionTime;
+            _totalTime = other->_totalTime;
         }
     }
 }

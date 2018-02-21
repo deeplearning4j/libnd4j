@@ -104,6 +104,45 @@ namespace nd4j {
             return _profilesById[id];
         }
 
+        void GraphProfile::merge(GraphProfile *other) {
+            _merges += other->_merges;
+            _memoryActivations += other->_memoryActivations;
+            _memoryTemporary += other->_memoryTemporary;
+            _memoryTotal += other->_memoryTotal;
+            _memoryObjects += other->_memoryObjects;
+
+            _executionTime += other->_executionTime;
+            _buildTime += other->_buildTime;
+
+
+            for (auto v:_profilesById) {
+                if (!other->nodeExists(v.first))
+                    continue;
+
+                v.second->merge(other->nodeById(v.first));
+            }
+        }
+
+        void GraphProfile::assign(GraphProfile *other) {
+            _merges = other->_merges;
+            _memoryActivations = other->_memoryActivations;
+            _memoryTemporary = other->_memoryTemporary;
+            _memoryTotal = other->_memoryTotal;
+            _memoryObjects = other->_memoryObjects;
+
+            _executionTime = other->_executionTime;
+            _buildTime = other->_buildTime;
+
+
+            for (auto v: other->_profilesById) {
+                nodeById(v.first, v.second->name().c_str())->assign(v.second);
+            }
+        }
+
+        bool GraphProfile::nodeExists(int id) {
+            return _profilesById.count(id) > 0;
+        }
+
         void GraphProfile::printOut() {
             nd4j_printf("Graph profile:\n", "");
             nd4j_printf("\nMemory:\n", "");
