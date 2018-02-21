@@ -244,6 +244,8 @@ namespace nd4j {
             block->setInnerTime(outerTime);
 
             if (Environment::getInstance()->isProfiling()) {
+                auto fp = block->getVariableSpace()->flowPath();
+                auto p = block->getVariableSpace()->flowPath()->profile();
                 block->getVariableSpace()->flowPath()->profile()->nodeById(block->nodeId())->setPreparationTime(prepTime);
                 block->getVariableSpace()->flowPath()->profile()->nodeById(block->nodeId())->setExecutionTime(outerTime);
             }
@@ -474,6 +476,8 @@ namespace nd4j {
             VariableSpace<T> variableSpace;
             auto arrayList = new ResultSet<T>();
             //ResultSet<T> arrayList;
+            FlowPath fp;
+            variableSpace.setFlowPath(&fp);
 
             if (isInplace)
                 arrayList->setNonRemovable();

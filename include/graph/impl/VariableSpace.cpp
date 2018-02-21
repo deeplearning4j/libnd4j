@@ -26,19 +26,7 @@ namespace nd4j {
 
                 Variable<T>* clonedVar = x.second->clone();
 
-                if (pair.second == 0) {
-                    if (pair.first < 0)
-                        result->_variables[pair.first] = clonedVar;
-                    else
-                        result->_temporary[pair.first] = clonedVar;
-                }
-
-                if (clonedVar->getName() != nullptr && clonedVar->getName()->length() > 0)
-                    result->_symbolic[*(clonedVar->getName())] = clonedVar;
-
-                result->_paired[pair] = clonedVar;
-
-                result->_handles->push_back(clonedVar);
+                result->injectVariable(pair, clonedVar);
             }
 
             return result;
@@ -49,7 +37,32 @@ namespace nd4j {
         nd4j::graph::VariableSpace<N>* nd4j::graph::VariableSpace<T>::asT() {
             auto result = new VariableSpace<N>();
 
+            for (auto const& x : _paired) {
+                std::pair<int, int> pair(x.first.first, x.first.second);
+
+                Variable<N>* clonedVar = x.second->template asT<N>();
+
+                result->injectVariable(pair, clonedVar);
+            }
+
             return result;
+        }
+
+        template <typename T>
+        void nd4j::graph::VariableSpace<T>::injectVariable(std::pair<int, int> &pair, Variable<T>* variable) {
+            if (pair.second == 0) {
+                if (pair.first < 0)
+                    this->_variables[pair.first] = variable;
+                else
+                    this->_temporary[pair.first] = variable;
+            }
+
+            if (variable->getName() != nullptr && variable->getName()->length() > 0)
+                this->_symbolic[*(variable->getName())] = variable;
+
+            this->_paired[pair] = variable;
+
+            this->_handles->push_back(variable);
         }
 
         template <typename T>

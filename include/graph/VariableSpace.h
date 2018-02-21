@@ -109,6 +109,7 @@ namespace nd4j {
 
             template <typename N>
             nd4j::graph::VariableSpace<N>* asT();
+            void injectVariable(std::pair<int, int> &pair, Variable<T>* variable);
 
             virtual nd4j::graph::Stash<T>* getStash();
 
