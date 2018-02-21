@@ -60,7 +60,7 @@ namespace nd4j {
             void incrementNumberOfCycles(Nd4jIndex frameId);
             Nd4jIndex getNumberOfCycles(Nd4jIndex frameId);
 
-            GraphProfile& profile();
+            GraphProfile* profile();
         };
     }
 }

@@ -235,17 +235,17 @@ namespace nd4j {
             this->prepareOutputs(*block);
 
             auto timeStart = std::chrono::system_clock::now();
-            auto prepTime = std::chrono::duration_cast<std::chrono::microseconds> (timeStart - timeEnter).count();
+            auto prepTime = std::chrono::duration_cast<std::chrono::nanoseconds> (timeStart - timeEnter).count();
 
             Nd4jStatus status = this->validateAndExecute(*block);
 
             auto timeEnd = std::chrono::system_clock::now();
-            auto outerTime = std::chrono::duration_cast<std::chrono::microseconds> (timeEnd - timeStart).count();
+            auto outerTime = std::chrono::duration_cast<std::chrono::nanoseconds> (timeEnd - timeStart).count();
             block->setInnerTime(outerTime);
 
             if (Environment::getInstance()->isProfiling()) {
-                block->getVariableSpace()->flowPath()->profile().nodeById(block->nodeId())->setPreparationTime(prepTime);
-                block->getVariableSpace()->flowPath()->profile().nodeById(block->nodeId())->setExecutionTime(outerTime);
+                block->getVariableSpace()->flowPath()->profile()->nodeById(block->nodeId())->setPreparationTime(prepTime);
+                block->getVariableSpace()->flowPath()->profile()->nodeById(block->nodeId())->setExecutionTime(outerTime);
             }
 
             return status;

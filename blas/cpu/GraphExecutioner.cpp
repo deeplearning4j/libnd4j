@@ -200,7 +200,7 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* varia
 
     // optionally saving graph build time
     if (Environment::getInstance()->isProfiling())
-        flowPath->profile().setBuildTime(GraphProfile::relativeTime(tb0));
+        flowPath->profile()->setBuildTime(GraphProfile::relativeTime(tb0));
 
     Nd4jIndex timeStart = Environment::getInstance()->isProfiling() ? GraphProfile::currentTime() : 0L;
 
@@ -232,11 +232,11 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* varia
             Node<T>* node = graph->getOnion()->at(l)->at(n);
 
             if (Environment::getInstance()->isProfiling())
-                flowPath->profile().nodeById(node->id(), node->name()->c_str());
+                flowPath->profile()->nodeById(node->id(), node->name()->c_str());
 
             if (lastId != node->id() && Environment::getInstance()->isProfiling()) {
                 if (lastId != -10000000)
-                    flowPath->profile().nodeById(lastId)->setTotalTime(GraphProfile::relativeTime(nodeTime));
+                    flowPath->profile()->nodeById(lastId)->setTotalTime(GraphProfile::relativeTime(nodeTime));
 
                 lastId = node->id();
                 nodeTime = GraphProfile::currentTime();
@@ -413,7 +413,7 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* varia
 
                 auto timeEnd = std::chrono::system_clock::now();
 
-                auto outerTime = std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeStart).count();
+                auto outerTime = std::chrono::duration_cast<std::chrono::nanoseconds>(timeEnd - timeStart).count();
 
 
                 flowPath->setOuterTime(node->id(), outerTime);
@@ -450,9 +450,9 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* varia
 
     // optionally saving execution time
     if (Environment::getInstance()->isProfiling()) {
-        flowPath->profile().nodeById(lastId)->setTotalTime(GraphProfile::relativeTime(nodeTime));
-        flowPath->profile().setExecutionTime(GraphProfile::relativeTime(timeStart));
-        flowPath->profile().printOut();
+        flowPath->profile()->nodeById(lastId)->setTotalTime(GraphProfile::relativeTime(nodeTime));
+        flowPath->profile()->setExecutionTime(GraphProfile::relativeTime(timeStart));
+        //flowPath->profile().printOut();
     }
 
     if (tempFlow)

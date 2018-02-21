@@ -294,3 +294,50 @@ TEST_F(PlaygroundTests, Test_Profile_1) {
 
     prof.printOut();
 }
+
+
+TEST_F(PlaygroundTests, Test_Profile_2) {
+    Environment::getInstance()->setProfiling(true);
+    auto graph = GraphExecutioner<float>::importFromFlatBuffers("./resources/ae_00.fb");
+
+    // saving original workspace
+    auto varSpace = graph->getVariableSpace()->clone();
+
+    // printing out graph structure
+    graph->printOut();
+
+    // warm up
+    for (int e = 0; e < 1000; e++) {
+        FlowPath fp;
+
+        auto _vs = varSpace->clone();
+        _vs->setFlowPath(&fp);
+        GraphExecutioner<float>::execute(graph, _vs);
+
+        delete _vs;
+    }
+
+
+    GraphProfile profile;
+    for (int e = 0; e < 10000; e++) {
+        FlowPath fp;
+
+        // we're always starting from "fresh" varspace here
+        auto _vs = varSpace->clone();
+        _vs->setFlowPath(&fp);
+        GraphExecutioner<float>::execute(graph, _vs);
+
+        auto p = fp.profile();
+        if (e == 0)
+            profile.assign(p);
+        else
+            profile.merge(p);
+
+        delete _vs;
+    }
+
+    profile.printOut();
+
+    delete varSpace;
+    delete graph;
+}

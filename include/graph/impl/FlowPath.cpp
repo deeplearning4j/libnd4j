@@ -128,8 +128,8 @@ namespace nd4j {
             _states[nodeId].markExecuted(wasExecuted);
         }
 
-        GraphProfile& FlowPath::profile() {
-            return _profile;
+        GraphProfile* FlowPath::profile() {
+            return &_profile;
         }
     }
 }

@@ -17,7 +17,7 @@ namespace nd4j {
         void NodeProfile::printOut() {
             nd4j_printf("Node: <%i:%s>\n", _id, _name.c_str());
             nd4j_printf("      Memory: ACT: %lld; TMP: %lld; OBJ: %lld;\n", _memoryActivations / _merges, _memoryTemporary / _merges, _memoryObjects / _merges);
-            nd4j_printf("      Time: PREP: %lld us; EXEC: %lld us; TTL: %lld us;\n", _preparationTime / _merges, _executionTime / _merges, _totalTime / _merges);
+            nd4j_printf("      Time: PREP: %lld ns; EXEC: %lld ns; TTL: %lld ns;\n", _preparationTime / _merges, _executionTime / _merges, _totalTime / _merges);
         };
 
         Nd4jIndex NodeProfile::getActivationsSize() {

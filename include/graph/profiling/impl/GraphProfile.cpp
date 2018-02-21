@@ -47,9 +47,9 @@ namespace nd4j {
 
         Nd4jIndex GraphProfile::currentTime() {
             auto t = std::chrono::system_clock::now();
-            auto v = std::chrono::time_point_cast<std::chrono::microseconds> (t);
+            auto v = std::chrono::time_point_cast<std::chrono::nanoseconds> (t);
             auto epoch = v.time_since_epoch();
-            return (Nd4jIndex) std::chrono::duration_cast<std::chrono::microseconds>(epoch).count();
+            return (Nd4jIndex) std::chrono::duration_cast<std::chrono::nanoseconds>(epoch).count();
         }
         
         Nd4jIndex GraphProfile::relativeTime(Nd4jIndex time) {
@@ -74,7 +74,7 @@ namespace nd4j {
             }
             auto t0 = _timers[k];
             auto t1 = std::chrono::system_clock::now();
-            auto v = (Nd4jIndex) std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0).count();
+            auto v = (Nd4jIndex) std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count();
 
             _timings[k] = v;
             _timers.erase(k);
@@ -87,7 +87,7 @@ namespace nd4j {
             
         void GraphProfile::spotEvent(const char *name) {
             auto t = std::chrono::system_clock::now();
-            auto d = (Nd4jIndex) std::chrono::duration_cast<std::chrono::microseconds>(t - _last).count();
+            auto d = (Nd4jIndex) std::chrono::duration_cast<std::chrono::nanoseconds>(t - _last).count();
             std::string k = name;
             _timings[k] = d;
             updateLast();
@@ -144,7 +144,7 @@ namespace nd4j {
         }
 
         void GraphProfile::printOut() {
-            nd4j_printf("Graph profile:\n", "");
+            nd4j_printf("Graph profile: %i executions\n", _merges);
             nd4j_printf("\nMemory:\n", "");
 
             Nd4jIndex tmp = 0L;
@@ -156,11 +156,11 @@ namespace nd4j {
                 act += v->getActivationsSize();
             }
 
-            nd4j_printf("ACT: %lld; TMP: %lld; OBJ: %lld; \n", act, tmp, obj);
+            nd4j_printf("ACT: %lld; TMP: %lld; OBJ: %lld; \n", act / _merges, tmp / _merges, obj / _merges);
 
             nd4j_printf("\nTime:\n", "");
-            nd4j_printf("Construction time: %lld us;\n", _buildTime);
-            nd4j_printf("Execution time: %lld us;\n", _executionTime);
+            nd4j_printf("Construction time: %lld ns;\n", _buildTime / _merges);
+            nd4j_printf("Execution time: %lld ns;\n", _executionTime / _merges);
 
             nd4j_printf("\nPer-node reports:\n", "");
             if (_profiles.empty())
@@ -174,7 +174,7 @@ namespace nd4j {
                 nd4j_printf("No special timers were set\n","");
 
             for (auto v: _timings)
-                nd4j_printf("%s: %lld us;\n", v.first.c_str(), v.second);
+                nd4j_printf("%s: %lld ns;\n", v.first.c_str(), v.second);
         }
     }
 }
