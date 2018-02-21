@@ -57,6 +57,13 @@ namespace nd4j {
     template <typename N>
     NDArray<N>* NDArray<T>::asT() {
         auto result = new NDArray<N>(this->ordering(), this->getShapeAsVector());
+        auto l = this->lengthOf();
+
+        // FIXME: we want to avoid put/get indexed scalars here really
+#pragma omp parallel for
+        for (int e = 0; e < l; e++) {
+            result->putIndexedScalar(e, (N) this->getIndexedScalar(e));
+        }
 
         return result;
     }
