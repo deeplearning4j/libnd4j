@@ -26,6 +26,8 @@ namespace nd4j {
             int dX = INT_ARG(7);			//Dilation, width/x dimension
             bool isSameMode = INT_ARG(8) > 0;
             double zeroPadVal = 0.0;
+            if (block.getTArguments()->size() > 0)
+                zeroPadVal = T_ARG(0);
 
             LaunchContext ctx;
             nd4j::ops::helpers::_im2col(ctx, z->buffer(), x->buffer(), z->shapeInfo(), x->shapeInfo(), kernelHeight, kernelWidth, strideY, strideX, padHeight, padWidth, dY, dX, isSameMode, zeroPadVal);
