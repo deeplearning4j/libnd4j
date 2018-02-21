@@ -62,15 +62,27 @@ namespace nd4j {
         }
 
         void GraphProfile::startEvent(const char *name) {
-
+            std::string k = name;
+            _timers[k] = std::chrono::system_clock::now();
         }
 
         void GraphProfile::recordEvent(const char *name) {
+            std::string k = name;
+            if (_timers.count(k) == 0) {
+                nd4j_printf("Can't find timer key: [%s]", name);
+                throw "Missing timer key";
+            }
+            auto t0 = _timers[k];
+            auto t1 = std::chrono::system_clock::now();
+            auto v = (Nd4jIndex) std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0).count();
 
+            _timings[k] = v;
+            _timers.erase(k);
         }
         
         void GraphProfile::deleteEvent(const char *name) {
-
+            std::string k = name;
+            _timers.erase(k);
         }
             
         void GraphProfile::spotEvent(const char *name) {

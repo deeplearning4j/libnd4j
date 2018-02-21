@@ -39,6 +39,8 @@ namespace nd4j {
             std::map<std::string, Nd4jIndex> _timings;
             std::chrono::time_point<std::chrono::system_clock> _last;
 
+            std::map<std::string, std::chrono::time_point<std::chrono::system_clock>> _timers;
+
             void updateLast();
         public:
             GraphProfile();
