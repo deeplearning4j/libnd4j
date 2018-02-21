@@ -223,6 +223,8 @@ namespace nd4j {
         Nd4jStatus nd4j::ops::DeclarableOp<T>::execute(Context<T>* block) {
             nd4j_debug("Executing op: [%s]\n", this->getOpName()->c_str());
 
+            auto timeEnter = std::chrono::system_clock::now();
+
             // basic validation: ensure inputs are set
             REQUIRE_OK(this->validateNonEmptyInput(*block));
 
@@ -233,12 +235,18 @@ namespace nd4j {
             this->prepareOutputs(*block);
 
             auto timeStart = std::chrono::system_clock::now();
+            auto prepTime = std::chrono::duration_cast<std::chrono::microseconds> (timeStart - timeEnter).count();
 
             Nd4jStatus status = this->validateAndExecute(*block);
 
             auto timeEnd = std::chrono::system_clock::now();
             auto outerTime = std::chrono::duration_cast<std::chrono::microseconds> (timeEnd - timeStart).count();
             block->setInnerTime(outerTime);
+
+            if (Environment::getInstance()->isProfiling()) {
+                block->getVariableSpace()->flowPath()->profile().nodeById(block->nodeId())->setPreparationTime(prepTime);
+                block->getVariableSpace()->flowPath()->profile().nodeById(block->nodeId())->setExecutionTime(outerTime);
+            }
 
             return status;
         }

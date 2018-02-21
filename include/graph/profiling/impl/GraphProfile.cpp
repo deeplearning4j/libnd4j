@@ -105,7 +105,7 @@ namespace nd4j {
         }
 
         void GraphProfile::printOut() {
-            nd4j_printf("Graph report:\n", "");
+            nd4j_printf("Graph profile:\n", "");
             nd4j_printf("\nMemory:\n", "");
 
             Nd4jIndex tmp = 0L;
@@ -124,10 +124,16 @@ namespace nd4j {
             nd4j_printf("Execution time: %lld us;\n", _executionTime);
 
             nd4j_printf("\nPer-node reports:\n", "");
+            if (_profiles.empty())
+                nd4j_printf("No nodes in graph\n","");
+
             for (auto v: _profiles)
                 v->printOut();
             
             nd4j_printf("\nSpecial timers:\n", "");
+            if (_timings.empty())
+                nd4j_printf("No special timers were set\n","");
+
             for (auto v: _timings)
                 nd4j_printf("%s: %lld us;\n", v.first.c_str(), v.second);
         }

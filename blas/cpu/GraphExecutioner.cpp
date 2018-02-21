@@ -213,7 +213,8 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* varia
     bool inFrame =  false;
     bool leftFrame = false;
 
-
+    auto nodeTime = GraphProfile::currentTime();
+    int lastId = -10000000;
     Nd4jIndex exec_counter = 0;
     // we loop through op layers here
     for (int l = 0; l < (int) graph->getOnion()->size(); l++) {
@@ -230,6 +231,16 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* varia
 
             Node<T>* node = graph->getOnion()->at(l)->at(n);
 
+            if (Environment::getInstance()->isProfiling())
+                flowPath->profile().nodeById(node->id(), node->name()->c_str());
+
+            if (lastId != node->id() && Environment::getInstance()->isProfiling()) {
+                if (lastId != -10000000)
+                    flowPath->profile().nodeById(lastId)->setTotalTime(GraphProfile::relativeTime(nodeTime));
+
+                lastId = node->id();
+                nodeTime = GraphProfile::currentTime();
+            }
 
             nd4j_debug("Step: %lld; Node: %i <%s>\n", exec_counter, node->id(), node->name()->c_str());
 
@@ -439,6 +450,7 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* varia
 
     // optionally saving execution time
     if (Environment::getInstance()->isProfiling()) {
+        flowPath->profile().nodeById(lastId)->setTotalTime(GraphProfile::relativeTime(nodeTime));
         flowPath->profile().setExecutionTime(GraphProfile::relativeTime(timeStart));
         flowPath->profile().printOut();
     }

@@ -25,6 +25,9 @@ namespace nd4j {
             // time spent for op execution
             Nd4jIndex _executionTime = 0L;
 
+            // total time spent during node execution
+            Nd4jIndex _totalTime = 0L;
+
             // amount of memory used for outputs
             Nd4jIndex _memoryActivations = 0L;
 
@@ -42,6 +45,7 @@ namespace nd4j {
             void setBuildTime(Nd4jIndex time);
             void setPreparationTime(Nd4jIndex time);
             void setExecutionTime(Nd4jIndex time);
+            void setTotalTime(Nd4jIndex time);
 
             void setActivationsSize(Nd4jIndex bytes);
             void setTemporarySize(Nd4jIndex bytes);
