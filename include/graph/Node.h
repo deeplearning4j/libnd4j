@@ -183,7 +183,7 @@ namespace nd4j {
                     delete _protoContext;
 
                 this->_dataType = other->dataType();
-                this->_protoContext = other->protoContext()->asT<T>();
+                this->_protoContext = other->protoContext()->template asT<T>();
                 this->_scalar = (T) other->scalar();
                 this->_hasExternalInputs = other->hasExternalInputs();
                 this->_hasExternalOutputs = other->hasExternalOutputs();

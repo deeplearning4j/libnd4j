@@ -1020,6 +1020,8 @@ namespace nd4j {
 
             clone->replaceState(this->_variableSpace->template asT<N>(), this->_configuration->clone());
 
+            clone->template pullState<T>(this);
+
             return clone;
         }
 
