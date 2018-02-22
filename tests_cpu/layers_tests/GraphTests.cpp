@@ -1269,3 +1269,41 @@ TEST_F(GraphTests, Test_Clone_2) {
     delete graph;
     delete clone;
 }
+
+TEST_F(GraphTests, Test_Dtype_Conversion_1) {
+    NDArray<double> expD('c', {3}, {3.0, 3.0, 3.0});
+    NDArray<float> expF('c', {3}, {3.0, 3.0, 3.0});
+
+    auto graph = GraphExecutioner<float>::importFromFlatBuffers("./resources/reduce_dim.fb");
+    graph->buildGraph();
+
+
+    auto gd = graph->template asT<double>();
+    auto gf = gd->template asT<float>();
+
+    // checking float graph
+    Nd4jStatus statusF = GraphExecutioner<float>::execute(gf);
+    ASSERT_EQ(ND4J_STATUS_OK, statusF);
+
+    ASSERT_TRUE(gf->getVariableSpace()->hasVariable(4));
+    auto z1 = gf->getVariableSpace()->getVariable(4)->getNDArray();
+
+    ASSERT_TRUE(expF.isSameShape(z1));
+    ASSERT_TRUE(expF.equalsTo(z1));
+
+
+    // checking double graph
+    Nd4jStatus statusD = GraphExecutioner<double>::execute(gd);
+    ASSERT_EQ(ND4J_STATUS_OK, statusD);
+
+    ASSERT_TRUE(gd->getVariableSpace()->hasVariable(4));
+    auto z2 = gd->getVariableSpace()->getVariable(4)->getNDArray();
+
+    ASSERT_TRUE(expD.isSameShape(z2));
+    ASSERT_TRUE(expD.equalsTo(z2));
+
+
+    delete graph;
+    delete gd;
+    delete gf;
+}
