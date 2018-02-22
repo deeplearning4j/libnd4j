@@ -135,7 +135,7 @@ namespace nd4j {
             _customOp = customOp;
 
             // divergent ops (Switch etc) are always inplace, they don't allocate anything
-            if (customOp->getOpDescriptor()->isDivergent())
+            if (_customOp != nullptr && customOp->getOpDescriptor()->isDivergent())
                 _isInplace = true;
         }
 
@@ -567,6 +567,16 @@ namespace nd4j {
         }
 
         template <typename T>
+        DataType Node<T>::dataType() {
+            return _dataType;
+        }
+
+        template <typename T>
+        ContextPrototype<T>* Node<T>::protoContext() {
+            return _protoContext;
+        }
+
+        template <typename T>
         nd4j::graph::Node<T>::~Node() {
             if (_extraParams != nullptr)
                 delete[] _extraParams;
@@ -637,6 +647,16 @@ namespace nd4j {
         }
 
         template <typename T>
+        bool Node<T>::isDeductable() {
+            return _isDeductable;
+        }
+
+        template <typename T>
+        void Node<T>::setDeductable(bool reallyDeductable) {
+            _isDeductable = reallyDeductable;
+        }
+
+        template <typename T>
         template <typename N>
         Node<N>* Node<T>::asT() {
             auto clone = new Node<N>(_opType, _opNum, _id);
@@ -646,8 +666,9 @@ namespace nd4j {
             if (!_isDeductable && this->_customOp != nullptr)
                 clone->setCustomOp(OpRegistrator::getInstance()->getOperationT<N>(this->_customOp->getOpHash()));
             else if (_customOp != nullptr) {
-                auto c = dynamic_cast<nd4j::ops::LegacyOp<N>*>(_customOp);
-                clone->setCustomOp(c->clone());
+                // this->setCustomOp(Node<T>::buildOpByType(opType, (int) input.size(), (int) block->getIArguments()->size(), (int) block->getTArguments()->size(), opNum, scalar));
+                auto op = clone->buildOpByType(_opType, clone->input()->size(), clone->getContextPrototype()->getIArguments()->size(), clone->getContextPrototype()->getTArguments()->size(), _opNum, clone->scalar());
+                clone->setCustomOp(op);
             }
 
             return clone;
