@@ -1988,7 +1988,9 @@ TEST_F(DeclarableOpsTests4, conv3d_bp_test1) {
     NDArray<double>* gradI = results->at(0);
     NDArray<double>* gradW = results->at(1);
     
-    gradI->printIndexedBuffer();
+    // gradI->printIndexedBuffer();
+    for(int i = 0; i<gradI->lengthOf(); ++i)
+        std::cout<<std::setw(10)<<(*gradI)(i)<<"   "<<std::setw(10)<<expGradI(i)<<std::endl;
 
     ASSERT_EQ(Status::OK(), results->status());
     ASSERT_TRUE(expGradI.isSameShape(gradI));
@@ -2002,7 +2004,7 @@ TEST_F(DeclarableOpsTests4, conv3d_bp_test1) {
 
 
 ////////////////////////////////////////////////////////////////////
-// TEST_F(DeclarableOpsTests4, conv3d_bp_test1) {
+// TEST_F(DeclarableOpsTests4, conv3d_bp_test2) {
 
 //     int bS=2, iD=3,iH=4,iW=3,  iC=4,oC=3,  kD=2,kH=3,kW=2,  sD=1,sH=1,sW=1,  pD=0,pH=0,pW=0,  dD=1,dH=1,dW=1;    
 //     int       oD=3,oH=4,oW=3;
@@ -2040,7 +2042,8 @@ TEST_F(DeclarableOpsTests4, conv3d_bp_test1) {
 //     NDArray<double>* gradI = results->at(0);
 //     NDArray<double>* gradW = results->at(1);
     
-//     gradI->printIndexedBuffer();
+//      for(int i = 0; i<gradI->lengthOf(); ++i)
+//         std::cout<<std::setw(10)<<(*gradI)(i)<<"   "<<std::setw(10)<<expGradI(i)<<std::endl;
 
 //     ASSERT_EQ(Status::OK(), results->status());
 //     ASSERT_TRUE(expGradI.isSameShape(gradI));

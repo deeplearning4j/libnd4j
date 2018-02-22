@@ -227,7 +227,7 @@ namespace nd4j {
         bool permutei(const int* dimensions, const int rank);
 
         /**
-        *  permutes the dimensions in array according to "dimensions" array
+        *  permutes the dimensions in array according to "dimensions" array, new array points on _buffer of this array
         */
 		NDArray<T>* permute(const std::initializer_list<int>& dimensions) const;
         NDArray<T>* permute(const std::vector<int>& dimensions) const;

@@ -116,6 +116,43 @@ namespace ops  {
 
 //////////////////////////////////////////////////////////////////////////
         template<typename T>
+        void ConvolutionUtils<T>::col2vol(const T* inBuff, T* outBuff, 
+                                          const int iD, const int iH, const int iW, 
+                                          const int oC, const int oD, const int oH, const int oW, 
+                                          const int kD, const int kH, const int kW, 
+                                          const int sD, const int sH, const int sW, 
+                                          const int pD, const int pH, const int pW, 
+                                          const int dD, const int dH, const int dW) {
+
+            int c, t, h, w;
+            memset(outBuff, 0, sizeof(T) * oD * oH * oW * oC);
+
+            int inDim = oC * kD * kH * kW;
+            for (c = 0; c < inDim; ++c) {
+                
+                int w_offset = c % kW;
+                int h_offset = (c / kW) % kH;
+                int t_offset = (c / kW / kH) % kD;
+                int c_vol = c / kD / kH / kW;
+
+                for (t = 0; t < iD; ++t) {
+                    for (h = 0; h < iH; ++h) {
+                        for (w = 0; w < iW; ++w) {
+                
+                            int t_pad = t * sD - pD + t_offset * dD;
+                            int h_pad = h * sH - pH + h_offset * dH;
+                            int w_pad = w * sW - pW + w_offset * dW;
+                
+                            if (t_pad >= 0 && t_pad < oD && h_pad >= 0 && h_pad < oH &&w_pad >= 0 && w_pad < oW)
+                                outBuff[((c_vol * oD + t_pad) * oH + h_pad) * oW + w_pad] += inBuff[((c * iD + t) * iH + h) * iW + w];
+                        }
+                    }
+                }
+            }
+        }        
+
+//////////////////////////////////////////////////////////////////////////
+        template<typename T>
         void ConvolutionUtils<T>::_vol2col(const T *data_vol, const int channels, const int depth, const int height, const int width, const int kT, const int kH, const int kW, const int pT, const int pH, const int pW, const int dT, const int dH, const int dW, const int dilationT, const int dilationH, const int dilationW, T *data_col) {
             int c, t, h, w;
             int depth_col  = (depth  + 2 * pT - (dilationT * (kT - 1) + 1)) / dT + 1;
