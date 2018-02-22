@@ -678,9 +678,6 @@ namespace nd4j {
         Node<T>* Node<T>::clone() {
             auto clone = new Node<T>(_opType, _opNum, _id);
 
-            if (clone->_protoContext != nullptr)
-                delete clone->_protoContext;
-
             clone->pullValues(this);
 
             // op time
