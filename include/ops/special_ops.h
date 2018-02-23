@@ -104,6 +104,10 @@ namespace simdOps {
             	strideX = shape::stride(xShapeBuffer)[3];
 
             	length = shape::length(resultShapeBuffer);
+				
+				//Replace kernel H/W with *effective* kernel H/W accounting for dilatyon
+				kH = kH + (kH-1)*(dH-1);
+				kW = kW + (kW-1)*(dW-1);
             }
             __syncthreads();
 
@@ -114,8 +118,8 @@ namespace simdOps {
     			const int ph = (index / outW) % outH;
     			const int c = (index / outW / outH) % inChannels;
     			const int n = index / outW / outH / inChannels;
-    			int hstart = sH * ph * dH - pH;
-    			int wstart = sW * pw * dW - pW;
+    			int hstart = sH * ph - pH;
+    			int wstart = sW * pw - pW;
     			int hend = hstart + kH;
     			int wend = wstart + kW;
     			if(hstart < 0){
