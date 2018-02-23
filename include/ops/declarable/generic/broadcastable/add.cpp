@@ -47,7 +47,7 @@ namespace nd4j {
                 shapeList->push_back(newshape);
             } else if (ShapeUtils<T>::areShapesBroadcastable(x, y)) {
                 int *newshape = nullptr;
-                ShapeUtils<T>::evalBroadcastShapeInfo(x, y, true, newshape);
+                ShapeUtils<T>::evalBroadcastShapeInfo(x, y, true, newshape, block.workspace());
 
                 shapeList->push_back(newshape);
             } else {

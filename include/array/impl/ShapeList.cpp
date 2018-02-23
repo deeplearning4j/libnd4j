@@ -35,8 +35,8 @@ namespace nd4j {
     }
 
     void ShapeList::destroy() {
-        for (auto v:_shapes)
-            delete[] v;
+//        for (auto v:_shapes)
+//            delete[] v;
     }
 
     int ShapeList::size() {

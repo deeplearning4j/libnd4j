@@ -26,7 +26,7 @@ namespace ops {
 
     DECLARE_SHAPE_FN(transpose) {
     
-    int* outputShapeInfo = ShapeUtils<T>::evalTranspShapeInfo(*INPUT_VARIABLE(0));
+    int* outputShapeInfo = ShapeUtils<T>::evalTranspShapeInfo(*INPUT_VARIABLE(0), block.workspace());
     return new ShapeList(outputShapeInfo);
 }
 

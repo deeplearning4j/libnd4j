@@ -108,6 +108,7 @@ namespace nd4j {
 
         _isShapeAlloc = true;
         _isBuffAlloc = true;
+        _workspace = workspace;
     }
 
 ////////////////////////////////////////////////////////////////////////
@@ -1196,7 +1197,7 @@ template <typename T>
     template <typename T>
     void NDArray<T>::transpose(NDArray<T>& target) const {
         
-        int* correctShape = ShapeUtils<T>::evalTranspShapeInfo(*this);
+        int* correctShape = ShapeUtils<T>::evalTranspShapeInfo(*this, _workspace);
         if(!shape::equalsStrict(correctShape, target.getShapeInfo()))
             throw "NDArray::transpose method: the shapeInfo of target array is wrong !";
 
@@ -1688,7 +1689,7 @@ NDArray<T> NDArray<T>::tile(const std::vector<int>& reps) const {
     }   
     
     // evaluate shapeInfo for resulting array
-    int* newShapeInfo = ShapeUtils<T>::evalTileShapeInfo(*this, reps);    
+    int* newShapeInfo = ShapeUtils<T>::evalTileShapeInfo(*this, reps, _workspace);
     // create new buffer, in any case the memory amount new buffer points to is bigger then those for old _buffer   
     T* newBuff = nullptr;
     ALLOCATE(newBuff, _workspace, shape::length(newShapeInfo), T);
@@ -1712,7 +1713,7 @@ template <typename T>
 void NDArray<T>::tile(const std::vector<int>& reps, NDArray<T>& target) const {
         
     // evaluate true tile shapeInfo for comparison with target shapeInfo
-    int* newShapeInfo = ShapeUtils<T>::evalTileShapeInfo(*this, reps);  
+    int* newShapeInfo = ShapeUtils<T>::evalTileShapeInfo(*this, reps, _workspace);
     if(!shape::equalsSoft(newShapeInfo, target.getShapeInfo()))  {
         delete []newShapeInfo;    
         throw "NDArray::tile method - shapeInfo of target array is not suitable for tile operation !";
@@ -1822,7 +1823,7 @@ bool NDArray<T>::permutei(const int* dimensions, const int rank) {
 
     // check if current object is _shapeInfo owner
     if (!_isShapeAlloc) {             // if _shapeInfo is not its own
-        _shapeInfo = ShapeUtils<T>::evalPermShapeInfo(dimensions, rank, *this);    
+        _shapeInfo = ShapeUtils<T>::evalPermShapeInfo(dimensions, rank, *this, _workspace);
         _isShapeAlloc = true;
     } else {
         if (!nonNull() || rank != rankOf())
@@ -1852,7 +1853,7 @@ template <typename T>
 NDArray<T>* NDArray<T>::permute(const int* dimensions, const int rank) const {
 
     // evaluate shapeInfo for output (permuted) array ret
-    int* shapeInfoNew = ShapeUtils<T>::evalPermShapeInfo(dimensions, rank, *this);    
+    int* shapeInfoNew = ShapeUtils<T>::evalPermShapeInfo(dimensions, rank, *this, _workspace);
     // create array to be returned
     NDArray<T>* ret = new NDArray<T>(_buffer, shapeInfoNew, _workspace);
     // don't forget to indicate that memory for new array was allocated
@@ -1956,7 +1957,7 @@ void NDArray<T>::applyTrueBroadcast(const NDArray<T>* other, NDArray<T>* target,
 
     if(checkTargetShape) {
         int* newShapeInfo = nullptr;
-        if(!ShapeUtils<T>::evalBroadcastShapeInfo(*max, *min, false, newShapeInfo))          // the rank of target array must be equal to max->rankOf)()
+        if(!ShapeUtils<T>::evalBroadcastShapeInfo(*max, *min, false, newShapeInfo, _workspace))          // the rank of target array must be equal to max->rankOf)()
             throw "NDArray::applyTrueBroadcast method: the shapes of this and other arrays are not suitable for broadcast operation !" ;
         if(!shape::equalsSoft(target->getShapeInfo(), newShapeInfo))
             throw "NDArray::applyTrueBroadcast method: the shape of target array is wrong !";    
@@ -1999,7 +2000,7 @@ template <typename OpName>
 NDArray<T>* NDArray<T>::applyTrueBroadcast(const NDArray<T>* other, T *extraArgs) const {
 
     int* newShapeInfo = nullptr;
-    if(!ShapeUtils<T>::evalBroadcastShapeInfo(*this, *other, true, newShapeInfo))          // the rank of new array = max->rankOf)()
+    if(!ShapeUtils<T>::evalBroadcastShapeInfo(*this, *other, true, newShapeInfo, _workspace))          // the rank of new array = max->rankOf)()
         throw "NDArray::applyTrueBroadcast method: the shapes of this and other arrays are not suitable for broadcast operation !" ;
     NDArray<T>* result = new NDArray<T>(newShapeInfo, _workspace);
     delete[] newShapeInfo;
