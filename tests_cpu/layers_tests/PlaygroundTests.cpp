@@ -257,15 +257,12 @@ TEST_F(PlaygroundTests, ScalarTest_2) {
 TEST_F(PlaygroundTests, Test_Profile_1) {
     GraphProfile prof;
 
-    sleep(1);
     prof.setBuildTime(70);
     prof.setExecutionTime(130);
 
     prof.startEvent("omega");
     prof.spotEvent("alpha");
-    sleep(1);
     prof.spotEvent("beta");
-    sleep(1);
     prof.spotEvent("gamma");
     prof.recordEvent("omega");
 
