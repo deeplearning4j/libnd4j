@@ -292,6 +292,20 @@ namespace nd4j {
             return false;
         }
 
+        template<typename T>
+        nd4j::memory::Workspace *Context<T>::fWorkspace() {
+            return workspace();
+        }
+
+        template<typename T>
+        nd4j::memory::Workspace *Context<T>::tWorkspace() {
+            return nullptr;
+        }
+
+        template<typename T>
+        nd4j::memory::Workspace *Context<T>::oWorkspace() {
+            return nullptr;
+        }
 
         template class ND4J_EXPORT Context<float>;
         template class ND4J_EXPORT Context<float16>;
