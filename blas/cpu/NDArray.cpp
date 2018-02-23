@@ -1458,6 +1458,7 @@ bool NDArray<T>::reshapei(const std::vector<int>& shape) {
     return reshapei('c', shape);
 }
 
+//////////////////////////////////////////////////////////////////////////
     template <typename T>
     void NDArray<T>::enforce(const std::initializer_list<int> &dimensions, char order) {
         std::vector<int> dims(dimensions);
@@ -1619,7 +1620,7 @@ template <typename T>
 //////////////////////////////////////////////////////////////////////////
 // create new array with corresponding order and shape, new array will point to the same _buffer as this array
 template <typename T>
-    NDArray<T>* NDArray<T>::reshape(const char order, const std::vector<int>& shape) {
+NDArray<T>* NDArray<T>::reshape(const char order, const std::vector<int>& shape) {
 	int shapeInfoLength = shape::shapeInfoLength(rankOf());
 	int* newShapeInfo = nullptr;
 
@@ -1632,6 +1633,23 @@ template <typename T>
 	newArr->reshapei(order, shape);
 
 	return newArr;
+}
+
+template <typename T>
+NDArray<T> NDArray<T>::reshape(const std::vector<int>& shape) {
+    
+    int shapeInfoLength = shape::shapeInfoLength(rankOf());
+    int* newShapeInfo = nullptr;
+
+    ALLOCATE(newShapeInfo , _workspace, shapeInfoLength, int);
+    memcpy(newShapeInfo, _shapeInfo, shapeInfoLength*sizeof(int));
+
+    NDArray<T> newArr(_buffer, newShapeInfo, _workspace);
+    newArr._isShapeAlloc = true;
+    newArr._isBuffAlloc  = false;
+    newArr.reshapei(ordering(), shape);
+
+    return newArr;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1840,6 +1858,21 @@ NDArray<T>* NDArray<T>::permute(const int* dimensions, const int rank) const {
     ret->_isBuffAlloc = false;
     ret->_isShapeAlloc = true;
 	ret->_isView = true;
+
+    return ret;
+}
+
+template <typename T>
+NDArray<T> NDArray<T>::permuteO(const std::vector<int>& dimensions) const {
+
+    // evaluate shapeInfo for output (permuted) array ret
+    int* shapeInfoNew = ShapeUtils<T>::evalPermShapeInfo(dimensions.data(), dimensions.size(), *this);    
+    // create array to be returned
+    NDArray<T> ret(_buffer, shapeInfoNew, _workspace);
+    // don't forget to indicate that memory for new array was allocated
+    ret._isBuffAlloc = false;
+    ret._isShapeAlloc = true;
+    ret._isView = true;
 
     return ret;
 }

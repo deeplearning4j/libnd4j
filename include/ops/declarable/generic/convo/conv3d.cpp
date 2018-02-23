@@ -189,27 +189,27 @@ CUSTOM_OP_IMPL(conv3dnew_bp, 3, 2, false, 0, 13) {
     int paddingMode = INT_ARG(12);                                              // 0-SAME,  1-VALID
     int dataFormat  = block.getIArguments()->size() > 13 ? INT_ARG(13) : 0;     // 0-NDHWC, 1-NCDHW    
 
-    // vol2col (im2col for 3d case) works only with NCDHW format    
     if(!dataFormat) {
-        input   = input  ->permute({0, 4, 1, 2, 3});                              // [bS, iD, iH, iW, iC] -> [bS, iC, iD, iH, iW]        
-        gradO   = gradO  ->permute({0, 4, 1, 2, 3});                              // [bS, oD, oH, oW, oC] -> [bS, oC, oD, oH, oW]
-        gradI   = gradI  ->permute({0, 4, 1, 2, 3});                              // [bS, iD, iH, iW, iC] -> [bS, iC, iD, iH, iW]        
-        weights = weights->permute({3, 4, 0, 1, 2});                              // [kD, kH, kW, iC, oC] -> [iC, oC, kD, kH, kW]         
-        
+        input = input->permute({0, 4, 1, 2, 3});                              // [bS, iD, iH, iW, iC] -> [bS, iC, iD, iH, iW]                        
+        gradI = gradI->permute({0, 4, 1, 2, 3});                              // [bS, iD, iH, iW, iC] -> [bS, iC, iD, iH, iW]        
+
         input->streamline('c');
-        gradO->streamline('c');
     }
-    else
-        weights = weights->permute({1, 0, 2, 3, 4});                              // [oC, iC, kD, kH, kW] -> [iC, oC, kD, kH, kW]        
-    
-    weights->streamline('c');    
+    else {
+        gradO = gradO->permute({0, 2, 3, 4, 1});                              // [bS, oC, oD, oH, oW] -> [bS, oD, oH, oW, oC]
+        // gradW = gradW->permute({2, 3, 4, 1, 0});                              // [oC, iC, kD, kH, kW] -> [kD, kH, kW, iC, oC]
+        weights = weights->permute({2, 3, 4, 1, 0});                          // [oC, iC, kD, kH, kW] -> [kD, kH, kW, iC, oC]
+        
+        gradO->streamline('c');
+        weights->streamline('c');
+    }
 
     int bS = input->sizeAt(0);           // batch size
     int iC = input->sizeAt(1);           // input channels        
     int iD = input->sizeAt(2);           // input depth
     int iH = input->sizeAt(3);           // input height
     int iW = input->sizeAt(4);           // input width
-    int oC = weights->sizeAt(1);         // output channels    
+    int oC = weights->sizeAt(4);         // output channels    
     int oD = gradO->sizeAt(1);           // output depth
     int oH = gradO->sizeAt(2);           // output height
     int oW = gradO->sizeAt(3);           // output width    
@@ -217,65 +217,76 @@ CUSTOM_OP_IMPL(conv3dnew_bp, 3, 2, false, 0, 13) {
     int trueoD, trueoH, trueoW;          // correct output depth, height, width
     ConvolutionUtils<T>::calcOutSizePool3D(trueoD, trueoH, trueoW, kD, kH, kW, sD, sH, sW, pD, pH, pW, dD, dH, dW, iD, iH, iW, paddingMode);    
 
-    REQUIRE_TRUE(gradO->sizeAt(0)==bS   && gradO->sizeAt(2)==trueoD && gradO->sizeAt(3)==trueoH && gradO->sizeAt(4)==trueoW && gradO->sizeAt(1)==oC, 0, "CUSTOM CONV3D_BP OP: wrong shape of gradient_output (next epsilon) array !");    
-    REQUIRE_TRUE(weights->sizeAt(2)==kD && weights->sizeAt(3)==kH && weights->sizeAt(4)==kW && weights->sizeAt(0)==iC, 0, "CUSTOM CONV3D_BP OP: wrong shape of weights array !");
+    REQUIRE_TRUE(gradO->sizeAt(0)==bS   && gradO->sizeAt(1)==trueoD && gradO->sizeAt(2)==trueoH && gradO->sizeAt(3)==trueoW && gradO->sizeAt(4)==oC, 0, "CUSTOM CONV3D_BP OP: wrong shape of gradient_output (next epsilon) array !");    
+    REQUIRE_TRUE(weights->sizeAt(0)==kD && weights->sizeAt(1)==kH && weights->sizeAt(2)==kW && weights->sizeAt(3)==iC, 0, "CUSTOM CONV3D_BP OP: wrong shape of weights array !");
     if(bias)
         REQUIRE_TRUE(bias->rankOf()==1 && bias->lengthOf()==oC, 0, "CUSTOM CONV3D_BP OP: wrong shape of biases array !");
 
     if(!paddingMode)                       // SAME
         ConvolutionUtils<T>::calcPadding3D(pD, pH, pW, oD, oH, oW, iD, iH, iW, kD, kH, kW, sD, sH, sW, dD, dH, dW);    
-    
 
-    gradW = new NDArray<T>(gradW->ordering(), {iC, oC, kD, kH, kW}, block.getWorkspace());
-    NDArray<T>* columns = new NDArray<T>(input->ordering(), {oC*kD*kW*kH, iD*iH*iW}, block.getWorkspace());
-    NDArray<T>* temp = new NDArray<T>(input->ordering(), {iC, iD, iH, iW}, block.getWorkspace());
+    // calculation of gradW and gradB
+    NDArray<T>  sumOfGradW(gradW->ordering(), {bS, iC*kD*kH*kW, oC}, block.getWorkspace());
+    NDArray<T>* reshapedWeights = weights->reshape(gradW->ordering(), {iC*kD*kH*kW, oC});
+    // NDArray<T>* reshapedGradW   = gradW  ->reshape(gradW->ordering(), {iC*kD*kH*kW, oC});
+    NDArray<T>* reshapedGradO   = gradO  ->reshape(gradO->ordering(), {bS, oD*oH*oW, oC});
+    NDArray<T> columns(input->ordering(), {iC*kD*kW*kH, oD*oH*oW});
     
     ResultSet<T>* inSubArrsList    = NDArrayFactory<T>::allExamples(input);
-    ResultSet<T>* gradOsubArrsList = NDArrayFactory<T>::allExamples(gradO);
+    ResultSet<T>* gradOsubArrsList = NDArrayFactory<T>::allExamples(reshapedGradO);
     ResultSet<T>* gradIsubArrsList = NDArrayFactory<T>::allExamples(gradI);
+    ResultSet<T>* sumOfGradWsubArrsList = NDArrayFactory<T>::allExamples(&sumOfGradW);
 
-    for(int i = 0; i < bS; ++i) {                
+    NDArray<T> temp2(gradW->ordering(), {kD, kH, kW, iC, oC}, block.getWorkspace());
 
-        // [oC, oD, oH, oW] vs [oC*kD*kW*kH, iD*iH*iW]        
-        ConvolutionUtils<T>::_vol2col(gradOsubArrsList->at(i)->getBuffer(), oC, oD, oH, oW, kD, kH, kW, pD, pH, pW, sD, sH, sW, dD, dH, dW, columns->getBuffer());         
+    for(int i = 0; i < bS; ++i) {
 
-        columns->printIndexedBuffer();
-
-        nd4j::blas::GEMM<T>::op('f', 'n', 'n', columns->sizeAt(1), iC, columns->sizeAt(0), (T)1., 
-                                columns->getBuffer(), columns->sizeAt(1), weights->getBuffer(), columns->sizeAt(0), (T)0., temp->getBuffer(), columns->sizeAt(1));
-        gradIsubArrsList->at(i)->assign(temp);
-        
-        if(i != 0) continue;
+        ConvolutionUtils<T>::vol2col(inSubArrsList->at(i)->getBuffer(), columns.getBuffer(), iC, iD, iH, iW, oD, oH, oW, kD, kH, kW, sD, sH, sW, pD, pH, pW, dD, dH, dW);
+        // temp2 += mmul(columns, *gradOsubArrsList->at(i)).reshape({iC,kD,kH,kW,oC}).permuteO({1, 2, 3, 0, 4});     //  [iC*kD*kW*kH, oD*oH*oW] x [oD*oH*oW, oC] = [iC*kD*kH*kW, oC] -> [iC, kD, kH, kW, oC] -> [kD, kH, kW, iC, oC] or [oC, iC, kD, kH, kW]
+        NDArrayFactory<T>::mmulHelper(&columns, gradOsubArrsList->at(i), sumOfGradWsubArrsList->at(i), 1.0, 0.0);        
                 
 
-        nd4j::blas::GEMM<T>::op('f', 't', 'n', columns->sizeAt(0), iC, columns->sizeAt(1), (T)1., 
-                                columns->getBuffer(), columns->sizeAt(1), inSubArrsList->at(i)->getBuffer(), columns->sizeAt(1), (T)0., gradW->getBuffer(), columns->sizeAt(0));
         if(gradB)
-            gradOsubArrsList->at(i)->template applyBroadcast<simdOps::Add<T>>({0}, gradB);
+            gradOsubArrsList->at(i)->template applyBroadcast<simdOps::Add<T>>({1}, gradB);
+
+        // if(gradB) {
+        //     NDArray<T>* sum = gradOsubArrsList->at(i)->sum({0});
+        //     gradB->assign(sum);
+        //     delete sum;
+        // }
+
+        NDArray<T>* gradOsubAttT = gradOsubArrsList->at(i)->transpose();
+        NDArrayFactory<T>::mmulHelper(reshapedWeights, gradOsubAttT, &columns, 1.0, 0.0);                       //  [iC*kD*kH*kW, oC] x [oC, oD*oH*oW] = [iC*kD*kW*kH, oD*oH*oW]
+
+        ConvolutionUtils<T>::col2vol(columns.getBuffer(), gradIsubArrsList->at(i)->getBuffer(), oD, oH, oW, iC, iD, iH, iW, kD, kH, kW, sD, sH, sW, pD, pH, pW, dD, dH, dW);
+
+        delete gradOsubAttT;
     }
 
-    delete temp;
-    delete inSubArrsList;   
+    // *gradW = temp2;
+    sumOfGradW.reshape({bS,iC,kD,kH,kW,oC}).permuteO({0, 2, 3, 4, 1, 5}).template applyBroadcast<simdOps::Add<T>>({0}, gradW);
+    bS,kD,kH,kW,iC,oC
+    // .sum({0});    
+    // gradW->assign(sum);
+    // delete sum;
+
+    delete sumOfGradWsubArrsList;
+    delete reshapedWeights;
+    delete inSubArrsList;
     delete gradOsubArrsList;
     delete gradIsubArrsList;
-
+    // delete reshapedGradW;
+    delete reshapedGradO;
+   
     if(!dataFormat) {
-
-        gradW->permutei({2,3,4,0,1});
-        OUTPUT_VARIABLE(1)->assign(gradW);
-
         delete input;        
-        delete gradO;
         delete gradI;
     }
     else {
-        gradW->permutei({1,0,2,3,4});
-        OUTPUT_VARIABLE(1)->assign(gradW);                
+        delete gradO;      
+        // delete gradW;  
+        delete weights;
     }
-
-    delete weights;
-    delete gradW;
-    delete columns;
     
     return Status::OK();
 }
