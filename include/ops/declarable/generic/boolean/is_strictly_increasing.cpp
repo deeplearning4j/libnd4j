@@ -5,15 +5,15 @@
 
 namespace nd4j {
     namespace ops {
-        BOOLEAN_OP_IMPL(is_non_decreasing, 1, true) {
+        BOOLEAN_OP_IMPL(is_strictly_increasing, 1, true) {
 
             auto input = INPUT_VARIABLE(0);
 
-            bool isNonDecreasing = true;
+            bool isStrictlyIncreasing = true;
 
-            nd4j::ops::helpers::compare_elem(input, false, isNonDecreasing);
+            nd4j::ops::helpers::compare_elem(input, true, isStrictlyIncreasing);
 
-            if (isNonDecreasing)
+            if (isStrictlyIncreasing)
                 return ND4J_STATUS_TRUE;
             else
                 return ND4J_STATUS_FALSE;

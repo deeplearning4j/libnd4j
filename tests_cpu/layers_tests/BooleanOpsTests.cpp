@@ -58,3 +58,30 @@ TEST_F(BooleanOpsTests, Is_non_decreasing_2) {
     ASSERT_FALSE(op.evaluate({&x}));
 
 }
+
+TEST_F(BooleanOpsTests, Is_strictly_increasing_1) {
+    NDArray<float> x('c', {2 , 2}, {1, 2, 4, 5});
+
+    nd4j::ops::is_strictly_increasing<float> op;
+
+    ASSERT_TRUE(op.evaluate({&x}));
+
+}
+
+TEST_F(BooleanOpsTests, Is_strictly_increasing_2) {
+    NDArray<float> x('c', {2 , 2}, {1, 2, 3, 3});
+
+    nd4j::ops::is_strictly_increasing<float> op;
+
+    ASSERT_FALSE(op.evaluate({&x}));
+
+}
+
+TEST_F(BooleanOpsTests, Is_strictly_increasing_3) {
+    NDArray<float> x('c', {2 , 2}, {1, 2, 4, 3});
+
+    nd4j::ops::is_strictly_increasing<float> op;
+
+    ASSERT_FALSE(op.evaluate({&x}));
+
+}
