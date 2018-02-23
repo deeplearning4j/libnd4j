@@ -1,6 +1,3 @@
-//
-// Created by luke on 22.02.18.
-//
 
 #ifndef LIBND4J_COMPARE_ELEM_H
 #define LIBND4J_COMPARE_ELEM_H
