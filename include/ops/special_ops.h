@@ -114,8 +114,8 @@ namespace simdOps {
     			const int ph = (index / outW) % outH;
     			const int c = (index / outW / outH) % inChannels;
     			const int n = index / outW / outH / inChannels;
-    			int hstart = ph * dH - pH;
-    			int wstart = pw * dW - pW;
+    			int hstart = sH * ph * dH - pH;
+    			int wstart = sW * pw * dW - pW;
     			int hend = hstart + kH;
     			int wend = wstart + kW;
     			if(hstart < 0){
