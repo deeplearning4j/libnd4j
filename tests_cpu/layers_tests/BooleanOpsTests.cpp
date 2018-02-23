@@ -85,3 +85,12 @@ TEST_F(BooleanOpsTests, Is_strictly_increasing_3) {
     ASSERT_FALSE(op.evaluate({&x}));
 
 }
+
+TEST_F(BooleanOpsTests, Is_numeric_tensor_1) {
+    NDArray<float> x('c', {2 , 2}, {1, 2, 4, 3});
+
+    nd4j::ops::is_numeric_tensor<float> op;
+
+    ASSERT_TRUE(op.evaluate({&x}));
+
+}

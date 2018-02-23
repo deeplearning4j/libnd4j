@@ -105,13 +105,18 @@ namespace nd4j {
         DECLARE_CUSTOM_OP(select, 3, 1, false, 0, 0);
 
         /**
-         * This op takes 1 n-dimensional array as input, and returns true if for every adjacent pair we have x[i] <= x[i+1]
+         * This op takes 1 n-dimensional array as input, and returns true if for every adjacent pair we have x[i] <= x[i+1].
          */
         DECLARE_BOOLEAN_OP(is_non_decreasing, 1, true);
 
         /**
-         * This op takes 1 n-dimensional array as input, and returns true if for every adjacent pair we have x[i] < x[i+1]
+         * This op takes 1 n-dimensional array as input, and returns true if for every adjacent pair we have x[i] < x[i+1].
          */
         DECLARE_BOOLEAN_OP(is_strictly_increasing, 1, true);
+
+        /**
+         * This op takes 1 n-dimensional array as input, and returns true if input is a numeric array.
+         */
+        DECLARE_BOOLEAN_OP(is_numeric_tensor, 1, true);
     }
 }
