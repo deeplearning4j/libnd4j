@@ -75,6 +75,8 @@ namespace nd4j {
 
 
         void* Workspace::allocateBytes(Nd4jIndex numBytes) {
+            nd4j_printf("Allocating %lld bytes from workspace\n", numBytes);
+
             void* result = nullptr;
             this->_cycleAllocations += numBytes;
             this->_mutexAllocation.lock();

@@ -29,6 +29,10 @@ namespace nd4j {
                 this->_isInplace = prototype->isInplace();
                 this->_nodeId = prototype->nodeId();
             }
+
+
+            if (variableSpace != nullptr && variableSpace->workspace() != nullptr)
+                this->_workspace = variableSpace->workspace();
         }
 
 
@@ -44,10 +48,13 @@ namespace nd4j {
 
             if (variableSpace != nullptr)
                 this->_rng = variableSpace->getRNG();
+
+            if (variableSpace != nullptr && variableSpace->workspace() != nullptr)
+                this->_workspace = variableSpace->workspace();
         }
 
         template <typename T>
-        Context<T>::Context(int nodeId, VariableSpace<T> *variableSpace, bool isInplace) : Context(nodeId, variableSpace) {
+        Context<T>::Context(int nodeId, VariableSpace<T> *variableSpace, bool isInplace) : Context<T>(nodeId, variableSpace) {
             this->_isInplace = isInplace;
         }
 

@@ -172,4 +172,15 @@ TEST_F(WorkspaceTests, CloneTest1) {
 }
 
 
+TEST_F(WorkspaceTests, Test_Graph_1) {
+    auto graph = GraphExecutioner<float>::importFromFlatBuffers("./resources/ae_00.fb");
+    auto workspace = graph->getVariableSpace()->workspace();
+
+    auto status = GraphExecutioner<float>::execute(graph);
+    ASSERT_EQ(Status::OK(), status);
+
+    delete graph;
+}
+
+
 #endif //LIBND4J_WORKSPACETESTS_H
