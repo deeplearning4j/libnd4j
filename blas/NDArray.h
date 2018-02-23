@@ -232,7 +232,6 @@ namespace nd4j {
 		NDArray<T>* permute(const std::initializer_list<int>& dimensions) const;
         NDArray<T>* permute(const std::vector<int>& dimensions) const;
         NDArray<T>* permute(const int* dimensions, const int rank) const;
-        NDArray<T>  permuteO(const std::vector<int>& dimensions) const;
 
         /**
          * This method streamlines given view or permuted array, and reallocates buffer

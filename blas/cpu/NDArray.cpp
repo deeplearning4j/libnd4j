@@ -1862,20 +1862,6 @@ NDArray<T>* NDArray<T>::permute(const int* dimensions, const int rank) const {
     return ret;
 }
 
-template <typename T>
-NDArray<T> NDArray<T>::permuteO(const std::vector<int>& dimensions) const {
-
-    // evaluate shapeInfo for output (permuted) array ret
-    int* shapeInfoNew = ShapeUtils<T>::evalPermShapeInfo(dimensions.data(), dimensions.size(), *this);    
-    // create array to be returned
-    NDArray<T> ret(_buffer, shapeInfoNew, _workspace);
-    // don't forget to indicate that memory for new array was allocated
-    ret._isBuffAlloc = false;
-    ret._isShapeAlloc = true;
-    ret._isView = true;
-
-    return ret;
-}
 
 //////////////////////////////////////////////////////////////////////////
 template <typename T>

@@ -72,19 +72,19 @@ CUSTOM_OP_IMPL(conv3dnew, 2, 1, false, 0, 13) {
     NDArray<T>* reshapedOutput  = output->reshape(output->ordering(), {bS, oC, oD*oH*oW});    
     NDArray<T> columns(input->ordering(), {iC*kD*kW*kH, oD*oH*oW}, block.getWorkspace());
     
-    ResultSet<T>* inSubArrsList  = NDArrayFactory<T>::allExamples(input);
+    ResultSet<T>* inSubArrs  = NDArrayFactory<T>::allExamples(input);
     ResultSet<T>* outSubArrsList = NDArrayFactory<T>::allExamples(reshapedOutput);
 
     for(int i = 0; i < bS; ++i) {
         // [iC, iD, iH, iW] vs [iC*kD*kW*kH, oD*oH*oW]
-        ConvolutionUtils<T>::vol2col(inSubArrsList->at(i)->getBuffer(), columns.getBuffer(), iC, iD, iH, iW, oD, oH, oW, kD, kH, kW, sD, sH, sW, pD, pH, pW, dD, dH, dW);                
+        ConvolutionUtils<T>::vol2col(inSubArrs->at(i)->getBuffer(), columns.getBuffer(), iC, iD, iH, iW, oD, oH, oW, kD, kH, kW, sD, sH, sW, pD, pH, pW, dD, dH, dW);                
         NDArrayFactory<T>::mmulHelper(reshapedWeights, &columns, outSubArrsList->at(i), 1.0, 0.0);      // [oC, iC*kD*kH*kW] x [iC*kD*kW*kH, oD*oH*oW] = [oC, oD*oH*oW]
                             
         if(bias)
             outSubArrsList->at(i)->template applyBroadcast<simdOps::Add<T>>({0}, bias);
     }
 
-    delete inSubArrsList;
+    delete inSubArrs;
     delete outSubArrsList;
     delete reshapedWeights;
     delete reshapedOutput;
@@ -189,16 +189,18 @@ CUSTOM_OP_IMPL(conv3dnew_bp, 3, 2, false, 0, 13) {
     int paddingMode = INT_ARG(12);                                              // 0-SAME,  1-VALID
     int dataFormat  = block.getIArguments()->size() > 13 ? INT_ARG(13) : 0;     // 0-NDHWC, 1-NCDHW    
 
+    std::vector<int> permShapeSumGradW;
     if(!dataFormat) {
-        input = input->permute({0, 4, 1, 2, 3});                              // [bS, iD, iH, iW, iC] -> [bS, iC, iD, iH, iW]                        
-        gradI = gradI->permute({0, 4, 1, 2, 3});                              // [bS, iD, iH, iW, iC] -> [bS, iC, iD, iH, iW]        
+        permShapeSumGradW = {0, 2, 3, 4, 1, 5};                             // [bS, iC, kD, kH, kW, oC] -> [bS, kD, kH, kW, iC, oC]
+        input = input->permute({0, 4, 1, 2, 3});                            // [bS, iD, iH, iW, iC] -> [bS, iC, iD, iH, iW]                        
+        gradI = gradI->permute({0, 4, 1, 2, 3});                            // [bS, iD, iH, iW, iC] -> [bS, iC, iD, iH, iW]        
 
         input->streamline('c');
     }
     else {
-        gradO = gradO->permute({0, 2, 3, 4, 1});                              // [bS, oC, oD, oH, oW] -> [bS, oD, oH, oW, oC]
-        // gradW = gradW->permute({2, 3, 4, 1, 0});                              // [oC, iC, kD, kH, kW] -> [kD, kH, kW, iC, oC]
-        weights = weights->permute({2, 3, 4, 1, 0});                          // [oC, iC, kD, kH, kW] -> [kD, kH, kW, iC, oC]
+        permShapeSumGradW = {0, 5, 1, 2, 3, 4};                             // [bS, iC, kD, kH, kW, oC] -> [bS, oC, iC, kD, kH, kW]
+        gradO = gradO->permute({0, 2, 3, 4, 1});                            // [bS, oC, oD, oH, oW] -> [bS, oD, oH, oW, oC]
+        weights = weights->permute({2, 3, 4, 1, 0});                        // [oC, iC, kD, kH, kW] -> [kD, kH, kW, iC, oC]
         
         gradO->streamline('c');
         weights->streamline('c');
@@ -226,56 +228,49 @@ CUSTOM_OP_IMPL(conv3dnew_bp, 3, 2, false, 0, 13) {
         ConvolutionUtils<T>::calcPadding3D(pD, pH, pW, oD, oH, oW, iD, iH, iW, kD, kH, kW, sD, sH, sW, dD, dH, dW);    
 
     // calculation of gradW and gradB
-    NDArray<T>  sumOfGradW(gradW->ordering(), {bS, iC*kD*kH*kW, oC}, block.getWorkspace());
+    NDArray<T>  sumGradW(gradW->ordering(), {bS, iC*kD*kH*kW, oC}, block.getWorkspace());
     NDArray<T>* reshapedWeights = weights->reshape(gradW->ordering(), {iC*kD*kH*kW, oC});
     // NDArray<T>* reshapedGradW   = gradW  ->reshape(gradW->ordering(), {iC*kD*kH*kW, oC});
     NDArray<T>* reshapedGradO   = gradO  ->reshape(gradO->ordering(), {bS, oD*oH*oW, oC});
     NDArray<T> columns(input->ordering(), {iC*kD*kW*kH, oD*oH*oW});
     
-    ResultSet<T>* inSubArrsList    = NDArrayFactory<T>::allExamples(input);
-    ResultSet<T>* gradOsubArrsList = NDArrayFactory<T>::allExamples(reshapedGradO);
-    ResultSet<T>* gradIsubArrsList = NDArrayFactory<T>::allExamples(gradI);
-    ResultSet<T>* sumOfGradWsubArrsList = NDArrayFactory<T>::allExamples(&sumOfGradW);
+    ResultSet<T>* inSubArrs    = NDArrayFactory<T>::allExamples(input);
+    ResultSet<T>* gradOsubArrs = NDArrayFactory<T>::allExamples(reshapedGradO);
+    ResultSet<T>* gradIsubArrs = NDArrayFactory<T>::allExamples(gradI);
+    ResultSet<T>* sumGradWsubArrs = NDArrayFactory<T>::allExamples(&sumGradW);
 
     NDArray<T> temp2(gradW->ordering(), {kD, kH, kW, iC, oC}, block.getWorkspace());
 
     for(int i = 0; i < bS; ++i) {
 
-        ConvolutionUtils<T>::vol2col(inSubArrsList->at(i)->getBuffer(), columns.getBuffer(), iC, iD, iH, iW, oD, oH, oW, kD, kH, kW, sD, sH, sW, pD, pH, pW, dD, dH, dW);
-        // temp2 += mmul(columns, *gradOsubArrsList->at(i)).reshape({iC,kD,kH,kW,oC}).permuteO({1, 2, 3, 0, 4});     //  [iC*kD*kW*kH, oD*oH*oW] x [oD*oH*oW, oC] = [iC*kD*kH*kW, oC] -> [iC, kD, kH, kW, oC] -> [kD, kH, kW, iC, oC] or [oC, iC, kD, kH, kW]
-        NDArrayFactory<T>::mmulHelper(&columns, gradOsubArrsList->at(i), sumOfGradWsubArrsList->at(i), 1.0, 0.0);        
-                
+        ConvolutionUtils<T>::vol2col(inSubArrs->at(i)->getBuffer(), columns.getBuffer(), iC, iD, iH, iW, oD, oH, oW, kD, kH, kW, sD, sH, sW, pD, pH, pW, dD, dH, dW);        
+        NDArrayFactory<T>::mmulHelper(&columns, gradOsubArrs->at(i), sumGradWsubArrs->at(i), 1.0, 0.0);        
 
-        if(gradB)
-            gradOsubArrsList->at(i)->template applyBroadcast<simdOps::Add<T>>({1}, gradB);
-
-        // if(gradB) {
-        //     NDArray<T>* sum = gradOsubArrsList->at(i)->sum({0});
-        //     gradB->assign(sum);
-        //     delete sum;
-        // }
-
-        NDArray<T>* gradOsubAttT = gradOsubArrsList->at(i)->transpose();
+        NDArray<T>* gradOsubAttT = gradOsubArrs->at(i)->transpose();
         NDArrayFactory<T>::mmulHelper(reshapedWeights, gradOsubAttT, &columns, 1.0, 0.0);                       //  [iC*kD*kH*kW, oC] x [oC, oD*oH*oW] = [iC*kD*kW*kH, oD*oH*oW]
 
-        ConvolutionUtils<T>::col2vol(columns.getBuffer(), gradIsubArrsList->at(i)->getBuffer(), oD, oH, oW, iC, iD, iH, iW, kD, kH, kW, sD, sH, sW, pD, pH, pW, dD, dH, dW);
+        ConvolutionUtils<T>::col2vol(columns.getBuffer(), gradIsubArrs->at(i)->getBuffer(), oD, oH, oW, iC, iD, iH, iW, kD, kH, kW, sD, sH, sW, pD, pH, pW, dD, dH, dW);
 
         delete gradOsubAttT;
     }
 
-    // *gradW = temp2;
-    sumOfGradW.reshape({bS,iC,kD,kH,kW,oC}).permuteO({0, 2, 3, 4, 1, 5}).template applyBroadcast<simdOps::Add<T>>({0}, gradW);
-    bS,kD,kH,kW,iC,oC
-    // .sum({0});    
-    // gradW->assign(sum);
-    // delete sum;
+    sumGradW.reshapei({bS,iC,kD,kH,kW,oC});         // [bS, iC*kD*kH*kW, oC] -> [bS, iC, kD, kH, kW, oC]
+    sumGradW.permutei(permShapeSumGradW);           // [bS, iC, kD, kH, kW, oC] -> [bS, kD, kH, kW, iC, oC] (NDHWC) or [bS, oC, iC, kD, kH, kW] (NCDHW)
+    NDArray<T>* sum = sumGradW.sum({0});            // sum over bS
+    gradW->assign(sum);
+    delete sum;
 
-    delete sumOfGradWsubArrsList;
+    if(gradB) {
+        sum = reshapedGradO->sum({0, 1});                  // sum over bS x oD*oH*oW
+        gradB->assign(sum);
+        delete sum;
+    }
+
+    delete sumGradWsubArrs;
     delete reshapedWeights;
-    delete inSubArrsList;
-    delete gradOsubArrsList;
-    delete gradIsubArrsList;
-    // delete reshapedGradW;
+    delete inSubArrs;
+    delete gradOsubArrs;
+    delete gradIsubArrs;
     delete reshapedGradO;
    
     if(!dataFormat) {
@@ -283,8 +278,7 @@ CUSTOM_OP_IMPL(conv3dnew_bp, 3, 2, false, 0, 13) {
         delete gradI;
     }
     else {
-        delete gradO;      
-        // delete gradW;  
+        delete gradO;              
         delete weights;
     }
     

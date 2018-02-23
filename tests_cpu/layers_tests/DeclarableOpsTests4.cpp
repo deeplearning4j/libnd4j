@@ -2042,12 +2042,12 @@ TEST_F(DeclarableOpsTests4, conv3d_bp_test2) {
     NDArray<double>* gradI = results->at(0);
     NDArray<double>* gradW = results->at(1);
     
-     for(int i = 0; i<gradW->lengthOf(); ++i)
-        std::cout<<std::setw(10)<<(*gradW)(i)<<"   "<<std::setw(10)<<expGradW(i)<<std::endl;
+     for(int i = 0; i<gradI->lengthOf(); ++i)
+        std::cout<<std::setw(10)<<(*gradI)(i)<<"   "<<std::setw(10)<<expGradI(i)<<std::endl;
 
     ASSERT_EQ(Status::OK(), results->status());
-    // ASSERT_TRUE(expGradI.isSameShape(gradI));
-    // ASSERT_TRUE(expGradI.equalsTo(gradI));    
+    ASSERT_TRUE(expGradI.isSameShape(gradI));
+    ASSERT_TRUE(expGradI.equalsTo(gradI));    
 
     ASSERT_TRUE(expGradW.isSameShape(gradW));
     ASSERT_TRUE(expGradW.equalsTo(gradW));    
