@@ -50,10 +50,10 @@ namespace nd4j {
 
             return profile;
         }
+
+
+        template class GraphProfilingHelper<float>;
+        template class GraphProfilingHelper<float16>;
+        template class GraphProfilingHelper<double>;
     }
-
-
-    template class GraphProfilingHelper<float>;
-    template class GraphProfilingHelper<float16>;
-    template class GraphProfilingHelper<double>;
 }
