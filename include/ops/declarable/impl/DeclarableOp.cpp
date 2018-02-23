@@ -245,9 +245,13 @@ namespace nd4j {
 
             if (Environment::getInstance()->isProfiling()) {
                 auto fp = block->getVariableSpace()->flowPath();
-                auto p = block->getVariableSpace()->flowPath()->profile();
-                block->getVariableSpace()->flowPath()->profile()->nodeById(block->nodeId())->setPreparationTime(prepTime);
-                block->getVariableSpace()->flowPath()->profile()->nodeById(block->nodeId())->setExecutionTime(outerTime);
+                if (fp != nullptr) {
+                    auto p = block->getVariableSpace()->flowPath()->profile();
+                    if (p != nullptr) {
+                        block->getVariableSpace()->flowPath()->profile()->nodeById(block->nodeId())->setPreparationTime(prepTime);
+                        block->getVariableSpace()->flowPath()->profile()->nodeById(block->nodeId())->setExecutionTime(outerTime);
+                    }
+                }
             }
 
             return status;
@@ -433,7 +437,9 @@ namespace nd4j {
 
         template <typename T>
         Nd4jStatus nd4j::ops::DeclarableOp<T>::execute(std::vector<NDArray<T>*>& inputs, std::vector<NDArray<T>*>& outputs, std::vector<T>& tArgs, std::vector<int>& iArgs, bool isInplace) {
-            VariableSpace<T> variableSpace;            
+            VariableSpace<T> variableSpace;
+            FlowPath fp;
+            variableSpace.setFlowPath(&fp);
 
             int cnt = -1;
             std::vector<int> in;
