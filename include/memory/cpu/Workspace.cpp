@@ -11,6 +11,7 @@
 #include "../Workspace.h"
 #include <helpers/logger.h>
 #include <templatemath.h>
+#include <cstring>
 
 
 namespace nd4j {
@@ -43,6 +44,10 @@ namespace nd4j {
                 this->_currentSize = bytes;
                 this->_allocatedHost = true;
             }
+        }
+
+        void Workspace::expandBy(Nd4jIndex numBytes) {
+            this->init(numBytes);
         }
 
         void Workspace::freeSpills() {
@@ -84,7 +89,7 @@ namespace nd4j {
             this->_mutexAllocation.lock();
 
             if (_offset.load() + numBytes > _currentSize) {
-                nd4j_debug("Allocating %lld bytes in spills\n", numBytes);
+                nd4j_printf("Allocating %lld bytes in spills\n", numBytes);
                 this->_mutexAllocation.unlock();
 
                 void *p = malloc(numBytes);
@@ -98,10 +103,11 @@ namespace nd4j {
                 return p;
             }
 
-            nd4j_debug("Allocating %lld bytes from workspace\n", numBytes);
+            nd4j_printf("Allocating %lld bytes from workspace\n", numBytes);
 
             _offset += numBytes;
             result = (void *)(_ptrHost + _offset.load());
+            memset(result, 0, numBytes);
 
             this->_mutexAllocation.unlock();
 

@@ -365,9 +365,11 @@ namespace nd4j {
 
             //_C = new NDArray<T>(C, cShapeInfo);
 
-            auto tA = new nd4j::NDArray<T>(A->getBuffer(), A->getShapeInfo());
-            auto tB = new nd4j::NDArray<T>(B->getBuffer(), B->getShapeInfo());
-            auto tC = new nd4j::NDArray<T>(result->getBuffer(), result->getShapeInfo());
+            auto tA = new nd4j::NDArray<T>(A->getBuffer(), A->getShapeInfo(), A->getWorkspace());
+            auto tB = new nd4j::NDArray<T>(B->getBuffer(), B->getShapeInfo(), B->getWorkspace());
+            auto tC = new nd4j::NDArray<T>(result->getBuffer(), result->getShapeInfo(), result->getWorkspace());
+
+            tC->printShapeInfo("tC shape");
 
             if (cOrder != 'f') {
                 pC = tC->dup('f');
@@ -428,6 +430,8 @@ namespace nd4j {
                 transB = 'N';
             }
 
+            pC->printShapeInfo("pC");
+
             // we'll use platform-specific gemm here eventually. maybe tomorrow.
             // TODO: put proper _gemm here
             if (BlasHelper::getInstance()->template hasGEMM<T>()) {
@@ -443,6 +447,8 @@ namespace nd4j {
 
                 nd4j::blas::GEMM<T>::op(rOrder, transA, transB, M, N, K, alpha, pA->getBuffer(), lda, pB->getBuffer(), ldb, beta, pC->getBuffer(), ldc);
             }
+
+            pC->printShapeInfo("pC 2");
 
             if (cOrder != 'f') {
                 tC->assign(pC);

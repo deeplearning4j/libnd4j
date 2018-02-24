@@ -57,6 +57,8 @@ namespace nd4j {
             Nd4jIndex getSpilledSize();
             Nd4jIndex getUsedSize();
 
+            void expandBy(Nd4jIndex numBytes);
+
 //            bool resizeSupported();
 
             void* allocateBytes(Nd4jIndex numBytes);

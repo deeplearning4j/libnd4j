@@ -31,8 +31,8 @@ namespace nd4j {
             }
 
 
-            //if (variableSpace != nullptr && variableSpace->workspace() != nullptr)
-    //                this->_workspace = variableSpace->workspace();
+            if (variableSpace != nullptr && variableSpace->workspace() != nullptr)
+                    this->_workspace = variableSpace->workspace();
         }
 
 
@@ -49,8 +49,8 @@ namespace nd4j {
             if (variableSpace != nullptr)
                 this->_rng = variableSpace->getRNG();
 
-//            if (variableSpace != nullptr && variableSpace->workspace() != nullptr)
-//                this->_workspace = variableSpace->workspace();
+            if (variableSpace != nullptr && variableSpace->workspace() != nullptr)
+                this->_workspace = variableSpace->workspace();
         }
 
         template <typename T>
