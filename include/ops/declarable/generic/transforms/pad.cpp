@@ -64,7 +64,7 @@ DECLARE_SHAPE_FN(pad) {
 	
     shape::updateStrides(outShapeInfo, input->ordering());    
 
-    return new ShapeList(outShapeInfo);
+    return SHAPELIST(outShapeInfo);
     
 }
 

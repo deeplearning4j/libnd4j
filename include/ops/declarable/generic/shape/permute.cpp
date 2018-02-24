@@ -63,7 +63,7 @@ namespace nd4j {
         }
 
         DECLARE_SHAPE_FN(permute) {
-            auto shapeList = new ShapeList();
+            auto shapeList = SHAPELIST();
             std::vector<int>* arguments = block.getIArguments();
             if (shape::rank(inputShape->at(0)) == 0) {
                 int *newshape;

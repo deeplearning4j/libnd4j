@@ -30,7 +30,7 @@ namespace nd4j {
             newShape[7] = 99;
 
 
-            return new ShapeList(newShape);
+            return SHAPELIST(newShape);
         }
     }
 }

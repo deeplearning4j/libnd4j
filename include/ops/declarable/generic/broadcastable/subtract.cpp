@@ -50,7 +50,7 @@ namespace nd4j {
 
 
         DECLARE_SHAPE_FN(subtract) {
-            auto shapeList = new ShapeList();
+            auto shapeList = SHAPELIST();
             auto x = inputShape->at(0);
             auto y = inputShape->at(1);
 
@@ -146,7 +146,7 @@ namespace nd4j {
             REPLICATE_SHAPE(x, shapeE);
             REPLICATE_SHAPE(y, shapeG);
 
-            auto shapeList = new ShapeList({shapeE, shapeG});
+            auto shapeList = SHAPELIST(shapeE, shapeG);
 
             return shapeList;
         }

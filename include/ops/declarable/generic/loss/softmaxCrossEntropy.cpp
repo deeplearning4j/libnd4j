@@ -144,7 +144,7 @@ DECLARE_SHAPE_FN(softmax_cross_entropy_loss) {
     	reducedShapeInfo[7] = 99;    	
     }    
 
-    return new ShapeList(reducedShapeInfo);    
+    return SHAPELIST(reducedShapeInfo);    
 
 }
 

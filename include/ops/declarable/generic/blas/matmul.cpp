@@ -157,7 +157,7 @@ namespace nd4j {
 
             int* outputShape = ShapeUtils<T>::matrixProductShape(inputShape->at(0), inputShape->at(1), transA == 112, transB == 112, block.getWorkspace()); 
 
-            return new ShapeList(outputShape);
+            return SHAPELIST(outputShape);
         }
     }
 }
