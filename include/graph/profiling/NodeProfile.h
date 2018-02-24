@@ -38,6 +38,9 @@ namespace nd4j {
 
             // amount of memory used internally for objects
             Nd4jIndex _memoryObjects = 0L;
+
+            // total amount of memory used during execution
+            Nd4jIndex _memoryTotal = 0L;
         public:
             NodeProfile() = default;
             ~NodeProfile() = default;
@@ -52,10 +55,12 @@ namespace nd4j {
             void setActivationsSize(Nd4jIndex bytes);
             void setTemporarySize(Nd4jIndex bytes);
             void setObjectsSize(Nd4jIndex bytes);
+            void setTotalSize(Nd4jIndex bytes);
 
             Nd4jIndex getActivationsSize();
             Nd4jIndex getTemporarySize();
             Nd4jIndex getObjectsSize();
+            Nd4jIndex getTotalSize();
 
             std::string& name();
 

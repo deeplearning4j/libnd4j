@@ -1549,6 +1549,7 @@ struct __registratorDouble_##NAME {\
 
 #endif // CUDACC
 
+#define SHAPELIST(...)  new ShapeList({__VA_ARGS__}, block.workspace() != nullptr)
 
 #define LAMBDA_H(X, ...) [__VA_ARGS__] (float16 X) -> float16
 #define LAMBDA_HH(X, Y, ...) [__VA_ARGS__] (float16 X, float16 Y) -> float16

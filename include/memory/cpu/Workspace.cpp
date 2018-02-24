@@ -64,6 +64,9 @@ namespace nd4j {
             freeSpills();
         }
 
+        Nd4jIndex Workspace::getUsedSize() {
+            return getCurrentOffset();
+        }
 
         Nd4jIndex Workspace::getCurrentSize() {
             return _currentSize;
@@ -75,13 +78,13 @@ namespace nd4j {
 
 
         void* Workspace::allocateBytes(Nd4jIndex numBytes) {
-            nd4j_printf("Allocating %lld bytes from workspace\n", numBytes);
 
             void* result = nullptr;
             this->_cycleAllocations += numBytes;
             this->_mutexAllocation.lock();
 
             if (_offset.load() + numBytes > _currentSize) {
+                nd4j_debug("Allocating %lld bytes in spills\n", numBytes);
                 this->_mutexAllocation.unlock();
 
                 void *p = malloc(numBytes);
@@ -94,6 +97,8 @@ namespace nd4j {
 
                 return p;
             }
+
+            nd4j_debug("Allocating %lld bytes from workspace\n", numBytes);
 
             _offset += numBytes;
             result = (void *)(_ptrHost + _offset.load());

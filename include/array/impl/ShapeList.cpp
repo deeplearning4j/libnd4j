@@ -25,6 +25,10 @@ namespace nd4j {
             _shapes.push_back(v);
     }
 
+    ShapeList::ShapeList(std::initializer_list<int*> shapes, bool isWorkspace) : ShapeList(shapes){
+        _workspace = isWorkspace;
+    }
+
     ShapeList::ShapeList(std::vector<int*>& shapes) {
         for (auto v:shapes)
             _shapes.push_back(v);

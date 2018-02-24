@@ -223,6 +223,7 @@ namespace nd4j {
         Nd4jStatus nd4j::ops::DeclarableOp<T>::execute(Context<T>* block) {
             nd4j_debug("Executing op: [%s]\n", this->getOpName()->c_str());
 
+            Nd4jIndex memoryBefore = block->workspace() == nullptr ? 0L : block->workspace()->getSpilledSize() + block->workspace()->getUsedSize(); 
             auto timeEnter = std::chrono::system_clock::now();
 
             // basic validation: ensure inputs are set
@@ -246,10 +247,13 @@ namespace nd4j {
             if (Environment::getInstance()->isProfiling()) {
                 auto fp = block->getVariableSpace()->flowPath();
                 if (fp != nullptr) {
-                    auto p = block->getVariableSpace()->flowPath()->profile();
+                    auto p = fp->profile();
                     if (p != nullptr) {
-                        block->getVariableSpace()->flowPath()->profile()->nodeById(block->nodeId())->setPreparationTime(prepTime);
-                        block->getVariableSpace()->flowPath()->profile()->nodeById(block->nodeId())->setExecutionTime(outerTime);
+                        Nd4jIndex memoryAfter = block->workspace() == nullptr ? 0L : block->workspace()->getSpilledSize() + block->workspace()->getUsedSize(); 
+                        Nd4jIndex memoryUsed = memoryAfter - memoryBefore;
+                        p->nodeById(block->nodeId())->setPreparationTime(prepTime);
+                        p->nodeById(block->nodeId())->setExecutionTime(outerTime);
+                        p->nodeById(block->nodeId())->setTotalSize(memoryUsed);
                     }
                 }
             }

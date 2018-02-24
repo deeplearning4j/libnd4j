@@ -14,9 +14,11 @@ namespace nd4j {
         std::vector<int*> _shapes;
 
         bool _autoremovable = false;
+        bool _workspace = false;
     public:
         ShapeList(int* shape = nullptr);
         ShapeList(std::initializer_list<int*> shapes);
+        ShapeList(std::initializer_list<int*> shapes, bool isWorkspace);
         ShapeList(std::vector<int*>& shapes);
         //ShapeList(bool autoRemovable);
 

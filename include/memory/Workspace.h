@@ -55,6 +55,7 @@ namespace nd4j {
             Nd4jIndex getCurrentSize();
             Nd4jIndex getCurrentOffset();
             Nd4jIndex getSpilledSize();
+            Nd4jIndex getUsedSize();
 
 //            bool resizeSupported();
 
