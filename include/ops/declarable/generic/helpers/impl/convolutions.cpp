@@ -127,13 +127,17 @@ namespace ops  {
             int c, t, h, w;
             memset(outBuff, 0, sizeof(T) * oD * oH * oW * oC);
 
-            int inDim = oC * kD * kH * kW;
+            int kEffectiveD = kD + (kD - 1) * (dD - 1);
+            int kEffectiveH = kH + (kH - 1) * (dH - 1);
+            int kEffectiveW = kW + (kW - 1) * (dW - 1);            
+
+            int inDim = oC * kEffectiveD * kEffectiveH * kW;
             for (c = 0; c < inDim; ++c) {
                 
-                int w_offset = c % kW;
-                int h_offset = (c / kW) % kH;
-                int t_offset = (c / kW / kH) % kD;
-                int c_vol = c / kD / kH / kW;
+                int w_offset = c % kEffectiveW;
+                int h_offset = (c / kEffectiveW) % kEffectiveH;
+                int t_offset = (c / kEffectiveW / kEffectiveH) % kEffectiveD;
+                int c_vol = c / kEffectiveD / kEffectiveH / kEffectiveW;
 
                 for (t = 0; t < iD; ++t) {
                     for (h = 0; h < iH; ++h) {
@@ -143,7 +147,7 @@ namespace ops  {
                             int h_pad = h * sH - pH + h_offset * dH;
                             int w_pad = w * sW - pW + w_offset * dW;
                 
-                            if (t_pad >= 0 && t_pad < oD && h_pad >= 0 && h_pad < oH &&w_pad >= 0 && w_pad < oW)
+                            if (t_pad >= 0 && t_pad < oD && h_pad >= 0 && h_pad < oH && w_pad >= 0 && w_pad < oW)
                                 outBuff[((c_vol * oD + t_pad) * oH + h_pad) * oW + w_pad] += inBuff[((c * iD + t) * iH + h) * iW + w];
                         }
                     }

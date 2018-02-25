@@ -203,7 +203,6 @@ CUSTOM_OP_IMPL(conv3dnew_bp, 3, 2, false, 0, 13) {
         weights = weights->permute({2, 3, 4, 1, 0});                        // [oC, iC, kD, kH, kW] -> [kD, kH, kW, iC, oC]
         
         gradO->streamline('c');
-        weights->streamline('c');
     }
 
     int bS = input->sizeAt(0);           // batch size
@@ -232,26 +231,31 @@ CUSTOM_OP_IMPL(conv3dnew_bp, 3, 2, false, 0, 13) {
     NDArray<T>* reshapedWeights = weights->reshape(gradW->ordering(), {iC*kD*kH*kW, oC});
     // NDArray<T>* reshapedGradW   = gradW  ->reshape(gradW->ordering(), {iC*kD*kH*kW, oC});
     NDArray<T>* reshapedGradO   = gradO  ->reshape(gradO->ordering(), {bS, oD*oH*oW, oC});
-    NDArray<T> columns(input->ordering(), {iC*kD*kW*kH, oD*oH*oW});
+    NDArray<T> columns(input->ordering(), {iC*kD*kW*kH, oD*oH*oW});    
     
     ResultSet<T>* inSubArrs    = NDArrayFactory<T>::allExamples(input);
     ResultSet<T>* gradOsubArrs = NDArrayFactory<T>::allExamples(reshapedGradO);
     ResultSet<T>* gradIsubArrs = NDArrayFactory<T>::allExamples(gradI);
     ResultSet<T>* sumGradWsubArrs = NDArrayFactory<T>::allExamples(&sumGradW);
 
-    NDArray<T> temp2(gradW->ordering(), {kD, kH, kW, iC, oC}, block.getWorkspace());
-
     for(int i = 0; i < bS; ++i) {
 
         ConvolutionUtils<T>::vol2col(inSubArrs->at(i)->getBuffer(), columns.getBuffer(), iC, iD, iH, iW, oD, oH, oW, kD, kH, kW, sD, sH, sW, pD, pH, pW, dD, dH, dW);        
-        NDArrayFactory<T>::mmulHelper(&columns, gradOsubArrs->at(i), sumGradWsubArrs->at(i), 1.0, 0.0);        
+        NDArrayFactory<T>::mmulHelper(&columns, gradOsubArrs->at(i), sumGradWsubArrs->at(i), 1.0, 0.0);         // [iC*kD*kW*kH, oD*oH*oW] x [oD*oH*oW, oC] = [iC*kD*kW*kH, oC]
 
         NDArray<T>* gradOsubAttT = gradOsubArrs->at(i)->transpose();
-        NDArrayFactory<T>::mmulHelper(reshapedWeights, gradOsubAttT, &columns, 1.0, 0.0);                       //  [iC*kD*kH*kW, oC] x [oC, oD*oH*oW] = [iC*kD*kW*kH, oD*oH*oW]
+        NDArrayFactory<T>::mmulHelper(reshapedWeights, gradOsubAttT, &columns, 1.0, 0.0);                       // [iC*kD*kH*kW, oC] x [oC, oD*oH*oW] = [iC*kD*kW*kH, oD*oH*oW]
+        delete gradOsubAttT;
+        
+        // columns [iC*kD*kW*kH, oD*oH*oW]
+        // weights [kD,kH,kW,iC, oC]
+        // gradO   [oD*oH*oW, oC]
+        // gradI   [iC, iD, iH, iW]
 
         ConvolutionUtils<T>::col2vol(columns.getBuffer(), gradIsubArrs->at(i)->getBuffer(), oD, oH, oW, iC, iD, iH, iW, kD, kH, kW, sD, sH, sW, pD, pH, pW, dD, dH, dW);
 
-        delete gradOsubAttT;
+
+        
     }
 
     sumGradW.reshapei({bS,iC,kD,kH,kW,oC});         // [bS, iC*kD*kH*kW, oC] -> [bS, iC, kD, kH, kW, oC]
