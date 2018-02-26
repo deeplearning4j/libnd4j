@@ -232,6 +232,10 @@ CUSTOM_OP_IMPL(conv3dnew_bp, 3, 2, false, 0, 13) {
     // NDArray<T>* reshapedGradW   = gradW  ->reshape(gradW->ordering(), {iC*kD*kH*kW, oC});
     NDArray<T>* reshapedGradO   = gradO  ->reshape(gradO->ordering(), {bS, oD*oH*oW, oC});
     NDArray<T> columns(input->ordering(), {iC*kD*kW*kH, oD*oH*oW});    
+    NDArray<T> columns2(input->ordering(), {bS, iC, kD, kW, kH, oD, oH, oW});    
+    // [bS, oD, oH, oW, oC] -> [bS*oD*oH*oW, oC]
+    NDArray<T>* gradOT = gradO->reshape(gradO->ordering(),{bS*oD*oH*oW, oC});
+    gradOT->transposei();   // [bS*oD*oH*oW, oC] ->[oC, bS*oD*oH*oW]
     
     ResultSet<T>* inSubArrs    = NDArrayFactory<T>::allExamples(input);
     ResultSet<T>* gradOsubArrs = NDArrayFactory<T>::allExamples(reshapedGradO);
@@ -243,20 +247,30 @@ CUSTOM_OP_IMPL(conv3dnew_bp, 3, 2, false, 0, 13) {
         ConvolutionUtils<T>::vol2col(inSubArrs->at(i)->getBuffer(), columns.getBuffer(), iC, iD, iH, iW, oD, oH, oW, kD, kH, kW, sD, sH, sW, pD, pH, pW, dD, dH, dW);        
         NDArrayFactory<T>::mmulHelper(&columns, gradOsubArrs->at(i), sumGradWsubArrs->at(i), 1.0, 0.0);         // [iC*kD*kW*kH, oD*oH*oW] x [oD*oH*oW, oC] = [iC*kD*kW*kH, oC]
 
-        NDArray<T>* gradOsubAttT = gradOsubArrs->at(i)->transpose();
-        NDArrayFactory<T>::mmulHelper(reshapedWeights, gradOsubAttT, &columns, 1.0, 0.0);                       // [iC*kD*kH*kW, oC] x [oC, oD*oH*oW] = [iC*kD*kW*kH, oD*oH*oW]
-        delete gradOsubAttT;
+        // NDArray<T>* gradOsubAttT = gradOsubArrs->at(i)->transpose();
+        // NDArrayFactory<T>::mmulHelper(reshapedWeights, gradOsubAttT, &columns, 1.0, 0.0);                       // [iC*kD*kH*kW, oC] x [oC, oD*oH*oW] = [iC*kD*kW*kH, oD*oH*oW]
+        // delete gradOsubAttT;
         
         // columns [iC*kD*kW*kH, oD*oH*oW]
         // weights [kD,kH,kW,iC, oC]
         // gradO   [oD*oH*oW, oC]
         // gradI   [iC, iD, iH, iW]
+        // col [bS, iC, kD, kH, kW, oD, oH, oW], vol [bS, iC, iD, iH, iW]   
+        // NDArray<T>* columnsR = columns.reshape(columns.ordering(), {})
+        // ConvolutionUtils<T>::col2vol2(*columnsR, *gradIsubArrs->at(i), sD, sH, sW, pD, pH, pW, dD, dH, dW);
+        // ConvolutionUtils<T>::col2vol(columns.getBuffer(), gradIsubArrs->at(i)->getBuffer(), oD, oH, oW, iC, iD, iH, iW, kD, kH, kW, sD, sH, sW, pD, pH, pW, dD, dH, dW);        
+    }
 
-        ConvolutionUtils<T>::col2vol(columns.getBuffer(), gradIsubArrs->at(i)->getBuffer(), oD, oH, oW, iC, iD, iH, iW, kD, kH, kW, sD, sH, sW, pD, pH, pW, dD, dH, dW);
-
+    
+    NDArray<T>* columns2R = columns2.permute({1,2,3,4,0,5,6,7});
+    columns2R->reshapei({iC*kD*kW*kH, bS*oD*oH*oW});
+    NDArrayFactory<T>::mmulHelper(reshapedWeights, gradOT, columns2R, 1.0, 0.0);                       // [iC*kD*kH*kW, oC] x [oC, bS*oD*oH*oW] = [iC*kD*kW*kH, bS*oD*oH*oW]
+    std::cout<< (double)(columns2R->template reduceNumber<simdOps::Variance<T>>()) <<std::endl;
+    std::cout<< (double)(columns2.template reduceNumber<simdOps::Variance<T>>()  )<<std::endl;
 
         
-    }
+    // col [bS, iC, kD, kH, kW, oD, oH, oW], vol [bS, iC, iD, iH, iW]    
+    ConvolutionUtils<T>::col2vol2(columns2, *gradI, sD, sH, sW, pD, pH, pW, dD, dH, dW);
 
     sumGradW.reshapei({bS,iC,kD,kH,kW,oC});         // [bS, iC*kD*kH*kW, oC] -> [bS, iC, kD, kH, kW, oC]
     sumGradW.permutei(permShapeSumGradW);           // [bS, iC, kD, kH, kW, oC] -> [bS, kD, kH, kW, iC, oC] (NDHWC) or [bS, oC, iC, kD, kH, kW] (NCDHW)
@@ -270,6 +284,8 @@ CUSTOM_OP_IMPL(conv3dnew_bp, 3, 2, false, 0, 13) {
         delete sum;
     }
 
+    delete columns2R;
+    delete gradOT;
     delete sumGradWsubArrs;
     delete reshapedWeights;
     delete inSubArrs;

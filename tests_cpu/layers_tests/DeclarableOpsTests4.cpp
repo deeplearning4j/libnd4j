@@ -32,16 +32,16 @@ TEST_F(DeclarableOpsTests4, Test_Pooling_Parity_1) {
     
 
     nd4j::ops::avgpool2d<float> op;
-    auto result = op.execute({&x}, {}, {2, 2, 2, 2, 0, 0, 1, 1, 1, 1, 1});
+    auto volBuff = op.execute({&x}, {}, {2, 2, 2, 2, 0, 0, 1, 1, 1, 1, 1});
 
-    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    ASSERT_EQ(ND4J_STATUS_OK, volBuff->status());
 
-    auto z = result->at(0);
+    auto z = volBuff->at(0);
 
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
 
-    delete result;
+    delete volBuff;
 }
 
 
@@ -53,16 +53,16 @@ TEST_F(DeclarableOpsTests4, Test_Pooling_Parity_2) {
     
 
     nd4j::ops::avgpool2d<float> op;
-    auto result = op.execute({&x}, {}, {2, 2, 2, 2, 0, 0, 1, 1, 0, 1, 1});
+    auto volBuff = op.execute({&x}, {}, {2, 2, 2, 2, 0, 0, 1, 1, 0, 1, 1});
 
-    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    ASSERT_EQ(ND4J_STATUS_OK, volBuff->status());
 
-    auto z = result->at(0);
+    auto z = volBuff->at(0);
 
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
 
-    delete result;
+    delete volBuff;
 }
 
 
@@ -74,16 +74,16 @@ TEST_F(DeclarableOpsTests4, Test_Pooling_Parity_3) {
     
 
     nd4j::ops::maxpool2d<float> op;
-    auto result = op.execute({&x}, {}, {2, 2, 2, 2, 0, 0, 1, 1, 1, 1, 1});
+    auto volBuff = op.execute({&x}, {}, {2, 2, 2, 2, 0, 0, 1, 1, 1, 1, 1});
 
-    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    ASSERT_EQ(ND4J_STATUS_OK, volBuff->status());
 
-    auto z = result->at(0);
+    auto z = volBuff->at(0);
 
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
 
-    delete result;
+    delete volBuff;
 }
 
 
@@ -95,16 +95,16 @@ TEST_F(DeclarableOpsTests4, Test_Pooling_Parity_4) {
 
 
     nd4j::ops::maxpool2d<float> op;
-    auto result = op.execute({&x}, {}, {2, 2, 2, 2, 0, 0, 1, 1, 0, 1, 1});
+    auto volBuff = op.execute({&x}, {}, {2, 2, 2, 2, 0, 0, 1, 1, 0, 1, 1});
 
-    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    ASSERT_EQ(ND4J_STATUS_OK, volBuff->status());
 
-    auto z = result->at(0);
+    auto z = volBuff->at(0);
 
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
 
-    delete result;
+    delete volBuff;
 }
 
 
@@ -116,16 +116,16 @@ TEST_F(DeclarableOpsTests4, Test_Pooling_Parity_5) {
     
 
     nd4j::ops::avgpool2d<float> op;
-    auto result = op.execute({&x}, {}, {2, 2, 2, 2, 0, 0, 1, 1, 1, 0, 1});
+    auto volBuff = op.execute({&x}, {}, {2, 2, 2, 2, 0, 0, 1, 1, 1, 0, 1});
 
-    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    ASSERT_EQ(ND4J_STATUS_OK, volBuff->status());
 
-    auto z = result->at(0);
+    auto z = volBuff->at(0);
 
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
 
-    delete result;
+    delete volBuff;
 }
 
 TEST_F(DeclarableOpsTests4, Test_Pooling_Parity_6) {
@@ -135,16 +135,16 @@ TEST_F(DeclarableOpsTests4, Test_Pooling_Parity_6) {
     NDArrayFactory<float>::linspace(1, x);
     
     nd4j::ops::avgpool2d<float> op;
-    auto result = op.execute({&x}, {}, {2, 2, 2, 2, 0, 0, 1, 1, 0, 1, 1});
+    auto volBuff = op.execute({&x}, {}, {2, 2, 2, 2, 0, 0, 1, 1, 0, 1, 1});
 
-    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    ASSERT_EQ(ND4J_STATUS_OK, volBuff->status());
 
-    auto z = result->at(0);
+    auto z = volBuff->at(0);
 
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
 
-    delete result;
+    delete volBuff;
 }
 
 TEST_F(DeclarableOpsTests4, Test_Pooling_Parity_7) {
@@ -155,16 +155,16 @@ TEST_F(DeclarableOpsTests4, Test_Pooling_Parity_7) {
 
 
     nd4j::ops::maxpool2d<float> op;
-    auto result = op.execute({&x}, {}, {2, 2, 2, 2, 0, 0, 1, 1, 0, 1, 0});
+    auto volBuff = op.execute({&x}, {}, {2, 2, 2, 2, 0, 0, 1, 1, 0, 1, 0});
 
-    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    ASSERT_EQ(ND4J_STATUS_OK, volBuff->status());
 
-    auto z = result->at(0);
+    auto z = volBuff->at(0);
 
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
 
-    delete result;
+    delete volBuff;
 }
 
 TEST_F(DeclarableOpsTests4, Test_Pooling_Parity_8) {
@@ -175,16 +175,16 @@ TEST_F(DeclarableOpsTests4, Test_Pooling_Parity_8) {
 
 
     nd4j::ops::avgpool2d<float> op;
-    auto result = op.execute({&x}, {}, {2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0});
+    auto volBuff = op.execute({&x}, {}, {2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0});
 
-    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    ASSERT_EQ(ND4J_STATUS_OK, volBuff->status());
 
-    auto z = result->at(0);
+    auto z = volBuff->at(0);
 
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
 
-    delete result;
+    delete volBuff;
 }
 
 
@@ -196,16 +196,16 @@ TEST_F(DeclarableOpsTests4, Test_Pooling_Parity_9) {
 
 
     nd4j::ops::avgpool2d<float> op;
-    auto result = op.execute({&x}, {}, {2, 2, 2, 2, 1, 1, 1, 1, 0, 1, 0});
+    auto volBuff = op.execute({&x}, {}, {2, 2, 2, 2, 1, 1, 1, 1, 0, 1, 0});
 
-    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    ASSERT_EQ(ND4J_STATUS_OK, volBuff->status());
 
-    auto z = result->at(0);
+    auto z = volBuff->at(0);
 
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
 
-    delete result;
+    delete volBuff;
 }
 
 
@@ -217,16 +217,16 @@ TEST_F(DeclarableOpsTests4, Test_Pooling_Parity_10) {
 
 
     nd4j::ops::avgpool2d<float> op;
-    auto result = op.execute({&x}, {}, {2, 2, 2, 2, 0, 0, 1, 1, 1, 0, 0});
+    auto volBuff = op.execute({&x}, {}, {2, 2, 2, 2, 0, 0, 1, 1, 1, 0, 0});
 
-    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    ASSERT_EQ(ND4J_STATUS_OK, volBuff->status());
 
-    auto z = result->at(0);
+    auto z = volBuff->at(0);
 
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
 
-    delete result;
+    delete volBuff;
 }
 
 
@@ -238,16 +238,16 @@ TEST_F(DeclarableOpsTests4, Test_Pooling_Parity_11) {
 
 
     nd4j::ops::avgpool2d<float> op;
-    auto result = op.execute({&x}, {}, {2, 2, 1, 1, 0, 0, 1, 1, 0, 0, 0});
+    auto volBuff = op.execute({&x}, {}, {2, 2, 1, 1, 0, 0, 1, 1, 0, 0, 0});
 
-    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    ASSERT_EQ(ND4J_STATUS_OK, volBuff->status());
 
-    auto z = result->at(0);
+    auto z = volBuff->at(0);
 
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
 
-    delete result;
+    delete volBuff;
 }
 
 TEST_F(DeclarableOpsTests4, Test_Pooling_Parity_12) {
@@ -258,11 +258,11 @@ TEST_F(DeclarableOpsTests4, Test_Pooling_Parity_12) {
 
 
     nd4j::ops::avgpool2d<float> op;
-    auto result = op.execute({&x}, {}, {2, 2, 1, 1, 0, 0, 1, 1, 1, 0, 0});
+    auto volBuff = op.execute({&x}, {}, {2, 2, 1, 1, 0, 0, 1, 1, 1, 0, 0});
 
-    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    ASSERT_EQ(ND4J_STATUS_OK, volBuff->status());
 
-    auto z = result->at(0);
+    auto z = volBuff->at(0);
 
     //z->printShapeInfo("z shape:");
     //z->printBuffer("z buffer:");
@@ -270,7 +270,7 @@ TEST_F(DeclarableOpsTests4, Test_Pooling_Parity_12) {
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
 
-    delete result;
+    delete volBuff;
 }
 
 
@@ -280,16 +280,16 @@ TEST_F(DeclarableOpsTests4, Test_BiasAdd_NHWC_1) {
     NDArray<float> exp('c', {2, 3, 3, 2}, {1.f,  2.f,  1.f,  2.f,  1.f,  2.f,  1.f,  2.f,  1.f,  2.f,  1.f,  2.f,  1.f,  2.f,  1.f,  2.f,  1.f,  2.f, 1.f,  2.f,  1.f,  2.f,  1.f,  2.f,  1.f,  2.f,  1.f,  2.f,  1.f,  2.f,  1.f,  2.f,  1.f,  2.f,  1.f,  2.f});
 
     nd4j::ops::biasadd<float> op;
-    auto result = op.execute({&x, &bias}, {}, {});
+    auto volBuff = op.execute({&x, &bias}, {}, {});
 
-    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    ASSERT_EQ(ND4J_STATUS_OK, volBuff->status());
 
-    auto z = result->at(0);
+    auto z = volBuff->at(0);
 
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
 
-    delete result;
+    delete volBuff;
 }
 
 TEST_F(DeclarableOpsTests4, Test_BiasAdd_NCHW_1) {
@@ -298,16 +298,16 @@ TEST_F(DeclarableOpsTests4, Test_BiasAdd_NCHW_1) {
     NDArray<float> exp('c', {2, 2, 3, 3}, {1.f,  2.f,  1.f,  2.f,  1.f,  2.f,  1.f,  2.f,  1.f,  2.f,  1.f,  2.f,  1.f,  2.f,  1.f,  2.f,  1.f,  2.f, 1.f,  2.f,  1.f,  2.f,  1.f,  2.f,  1.f,  2.f,  1.f,  2.f,  1.f,  2.f,  1.f,  2.f,  1.f,  2.f,  1.f,  2.f});
 
     nd4j::ops::biasadd<float> op;
-    auto result = op.execute({&x, &bias}, {}, {});
+    auto volBuff = op.execute({&x, &bias}, {}, {});
 
-    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    ASSERT_EQ(ND4J_STATUS_OK, volBuff->status());
 
-    auto z = result->at(0);
+    auto z = volBuff->at(0);
 
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
 
-    delete result;
+    delete volBuff;
 }
 
 TEST_F(DeclarableOpsTests4, Test_Fill_1) {
@@ -316,16 +316,16 @@ TEST_F(DeclarableOpsTests4, Test_Fill_1) {
     exp.assign(2.0f);
 
     nd4j::ops::fill<float> op;
-    auto result = op.execute({&x}, {2.0f}, {});
+    auto volBuff = op.execute({&x}, {2.0f}, {});
 
-    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    ASSERT_EQ(ND4J_STATUS_OK, volBuff->status());
 
-    auto z = result->at(0);
+    auto z = volBuff->at(0);
 
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
 
-    delete result;
+    delete volBuff;
 }
 
 TEST_F(DeclarableOpsTests4, Test_Reshape_Again) {
@@ -336,14 +336,14 @@ TEST_F(DeclarableOpsTests4, Test_Reshape_Again) {
     NDArrayFactory<float>::linspace(1, exp);
 
     nd4j::ops::reshape<float> op;
-    auto result = op.execute({&x}, {}, {99, 4, 3});
+    auto volBuff = op.execute({&x}, {}, {99, 4, 3});
 
-    auto z = result->at(0);
+    auto z = volBuff->at(0);
 
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
 
-    delete result;
+    delete volBuff;
 }
 
 TEST_F(DeclarableOpsTests4, Test_Gemv_Transpose_1) {
@@ -355,15 +355,15 @@ TEST_F(DeclarableOpsTests4, Test_Gemv_Transpose_1) {
     NDArrayFactory<float>::linspace(1, y);
 
     nd4j::ops::matmul<float> op;
-    auto result = op.execute({&x, &y}, {}, {1, 0});
-    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    auto volBuff = op.execute({&x, &y}, {}, {1, 0});
+    ASSERT_EQ(ND4J_STATUS_OK, volBuff->status());
 
-    auto z = result->at(0);
+    auto z = volBuff->at(0);
 
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
 
-    delete result;
+    delete volBuff;
 }
 
 TEST_F(DeclarableOpsTests4, Test_Split_1) {
@@ -384,15 +384,15 @@ TEST_F(DeclarableOpsTests4, Test_Split_1) {
 
 
     nd4j::ops::split_v<float> op;
-    auto result = op.execute({&x, &sizes}, {}, {1});
+    auto volBuff = op.execute({&x, &sizes}, {}, {1});
 
-    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    ASSERT_EQ(ND4J_STATUS_OK, volBuff->status());
 
-    ASSERT_EQ(3, result->size());
+    ASSERT_EQ(3, volBuff->size());
 
-    auto z0 = result->at(0);
-    auto z1 = result->at(1);
-    auto z2 = result->at(2);
+    auto z0 = volBuff->at(0);
+    auto z1 = volBuff->at(1);
+    auto z2 = volBuff->at(2);
 
     ASSERT_TRUE(sub0->isSameShape(z0));
     ASSERT_TRUE(sub0->equalsTo(z0));
@@ -407,7 +407,7 @@ TEST_F(DeclarableOpsTests4, Test_Split_1) {
     delete sub1;
     delete sub2;
 
-    delete result;
+    delete volBuff;
 }
 
 // special test for TF mode, when axis goes first
@@ -432,13 +432,13 @@ TEST_F(DeclarableOpsTests4, Test_Split_2) {
 
 
     nd4j::ops::split<float> op;
-    auto result = op.execute({&axis, &x}, {}, {4});
-    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    auto volBuff = op.execute({&axis, &x}, {}, {4});
+    ASSERT_EQ(ND4J_STATUS_OK, volBuff->status());
 
-    auto z0 = result->at(0);
-    auto z1 = result->at(1);
-    auto z2 = result->at(2);
-    auto z3 = result->at(3);
+    auto z0 = volBuff->at(0);
+    auto z1 = volBuff->at(1);
+    auto z2 = volBuff->at(2);
+    auto z3 = volBuff->at(3);
 
     ASSERT_TRUE(sub0->isSameShape(z0));
     ASSERT_TRUE(sub1->isSameShape(z1));
@@ -456,7 +456,7 @@ TEST_F(DeclarableOpsTests4, Test_Split_2) {
     delete sub2;
     delete sub3;
 
-    delete result;
+    delete volBuff;
 }
 
 // special test for TF mode, when axis goes first
@@ -477,12 +477,12 @@ TEST_F(DeclarableOpsTests4, Test_Split_3) {
     sub2->assign(2.0f);
 
     nd4j::ops::split<float> op;
-    auto result = op.execute({&axis, &x}, {}, {3});
-    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    auto volBuff = op.execute({&axis, &x}, {}, {3});
+    ASSERT_EQ(ND4J_STATUS_OK, volBuff->status());
 
-    auto z0 = result->at(0);
-    auto z1 = result->at(1);
-    auto z2 = result->at(2);
+    auto z0 = volBuff->at(0);
+    auto z1 = volBuff->at(1);
+    auto z2 = volBuff->at(2);
 
     ASSERT_TRUE(sub0->isSameShape(z0));
     ASSERT_TRUE(sub1->isSameShape(z1));
@@ -496,7 +496,7 @@ TEST_F(DeclarableOpsTests4, Test_Split_3) {
     delete sub1;
     delete sub2;
 
-    delete result;
+    delete volBuff;
 }
 
 TEST_F(DeclarableOpsTests4, Test_Stack_4) {
@@ -506,15 +506,15 @@ TEST_F(DeclarableOpsTests4, Test_Stack_4) {
     NDArray<float> exp('c', {3, 2, 3, 5});
 
     nd4j::ops::stack<float> op;
-    auto result = op.execute({&t, &u, &v}, {}, {-4});
-    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    auto volBuff = op.execute({&t, &u, &v}, {}, {-4});
+    ASSERT_EQ(ND4J_STATUS_OK, volBuff->status());
 
 
-    auto z = result->at(0);
+    auto z = volBuff->at(0);
 
     ASSERT_TRUE(exp.isSameShape(z));
 
-    delete result;
+    delete volBuff;
 }
 
 TEST_F(DeclarableOpsTests4, Test_Squeeze_args_1) {
@@ -522,15 +522,15 @@ TEST_F(DeclarableOpsTests4, Test_Squeeze_args_1) {
     NDArray<float> exp('c', {2, 1, 2}, {1, 2, 3, 4});
 
     nd4j::ops::squeeze<float> op;
-    auto result = op.execute({&x}, {}, {1, 3});
-    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    auto volBuff = op.execute({&x}, {}, {1, 3});
+    ASSERT_EQ(ND4J_STATUS_OK, volBuff->status());
 
-    auto z = result->at(0);
+    auto z = volBuff->at(0);
 
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
 
-    delete result;
+    delete volBuff;
 }
 
 TEST_F(DeclarableOpsTests4, Test_Squeeze_args_2) {
@@ -539,15 +539,15 @@ TEST_F(DeclarableOpsTests4, Test_Squeeze_args_2) {
     NDArray<float> exp('c', {2, 1, 2}, {1, 2, 3, 4});
 
     nd4j::ops::squeeze<float> op;
-    auto result = op.execute({&x, &y}, {}, {});
-    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    auto volBuff = op.execute({&x, &y}, {}, {});
+    ASSERT_EQ(ND4J_STATUS_OK, volBuff->status());
 
-    auto z = result->at(0);
+    auto z = volBuff->at(0);
 
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
 
-    delete result;
+    delete volBuff;
 }
 
 
@@ -556,15 +556,15 @@ TEST_F(DeclarableOpsTests4, Test_Squeeze_args_3) {
     NDArray<float> exp('c', {2, 1, 2}, {1, 2, 3, 4});
 
     nd4j::ops::squeeze<float> op;
-    auto result = op.execute({&x}, {}, {-2, -3});
-    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    auto volBuff = op.execute({&x}, {}, {-2, -3});
+    ASSERT_EQ(ND4J_STATUS_OK, volBuff->status());
 
-    auto z = result->at(0);
+    auto z = volBuff->at(0);
 
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
 
-    delete result;
+    delete volBuff;
 }
 
 
@@ -574,15 +574,15 @@ TEST_F(DeclarableOpsTests4, Test_VectorScalar_Concat_1) {
     NDArray<float> exp('c', {3}, {1, 0, 3});
 
     nd4j::ops::concat<float> op;
-    auto result = op.execute({&x, &y}, {}, {0});
-    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    auto volBuff = op.execute({&x, &y}, {}, {0});
+    ASSERT_EQ(ND4J_STATUS_OK, volBuff->status());
 
-    auto z = result->at(0);
+    auto z = volBuff->at(0);
 
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
 
-    delete result;
+    delete volBuff;
 }
 
 
@@ -592,15 +592,15 @@ TEST_F(DeclarableOpsTests4, Test_BiasAdd_1) {
     NDArray<float> exp('c', {2, 3}, {1, 2, 3, 1, 2, 3});
 
     nd4j::ops::biasadd<float> op;
-    auto result = op.execute({&x, &row}, {}, {});
+    auto volBuff = op.execute({&x, &row}, {}, {});
 
-    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    ASSERT_EQ(ND4J_STATUS_OK, volBuff->status());
 
-    auto z = result->at(0);
+    auto z = volBuff->at(0);
 
     ASSERT_TRUE(exp.isSameShape(z));
 
-    delete result;
+    delete volBuff;
 }
 
 
@@ -608,16 +608,16 @@ TEST_F(DeclarableOpsTests4, Test_1D_1) {
     NDArray<float> x('c', {2, 3});
 
     nd4j::ops::unstack<float> op;
-    auto result = op.execute({&x}, {}, {1});
+    auto volBuff = op.execute({&x}, {}, {1});
 
-    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    ASSERT_EQ(ND4J_STATUS_OK, volBuff->status());
 
-    ASSERT_EQ(3, result->size());
+    ASSERT_EQ(3, volBuff->size());
 
     for (int e = 0; e < 3; e++)
-        ASSERT_EQ(1, result->at(e)->rankOf());
+        ASSERT_EQ(1, volBuff->at(e)->rankOf());
 
-    delete result;
+    delete volBuff;
 }
 
 TEST_F(DeclarableOpsTests4, Test_SpaceToDepth_1) {
@@ -625,15 +625,15 @@ TEST_F(DeclarableOpsTests4, Test_SpaceToDepth_1) {
     NDArray<float> exp('c', {1, 1, 1, 12}, {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12});
 
     nd4j::ops::space_to_depth<float> op;
-    auto result = op.execute({&x}, {}, {2, 1});
-    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    auto volBuff = op.execute({&x}, {}, {2, 1});
+    ASSERT_EQ(ND4J_STATUS_OK, volBuff->status());
 
-    auto z = result->at(0);
+    auto z = volBuff->at(0);
 
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
 
-    delete result;
+    delete volBuff;
 }
 
 TEST_F(DeclarableOpsTests4, Test_SpaceToDepth_2) {
@@ -641,15 +641,15 @@ TEST_F(DeclarableOpsTests4, Test_SpaceToDepth_2) {
     NDArray<float> exp('c', {1, 12, 1, 1}, {1, 5, 9, 2, 6, 10, 3, 7, 11, 4, 8, 12});
 
     nd4j::ops::space_to_depth<float> op;
-    auto result = op.execute({&x}, {}, {2, 0});
-    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    auto volBuff = op.execute({&x}, {}, {2, 0});
+    ASSERT_EQ(ND4J_STATUS_OK, volBuff->status());
 
-    auto z = result->at(0);
+    auto z = volBuff->at(0);
 
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
 
-    delete result;
+    delete volBuff;
 }
 
 
@@ -658,15 +658,15 @@ TEST_F(DeclarableOpsTests4, Test_DepthToSpace_1) {
     NDArray<float> exp('c', {1, 2, 2, 3}, {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12});
 
     nd4j::ops::depth_to_space<float> op;
-    auto result = op.execute({&x}, {}, {2, 1});
-    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    auto volBuff = op.execute({&x}, {}, {2, 1});
+    ASSERT_EQ(ND4J_STATUS_OK, volBuff->status());
 
-    auto z = result->at(0);
+    auto z = volBuff->at(0);
 
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
 
-    delete result;
+    delete volBuff;
 }
 
 
@@ -675,15 +675,15 @@ TEST_F(DeclarableOpsTests4, Test_DepthToSpace_2) {
     NDArray<float> exp('c', {1, 3, 2, 2}, {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12});
 
     nd4j::ops::depth_to_space<float> op;
-    auto result = op.execute({&x}, {}, {2, 0});
-    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    auto volBuff = op.execute({&x}, {}, {2, 0});
+    ASSERT_EQ(ND4J_STATUS_OK, volBuff->status());
 
-    auto z = result->at(0);
+    auto z = volBuff->at(0);
 
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
 
-    delete result;
+    delete volBuff;
 }
 
 TEST_F(DeclarableOpsTests4, Test_DepthToSpace_3) {
@@ -691,14 +691,14 @@ TEST_F(DeclarableOpsTests4, Test_DepthToSpace_3) {
     NDArray<float> exp('c', {4, 16, 64, 1});
 
     nd4j::ops::depth_to_space<float> op;
-    auto result = op.execute({&x}, {}, {4, 1});
-    ASSERT_EQ(Status::OK(), result->status());
+    auto volBuff = op.execute({&x}, {}, {4, 1});
+    ASSERT_EQ(Status::OK(), volBuff->status());
 
-    auto z = result->at(0);
+    auto z = volBuff->at(0);
 
     ASSERT_TRUE(exp.isSameShape(z));
 
-    delete result;
+    delete volBuff;
 }
 
 
@@ -708,15 +708,15 @@ TEST_F(DeclarableOpsTests4, Test_Cross_1) {
     NDArray<float> exp('c', {3}, {-5, 10, -5});
 
     nd4j::ops::cross<float> op;
-    auto result = op.execute({&a, &b}, {}, {});
-    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    auto volBuff = op.execute({&a, &b}, {}, {});
+    ASSERT_EQ(ND4J_STATUS_OK, volBuff->status());
 
-    auto z = result->at(0);
+    auto z = volBuff->at(0);
 
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
 
-    delete result;
+    delete volBuff;
 }
 
 
@@ -726,15 +726,15 @@ TEST_F(DeclarableOpsTests4, Test_Cross_2) {
     NDArray<float> exp('c', {2, 3}, {-5, 10, -5, -5, 10, -5});
 
     nd4j::ops::cross<float> op;
-    auto result = op.execute({&a, &b}, {}, {});
-    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    auto volBuff = op.execute({&a, &b}, {}, {});
+    ASSERT_EQ(ND4J_STATUS_OK, volBuff->status());
 
-    auto z = result->at(0);
+    auto z = volBuff->at(0);
 
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
     
-    delete result;
+    delete volBuff;
 }
 
 
@@ -744,15 +744,15 @@ TEST_F(DeclarableOpsTests4, Test_Cross_3) {
     NDArray<float> exp('c', {3, 3}, { -1,   2,  -1, -11,  22, -11, -11,  40, -27});
 
     nd4j::ops::cross<float> op;
-    auto result = op.execute({&a, &b}, {}, {});
-    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    auto volBuff = op.execute({&a, &b}, {}, {});
+    ASSERT_EQ(ND4J_STATUS_OK, volBuff->status());
 
-    auto z = result->at(0);
+    auto z = volBuff->at(0);
 
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
     
-    delete result;
+    delete volBuff;
 }
 
 TEST_F(DeclarableOpsTests4, Test_Matmul_YATS_1) {
@@ -761,15 +761,15 @@ TEST_F(DeclarableOpsTests4, Test_Matmul_YATS_1) {
     NDArray<float> exp('c', {3}, {30, 70, 110,});
 
     nd4j::ops::matmul<float> op;
-    auto result = op.execute({&a, &b}, {}, {});
-    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    auto volBuff = op.execute({&a, &b}, {}, {});
+    ASSERT_EQ(ND4J_STATUS_OK, volBuff->status());
 
-    auto z = result->at(0);
+    auto z = volBuff->at(0);
     
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
 
-    delete result;
+    delete volBuff;
 }
 
 TEST_F(DeclarableOpsTests4, Test_Matmul_YATS_2) {
@@ -778,17 +778,17 @@ TEST_F(DeclarableOpsTests4, Test_Matmul_YATS_2) {
     NDArray<float> exp('c', {1, 3}, {70, 80, 90});
 
     nd4j::ops::matmul<float> op;
-    auto result = op.execute({&a, &b}, {}, {});
-    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    auto volBuff = op.execute({&a, &b}, {}, {});
+    ASSERT_EQ(ND4J_STATUS_OK, volBuff->status());
 
-    auto z = result->at(0);
+    auto z = volBuff->at(0);
 
     z->printShapeInfo("z");
     
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
 
-    delete result;
+    delete volBuff;
 }
 
 TEST_F(DeclarableOpsTests4, Test_Matmul_YATS_3) {
@@ -797,15 +797,15 @@ TEST_F(DeclarableOpsTests4, Test_Matmul_YATS_3) {
     NDArray<float> exp('c', {1, 3}, {70, 80, 90});
 
     nd4j::ops::matmul<float> op;
-    auto result = op.execute({&a, &b}, {}, {});
-    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    auto volBuff = op.execute({&a, &b}, {}, {});
+    ASSERT_EQ(ND4J_STATUS_OK, volBuff->status());
 
-    auto z = result->at(0);
+    auto z = volBuff->at(0);
     
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
 
-    delete result;
+    delete volBuff;
 }
 
 TEST_F(DeclarableOpsTests4, Test_Add_119) {
@@ -814,18 +814,18 @@ TEST_F(DeclarableOpsTests4, Test_Add_119) {
     NDArray<float> exp('c', {1, 4}, {2, 4, 6, 8});
 
     nd4j::ops::add<float> op;
-    auto result = op.execute({&a, &b}, {}, {});
+    auto volBuff = op.execute({&a, &b}, {}, {});
 
-    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    ASSERT_EQ(ND4J_STATUS_OK, volBuff->status());
 
-    auto z = result->at(0);
+    auto z = volBuff->at(0);
 
     ASSERT_EQ(2, z->rankOf());
 
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
 
-    delete result;
+    delete volBuff;
 }
 
 TEST_F(DeclarableOpsTests4, Test_Reshape_Negative_1) {
@@ -834,15 +834,15 @@ TEST_F(DeclarableOpsTests4, Test_Reshape_Negative_1) {
     NDArray<float> exp('c', {4, 2}, {1, 2, 3, 4, 5, 6, 7, 8});
 
     nd4j::ops::reshape<float> op;
-    auto result = op.execute({&x, &shape}, {}, {});
-    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    auto volBuff = op.execute({&x, &shape}, {}, {});
+    ASSERT_EQ(ND4J_STATUS_OK, volBuff->status());
 
-    auto z = result->at(0);
+    auto z = volBuff->at(0);
 
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
 
-    delete result;
+    delete volBuff;
 }
 
 TEST_F(DeclarableOpsTests4, Test_TileToShape_1) {
@@ -850,15 +850,15 @@ TEST_F(DeclarableOpsTests4, Test_TileToShape_1) {
     NDArray<float> exp('c', {2, 4, 3});
 
     nd4j::ops::tile_to_shape<float> op;
-    auto result = op.execute({&x},{}, {2, 4, 3});
+    auto volBuff = op.execute({&x},{}, {2, 4, 3});
 
-    ASSERT_EQ(Status::OK(), result->status());
+    ASSERT_EQ(Status::OK(), volBuff->status());
 
-    auto z = result->at(0);
+    auto z = volBuff->at(0);
 
     ASSERT_TRUE(exp.isSameShape(z));
 
-    delete result;
+    delete volBuff;
 }
 
 
@@ -869,16 +869,16 @@ TEST_F(DeclarableOpsTests4, Test_StridedSlice_Alex_1) {
     NDArrayFactory<float>::linspace(1, exp);
 
     nd4j::ops::strided_slice<float> op;
-    auto result = op.execute({&x}, {}, {0,0,0,1,0, -999,0,0,0, -999,3,4,5, -999,1,1,1});
+    auto volBuff = op.execute({&x}, {}, {0,0,0,1,0, -999,0,0,0, -999,3,4,5, -999,1,1,1});
 
-    ASSERT_EQ(Status::OK(), result->status());
+    ASSERT_EQ(Status::OK(), volBuff->status());
 
-    auto z = result->at(0);
+    auto z = volBuff->at(0);
 
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
 
-    delete result;
+    delete volBuff;
 }
 
 TEST_F(DeclarableOpsTests4, Test_StridedSlice_Alex_2) {
@@ -891,18 +891,18 @@ TEST_F(DeclarableOpsTests4, Test_StridedSlice_Alex_2) {
     NDArrayFactory<float>::linspace(1, exp);
 
     nd4j::ops::strided_slice<float> op;
-    auto result = op.execute({&x, &begin, &end, &stride}, {}, {0,0,0,1,0});
+    auto volBuff = op.execute({&x, &begin, &end, &stride}, {}, {0,0,0,1,0});
 
-    ASSERT_EQ(Status::OK(), result->status());
+    ASSERT_EQ(Status::OK(), volBuff->status());
 
-    ASSERT_EQ(Status::OK(), result->status());
+    ASSERT_EQ(Status::OK(), volBuff->status());
 
-    auto z = result->at(0);
+    auto z = volBuff->at(0);
 
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
 
-    delete result;
+    delete volBuff;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -2059,7 +2059,3 @@ TEST_F(DeclarableOpsTests4, conv3d_bp_test2) {
     delete results;
 }
 
-  
-
-
- 

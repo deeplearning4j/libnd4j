@@ -127,17 +127,17 @@ namespace ops  {
             int c, t, h, w;
             memset(outBuff, 0, sizeof(T) * oD * oH * oW * oC);
 
-            int kEffectiveD = kD + (kD - 1) * (dD - 1);
-            int kEffectiveH = kH + (kH - 1) * (dH - 1);
-            int kEffectiveW = kW + (kW - 1) * (dW - 1);            
+            int effkD = kD + (kD - 1) * (dD - 1);
+            int effkH = kH + (kH - 1) * (dH - 1);
+            int effkW = kW + (kW - 1) * (dW - 1);            
 
-            int inDim = oC * kEffectiveD * kEffectiveH * kW;
+            int inDim = oC * effkD * effkH * effkW;
             for (c = 0; c < inDim; ++c) {
                 
-                int w_offset = c % kEffectiveW;
-                int h_offset = (c / kEffectiveW) % kEffectiveH;
-                int t_offset = (c / kEffectiveW / kEffectiveH) % kEffectiveD;
-                int c_vol = c / kEffectiveD / kEffectiveH / kEffectiveW;
+                int w_offset = c % effkW + pW;
+                int h_offset = (c / effkW) % effkH + pH;
+                int t_offset = (c / (effkW * effkH)) % effkD + pD;
+                int c_vol = c / (effkD * effkH * effkW);
 
                 for (t = 0; t < iD; ++t) {
                     for (h = 0; h < iH; ++h) {
@@ -154,6 +154,103 @@ namespace ops  {
                 }
             }
         }        
+
+//////////////////////////////////////////////////////////////////////////
+        template<typename T>
+        void ConvolutionUtils<T>::col2vol2(NDArray<T>& col, NDArray<T>& vol, const int sD, const int sH, const int sW, const int pD, const int pH, const int pW, const int dD, const int dH, const int dW) {
+            
+            const T* colBuff = col.getBuffer();            
+            T* volBuff       = vol.getBuffer();            
+
+            int *colShapeOnly = shape::shapeOf(col.getShapeInfo());
+            int *colStrides   = shape::stride(col.getShapeInfo());
+            int *volShapeOnly = shape::shapeOf(vol.getShapeInfo());
+            char volOrder     = shape::order(vol.getShapeInfo());
+            int *volStrides   = shape::stride(vol.getShapeInfo());
+
+            int strideBS   = colStrides[0];
+            int strideColC = colStrides[1];
+            int strideKD   = colStrides[2];
+            int strideKH   = colStrides[3];
+            int strideKW   = colStrides[4];
+            int strideColD = colStrides[5];
+            int strideColH = colStrides[6];
+            int strideColW = colStrides[7];
+
+            int kD = colShapeOnly[2];
+            int kH = colShapeOnly[3];
+            int kW = colShapeOnly[4];            
+
+            int bS   = volShapeOnly[0];
+            int volC = volShapeOnly[1];
+            int volD = volShapeOnly[2];
+            int volH = volShapeOnly[3];
+            int volW = volShapeOnly[4];
+
+            int colD = colShapeOnly[5];
+            int colH = colShapeOnly[6];
+            int colW = colShapeOnly[7];
+
+            int n = bS * volC * volD * volH * volW;
+
+            //Effective kernel size, accounting for dilation
+            int effKD = kD + (kD - 1) * (dD - 1);
+            int effKH = kH + (kH - 1) * (dH - 1);
+            int effKW = kW + (kW - 1) * (dW - 1);
+            
+
+#pragma omp parallel for schedule(guided) proc_bind(close)
+            for (int i = 0; i < n; i++) {
+                
+                T val = 0;
+                int w_vol = i % volW + pW;
+                int h_vol = (i / volW) % volH + pH;
+                int d_vol = (i / (volW * volH)) % volD + pD;
+                int c_vol = i / (volW * volH * volD);
+
+                int num_vol   = c_vol / volC;
+                int depth_vol = c_vol % volC;
+
+                // compute the start and end of the output
+                int w_col_start = (w_vol < effKW) ? 0 : (w_vol - effKW) / sW + 1;
+                int w_col_end = nd4j::math::nd4j_min<int>(w_vol / sW + 1, colW);
+
+                int h_col_start = (h_vol < effKH) ? 0 : (h_vol - effKH) / sH + 1;
+                int h_col_end = nd4j::math::nd4j_min<int>(h_vol / sH + 1, colH);
+
+                int d_col_start = (d_vol < effKD) ? 0 : (d_vol - effKD) / sD + 1;
+                int d_col_end = nd4j::math::nd4j_min<int>(d_vol / sD + 1, colD);
+
+                //Iterate over col entries in the 6d array... these are added up
+                for (int d_col = d_col_start; d_col < d_col_end; ++d_col) {
+                    for (int h_col = h_col_start; h_col < h_col_end; ++h_col) {
+                        for (int w_col = w_col_start; w_col < w_col_end; ++w_col) {
+
+                            int d_k = (d_vol - d_col * dH);
+                            int h_k = (h_vol - h_col * sH);
+                            int w_k = (w_vol - w_col * sW);
+                            
+                            if(d_k % dD == 0 && h_k % dH == 0 && w_k % dW == 0) {
+                                   
+                                   d_k /= dD;
+                                   h_k /= dH;
+                                   w_k /= dW;
+                                   val += colBuff[num_vol * strideBS + depth_vol * strideColC + d_k * strideKD + h_k * strideKH + w_k * strideKW + d_col * strideColD + h_col * strideColH + w_col * strideColW];
+                             }
+                        }
+                    }
+                }
+                int i_f = 0;
+                int i_c = i;
+                for (int dim = 4; dim >= 0; --dim)
+                {
+                    i_f += (i_c % volShapeOnly[dim])  * volStrides[dim];
+                    i_c = i_c / volShapeOnly[dim];
+                }
+                volBuff[i_f] += val;
+            }
+
+        }
 
 //////////////////////////////////////////////////////////////////////////
         template<typename T>
