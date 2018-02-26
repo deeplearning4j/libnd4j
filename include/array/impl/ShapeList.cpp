@@ -67,4 +67,11 @@ namespace nd4j {
 
         _shapes.push_back(nShape);
     }
+
+    void ShapeList::detach() {
+        for (int e = 0; e < _shapes.size(); e++) {
+            _shapes[e] = shape::detachShape(_shapes[e]);
+        }
+        _workspace = false;
+    }
 }

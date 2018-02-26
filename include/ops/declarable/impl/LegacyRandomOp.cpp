@@ -387,8 +387,13 @@ namespace nd4j {
                 std::pair<int,int> pair(1, e);
                 if (variableSpace.hasVariable(pair)) {
                     auto var = variableSpace.getVariable(pair);
-                    var->markRemovable(false);
-                    arrayList->push_back(var->getNDArray());
+                    auto arr = var->getNDArray();
+                    if (!arr->isAttached()) {
+                        var->markRemovable(false);
+                        arrayList->push_back(arr);
+                    } else {
+                        arrayList->push_back(arr->detach());
+                    }
                 } else
                     break;
             }

@@ -30,6 +30,11 @@ namespace nd4j {
         int* at(int idx);
         void push_back(int *shape);
         void push_back(std::vector<int>& shape);
+
+        /**
+         * PLEASE NOTE: This method should be called ONLY if shapes were generated at workspaces. Otherwise you'll get memory leak
+         */
+        void detach();
     };
 }
 

@@ -763,6 +763,32 @@ void NDArray<T>::replacePointers(T *buffer, int *shapeInfo, const bool releaseEx
     }
 
 
+    template<typename T>
+    NDArray<T>* NDArray<T>::detach() {
+        if (!isAttached())
+            return this;
+
+        Nd4jIndex newLength = shape::length(_shapeInfo);
+        T* newBuffer;
+        int* newShapeInfo;
+
+        newBuffer = new T[newLength];
+
+        if (this->ordering() == 'f')
+            newShapeInfo = shape::shapeBufferFortran(rankOf(), shapeOf());
+        else
+            newShapeInfo = shape::shapeBuffer(rankOf(), shapeOf());
+
+
+        auto result = new NDArray<T>(newBuffer, newShapeInfo, nullptr);
+        result->_isBuffAlloc = true;
+        result->_isShapeAlloc = true;
+
+        result->assign(this);
+
+        return result;
+    }
+
 ////////////////////////////////////////////////////////////////////////
 // This method returns new copy of this NDArray, optionally in different order
 template <typename T>
@@ -797,7 +823,7 @@ template <typename T>
     // FIXME: we know that EWS is always 1 after dup() result
     newShapeInfo[rankOf() * 2 + 2] = 1;
 
-    NDArray<T> *result = new NDArray<T>(newBuffer, newShapeInfo, _workspace);
+    auto result = new NDArray<T>(newBuffer, newShapeInfo, _workspace);
     // this values should be set, to avoid memleak
     result->_isBuffAlloc = true;
     result->_isShapeAlloc = true;
@@ -1957,8 +1983,11 @@ void NDArray<T>::applyTrueBroadcast(const NDArray<T>* other, NDArray<T>* target,
         if(!ShapeUtils<T>::evalBroadcastShapeInfo(*max, *min, false, newShapeInfo, _workspace))          // the rank of target array must be equal to max->rankOf)()
             throw "NDArray::applyTrueBroadcast method: the shapes of this and other arrays are not suitable for broadcast operation !" ;
         if(!shape::equalsSoft(target->getShapeInfo(), newShapeInfo))
-            throw "NDArray::applyTrueBroadcast method: the shape of target array is wrong !";    
-        delete[] newShapeInfo;
+            throw "NDArray::applyTrueBroadcast method: the shape of target array is wrong !";
+
+        // if workspace is not null - do not call delete.
+        if (_workspace == nullptr)
+            delete[] newShapeInfo;
     }
 
     // check whether min array have to be tiled
@@ -1999,8 +2028,11 @@ NDArray<T>* NDArray<T>::applyTrueBroadcast(const NDArray<T>* other, T *extraArgs
     int* newShapeInfo = nullptr;
     if(!ShapeUtils<T>::evalBroadcastShapeInfo(*this, *other, true, newShapeInfo, _workspace))          // the rank of new array = max->rankOf)()
         throw "NDArray::applyTrueBroadcast method: the shapes of this and other arrays are not suitable for broadcast operation !" ;
-    NDArray<T>* result = new NDArray<T>(newShapeInfo, _workspace);
-    delete[] newShapeInfo;
+    NDArray<T>* result = new NDArray<T>(newShapeInfo, false, this->_workspace);
+
+    // if workspace is not null - do not call delete.
+    if (_workspace == nullptr)
+        delete[] newShapeInfo;
 
     this->template applyTrueBroadcast<OpName>(other, result, false, extraArgs);
   

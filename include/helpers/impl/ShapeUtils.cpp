@@ -392,7 +392,7 @@ bool ShapeUtils<T>::evalBroadcastShapeInfo(int *max, int*min, const bool evalMin
         throw "ShapeUtils::evalBroadcastShapeInfo method: the input pointer on shapeInfo must be empty (=nullptr) !" ;
     
     ALLOCATE(resultShapeInfo, workspace, shape::shapeInfoLength(maxRank), int);
-    memcpy(resultShapeInfo, maxShapeInfo, shape::shapeInfoLength(maxRank) * sizeof(int));
+    memcpy(resultShapeInfo, maxShapeInfo, shape::shapeInfoByteLength(maxRank));
     for (int i = 0; i < minRank; ++i)
         if(maxShapeInfo[maxRank-i] < minShapeInfo[minRank-i])
             resultShapeInfo[maxRank - i] = minShapeInfo[minRank-i];
@@ -422,7 +422,7 @@ bool ShapeUtils<T>::evalCommonBroadcastShapeInfo(const std::vector<const NDArray
     }
 
     ALLOCATE(resultShapeInfo, workspace, shape::shapeInfoLength(maxRank), int);
-    memset(resultShapeInfo, 0, shape::shapeInfoLength(maxRank) * sizeof(int));
+    memset(resultShapeInfo, 0, shape::shapeInfoByteLength(maxRank));
     resultShapeInfo[0] = maxRank;
 
     for(const auto& item : arrays ) {
