@@ -13,8 +13,6 @@ namespace nd4j {
             NDArray<T> *y = INPUT_VARIABLE(1);
             NDArray<T> *z = OUTPUT_VARIABLE(0);
 
-            z->printShapeInfo("matmum pre-shape");
-
             REQUIRE_TRUE(x->rankOf() <= 2 && y->rankOf() <= 2 && z->rankOf() <= 2, 0, "MatMul: Input and Output NDArrays should have rank less or equal to 2");
 
             int iSize = (int) block.getIArguments()->size();
@@ -123,8 +121,6 @@ namespace nd4j {
                 y->template applyScalar<simdOps::Multiply<T>>(x->getScalar(0), z, nullptr);
             }
 
-            z->printShapeInfo("matmul z shape");
-
             STORE_RESULT(*z);
 
             return ND4J_STATUS_OK;
@@ -160,7 +156,6 @@ namespace nd4j {
                 transB = 112;
 
             int* outputShape = ShapeUtils<T>::matrixProductShape(inputShape->at(0), inputShape->at(1), transA == 112, transB == 112, block.getWorkspace());
-            shape::printShapeInfoLinear("matmul shape", outputShape);
 
             return SHAPELIST(outputShape);
         }

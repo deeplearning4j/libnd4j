@@ -24,6 +24,7 @@ namespace nd4j {
                 if (this->_ptrHost == nullptr)
                     throw "Workspace allocation failed";
 
+                memset(this->_ptrHost, 0, initialSize);
                 this->_allocatedHost = true;
             } else
                 this->_allocatedHost = false;
@@ -41,6 +42,7 @@ namespace nd4j {
                     free((void *)this->_ptrHost);
 
                 this->_ptrHost =(char *) malloc(bytes);
+                memset(this->_ptrHost, 0, bytes);
                 this->_currentSize = bytes;
                 this->_allocatedHost = true;
             }
@@ -83,13 +85,13 @@ namespace nd4j {
 
 
         void* Workspace::allocateBytes(Nd4jIndex numBytes) {
-
+            //numBytes += 32;
             void* result = nullptr;
             this->_cycleAllocations += numBytes;
             this->_mutexAllocation.lock();
 
             if (_offset.load() + numBytes > _currentSize) {
-                nd4j_printf("Allocating %lld bytes in spills\n", numBytes);
+                nd4j_debug("Allocating %lld bytes in spills\n", numBytes);
                 this->_mutexAllocation.unlock();
 
                 void *p = malloc(numBytes);
@@ -103,11 +105,11 @@ namespace nd4j {
                 return p;
             }
 
-            nd4j_printf("Allocating %lld bytes from workspace\n", numBytes);
-
-            _offset += numBytes;
             result = (void *)(_ptrHost + _offset.load());
-            memset(result, 0, numBytes);
+            _offset += numBytes;
+            //memset(result, 0, (int) numBytes);
+
+            nd4j_debug("Allocating %lld bytes from workspace; Current PTR: %p; Current offset: %lld\n", numBytes, result, _offset.load());
 
             this->_mutexAllocation.unlock();
 
