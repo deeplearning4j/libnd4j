@@ -573,31 +573,3 @@ TEST_F(NDArrayTest2, Test_Indexed_Lambda) {
     ASSERT_TRUE(exp.equalsTo(&x));
 }
 
-
-////////////////////////////////////////////////////////////////////
-TEST_F(NDArrayTest2, perm_reshape_test1) {
-
-    int bS=2, iD=3,iH=4,iW=3,  iC=4,oC=3,  kD=2,kH=3,kW=2,  sD=1,sH=1,sW=1,  pD=0,pH=0,pW=0,  dD=1,dH=1,dW=1;    
-    int       oD=3,oH=4,oW=3;
-
-    NDArray<float> input ('c', {oC, bS*oD*oH*oW});
-    NDArray<float> weights ('c', {iC*kD*kH*kW, oC});
-    NDArray<float> columns('c', {bS, iC, kD, kW, kH, oD, oH, oW});    
-
-    input = 2.;
-    weights = 3.;
-
-    NDArray<float>* columnsR = columns.permute({1,2,3,4,0,5,6,7});
-    columnsR->reshapei({iC*kD*kW*kH, bS*oD*oH*oW});
-
-    NDArrayFactory<float>::mmulHelper(&weights, &input, columnsR, 1.0, 0.0);                       // [iC*kD*kH*kW, oC] x [oC, bS*oD*oH*oW] = [iC*kD*kW*kH, bS*oD*oH*oW]
-    // std::cout<< (double)(columnsR->template reduceNumber<simdOps::Mean<float>>()) <<std::endl;    
-    // std::cout<< (double)(columns.template reduceNumber<simdOps::Mean<float>>()) <<std::endl;    
-    // columnsR->printIndexedBuffer();
-    // columns.printIndexedBuffer();
-
-    ASSERT_TRUE(columns(0) == 0. && columns(1) == 0. && columns(2) == 0.);
-    ASSERT_TRUE((*columnsR)(0) != 0. && (*columnsR)(1) != 0. && (*columnsR)(2) != 0.);
-    
-    delete columnsR;
-}

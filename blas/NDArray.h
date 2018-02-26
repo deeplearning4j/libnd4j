@@ -113,7 +113,7 @@ namespace nd4j {
         /**
         *  this constructor creates new array using shape information contained in vector argument    
         */
-        NDArray(const char order, const std::vector<int> &shape , nd4j::memory::Workspace* workspace = nullptr);
+        NDArray(const char order, const std::vector<int> &shape, nd4j::memory::Workspace* workspace = nullptr);
 
         /**
         * This constructor creates new array with elements copied from data and using shape information stored in shape
@@ -267,7 +267,7 @@ namespace nd4j {
         *  msg - message to print out 
         *  limit - number of array elements to print out
         */ 
-        void printIndexedBuffer(const char* msg = nullptr, int limit = -1);
+        void printIndexedBuffer(const char* msg = nullptr, int limit = -1) const;
 
         /**
         *  this method assigns values of given array to this one
@@ -592,6 +592,8 @@ namespace nd4j {
         *  set new order and shape in case of suitable array length (in-place operation)
         *  order - order to set
         *  shape - shape to set
+        *
+        *  if there was permute applied before or there are weird strides, then new buffer is allocated for array
         */
 		bool reshapei(const char order, const std::initializer_list<int>& shape);		
 		bool reshapei(const char order, const std::vector<int>& shape);        
@@ -603,6 +605,8 @@ namespace nd4j {
         *  creates new array with corresponding order and shape, new array will point on _buffer of this array
         *  order - order to set
         *  shape - shape to set
+        *
+        * if there was permute applied before or there are weird strides, then new buffer is allocated for new array
         */
 		NDArray<T>* reshape(const char order, const std::vector<int>& shape);
         NDArray<T>  reshape(const std::vector<int>& shape);

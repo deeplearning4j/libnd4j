@@ -1067,7 +1067,7 @@ template <typename T>
     }
 
     template <typename T>
-    void NDArray<T>::printIndexedBuffer(const char* msg, int limit) {
+    void NDArray<T>::printIndexedBuffer(const char* msg, int limit) const {
         if (limit == -1)
             limit = (int) this->lengthOf();
 
@@ -2001,7 +2001,8 @@ NDArray<T>* NDArray<T>::applyTrueBroadcast(const NDArray<T>* other, T *extraArgs
     int* newShapeInfo = nullptr;
     if(!ShapeUtils<T>::evalBroadcastShapeInfo(*this, *other, true, newShapeInfo))          // the rank of new array = max->rankOf)()
         throw "NDArray::applyTrueBroadcast method: the shapes of this and other arrays are not suitable for broadcast operation !" ;
-    NDArray<T>* result = new NDArray<T>(newShapeInfo, _workspace);
+    
+    NDArray<T>* result = new NDArray<T>(newShapeInfo, true, _workspace);
     delete[] newShapeInfo;
 
     this->template applyTrueBroadcast<OpName>(other, result, false, extraArgs);

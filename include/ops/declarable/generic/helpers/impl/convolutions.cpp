@@ -134,9 +134,9 @@ namespace ops  {
             int inDim = oC * effkD * effkH * effkW;
             for (c = 0; c < inDim; ++c) {
                 
-                int w_offset = c % effkW + pW;
-                int h_offset = (c / effkW) % effkH + pH;
-                int t_offset = (c / (effkW * effkH)) % effkD + pD;
+                int w_offset = c % effkW;
+                int h_offset = (c / effkW) % effkH;
+                int t_offset = (c / (effkW * effkH)) % effkD;
                 int c_vol = c / (effkD * effkH * effkW);
 
                 for (t = 0; t < iD; ++t) {
@@ -189,15 +189,14 @@ namespace ops  {
 
             int colD = colShapeOnly[5];
             int colH = colShapeOnly[6];
-            int colW = colShapeOnly[7];
-
-            int n = bS * volC * volD * volH * volW;
+            int colW = colShapeOnly[7];            
 
             //Effective kernel size, accounting for dilation
             int effKD = kD + (kD - 1) * (dD - 1);
             int effKH = kH + (kH - 1) * (dH - 1);
             int effKW = kW + (kW - 1) * (dW - 1);
-            
+
+            int n = bS * volC * volD * volH * volW;                        
 
 #pragma omp parallel for schedule(guided) proc_bind(close)
             for (int i = 0; i < n; i++) {
@@ -224,9 +223,9 @@ namespace ops  {
                 //Iterate over col entries in the 6d array... these are added up
                 for (int d_col = d_col_start; d_col < d_col_end; ++d_col) {
                     for (int h_col = h_col_start; h_col < h_col_end; ++h_col) {
-                        for (int w_col = w_col_start; w_col < w_col_end; ++w_col) {
+                        for (int w_col = w_col_start; w_col < w_col_end; ++w_col) {                  
 
-                            int d_k = (d_vol - d_col * dH);
+                            int d_k = (d_vol - d_col * sD);
                             int h_k = (h_vol - h_col * sH);
                             int w_k = (w_vol - w_col * sW);
                             
