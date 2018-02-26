@@ -30,6 +30,14 @@ namespace nd4j {
             // total time spent during node execution
             Nd4jIndex _totalTime = 0L;
 
+            // time spent for output shape creation
+            Nd4jIndex _shapeTime = 0L;
+
+            // time spent for output arrays creation
+            Nd4jIndex _arrayTime = 0L;
+
+            Nd4jIndex _inputTime = 0L;
+
             // amount of memory used for outputs
             Nd4jIndex _memoryActivations = 0L;
 
@@ -51,6 +59,9 @@ namespace nd4j {
             void setPreparationTime(Nd4jIndex time);
             void setExecutionTime(Nd4jIndex time);
             void setTotalTime(Nd4jIndex time);
+            void setShapeFunctionTime(Nd4jIndex time);
+            void setArrayTime(Nd4jIndex time);
+            void setInputTime(Nd4jIndex time);
 
             void setActivationsSize(Nd4jIndex bytes);
             void setTemporarySize(Nd4jIndex bytes);

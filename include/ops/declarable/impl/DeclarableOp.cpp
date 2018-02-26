@@ -104,6 +104,8 @@ namespace nd4j {
         template <typename T>
         bool nd4j::ops::DeclarableOp<T>::prepareOutputs(Context<T> &ctx) {
             auto workspace = ctx.getWorkspace();
+            auto prof = ctx.getVariableSpace()->flowPath()->profile();
+            auto node = prof->nodeById(ctx.nodeId());
 
             if (ctx.isInplace()) {
                 // do nothing, getZ result will do the trick
@@ -112,6 +114,7 @@ namespace nd4j {
 
                 ShapeList inSha;
 
+                auto inputStart = std::chrono::system_clock::now();
                 int cntIn = 0;
                 // we build list of input shapes
                 for (auto p: *ctx.inputs()) {
@@ -124,7 +127,19 @@ namespace nd4j {
                     cntIn++;
                 }
 
+                auto inputEnd = std::chrono::system_clock::now();
+                auto inputTime = std::chrono::duration_cast<std::chrono::nanoseconds> (inputEnd - inputStart).count();
+                node->setInputTime(inputTime);
+
+                auto shapeStart = std::chrono::system_clock::now();
+
                 auto outSha = this->calculateOutputShape(&inSha, ctx);
+
+                auto shapeEnd = std::chrono::system_clock::now();
+                auto prepTime = std::chrono::duration_cast<std::chrono::nanoseconds> (shapeEnd - shapeStart).count();
+                node->setShapeFunctionTime(prepTime);
+
+                auto arrayStart = std::chrono::system_clock::now();
                 int cnt = 0;
                 for (auto out: *outSha->asVector()) {
                     // we need to check, if Z is really needed
@@ -141,6 +156,10 @@ namespace nd4j {
 
                 outSha->destroy();
                 delete outSha;
+
+                auto arrayEnd = std::chrono::system_clock::now();
+                auto arrayTime = std::chrono::duration_cast<std::chrono::nanoseconds> (arrayEnd - arrayStart).count();
+                node->setArrayTime(arrayTime);
             }
 
             return true;
@@ -227,10 +246,10 @@ namespace nd4j {
             auto timeEnter = std::chrono::system_clock::now();
 
             // basic validation: ensure inputs are set
-            REQUIRE_OK(this->validateNonEmptyInput(*block));
+            //REQUIRE_OK(this->validateNonEmptyInput(*block));
 
             // ensure number of IArgs, TArgs match our expectations
-            REQUIRE_OK(this->validateArguments(*block));
+            //REQUIRE_OK(this->validateArguments(*block));
 
             // this method will allocate output NDArrays for this op
             this->prepareOutputs(*block);
