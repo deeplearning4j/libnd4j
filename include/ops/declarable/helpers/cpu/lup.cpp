@@ -78,16 +78,17 @@ namespace helpers {
     int determinant(NDArray<T>* input, NDArray<T>* output) {
 
         int n = input->sizeAt(-1);
+        int n2 = n * n;
+
+        std::unique_ptr<NDArray<T>> matrix(new NDArray<T>({n, n})); //, block.getWorkspace());
+
         for (int e = 0; e < output->lengthOf(); e++) {
 
-            NDArray<T>* matrix = new NDArray<T>({n, n}); //, block.getWorkspace());
-            for (int k = e * n * n, row = 0; k < (e + 1) * n * n; k++) {
+            for (int k = e * n2, row = 0; k < (e + 1) * n2; k++) {
                 (*matrix)(row++) = (*input)(k);
             }
 
-            (*output)(e) = lup(matrix, (NDArray<T>*)nullptr, (NDArray<T>*)nullptr);
-
-            delete matrix;
+            (*output)(e) = lup(matrix.get(), (NDArray<T>*)nullptr, (NDArray<T>*)nullptr);
         }
 
         return ND4J_STATUS_OK;
@@ -96,6 +97,44 @@ namespace helpers {
     template int determinant(NDArray<float>* input, NDArray<float>* output);
     template int determinant(NDArray<float16>* input, NDArray<float16>* output);
     template int determinant(NDArray<double>* input, NDArray<double>* output);
+
+    template <typename T>
+    int inverse(NDArray<T>* input, NDArray<T>* output) {
+
+        int n = input->sizeAt(-1);
+        int n2 = n * n;
+        int totalCount = output->lengthOf() / n;
+
+        std::unique_ptr<NDArray<T>> matrix(new NDArray<T>({n, n})); //, block.getWorkspace());
+        std::unique_ptr<NDArray<T>> compound(new NDArray<T>({n, n})); //, block.getWorkspace());
+        std::unique_ptr<NDArray<T>> permutation(new NDArray<T>({n, n}));
+        std::unique_ptr<NDArray<T>> lowerMatrix(new NDArray<T>({n, n}));
+
+        for (int e = 0; e < totalCount; e++) {
+
+            NDArray<T> matrix = new NDArray<T>({n, n}); //, block.getWorkspace());
+            for (int k = e * n2, row = 0; k < (e + 1) * n2; k++) {
+                (*matrix)(row++) = (*input)(k);
+            }
+
+            T det = lup(matrix.get(), compound.get(), permutation.get());
+
+            REQUIRE_TRUE(nd4j::math::nd4j_abs(det) > T(0.0000001), 0, "matrix_inverse: The matrix %i has no inverse. Quiting...\n", e);
+
+            lowerMatrix->setIndentity(); // set up U to identity matrix
+            for (int k = 1; k < n; k++)  // and then put all values under main diagonal on to it
+                for (int j = 0; j < k; j++)
+                    (*lowerMatrix)(k, j) = (*compound)(k, j);
+            }
+            
+        }
+
+        return ND4J_STATUS_OK;
+    }
+
+    template int inverse(NDArray<float>* input, NDArray<float>* output);
+    template int inverse(NDArray<float16>* input, NDArray<float16>* output);
+    template int inverse(NDArray<double>* input, NDArray<double>* output);
 
 }
 }
