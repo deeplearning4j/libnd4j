@@ -22,12 +22,12 @@ enum OutputMode:byte {
 
 table FlatConfiguration {
     id:long; // id of the graph this configuration applies to
-    footprintForward:long; // optional: amount of memory needed for FF pass
-    footprintBackward:long; // optional: amount of memory needed for BP pass
     executionMode:ExecutionMode; // current execution dmode
     profilingMode:ProfilingMode; // current profiling mode
     outputMode:OutputMode; // current output mode
     timestats:bool; // are we gathering time info. false by default
+    footprintForward:long; // optional: amount of memory needed for FF pass
+    footprintBackward:long; // optional: amount of memory needed for BP pass
 }
 
 root_type FlatConfiguration;

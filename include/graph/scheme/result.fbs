@@ -12,10 +12,10 @@ table FlatTiming {
 
 table FlatResult {
     id:long; // ID of the graph generated this result
-    footprintForward:long; // amount of memory used for FF pass
-    footprintBackward:long; // amount of memory used for BP pass
     variables:[FlatVariable]; // variables with results
     timing:[FlatTiming]; // timing results
+    footprintForward:long; // amount of memory used for FF pass
+    footprintBackward:long; // amount of memory used for BP pass
 }
 
 root_type FlatResult;
