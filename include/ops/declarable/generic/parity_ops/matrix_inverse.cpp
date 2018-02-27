@@ -6,7 +6,7 @@
 #include <ops/declarable/helpers/lup.h>
 namespace nd4j {
     namespace ops {
-        OP_IMPL(matrix_inverse, 1, 1) {
+        OP_IMPL(matrix_inverse, 1, 1, true) {
             NDArray<T>* input = INPUT_VARIABLE(0);
             NDArray<T>* output = OUTPUT_VARIABLE(0);
 

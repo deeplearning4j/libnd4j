@@ -112,21 +112,22 @@ namespace helpers {
 
         for (int e = 0; e < totalCount; e++) {
 
-            NDArray<T> matrix = new NDArray<T>({n, n}); //, block.getWorkspace());
             for (int k = e * n2, row = 0; k < (e + 1) * n2; k++) {
                 (*matrix)(row++) = (*input)(k);
             }
 
             T det = lup(matrix.get(), compound.get(), permutation.get());
 
-            REQUIRE_TRUE(nd4j::math::nd4j_abs(det) > T(0.0000001), 0, "matrix_inverse: The matrix %i has no inverse. Quiting...\n", e);
+            if (nd4j::math::nd4j_abs(det) < T(0.0000001)) {
+                nd4j_printf("matrix_inverse: The matrix %i has no inverse. Quiting...\n", e);
+                ND4J_STATUS_VALIDATION;
+            }
 
-            lowerMatrix->setIndentity(); // set up U to identity matrix
-            for (int k = 1; k < n; k++)  // and then put all values under main diagonal on to it
+            lowerMatrix->setIdentity(); // set up U to identity matrix
+            for (int k = 1; k < n; k++) {  // and then put all values under main diagonal on to it
                 for (int j = 0; j < k; j++)
                     (*lowerMatrix)(k, j) = (*compound)(k, j);
             }
-            
         }
 
         return ND4J_STATUS_OK;
