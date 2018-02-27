@@ -2553,6 +2553,7 @@ bool NDArray<T>::isUnitary() {
                     throw "NDArray::operator(Intervals): the interval must contain only two numbers {first, last} !";
                 first = idx[d][0] >= 0 ? idx[d][0] : idx[d][0] + this->sizeAt(d) + 1;
                 last  = idx[d][1] >= 0 ? idx[d][1] : idx[d][1] + this->sizeAt(d) + 1;
+                
                 shapeOf[d] = last - first;
                 // for offset we're taking only the first index
                 offset += first * stridesOf[d];
