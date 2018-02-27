@@ -345,6 +345,11 @@ namespace nd4j {
             return &_workspace;
         }
 
+        template <typename T>
+        std::vector<Variable<T>*>* nd4j::graph::VariableSpace<T>::handles() {
+            return _handles;
+        }
+
 /*
  * FIXME: this thing have nice chances to become backend-specific!
  */

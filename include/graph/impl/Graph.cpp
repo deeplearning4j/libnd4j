@@ -6,6 +6,7 @@
 #include <helpers/EnumUtils.h>
 #include <graph/FlatUtils.h>
 #include <NativeOps.h>
+#include <helpers/ShapeUtils.h>
 
 namespace nd4j {
     namespace graph {
@@ -1091,6 +1092,61 @@ namespace nd4j {
         template <typename T>
         bool Graph<T>::hasScope(int id) {
             return _mappedScopes.count(id) > 0;
+        }
+
+        template <typename T>
+        Nd4jIndex Graph<T>::hashCode() {
+            if (!_built.load())
+                this->buildGraph();
+
+            Nd4jIndex hash = 0L;
+            std::string localStamp;
+            /**
+             * Plan is:
+             * 1) get shapes of existing variables
+             * 2) get hash codes of individual ops
+             * 3) optionally: get node names, if they are defined
+             * 4) use long hash on that
+             */
+
+            // FIXME: remove once additional dtypes added
+            if (sizeof(T) == 8) {
+                localStamp += "DOUBLE";
+            } else if (sizeof(T) == 4) {
+                localStamp += "FLOAT";
+            } else if (sizeof(T) == 2) {
+                localStamp += "HALF";
+            }
+
+            int cnt = 0;
+            if (_variableSpace != nullptr) {
+                // loop over existing variables
+                for (auto v: *(_variableSpace->handles())) {
+                    if (v->hasNDArray()) {
+                        NDArray<T> *arr = v->getNDArray();
+                        auto shape = arr->getShapeAsVector();
+                        auto string = ShapeUtils<T>::shapeAsString(shape);
+                        localStamp += string;
+                    }
+                }
+            }
+
+            // loop over nodes in graph
+            for (auto &v: *_mapped) {
+                Node<T> *node = v.second;
+
+                // optional part: node names
+                if (!node->name()->empty()) {
+                    localStamp += *(node->name());
+                }
+            }
+
+
+            hash = HashHelper::getInstance()->getLongHash(localStamp);        
+
+            nd4j_debug("Graph hash: %lld\n", hash);
+
+            return hash;
         }
 
         template class ND4J_EXPORT Graph<float>;

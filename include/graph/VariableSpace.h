@@ -108,6 +108,8 @@ namespace nd4j {
 
             virtual nd4j::graph::VariableSpace<T>* clone();
 
+            std::vector<Variable<T>*> *handles();
+
             template <typename N>
             nd4j::graph::VariableSpace<N>* asT();
             void injectVariable(std::pair<int, int> &pair, Variable<T>* variable);
