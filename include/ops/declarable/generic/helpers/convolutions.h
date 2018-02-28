@@ -38,13 +38,11 @@ namespace nd4j {
             // vol [volC, volD, volH, volW], col [volC*kD*kW*kH, colD*colH*colW]
             static void vol2col(NDArray<T>& vol, NDArray<T>& col, const int colD, const int colH, const int colW, const int kD, const int kH, const int kW, const int sD, const int sH, const int sW, const int pD, const int pH, const int pW, const int dD, const int dH, const int dW);
 
-            // vol [bS, volC, volD, volH, volW], col [bS, volC, kD, kH, kW, colD, colH, colW]
-            static void vol2col2(NDArray<T>& vol, NDArray<T>& col, const int sD, const int sH, const int sW, const int pD, const int pH, const int pW, const int dD, const int dH, const int dW);
-
             // col [bS, volC, kD, kH, kW, colD, colH, colW], vol [bS, volC, volD, volH, volW]
             static void col2vol2(NDArray<T>& col, NDArray<T>& vol, const int sD, const int sH, const int sW, const int pD, const int pH, const int pW, const int dD, const int dH, const int dW);
 
-            static void col2vol(const T* inBuff, T* outBuff, const int iD, const int iH, const int iW, const int oC, const int oD, const int oH, const int oW, const int kD, const int kH, const int kW, const int sD, const int sH, const int sW, const int pD, const int pH, const int pW, const int dD, const int dH, const int dW);
+            // col [volC*kD*kW*kH, colD*colH*colW], vol [volC, volD, volH, volW]
+            static void col2vol(NDArray<T>& vol, NDArray<T>& col, const int colD, const int colH, const int colW, const int kD, const int kH, const int kW, const int sD, const int sH, const int sW, const int pD, const int pH, const int pW, const int dD, const int dH, const int dW);
 
             static void _vol2col(const T *data_vol, const int channels, const int depth, const int height, const int width, const int kT, const int kH, const int kW, const int pT, const int pH, const int pW, const int dT, const int dH, const int dW, const int dilationT, const int dilationH, const int dilationW, T *data_col);
 

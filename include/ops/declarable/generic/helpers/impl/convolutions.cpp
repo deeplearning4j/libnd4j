@@ -124,22 +124,29 @@ namespace ops  {
 
 //////////////////////////////////////////////////////////////////////////
         template<typename T>
-        void ConvolutionUtils<T>::col2vol(const T* inBuff, T* outBuff, 
-                                          const int iD, const int iH, const int iW, 
-                                          const int oC, const int oD, const int oH, const int oW, 
+        void ConvolutionUtils<T>::col2vol(NDArray<T>& col, NDArray<T>& vol, 
+                                          const int colD, const int colH, const int colW, 
                                           const int kD, const int kH, const int kW, 
                                           const int sD, const int sH, const int sW, 
                                           const int pD, const int pH, const int pW, 
                                           const int dD, const int dH, const int dW) {
+            
+            T* colBuff = col.getBuffer();
+            T* volBuff = vol.getBuffer();            
+
+            int volC = vol.sizeAt(0);
+            int volD = vol.sizeAt(1);
+            int volH = vol.sizeAt(2);
+            int volW = vol.sizeAt(3);
 
             int c, t, h, w;
-            memset(outBuff, 0, sizeof(T) * oD * oH * oW * oC);
+            memset(volBuff, 0, sizeof(T) * volC * volD * volH * volW);
 
             int effkD = kD; // + (kD - 1) * (dD - 1);
             int effkH = kH; // + (kH - 1) * (dH - 1);
             int effkW = kW; // + (kW - 1) * (dW - 1);            
 
-            int inDim = oC * effkD * effkH * effkW;
+            int inDim = volC * effkD * effkH * effkW;
             for (c = 0; c < inDim; ++c) {
                 
                 int w_offset = c % effkW;
@@ -147,112 +154,21 @@ namespace ops  {
                 int t_offset = (c / (effkW * effkH)) % effkD;
                 int c_vol = c / (effkD * effkH * effkW);
 
-                for (t = 0; t < iD; ++t) {
-                    for (h = 0; h < iH; ++h) {
-                        for (w = 0; w < iW; ++w) {
+                for (t = 0; t < colD; ++t) {
+                    for (h = 0; h < colH; ++h) {
+                        for (w = 0; w < colW; ++w) {
                 
                             int t_pad = t * sD - pD + t_offset * dD;
                             int h_pad = h * sH - pH + h_offset * dH;
                             int w_pad = w * sW - pW + w_offset * dW;
                 
-                            if (t_pad >= 0 && t_pad < oD && h_pad >= 0 && h_pad < oH && w_pad >= 0 && w_pad < oW)
-                                outBuff[((c_vol * oD + t_pad) * oH + h_pad) * oW + w_pad] += inBuff[((c * iD + t) * iH + h) * iW + w];
+                            if (t_pad >= 0 && t_pad < volD && h_pad >= 0 && h_pad < volH && w_pad >= 0 && w_pad < volW)
+                                volBuff[((c_vol * volD + t_pad) * volH + h_pad) * volW + w_pad] += colBuff[((c * colD + t) * colH + h) * colW + w];
                         }
                     }
                 }
             }
         }        
-
-//////////////////////////////////////////////////////////////////////////
-        template<typename T>
-        void ConvolutionUtils<T>::vol2col2(NDArray<T>& vol, NDArray<T>& col, const int sD, const int sH, const int sW, const int pD, const int pH, const int pW, const int dD, const int dH, const int dW) {
-                    
-            T* volBuff = vol.getBuffer();           
-            T *colBuff = col.getBuffer();
-
-            char colOrder     = shape::order(col.getShapeInfo());
-            int *colShapeOnly = shape::shapeOf(col.getShapeInfo());         
-            int *colStrides   = shape::stride(col.getShapeInfo());
-            int *volShapeOnly = shape::shapeOf(vol.getShapeInfo());
-            int *volStrides   = shape::stride(vol.getShapeInfo());
-
-            int kD = colShapeOnly[2];
-            int kH = colShapeOnly[3];
-            int kW = colShapeOnly[4];
-            int kSize = kD * kW * kH;
-
-            int bS   = volShapeOnly[0];
-            int volC = volShapeOnly[1];
-            int volD = volShapeOnly[2];
-            int volH = volShapeOnly[3];
-            int volW = volShapeOnly[4];
-
-            int strideBS   = volStrides[0];
-            int strideVolC = volStrides[1];
-            int strideD    = volStrides[2];
-            int strideH    = volStrides[3];
-            int strideW    = volStrides[4];
-
-            int colD = colShapeOnly[5];
-            int colH = colShapeOnly[6];
-            int colW = colShapeOnly[7];
-
-            int n = bS * volC * colD * colH * colW;
-
-#pragma omp parallel for schedule(guided) proc_bind(close)
-            for (int i = 0; i < n; i++) {
-                                
-                int w_col = i % colW;
-                int h_col = (i / colW) % colH;
-                int d_col = (i / (colW * colH)) % colD;
-                
-                int c_vol = i / (colD * colW * colH);
-                int c_col = c_vol * kSize;
-
-                int depth_vol = c_vol % volC;
-                int num_vol = c_vol / volC;
-
-                int d_offset = d_col * sD - pD;
-                int h_offset = h_col * sH - pH;
-                int w_offset = w_col * sW - pW;
-
-                T* data_col_ptr = colBuff;
-
-                int i_c = ((c_col * colD + d_col) * colH + h_col) * colW + w_col;
-                data_col_ptr += i_c;
-
-                T* data_vol_ptr = volBuff;
-
-                data_vol_ptr += num_vol * strideBS + depth_vol * strideVolC + d_offset * strideD + h_offset * strideH + w_offset * strideW;
-
-                for (int z = 0; z < kD; ++z) {
-                    for (int i = 0; i < kH; ++i) {
-                        for (int j = 0; j < kW; ++j) {
-                    
-                            int d_vol = d_offset + z * dD;
-                            int h_vol = h_offset + i * dH;
-                            int w_vol = w_offset + j * dW;
-                            int i_f = 0;
-                            int i_c_temp = i_c;
-                            
-                            for (int dim = 7; dim >= 0; dim--) {
-                                i_f += (i_c_temp % colShapeOnly[dim])  * colStrides[dim];
-                                i_c_temp = i_c_temp / colShapeOnly[dim];
-                            }
-                            if (d_vol >= 0 && h_vol >= 0 && w_vol >= 0 && d_vol < volD && h_vol < volH && w_vol < volW) {
-                                colBuff[i_f] = data_vol_ptr[z * dD * strideD + i * dH * strideH + j * dW * strideW];
-                            } 
-                            else 
-                                colBuff[i_f] = 0;
-
-                            //colBuff[i_f] = (h_vol >= 0 && w_vol >= 0 && h_vol < volH && w_vol < volW) ? data_vol_ptr[i * strideH + j*strideW] : 0;
-                            data_col_ptr += colD * colH * colW;
-                            i_c += colD * colH * colW;
-                        }
-                    }
-                }
-            }
-        }
 
 //////////////////////////////////////////////////////////////////////////
         template<typename T>

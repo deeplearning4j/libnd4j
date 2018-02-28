@@ -1954,58 +1954,6 @@ TEST_F(DeclarableOpsTests4, avgpool3d_bp_test4) {
     delete results;
 }
 
-////////////////////////////////////////////////////////////////////
-// TEST_F(DeclarableOpsTests4, conv3d_bp_test1) {
-
-//     int bS=2, iD=3,iH=4,iW=3,  iC=4,oC=3,  kD=2,kH=3,kW=2,  sD=1,sH=1,sW=1,  pD=0,pH=0,pW=0,  dD=1,dH=1,dW=1;    
-//     int       oD=2,oH=2,oW=2;
-//     int paddingMode = 1;             // 0-SAME,  1-VALID;
-//     int dataFormat  = 1;             // 0-NDHWC, 1-NCDHW    
-
-//     NDArray<double> input   ('c', {bS, iC, iD, iH, iW});
-//     NDArray<double> weights ('c', {oC, iC, kD, kH, kW});
-//     NDArray<double> bias    ('c', {oC}, {1,2,3});
-//     NDArray<double> gradO   ('c', {bS, oC, oD, oH, oW});
-    
-//     NDArray<double> expGradI('c', {bS, iC, iD, iH, iW},{2.091,  4.356  , 2.268, 4.53 ,  9.42   , 4.896, 4.65 ,  9.672  , 5.028, 2.517,  5.226  , 2.712, 4.932, 10.242  , 5.316,10.62 , 22.02   ,11.412,10.908, 22.62   ,11.724, 5.868, 12.15   , 6.288,
-//                                                         2.913,  6.03   , 3.12 , 6.234, 12.888  , 6.66 , 6.402, 13.236  , 6.84 , 3.423,  7.068  , 3.648, 2.415,  5.04   , 2.628, 5.25 , 10.932  , 5.688, 5.37 , 11.184  , 5.82 , 2.913,  6.054  , 3.144,
-//                                                         5.724, 11.898  , 6.18 ,12.348, 25.62   ,13.284,12.636, 26.22   ,13.596, 6.804, 14.094  , 7.296, 3.381,  7.002  , 3.624, 7.242, 14.976  , 7.74 , 7.41 , 15.324  , 7.92 , 3.963,  8.184  , 4.224,
-//                                                         2.739,  5.724  , 2.988, 5.97 , 12.444  , 6.48 , 6.09 , 12.696  , 6.612, 3.309,  6.882  , 3.576, 6.516, 13.554  , 7.044,14.076, 29.22   ,15.156,14.364, 29.82   ,15.468, 7.74 , 16.038  , 8.304,
-//                                                         3.849,  7.974  , 4.128, 8.25 , 17.064  , 8.82 , 8.418, 17.412  , 9.   , 4.503,  9.3    , 4.8  , 3.063,  6.408  , 3.348, 6.69 , 13.956  , 7.272, 6.81 , 14.208  , 7.404, 3.705,  7.71   , 4.008,
-//                                                         7.308, 15.21   , 7.908,15.804, 32.82   ,17.028,16.092, 33.42   ,17.34 , 8.676, 17.982  , 9.312, 4.317,  8.946  , 4.632, 9.258, 19.152  , 9.9  , 9.426, 19.5    ,10.08 , 5.043, 10.416  , 5.376,
-//                                                         5.619, 11.484  , 5.868,11.73 , 23.964  ,12.24 ,12.138, 24.792  ,12.66 , 6.333, 12.93   , 6.6  ,12.42 , 25.362  ,12.948,25.884, 52.836  ,26.964,26.748, 54.588  ,27.852,13.932, 28.422  ,14.496,
-//                                                         6.873, 14.022  , 7.152,14.298, 29.16   ,14.868,14.754, 30.084  ,15.336, 7.671, 15.636  , 7.968, 6.807, 13.896  , 7.092,14.178, 28.932  ,14.76 ,14.586, 29.76   ,15.18 , 7.593, 15.486  , 7.896,
-//                                                        14.94 , 30.474  ,15.54 ,31.068, 63.348  ,32.292,31.932, 65.10001,33.18 ,16.596, 33.822  ,17.232, 8.205, 16.722  , 8.52 ,17.034, 34.704  ,17.676,17.49 , 35.628  ,18.144, 9.075, 18.48   , 9.408,
-//                                                         7.995, 16.308  , 8.316,16.626, 33.9    ,17.28 ,17.034, 34.728  ,17.7  , 8.853, 18.042  , 9.192,17.46 , 35.586  ,18.132,36.252, 73.86   ,37.62 ,37.116, 75.612  ,38.508,19.26 , 39.222  ,19.968,
-//                                                         9.537, 19.422  , 9.888,19.77 , 40.248  ,20.484,20.226, 41.172  ,20.952,10.479, 21.324  ,10.848, 9.183, 18.72   , 9.54 ,19.074, 38.868  ,19.8  ,19.482, 39.696  ,20.22 ,10.113, 20.598  ,10.488,
-//                                                        19.98 , 40.698  ,20.724,41.436, 84.37199,42.948,42.3  , 86.12399,43.836,21.924, 44.622  ,22.704,10.869, 22.122  ,11.256,22.506, 45.792  ,23.292,22.962, 46.716  ,23.76 ,11.883, 24.168  ,12.288});
-    
-//     // NDArray<double> expGradW('c', {kD, kH, kW, iC, oC},{});
-//     // NDArray<double> expGradB('c', {oC},{});
-
-//     input = 2.;
-//     NDArrayFactory<double>::linspace(0.1, weights, 0.1);
-//     NDArrayFactory<double>::linspace(0.01, gradO, 0.01);
-    
-//     nd4j::ops::conv3dnew_bp<double> op;
-//     ResultSet<double>* results = op.execute({&input, &weights, &bias, &gradO}, {}, {kD,kH,kW,  sD,sH,sW,  pD,pH,pW,  dD,dH,dW, paddingMode, dataFormat});
-//     NDArray<double>* gradI = results->at(0);
-//     NDArray<double>* gradW = results->at(1);
-    
-//     // gradI->printIndexedBuffer();
-//     for(int i = 0; i<gradI->lengthOf(); ++i)
-//         std::cout<<std::setw(10)<<(*gradI)(i)<<"   "<<std::setw(10)<<expGradI(i)<<std::endl;
-
-//     ASSERT_EQ(Status::OK(), results->status());
-//     // ASSERT_TRUE(expGradI.isSameShape(gradI));
-//     // ASSERT_TRUE(expGradI.equalsTo(gradI));    
-
-//     // ASSERT_TRUE(expGradW.isSameShape(gradW));
-//     // ASSERT_TRUE(expGradW.equalsTo(gradW));    
-    
-//     delete results;
-// }
-
 
 ////////////////////////////////////////////////////////////////////
 TEST_F(DeclarableOpsTests4, conv3d_bp_test2) {
@@ -2046,15 +1994,15 @@ TEST_F(DeclarableOpsTests4, conv3d_bp_test2) {
     NDArray<double>* gradI = results->at(0);
     NDArray<double>* gradW = results->at(1);
     
-     for(int i = 0; i<gradI->lengthOf(); ++i)
-        std::cout<<std::setw(10)<<(*gradI)(i)<<"   "<<std::setw(10)<<expGradI(i)<<std::endl;
+     // for(int i = 0; i<gradI->lengthOf(); ++i)
+     //    std::cout<<std::setw(10)<<(*gradI)(i)<<"   "<<std::setw(10)<<expGradI(i)<<std::endl;
 
     ASSERT_EQ(Status::OK(), results->status());
     // ASSERT_TRUE(expGradI.isSameShape(gradI));
     // ASSERT_TRUE(expGradI.equalsTo(gradI));    
 
-    // ASSERT_TRUE(expGradW.isSameShape(gradW));
-    // ASSERT_TRUE(expGradW.equalsTo(gradW));    
+    ASSERT_TRUE(expGradW.isSameShape(gradW));
+    ASSERT_TRUE(expGradW.equalsTo(gradW));    
     
     delete results;
 }
