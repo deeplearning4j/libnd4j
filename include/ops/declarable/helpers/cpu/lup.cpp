@@ -20,7 +20,48 @@ namespace helpers {
     template void swapRows(NDArray<float16>* matrix, int theFirst, int theSecond);
     template void swapRows(NDArray<double>* matrix, int theFirst, int theSecond);
 
+    template <typename T>
+    void invertLowerMatrix(NDArray<T>* inputMatrix, NDArray<T>* invertedMatrix) {
+        int n = inputMatrix->rows();
 
+        for (int i = 0; i < n; i++)
+            (*invertedMatrix)(i, i) = T(1.0);
+
+        for (int i = 1; i < n; i++)
+            (*invertedMatrix)(i, i - 1) = -(*inputMatrix)(i, i - 1);
+
+        for (int i = 2; i < n; i++) {
+            for (int j = i - 2; j > -1; --j) 
+                for (int k = 0; k < i; k++) 
+                    (*invertedMatrix)(i, j) -= (*invertedMatrix)(k, j) * (*inputMatrix)(i, k);
+        }
+    }
+
+    template void invertLowerMatrix(NDArray<float>* inputMatrix, NDArray<float>* invertedMatrix);
+    template void invertLowerMatrix(NDArray<float16>* inputMatrix, NDArray<float16>* invertedMatrix);
+    template void invertLowerMatrix(NDArray<double>* inputMatrix, NDArray<double>* invertedMatrix);
+
+    template <typename T>
+    void invertUpperMatrix(NDArray<T>* inputMatrix, NDArray<T>* invertedMatrix) {
+        int n = inputMatrix->rows();
+
+        for (int i = 0; i < n; i++)
+            (*invertedMatrix)(i, i) =  T(1.0) / (*inputMatrix)(i, i);
+
+        for (int i = 0; i < n - 1; i++)
+            (*invertedMatrix)(i, i + 1) = -(*inputMatrix)(i, i - 1) / ((*inputMatrix)(i,i) * (*inputMatrix)(i+1, i + 1));
+
+        for (int i = n - 2; i > - 1; i--) {
+            for (int j = i + 1; j < n; j++) 
+                for (int k = i; k < n; k++) 
+                    (*invertedMatrix)(i, j) -= (*invertedMatrix)(k, j) * (*inputMatrix)(i, k) / (*inputMatrix)(i, i);
+        }
+
+    }
+
+    template void invertUpperMatrix(NDArray<float>* inputMatrix, NDArray<float>* invertedMatrix);
+    template void invertUpperMatrix(NDArray<float16>* inputMatrix, NDArray<float16>* invertedMatrix);
+    template void invertUpperMatrix(NDArray<double>* inputMatrix, NDArray<double>* invertedMatrix);
 
     template <typename T>
     T lup(NDArray<T>* input, NDArray<T>* compound, NDArray<T>* permutation) {
@@ -109,12 +150,10 @@ namespace helpers {
         std::unique_ptr<NDArray<T>> compound(new NDArray<T>({n, n})); //, block.getWorkspace());
         std::unique_ptr<NDArray<T>> permutation(new NDArray<T>({n, n}));
         std::unique_ptr<NDArray<T>> lowerMatrix(new NDArray<T>({n, n}));
+        std::unique_ptr<NDArray<T>> upperMatrix(new NDArray<T>({n, n}));
 
         for (int e = 0; e < totalCount; e++) {
 
-            for (int k = e * n2, row = 0; k < (e + 1) * n2; k++) {
-                (*matrix)(row++) = (*input)(k);
-            }
 
             T det = lup(matrix.get(), compound.get(), permutation.get());
 
@@ -128,6 +167,17 @@ namespace helpers {
                 for (int j = 0; j < k; j++)
                     (*lowerMatrix)(k, j) = (*compound)(k, j);
             }
+
+            invertUpperMatrix(upperMatrix.get(), matrix.get());
+            invertLowerMatrix(lowerMatrix.get(), upperMatrix.get());
+            
+            nd4j::NDArrayFactory<T>::mmulHelper(matrix.get(), upperMatrix.get(), compound.get(), T(1.0f), T(0.0f));
+            nd4j::NDArrayFactory<T>::mmulHelper(compound.get(), permutation.get(), matrix.get(), T(1.0f), T(0.0f));
+
+            for (int k = e * n2, row = 0; k < (e + 1) * n2; k++) {
+                (*output)(k) = (*matrix)(row++);
+            }
+
         }
 
         return ND4J_STATUS_OK;
@@ -136,7 +186,6 @@ namespace helpers {
     template int inverse(NDArray<float>* input, NDArray<float>* output);
     template int inverse(NDArray<float16>* input, NDArray<float16>* output);
     template int inverse(NDArray<double>* input, NDArray<double>* output);
-
 }
 }
 }
