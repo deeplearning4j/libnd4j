@@ -1297,6 +1297,8 @@ TEST_F(DeclarableOpsTests4, conv3d_test1) {
     ResultSet<float>* results = op.execute({&input, &weights}, {}, {kD,kH,kW,  sD,sH,sW,  pD,pH,pW,  dD,dH,dW, paddingMode, dataFormat});
     NDArray<float>* output = results->at(0);    
 
+    output->printIndexedBuffer();
+
     ASSERT_EQ(Status::OK(), results->status());
     ASSERT_TRUE(expected.isSameShape(output));
     ASSERT_TRUE(expected.equalsTo(output));    
