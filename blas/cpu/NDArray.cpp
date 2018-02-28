@@ -709,6 +709,9 @@ void NDArray<T>::replacePointers(T *buffer, int *shapeInfo, const bool releaseEx
         if (this->isScalar() && other->isScalar()) {
             this->_buffer[0] = other->_buffer[0];
             return;
+        } else if (other->isScalar()) {
+            this->assign(other->_buffer[0]);
+            return;;
         }
 
         if (other->lengthOf() != lengthOf()) {
@@ -733,6 +736,9 @@ void NDArray<T>::replacePointers(T *buffer, int *shapeInfo, const bool releaseEx
         if (this->isScalar() && other.isScalar()) {
             this->_buffer[0] = other._buffer[0];
             return;
+        } else if (other.isScalar()) {
+            this->assign(other._buffer[0]);
+            return;;
         }
 
         if (this == &other) 

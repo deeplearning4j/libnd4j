@@ -109,8 +109,10 @@ namespace nd4j {
             std::chrono::time_point<std::chrono::system_clock> inputEnd, inputStart, shapeStart, shapeEnd, arrayStart, arrayEnd;
 
             if (Environment::getInstance()->isProfiling()) {
-                prof = ctx.getVariableSpace()->flowPath()->profile();
-                node = prof->nodeById(ctx.nodeId());
+                if (ctx.getVariableSpace() != nullptr && ctx.getVariableSpace()->flowPath() != nullptr) {
+                    prof = ctx.getVariableSpace()->flowPath()->profile();
+                    node = prof->nodeById(ctx.nodeId());
+                }
             }
 
             if (ctx.isInplace()) {
@@ -120,7 +122,7 @@ namespace nd4j {
 
                 ShapeList inSha;
 
-                if (Environment::getInstance()->isProfiling())
+                if (Environment::getInstance()->isProfiling() && node != nullptr)
                     inputStart = std::chrono::system_clock::now();
 
                 int cntIn = 0;
@@ -136,7 +138,7 @@ namespace nd4j {
                 }
 
                 // optionally saving input time
-                if (Environment::getInstance()->isProfiling()) {
+                if (Environment::getInstance()->isProfiling() && node != nullptr) {
                     inputEnd = std::chrono::system_clock::now();
                     auto inputTime = std::chrono::duration_cast<std::chrono::nanoseconds>(inputEnd - inputStart).count();
                     node->setInputTime(inputTime);
@@ -147,7 +149,7 @@ namespace nd4j {
                 auto outSha = this->calculateOutputShape(&inSha, ctx);
 
                 // optionally saving shapeTime
-                if (Environment::getInstance()->isProfiling()) {
+                if (Environment::getInstance()->isProfiling() && node != nullptr) {
                     shapeEnd = std::chrono::system_clock::now();
                     auto prepTime = std::chrono::duration_cast<std::chrono::nanoseconds>(shapeEnd - shapeStart).count();
                     node->setShapeFunctionTime(prepTime);
@@ -173,7 +175,7 @@ namespace nd4j {
                 delete outSha;
 
                 // saving arrayTime
-                if (Environment::getInstance()->isProfiling()) {
+                if (Environment::getInstance()->isProfiling() && node != nullptr) {
                     arrayEnd = std::chrono::system_clock::now();
                     auto arrayTime = std::chrono::duration_cast<std::chrono::nanoseconds>(arrayEnd - arrayStart).count();
                     node->setArrayTime(arrayTime);
