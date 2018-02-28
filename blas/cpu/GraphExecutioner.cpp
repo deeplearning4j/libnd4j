@@ -199,6 +199,15 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* varia
     Nd4jIndex tb0 = Environment::getInstance()->isProfiling() ? GraphProfile::currentTime() : 0L;
     graph->buildGraph();
 
+    auto footprintForward = nd4j::memory::MemoryRegistrator::getInstance()->getGraphMemoryFootprint(graph->hashCode());
+    if (footprintForward > 0) {
+        if (__variableSpace->workspace() != nullptr) {
+            // this method will work only if current workspace size is smaller then proposed value
+            nd4j_debug("Setting workspace to %lld bytes\n", footprintForward);
+            __variableSpace->workspace()->expandTo(footprintForward);
+        }
+    }
+
     // optionally saving graph build time
     if (Environment::getInstance()->isProfiling())
         flowPath->profile()->setBuildTime(GraphProfile::relativeTime(tb0));
