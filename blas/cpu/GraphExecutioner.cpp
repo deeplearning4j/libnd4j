@@ -10,6 +10,7 @@
 
 #include <Variable.h>
 #include <VariableSpace.h>
+#include <memory/MemoryRegistrator.h>
 #include <Node.h>
 #include <Scope.h>
 #include <GraphExecutioner.h>
@@ -186,7 +187,6 @@ template <typename T>
  */
 template <typename T>
 Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* variableSpace) {
-    graph->buildGraph();
     auto __variableSpace = variableSpace == nullptr ? graph->getVariableSpace() : variableSpace;
 
     bool tempFlow = false;
@@ -195,6 +195,24 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* varia
         __variableSpace->setFlowPath(new FlowPath());
     }
     auto flowPath = __variableSpace->flowPath();
+
+    Nd4jIndex tb0 = Environment::getInstance()->isProfiling() ? GraphProfile::currentTime() : 0L;
+    graph->buildGraph();
+
+    auto footprintForward = nd4j::memory::MemoryRegistrator::getInstance()->getGraphMemoryFootprint(graph->hashCode());
+    if (footprintForward > 0) {
+        if (__variableSpace->workspace() != nullptr) {
+            // this method will work only if current workspace size is smaller then proposed value
+            nd4j_debug("Setting workspace to %lld bytes\n", footprintForward);
+            __variableSpace->workspace()->expandTo(footprintForward);
+        }
+    }
+
+    // optionally saving graph build time
+    if (Environment::getInstance()->isProfiling())
+        flowPath->profile()->setBuildTime(GraphProfile::relativeTime(tb0));
+
+    Nd4jIndex timeStart = Environment::getInstance()->isProfiling() ? GraphProfile::currentTime() : 0L;
 
     bool pe = graph->getExecutorConfiguration()->_executionMode == ExecutionMode_AUTO;
 
@@ -205,7 +223,8 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* varia
     bool inFrame =  false;
     bool leftFrame = false;
 
-
+    auto nodeTime = GraphProfile::currentTime();
+    int lastId = -10000000;
     Nd4jIndex exec_counter = 0;
     // we loop through op layers here
     for (int l = 0; l < (int) graph->getOnion()->size(); l++) {
@@ -222,6 +241,16 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* varia
 
             Node<T>* node = graph->getOnion()->at(l)->at(n);
 
+            if (Environment::getInstance()->isProfiling())
+                flowPath->profile()->nodeById(node->id(), node->name()->c_str());
+
+            if (lastId != node->id() && Environment::getInstance()->isProfiling()) {
+                if (lastId != -10000000)
+                    flowPath->profile()->nodeById(lastId)->setTotalTime(GraphProfile::relativeTime(nodeTime));
+
+                lastId = node->id();
+                nodeTime = GraphProfile::currentTime();
+            }
 
             nd4j_debug("Step: %lld; Node: %i <%s>\n", exec_counter, node->id(), node->name()->c_str());
 
@@ -394,7 +423,7 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* varia
 
                 auto timeEnd = std::chrono::system_clock::now();
 
-                auto outerTime = std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeStart).count();
+                auto outerTime = std::chrono::duration_cast<std::chrono::nanoseconds>(timeEnd - timeStart).count();
 
 
                 flowPath->setOuterTime(node->id(), outerTime);
@@ -427,6 +456,18 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* varia
             // if node was executed - tag it as active
             flowPath->markExecuted(node->id(), true);
         }
+    }
+
+    // optionally saving execution time
+    if (Environment::getInstance()->isProfiling()) {
+        flowPath->profile()->nodeById(lastId)->setTotalTime(GraphProfile::relativeTime(nodeTime));
+        flowPath->profile()->setExecutionTime(GraphProfile::relativeTime(timeStart));
+        //flowPath->profile().printOut();
+    }
+
+    // saving memory footprint for current run
+    if (__variableSpace->workspace() != nullptr) {
+        nd4j::memory::MemoryRegistrator::getInstance()->setGraphMemoryFootprintIfGreater(graph->hashCode(), __variableSpace->workspace()->getAllocatedSize());
     }
 
     if (tempFlow)

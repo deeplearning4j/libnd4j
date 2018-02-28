@@ -114,7 +114,7 @@ namespace nd4j {
             std::vector<int> shape({B, oC, oY, oX});
             shape::shapeBuffer(4, shape.data(), newShape);
 
-            return new ShapeList(newShape);
+            return SHAPELIST(newShape);
         }
 
         //////////////////////////////////////////////////////////////////////////
@@ -179,7 +179,7 @@ namespace nd4j {
                 ConvolutionUtils<T>::_calcPadding2D(pY, pX, oY, oX, inY, inX, kY, kX, sY, sX, dY, dX);
             }
 
-            std::vector<T> extrasIm2Col({(T) kY, (T) kX, (T) sY, (T) sX, (T) pY, (T) pX, (T) dY, (T) dX, isSameMode ? (T) 1.0f : (T) 0.0f});
+            std::vector<T> extrasIm2Col({(T) kY, (T) kX, (T) sY, (T) sX, (T) pY, (T) pX, (T) dY, (T) dX, isSameMode ? (T) 1.0f : (T) 0.0f, 0.0});
             auto gcol = new NDArray<T>('c', {input->sizeAt(0), weights->sizeAt(1), kY, kX, oY, oX });
             epsilonNext->template applyTransform<simdOps::Im2col<T>>(gcol, extrasIm2Col.data());
 
@@ -226,7 +226,7 @@ namespace nd4j {
             memcpy(newInShape, inShape, shape::shapeInfoByteLength(inShape));
             memcpy(newWShape, wShape, shape::shapeInfoByteLength(wShape));
 
-            auto shapes = new ShapeList({newInShape, newWShape});
+            auto shapes = SHAPELIST(newInShape, newWShape);
 
             if (bShape != nullptr) {
                 int *newBShape;

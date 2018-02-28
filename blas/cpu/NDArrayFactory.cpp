@@ -88,6 +88,9 @@ namespace nd4j {
         if (dimensions.size() > 1)
             std::sort (copy.begin(), copy.end());
 
+        if(copy.back() >= ndArray->rankOf())
+            throw "NDArrayFactory::allTensorsAlongDimension static function: all input dimensions must be smaller than rank of input array !";
+
         Nd4jIndex tadLength = shape::tadLength(ndArray->getShapeInfo(), copy.data(), copy.size());
         Nd4jIndex numTads = ndArray->lengthOf() / tadLength;
 
@@ -362,9 +365,9 @@ namespace nd4j {
 
             //_C = new NDArray<T>(C, cShapeInfo);
 
-            auto tA = new nd4j::NDArray<T>(A->getBuffer(), A->getShapeInfo());
-            auto tB = new nd4j::NDArray<T>(B->getBuffer(), B->getShapeInfo());
-            auto tC = new nd4j::NDArray<T>(result->getBuffer(), result->getShapeInfo());
+            auto tA = new nd4j::NDArray<T>(A->getBuffer(), A->getShapeInfo(), A->getWorkspace());
+            auto tB = new nd4j::NDArray<T>(B->getBuffer(), B->getShapeInfo(), B->getWorkspace());
+            auto tC = new nd4j::NDArray<T>(result->getBuffer(), result->getShapeInfo(), result->getWorkspace());
 
             if (cOrder != 'f') {
                 pC = tC->dup('f');
@@ -424,6 +427,7 @@ namespace nd4j {
                 transA = 'N';
                 transB = 'N';
             }
+
 
             // we'll use platform-specific gemm here eventually. maybe tomorrow.
             // TODO: put proper _gemm here

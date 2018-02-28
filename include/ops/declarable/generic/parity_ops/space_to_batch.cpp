@@ -43,7 +43,6 @@ namespace ops {
 
 
         if (block.width() >= 3) {
-            nd4j_printf("going through imported way\n","");
             auto blocks = INPUT_VARIABLE(1);
             auto padding = INPUT_VARIABLE(2);
 
@@ -56,9 +55,6 @@ namespace ops {
 
             block_shape = blocks->template asVectorT<int>();
             padding_shape = padding->template asVectorT<int>();
-
-            nd4j_printv("blocks_shape:", block_shape);
-            nd4j_printv("padding_shape:", padding_shape);
 
         } else if (block.numI() > 0) {
             int totalArgs = block.numI();
@@ -237,7 +233,7 @@ namespace ops {
             // just return input shape here
             int *newShape;
             COPY_SHAPE(in, newShape);
-            return new ShapeList(newShape);   
+            return SHAPELIST(newShape);   
         }
 
         // go full route otherwise
@@ -287,7 +283,7 @@ namespace ops {
         // we always give out C order here
         shape::shapeBuffer((int) external_output_shape.size(), external_output_shape.data(), newShape);
 
-        return new ShapeList(newShape);
+        return SHAPELIST(newShape);
     }
 }
 }

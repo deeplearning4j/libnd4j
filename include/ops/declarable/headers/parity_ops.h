@@ -188,12 +188,14 @@ namespace nd4j {
          * This operation extracts a strided (optionally) slice from a tensor, 
          */
         DECLARE_CUSTOM_OP(strided_slice, 1, 1, false, 0, 5); // TODO: new op type needed. that returns VIEW
+        DECLARE_CUSTOM_OP(strided_slice_bp, 2, 1, false, 0, 5);
 
         /**
          * This operation extracts a slice from a tensor.
          * 
          */
         DECLARE_CUSTOM_OP(slice, 1, 1, false, 0, -1);
+        DECLARE_CUSTOM_OP(slice_bp, 2, 1, false, 0, -1);
 
         /**
          * This operation generate sequences. Basically from......to, with step used as increment.
@@ -549,6 +551,26 @@ namespace nd4j {
         DECLARE_CUSTOM_OP(normalize_moments, 3, 2, false, 1, 0);
 
         /**
+         * sufficient_statistics operation return calculated mean and variation with data count.
+         * this operation is invert for moments
+         * accordingly to shift and count.
+         * input params:
+         *  - input tensor
+         *  - axes vector
+         *  
+         * 
+         *  - optional floating point param shift.
+         *  - optional int (as bool) keep_dimension
+         *
+         *  returns four tensors:
+         *     - scalar tensor (data count)
+         *     - sum elements of input (accross axises)
+         *     - sum of squares of input (accross axises)
+         *     - shift (if was given by input floating param)
+         */
+        DECLARE_CUSTOM_OP(sufficient_statistics, 2, 3, false, 0, 0);
+
+        /**
          * Special atan2 op impl for TF's args order
          * @tparam T
          */
@@ -565,5 +587,60 @@ namespace nd4j {
          */
         DECLARE_OP(weighted_cross_entropy_with_logits, 3, 1, true);
 
+        /**
+         * This op calculates weighted logarithmic loss of input
+         * Input arguments
+         *  0 - input tensor
+         *  1 - noise_shape - (vector with shape to reduce) - optional
+         *  
+         *  int parameter - seed for random numbers
+         *  T parameter - probability (should be between 0 and 1)
+         *  return value - a tensor with the same shape as target or input
+         */
+        DECLARE_CONFIGURABLE_OP(dropout, 1, 1, true, 1, 1);
+
+
+        /**
+         * bincount operation return a vector with element counted.
+         * 
+         * input params:
+         *  - input tensor - only int part are accepted
+         *  - weights - the same shape tensor with integer weights for element (optional)
+         *  default weight - 1,1,1..,1 for all values in the tensor
+         * 
+         *  optional ints: 
+         *  - min_length - zero or greater
+         *  - max_length - between min_length and max(input) + 1
+         *
+         *  returns four tensors:
+         *     - vector tensor with length to min(max_len, max(input) + 1) with count
+         *  of values in indexed place
+         *
+         */
+        DECLARE_CUSTOM_OP(bincount, 1, 1, false, 0, 0);
+
+        /**
+         * broadcast_dynamic_shape op.
+         *
+         * input params:
+         *    0 - the first shape (vector with shape)
+         *    1 - the second shape (vector with shape)
+         *
+         * return value:
+         *    vector with broadcasted shape 
+         */
+        DECLARE_CUSTOM_OP(broadcast_dynamic_shape, 2, 1, false, 0, 0);
+
+        /**
+         * matrix_determinant op.
+         *
+         * input params:
+         *    0 - the tensor with dimension (x * y * z * ::: * M * M)
+         *
+         * return value:
+         *    tensor with dimension (x * y * z * ::: *) with determinant for all 
+         * M x M matricies
+         */
+        DECLARE_CUSTOM_OP(matrix_determinant, 1, 1, false, 0, 0);
     }
 }

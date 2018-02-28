@@ -21,7 +21,7 @@ CUSTOM_OP_IMPL(stack, -1, 1, false, 0, 0) {
 		REQUIRE_TRUE(shape::equalsSoft((INPUT_VARIABLE(i))->getShapeInfo(), (INPUT_VARIABLE(i+1))->getShapeInfo()), 0, "CUSTOM_OP stack: the shapes of input arrays are different !");
  	
  	if(input->rankOf() > 1)
- 		REQUIRE_TRUE(dim < input->rankOf(), 0, "CUSTOM_OP stack: the input dimension is greater/equal than rank of input arrays shapes !");
+ 		REQUIRE_TRUE(dim <= input->rankOf(), 0, "CUSTOM_OP stack: the input dimension is greater/equal than rank of input arrays shapes !");
  	
  	std::vector<NDArray<T>*> inArrs(block.width());
  	for(int i = 0; i < block.width(); ++i)
@@ -62,7 +62,7 @@ DECLARE_SHAPE_FN(stack) {
   		outShapeInfo[3] = 1;
   		outShapeInfo[4] = 0;
   		outShapeInfo[5] = (int)shape::order(inShapeInfo);
-  		return new ShapeList(outShapeInfo);
+  		return SHAPELIST(outShapeInfo);
 	}
 	
 	//the rank of output ShapeInfo is larger by one compared to input ShapeInfo
@@ -82,7 +82,7 @@ DECLARE_SHAPE_FN(stack) {
   	
   	shape::updateStrides(outShapeInfo, shape::order(inShapeInfo));    
   	
-  	return new ShapeList(outShapeInfo);
+  	return SHAPELIST(outShapeInfo);
 }
 
 // 1) 1х4 + 1х4 = 2х1х4 (along dim=0) = 2x4 

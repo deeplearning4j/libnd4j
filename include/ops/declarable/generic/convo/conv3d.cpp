@@ -155,7 +155,7 @@ DECLARE_SHAPE_FN(conv3dnew) {
     
     shape::updateStrides(outputShapeInfo, shape::order(inputShapeInfo));
 
-    return new ShapeList(outputShapeInfo);
+    return SHAPELIST(outputShapeInfo);
 }
 
 
@@ -296,10 +296,10 @@ DECLARE_SHAPE_FN(conv3dnew_bp) {
     if(biasShapeInfo) {
         int* gradBshapeInfo(nullptr);
         COPY_SHAPE(biasShapeInfo, gradBshapeInfo);
-        return new ShapeList({gradIshapeInfo, gradWshapeInfo, gradBshapeInfo});        
+        return SHAPELIST(gradIshapeInfo, gradWshapeInfo, gradBshapeInfo);
     }     
 
-    return new ShapeList({gradIshapeInfo, gradWshapeInfo});        
+    return SHAPELIST(gradIshapeInfo, gradWshapeInfo);        
 }
 
 

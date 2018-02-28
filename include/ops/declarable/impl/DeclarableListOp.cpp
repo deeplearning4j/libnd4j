@@ -43,7 +43,7 @@ namespace nd4j {
             ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(2), int);
             shape::shapeBuffer(2, shape.data(), newShape);
 
-            return new ShapeList(newShape);
+            return SHAPELIST(newShape);
         }
 
         template <typename T>
@@ -78,7 +78,7 @@ namespace nd4j {
             Nd4jStatus status = this->validateAndExecute(*block);
 
             auto timeEnd = std::chrono::system_clock::now();
-            auto outerTime = std::chrono::duration_cast<std::chrono::microseconds> (timeEnd - timeStart).count();
+            auto outerTime = std::chrono::duration_cast<std::chrono::nanoseconds> (timeEnd - timeStart).count();
             block->setInnerTime(outerTime);
 
             return status;

@@ -894,6 +894,9 @@ namespace nd4j {
         void tileToShape(const std::vector<int>& shape, NDArray<T>* target = nullptr);
         void tileToShape(const std::initializer_list<int>& shape, NDArray<T>* target = nullptr);
 
+        template <typename N>
+        NDArray<N>* asT();
+
         /**
         *  calculates the trace of an array, that is sum of elements on main diagonal = sum array[i, i, i, ...]
         */
@@ -1116,6 +1119,11 @@ namespace nd4j {
 
         template <typename T2>
         FORCEINLINE std::vector<T2> asVectorT();
+
+
+        FORCEINLINE bool isAttached();
+
+        NDArray<T>* detach();
     };
 
 
@@ -1137,6 +1145,10 @@ FORCEINLINE std::vector<T2> NDArray<T>::asVectorT() {
     return result;
 }
 
+template<typename T>
+FORCEINLINE bool NDArray<T>::isAttached() {
+    return this->_workspace != nullptr;
+}
 
 //////////////////////////////////////////////////////////////////////////
 template<typename T>
