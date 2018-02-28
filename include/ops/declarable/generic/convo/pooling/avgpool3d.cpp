@@ -127,7 +127,7 @@ DECLARE_SHAPE_FN(avgpool3dnew) {
     
     shape::updateStrides(outputShapeInfo, shape::order(inputShapeInfo));
 
-    return new ShapeList(outputShapeInfo);
+    return SHAPELIST(outputShapeInfo);
 }
 
 
@@ -201,7 +201,7 @@ DECLARE_SHAPE_FN(avgpool3dnew_bp) {
     int* gradIshapeInfo(nullptr);
     COPY_SHAPE(inputShape->at(0), gradIshapeInfo);
         
-    return new ShapeList(gradIshapeInfo);        
+    return SHAPELIST(gradIshapeInfo);        
 }
 
 
