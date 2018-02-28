@@ -43,7 +43,7 @@ TEST_F(WorkspaceTests, BasicInitialization2) {
 
 
 TEST_F(WorkspaceTests, BasicInitialization3) {
-    Workspace workspace(0);
+    Workspace workspace;
 
     ASSERT_EQ(0, workspace.getCurrentOffset());
 
