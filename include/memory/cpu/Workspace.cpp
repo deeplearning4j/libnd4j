@@ -23,6 +23,9 @@ namespace nd4j {
 
                 _initialSize = external->sizeHost();
                 _currentSize = external->sizeHost();
+                _offset = 0L;
+                this->_cycleAllocations = 0;
+                this->_spillsSize = 0;
 
                 _externalized = true;
             }

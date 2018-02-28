@@ -8,7 +8,7 @@ namespace nd4j {
     namespace memory {
         ExternalWorkspace::ExternalWorkspace(Nd4jPointer ptrH, Nd4jIndex sizeH, Nd4jPointer ptrD, Nd4jIndex sizeD) {
             _ptrH = ptrH;
-            _sizeH = _sizeH;
+            _sizeH = sizeH;
 
             _ptrD = ptrD;
             _sizeD = sizeD;

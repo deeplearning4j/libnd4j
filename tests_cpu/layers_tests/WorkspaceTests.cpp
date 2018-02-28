@@ -205,5 +205,27 @@ TEST_F(WorkspaceTests, Test_Graph_1) {
     delete graph;
 }
 
+TEST_F(WorkspaceTests, Test_Externalized_1) {
+    char buffer[10000];
+    ExternalWorkspace pojo((Nd4jPointer) buffer, 10000, nullptr, 0);
+
+    ASSERT_EQ(10000, pojo.sizeHost());
+    ASSERT_EQ(0, pojo.sizeDevice());
+
+    Workspace ws(&pojo);
+    ASSERT_EQ(10000, ws.getCurrentSize());
+    ASSERT_EQ(10000, ws.getAllocatedSize());
+
+    NDArray<float> x('c', {10, 10}, &ws);
+
+    ASSERT_EQ(32 + 400, ws.getUsedSize());
+    ASSERT_EQ(32 + 400, ws.getCurrentOffset());
+
+    x.assign(2.0);
+
+    float m = x.meanNumber();
+    ASSERT_NEAR(2.0f, m, 1e-5);
+}
+
 
 #endif //LIBND4J_WORKSPACETESTS_H
