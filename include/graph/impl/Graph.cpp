@@ -823,6 +823,12 @@ namespace nd4j {
             } else
                 _configuration = new ExecutorConfiguration();
 
+            // if memory reqs were set - initialize workspace
+            if (_configuration->_footprintForward > 0) {
+                nd4j::memory::Workspace *workspace = this->_variableSpace->workspace();
+                workspace->expandBy(_configuration->_footprintForward);
+            }
+
             // parsing variables here
             if (flatGraph != nullptr && flatGraph->variables() != nullptr && flatGraph->variables()->size() > 0) {
                 for (unsigned int e = 0; e < flatGraph->variables()->size(); e++) {

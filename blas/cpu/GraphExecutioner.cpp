@@ -10,6 +10,7 @@
 
 #include <Variable.h>
 #include <VariableSpace.h>
+#include <memory/MemoryRegistrator.h>
 #include <Node.h>
 #include <Scope.h>
 #include <GraphExecutioner.h>
@@ -453,6 +454,11 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* varia
         flowPath->profile()->nodeById(lastId)->setTotalTime(GraphProfile::relativeTime(nodeTime));
         flowPath->profile()->setExecutionTime(GraphProfile::relativeTime(timeStart));
         //flowPath->profile().printOut();
+    }
+
+    // saving memory footprint for current run
+    if (__variableSpace->workspace() != nullptr) {
+        nd4j::memory::MemoryRegistrator::getInstance()->setGraphMemoryFootprintIfGreater(graph->hashCode(), __variableSpace->workspace()->getAllocatedSize());
     }
 
     if (tempFlow)

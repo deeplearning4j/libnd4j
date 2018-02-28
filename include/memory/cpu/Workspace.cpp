@@ -49,6 +49,10 @@ namespace nd4j {
         }
 
         void Workspace::expandBy(Nd4jIndex numBytes) {
+            this->init(_currentSize + numBytes);
+        }
+
+        void Workspace::expandTo(Nd4jIndex numBytes) {
             this->init(numBytes);
         }
 
@@ -114,6 +118,10 @@ namespace nd4j {
             this->_mutexAllocation.unlock();
 
             return result;
+        }
+
+        Nd4jIndex Workspace::getAllocatedSize() {
+            return getCurrentSize() + getSpilledSize();
         }
 
         void Workspace::scopeIn() {
