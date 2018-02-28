@@ -79,62 +79,23 @@ namespace ops  {
 
 //////////////////////////////////////////////////////////////////////////
         template<typename T>
-        void ConvolutionUtils<T>::vol2col(const T *inBuff, T* outBuff, const int iC, 
-                                            const int iD, const int iH, const int iW, 
-                                            const int oD, const int oH, const int oW, 
-                                            const int kD, const int kH, const int kW, 
-                                            const int sD, const int sH, const int sW,
-                                            const int pD, const int pH, const int pW,  
-                                            const int dD, const int dH, const int dW ) {
-            int c, d, h, w;    
-            int outDim = iC * kD * kH * kW;
-            
-            for (c = 0; c < outDim; ++c) {
-                
-                int w_offset = c % kW;
-                int h_offset = (c / kW) % kH;
-                int d_offset = (c / kW / kH) % kD;
-                int c_vol = c / kD / kH / kW;
-                
-                for (d = 0; d < oD; ++d) {
-                    for (h = 0; h < oH; ++h) {
-                        for (w = 0; w < oW; ++w) {
-                            
-                            int d_pad = d * sD - pD + d_offset * dD;
-                            int h_pad = h * sH - pH + h_offset * dH;
-                            int w_pad = w * sW - pW + w_offset * dW;
-                            
-                            if (d_pad >= 0 && d_pad < iD && h_pad >= 0 && h_pad < iH && w_pad >= 0 && w_pad < iW)
-                                outBuff[((c * oD + d) * oH + h) * oW + w] = inBuff[((c_vol * iD + d_pad) * iH + h_pad) * iW + w_pad];
-                            else
-                                outBuff[((c * oD + d) * oH + h) * oW + w] = 0;
-                        }
-                    }
-                }
-            }
-        }
-
-//////////////////////////////////////////////////////////////////////////
-        template<typename T>
-        void ConvolutionUtils<T>::vol2col3(NDArray<T>& vol, NDArray<T>& col,                                             
-                                           const int colD,  const int colH, const int colW, 
-                                           const int kD,    const int kH,   const int kW, 
-                                           const int sD,    const int sH,   const int sW,
-                                           const int pD,    const int pH,   const int pW,  
-                                           const int dD,    const int dH,   const int dW ) {
-
+        void ConvolutionUtils<T>::vol2col(NDArray<T>& vol, NDArray<T>& col,
+                                          const int colD, const int colH, const int colW, 
+                                          const int kD,   const int kH,   const int kW, 
+                                          const int sD,   const int sH,   const int sW,
+                                          const int pD,   const int pH,   const int pW,  
+                                          const int dD,   const int dH,   const int dW ) {
 
             T* volBuff = vol.getBuffer();
             T* colBuff = col.getBuffer();
 
-            int bS   = vol.sizeAt(0);
-            int volC = vol.sizeAt(1);
-            int volD = vol.sizeAt(2);
-            int volH = vol.sizeAt(3);
-            int volW = vol.sizeAt(4);
+            int volC = vol.sizeAt(0);
+            int volD = vol.sizeAt(1);
+            int volH = vol.sizeAt(2);
+            int volW = vol.sizeAt(3);
 
             int c, d, h, w;    
-            int outDim = bS * volC * kD * kH * kW;
+            int outDim = volC * kD * kH * kW;
             
             for (c = 0; c < outDim; ++c) {
                 
@@ -174,9 +135,9 @@ namespace ops  {
             int c, t, h, w;
             memset(outBuff, 0, sizeof(T) * oD * oH * oW * oC);
 
-            int effkD = kD + (kD - 1) * (dD - 1);
-            int effkH = kH + (kH - 1) * (dH - 1);
-            int effkW = kW + (kW - 1) * (dW - 1);            
+            int effkD = kD; // + (kD - 1) * (dD - 1);
+            int effkH = kH; // + (kH - 1) * (dH - 1);
+            int effkW = kW; // + (kW - 1) * (dW - 1);            
 
             int inDim = oC * effkD * effkH * effkW;
             for (c = 0; c < inDim; ++c) {

@@ -45,9 +45,6 @@ CUSTOM_OP_IMPL(conv3dnew, 2, 1, false, 0, 13) {
         input->streamline('c');
         weights->streamline('c');
     }
-    else
-        output  = output->permute({0, 2, 3, 4, 1});                             // [bS, oC, oD, oH, oW] -> [bS, oD, oH, oW, oC]
-
 
     int bS = input->sizeAt(0);           // batch size
     int iC = input->sizeAt(1);           // input channels        
@@ -72,40 +69,23 @@ CUSTOM_OP_IMPL(conv3dnew, 2, 1, false, 0, 13) {
         ConvolutionUtils<T>::calcPadding3D(pD, pH, pW, oD, oH, oW, iD, iH, iW, kD, kH, kW, sD, sH, sW, dD, dH, dW);    
 
     NDArray<T>* reshapedWeights = weights->reshape(weights->ordering(), {oC, iC*kD*kH*kW});
-    NDArray<T>* transpWeights = reshapedWeights->transpose();
     NDArray<T>* reshapedOutput  = output->reshape(output->ordering(), {bS, oC, oD*oH*oW});    
-    // NDArray<T> columns(input->ordering(), {iC*kD*kW*kH, oD*oH*oW}, block.getWorkspace());
-    NDArray<T> columns(input->ordering(), {bS, iC*kD*kW*kH, oD*oH*oW}, block.getWorkspace());
+    NDArray<T> columns(input->ordering(), {iC*kD*kW*kH, oD*oH*oW}, block.getWorkspace());
     
-    // [bS, iC, iD, iH, iW] vs [bS, iC*kD*kW*kH, oD*oH*oW]
-    ConvolutionUtils<T>::vol2col(*input, columns, oD, oH, oW, kD, kH, kW, sD, sH, sW, pD, pH, pW, dD, dH, dW);                            
-
-    // NDArrayFactory<T>::mmulHelper(reshapedWeights, &columns, outSubArrsList->at(i), 1.0, 0.0);      // [oC, iC*kD*kH*kW] x [iC*kD*kW*kH, oD*oH*oW] = [oC, oD*oH*oW]
-    NDArrayFactory<T>::mmulHelper(&columns, reshapedWeights, outSubArrsList->at(i), 1.0, 0.0);      // [bS*oD*oH*oW, iC*kD*kW*kH] x [iC*kD*kH*kW, oC]   = [bS*oD*oH*oW,oC]
-
-
-
-
-
-
-
-
-
-
-
-
-
+    ResultSet<T>* inSubArrs  = NDArrayFactory<T>::allExamples(input);
+    ResultSet<T>* outSubArrsList = NDArrayFactory<T>::allExamples(reshapedOutput);
 
     for(int i = 0; i < bS; ++i) {
-    
-        
+        // [iC, iD, iH, iW] vs [iC*kD*kW*kH, oD*oH*oW]
+        ConvolutionUtils<T>::vol2col(*inSubArrs->at(i), columns, oD, oH, oW, kD, kH, kW, sD, sH, sW, pD, pH, pW, dD, dH, dW);                
         NDArrayFactory<T>::mmulHelper(reshapedWeights, &columns, outSubArrsList->at(i), 1.0, 0.0);      // [oC, iC*kD*kH*kW] x [iC*kD*kW*kH, oD*oH*oW] = [oC, oD*oH*oW]
                             
         if(bias)
             outSubArrsList->at(i)->template applyBroadcast<simdOps::Add<T>>({0}, bias);
     }
 
-    delete transpWeights;
+    delete inSubArrs;
+    delete outSubArrsList;
     delete reshapedWeights;
     delete reshapedOutput;
    
@@ -118,106 +98,6 @@ CUSTOM_OP_IMPL(conv3dnew, 2, 1, false, 0, 13) {
     return Status::OK();
 }
 
-//////////////////////////////////////////////////////////////////////////
-// CUSTOM_OP_IMPL(conv3dnew, 2, 1, false, 0, 13) {
-    
-//     NDArray<T> *input   = INPUT_VARIABLE(0);                                    // [bS, iD, iH, iW, iC] (NDHWC) or [bS, iC, iD, iH, iW] (NCDHW)
-//     NDArray<T> *weights = INPUT_VARIABLE(1);                                    // [kD, kH, kW, iC, oC] (NDHWC) or [oC, iC, kD, kH, kW] (NCDHW)
-//     NDArray<T> *bias    = block.width() > 2 ? INPUT_VARIABLE(2) : nullptr;      // [oC]
-//     NDArray<T> *output  = OUTPUT_VARIABLE(0);                                   // [bS, oD, oH, oW, oC] (NDHWC) or [bS, oC, oD, oH, oW] (NCDHW)
-    
-//     REQUIRE_TRUE(input->rankOf()   == 5, 0, "CUSTOM CONV3D OP: rank of input array must be equal to 5 !");
-//     REQUIRE_TRUE(weights->rankOf() == 5, 0, "CUSTOM CONV3D OP: rank of weights array must be equal to 5 !");
-                                     
-//     int kD = INT_ARG(0);                                                        // filter(kernel) depth
-//     int kH = INT_ARG(1);                                                        // filter(kernel) height
-//     int kW = INT_ARG(2);                                                        // filter(kernel) width
-//     int sD = INT_ARG(3);                                                        // strides depth
-//     int sH = INT_ARG(4);                                                        // strides height
-//     int sW = INT_ARG(5);                                                        // strides width
-//     int pD = INT_ARG(6);                                                        // paddings depth
-//     int pH = INT_ARG(7);                                                        // paddings height
-//     int pW = INT_ARG(8);                                                        // paddings width
-//     int dD = INT_ARG(9);                                                        // dilations depth
-//     int dH = INT_ARG(10);                                                       // dilations height
-//     int dW = INT_ARG(11);                                                       // dilations width
-//     int paddingMode = INT_ARG(12);                                              // 0-SAME,  1-VALID
-//     int dataFormat  = block.getIArguments()->size() > 13 ? INT_ARG(13) : 0;     // 0-NDHWC, 1-NCDHW    
-
-//     // vol2col (im2col for 3d case) works only with NCDHW format    
-//     if(!dataFormat) {
-//         input   = input ->permute({0, 4, 1, 2, 3});                             // [bS, iD, iH, iW, iC] -> [bS, iC, iD, iH, iW]        
-//         weights = weights->permute({4, 3, 0, 1, 2});                            // [kD, kH, kW, iC, oC] -> [oC, iC, kD, kH, kW] 
-//     }
-//     else 
-//         output = output->permute({0, 2, 3, 4, 1});                             // [bS, oC, oD, oH, oW] -> [bS, oD, oH, oW, oC]
-
-//     int bS = input->sizeAt(0);           // batch size
-//     int iC = input->sizeAt(1);           // input channels        
-//     int iD = input->sizeAt(2);           // input depth
-//     int iH = input->sizeAt(3);           // input height
-//     int iW = input->sizeAt(4);           // input width
-//     int oC = weights->sizeAt(0);         // output channels    
-//     int oD = output->sizeAt(1);          // output depth
-//     int oH = output->sizeAt(2);          // output height
-//     int oW = output->sizeAt(3);          // output width    
-    
-//     REQUIRE_TRUE(weights->sizeAt(1) == iC, 0, "CUSTOM CONV3D OP: wrong shape of weights array, input_inChannels != weights_inChannels");
-//     REQUIRE_TRUE(weights->sizeAt(2) == kD, 0, "CUSTOM CONV3D OP: weights array has wrong shape, take a careful look at int arguments !");
-//     REQUIRE_TRUE(weights->sizeAt(3) == kH, 0, "CUSTOM CONV3D OP: weights array has wrong shape, take a careful look at int arguments !");
-//     REQUIRE_TRUE(weights->sizeAt(4) == kW, 0, "CUSTOM CONV3D OP: weights array has wrong shape, take a careful look at int arguments !");
-//     if (bias) {
-//         REQUIRE_TRUE(bias->rankOf() == 1,    0, "CUSTOM CONV3D OP: rank of biases array must be equal to 1 !");
-//         REQUIRE_TRUE(oC == bias->lengthOf(), 0, "CUSTOM CONV3D OP: length of bias array must be equal to outChannels, but got %i instead", bias->lengthOf());        
-//     }            
-    
-//     if(!paddingMode)                       // SAME
-//         ConvolutionUtils<T>::calcPadding3D(pD, pH, pW, oD, oH, oW, iD, iH, iW, kD, kH, kW, sD, sH, sW, dD, dH, dW);    
-    
-//     NDArray<T> columns('c', {bS, oD, oH, oW, iC, kD, kW, kH}, block.getWorkspace());
-//     NDArray<T>* columnsPerm = columns.permute({0, 4, 5, 6, 7, 1, 2, 3});                                // [bS, oD, oH, oW, iC, kD, kW, kH] -> [bS, iC, kD, kW, kH, oD, oH, oW]
-    
-//     ConvolutionUtils<T>::vol2col2(*input, *columnsPerm, sD, sH, sW, pD, pH, pW, dD, dH, dW);            // input [bS, iC, iD, iH, iW], columnsPerm [bS, iC, kD, kW, kH, oD, oH, oW]
-//     columnsPerm->printIndexedBuffer();
-//     std::cout<<"!!!!"<<std::endl;
-
-//     NDArray<T>* weightsPermuted = weights->permute({1,2,3,4,0});
-//     NDArray<T>* weightsReshaped = weightsPermuted->reshape('f', {iC*kD*kH*kW, oC});
-
-//     NDArray<T>* reshapePermuteWeights = weights->reshape(weights->ordering(), {oC, iC*kD*kH*kW});       // [oC, iC, kD, kH, kW] -> [oC, iC*kD*kH*kW]
-//     reshapePermuteWeights->transposei();                                                                // [oC, iC*kD*kH*kW] -> [iC*kD*kH*kW, oC]
-    
-//     NDArray<T>* reshapeOutput  = output->reshape(output->ordering(), {bS*oD*oH*oW, oC});
-//     // output->enforce({bS*oD*oH*oW, oC}, 'f');
-
-//     NDArray<T>* reshapeColumns = columns.reshape('c', {bS*oD*oH*oW, iC*kD*kW*kH});
-
-//     NDArrayFactory<T>::mmulHelper(reshapeColumns, weightsReshaped, reshapeOutput, 1.0, 0.0);      // [bS*oD*oH*oW, iC*kD*kW*kH] x [iC*kD*kH*kW, oC] = [bS*oD*oH*oW, oC]    
-
-//     output->permutei({4,0,1,2,3});
-
-
-
-//     if(bias)
-//        *output += *bias;
-    
-    
-//     delete weightsPermuted;
-//     delete weightsReshaped;
-//     delete reshapeColumns;
-//     delete reshapeOutput;
-//     delete columnsPerm;
-//     delete reshapePermuteWeights;
-   
-//     if(!dataFormat) {
-//         delete input;
-//         delete weights;     
-//     }
-//     else
-//         delete output;        
-    
-//     return Status::OK();
-// }
 
 
 DECLARE_SHAPE_FN(conv3dnew) {
@@ -372,7 +252,7 @@ CUSTOM_OP_IMPL(conv3dnew_bp, 3, 2, false, 0, 13) {
 
     for(int i = 0; i < bS; ++i) {
 
-        ConvolutionUtils<T>::vol2col(inSubArrs->at(i)->getBuffer(), columns.getBuffer(), iC, iD, iH, iW, oD, oH, oW, kD, kH, kW, sD, sH, sW, pD, pH, pW, dD, dH, dW);        
+        ConvolutionUtils<T>::vol2col(*inSubArrs->at(i), columns, oD, oH, oW, kD, kH, kW, sD, sH, sW, pD, pH, pW, dD, dH, dW);        
         NDArrayFactory<T>::mmulHelper(&columns, gradOsubArrs->at(i), sumGradWsubArrs->at(i), 1.0, 0.0);         // [iC*kD*kW*kH, oD*oH*oW] x [oD*oH*oW, oC] = [iC*kD*kW*kH, oC]
 
         // NDArray<T>* gradOsubAttT = gradOsubArrs->at(i)->transpose();
