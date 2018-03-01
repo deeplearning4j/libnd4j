@@ -53,9 +53,9 @@ namespace nd4j {
             }
             //std::vector<int> dims = ShapeUtils<T>::convertAxisToTadTarget(input->rankOf(), {axis});
 
-            int* meanShape = ShapeUtils<T>::evalReduceShapeInfo('c', axis, *input, false);
-            int* varianceShape = ShapeUtils<T>::evalReduceShapeInfo('c', axis, *input, false);
-            auto shapeList = new ShapeList(); 
+            int* meanShape = ShapeUtils<T>::evalReduceShapeInfo('c', axis, *input, false, false, block.workspace());
+            int* varianceShape = ShapeUtils<T>::evalReduceShapeInfo('c', axis, *input, false, false, block.workspace());
+            auto shapeList = SHAPELIST(); 
             shapeList->push_back(meanShape);
             shapeList->push_back(varianceShape);
 

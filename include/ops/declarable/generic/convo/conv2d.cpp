@@ -73,8 +73,6 @@ namespace nd4j {
             int oX = 0;
 
 
-
-
             REQUIRE_TRUE(weights->shapeOf()[2] == kY && weights->shapeOf()[3] == kX, 0, "Kernels should have dimensions of [%i, %i], but got [%i, %i] instead", kY, kX, weights->sizeAt(2), weights->sizeAt(3));
 
             ConvolutionUtils<T>::calcOutSizePool2D(oY, oX, kY, kX, sY, sX, pY, pX, dY, dX, inY, inX, isSameMode);
@@ -193,7 +191,7 @@ namespace nd4j {
                 shape::shapeBuffer(4, shape.data(), newShape);
             }
 
-            return new ShapeList(newShape);
+            return SHAPELIST(newShape);
         }
 
 
@@ -334,7 +332,7 @@ namespace nd4j {
             ALLOCATE(newWShape, block.getWorkspace(), shape::shapeInfoLength(wShape), int);
             memcpy(newWShape, wShape, shape::shapeInfoByteLength(wShape));
 
-            auto shapeList = new ShapeList({newIShape, newWShape});
+            auto shapeList = SHAPELIST(newIShape, newWShape);
 
             if (bShape != nullptr) {
                 int *newBShape;

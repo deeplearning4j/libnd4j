@@ -41,7 +41,7 @@ namespace nd4j {
 
         DECLARE_SHAPE_FN(clip_by_global_norm) {
 
-            auto shapeList = new ShapeList(); 
+            auto shapeList = SHAPELIST();
             
             for (int e = 0; e < block.width(); e++) {
                 auto in = inputShape->at(e);
@@ -50,7 +50,7 @@ namespace nd4j {
                 COPY_SHAPE(in, newShape);
                 shapeList->push_back(newShape);
             }
-            shapeList->push_back(shape::createScalarShapeInfo());
+            shapeList->push_back(ShapeUtils<T>::createScalarShapeInfo(block.workspace()));
             return shapeList;
         }
     }

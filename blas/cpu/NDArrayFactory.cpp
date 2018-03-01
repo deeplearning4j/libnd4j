@@ -155,7 +155,7 @@ namespace nd4j {
     void nd4j::NDArrayFactory<T>::tensorDot(const nd4j::NDArray<T>* a, const nd4j::NDArray<T>* b, nd4j::NDArray<T>* c, std::vector<int>& axes_0, std::vector<int>& axes_1) {
 
         if(c->rankOf() != 2 || c->shapeOf()[0] != a->shapeOf()[0] || c->shapeOf()[1] != b->shapeOf()[1])
-            throw "NDArrayFactory::simpleMMul static function: wrong shape of C array !";
+            throw "NDArrayFactory::tensorDot static function: wrong shape of C array !";
 
         std::vector<int> permutAt, permutBt, shapeAt, shapeBt;
         std::vector<int> outShape = ShapeUtils<T>::evalShapeForTensorDot(a, b, axes_0, axes_1, permutAt, permutBt, shapeAt, shapeBt);
@@ -365,9 +365,9 @@ namespace nd4j {
 
             //_C = new NDArray<T>(C, cShapeInfo);
 
-            auto tA = new nd4j::NDArray<T>(A->getBuffer(), A->getShapeInfo());
-            auto tB = new nd4j::NDArray<T>(B->getBuffer(), B->getShapeInfo());
-            auto tC = new nd4j::NDArray<T>(result->getBuffer(), result->getShapeInfo());
+            auto tA = new nd4j::NDArray<T>(A->getBuffer(), A->getShapeInfo(), A->getWorkspace());
+            auto tB = new nd4j::NDArray<T>(B->getBuffer(), B->getShapeInfo(), B->getWorkspace());
+            auto tC = new nd4j::NDArray<T>(result->getBuffer(), result->getShapeInfo(), result->getWorkspace());
 
             if (cOrder != 'f') {
                 pC = tC->dup('f');
@@ -427,6 +427,7 @@ namespace nd4j {
                 transA = 'N';
                 transB = 'N';
             }
+
 
             // we'll use platform-specific gemm here eventually. maybe tomorrow.
             // TODO: put proper _gemm here
