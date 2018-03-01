@@ -2,6 +2,9 @@
 //  @author raver119@gmail.com
 //
 
+#ifndef LIBND4J_EXTERNALWORKSPACE_H
+#define LIBND4J_EXTERNALWORKSPACE_H
+
 #include <pointercast.h>
 #include <dll.h>
 
@@ -28,3 +31,5 @@ namespace nd4j {
         };
     }
 }
+
+#endif
