@@ -13,12 +13,12 @@ namespace helpers {
     int uniqueCount(NDArray<T>* input) {
         int count = 0;
 
-        std::vector<T> valuesVector;
+        std::vector<T> values;
 
-        for (int e = 0; e < x->lengthOf(); e++) {
-            T v = x->getScalar(e);
-            if (std::find(valuesVector.begin(), values.end(), v) == values.end()) {
-                valuesVector.push_back(v);
+        for (int e = 0; e < input->lengthOf(); e++) {
+            T v = (*input)(e);
+            if (std::find(values.begin(), values.end(), v) == values.end()) {
+                values.push_back(v);
                 count++;
             }
         }
@@ -37,9 +37,9 @@ namespace helpers {
         std::map<T, int> indicesMap;
         std::map<T, int> countsMap;
 
-        for (int e = 0; e < x->lengthOf(); e++) {
-            T v = x->getScalar(e);
-            if (std::find(valuesVector.begin(), values.end(), v) == values.end()) {
+        for (int e = 0; e < input->lengthOf(); e++) {
+            T v = (*input)(e);
+            if (std::find(valuesVector.begin(), valuesVector.end(), v) == valuesVector.end()) {
                 valuesVector.push_back(v);
                 indicesMap[v] = e;
                 countsMap[v] = 1;
@@ -52,17 +52,14 @@ namespace helpers {
 
         for (int e = 0; e < values->lengthOf(); e++) {
             values->putScalar(e, valuesVector[e]);
+            if (counts != nullptr) 
+                counts->putScalar(e, countsMap[valuesVector[e]]);
         }
 
         for (int e = 0; e < indices->lengthOf(); e++) {
             indices->putScalar(e, indicesMap[(*input)(e)]);
         }
-        
-        if (counts != nullptr) {
-            for (int e = 0; e < counts->lengthOf(); e++) {
-                values->putScalar(e, countsMap[valuesVector[e]]);
-            }
-        }
+
         return ND4J_STATUS_OK;
     }
 

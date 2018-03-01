@@ -179,7 +179,7 @@ namespace nd4j {
          *     2 - 1D array with counts for values in array above
          */
 
-        DECLARE_CUSTOM_OP(unique_with_count, 1, 3, false, 0, 0);
+        DECLARE_CUSTOM_OP(unique_with_counts, 1, 3, false, 0, 0);
 
         /**
          * This operation splits input NDArray into multiple TADs along given dimensions

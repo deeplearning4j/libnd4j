@@ -3,6 +3,7 @@
 //
 
 #include <ops/declarable/CustomOperations.h>
+#include <ops/declarable/helpers/unique.h>
 
 namespace nd4j {
     namespace ops {
@@ -39,9 +40,12 @@ namespace nd4j {
 
             // all output shapes are 1D arrays (vectors)
             ALLOCATE(valuesShape, block.getWorkspace(), shape::shapeInfoLength(1), int);
-            shape::shapeVector(uniqueCount, valueShape);
+            shape::shapeVector(uniqueCount, valuesShape);
 
-            COPY_SHAPE_EX(in, indicesShape, block.getWorkspace());
+            ALLOCATE(indicesShape, block.getWorkspace(), shape::shapeInfoLength(1), int);
+            shape::shapeVector(source->lengthOf(), indicesShape);
+
+            //COPY_SHAPE_EX(in, indicesShape, block.getWorkspace());
 
             return SHAPELIST(valuesShape, indicesShape);
 
@@ -59,7 +63,8 @@ namespace nd4j {
         DECLARE_SHAPE_FN(unique_with_counts) {
             auto in = inputShape->at(0);
             auto source = INPUT_VARIABLE(0);
-//            auto shapeList = SHAPELIST(); 
+            auto shapeList = SHAPELIST(); 
+
             int* valuesShape;
             int* indicesShape;
             int* countsShape;
@@ -67,16 +72,19 @@ namespace nd4j {
             int uniqueCount = helpers::uniqueCount(source);
             // all output shapes are 1D arrays (vectors)
             ALLOCATE(valuesShape, block.getWorkspace(), shape::shapeInfoLength(1), int);
-            shape::shapeVector(uniqueCount, valueShape);
+            shape::shapeVector(uniqueCount, valuesShape);
 
-            COPY_SHAPE_EX(in, indicesShape, block.getWorkspace());
-            COPY_SHAPE_EX(valuesShape, countsShape);
+            ALLOCATE(indicesShape, block.getWorkspace(), shape::shapeInfoLength(1), int);
+            shape::shapeVector(source->lengthOf(), indicesShape);
 
-//            shapeList->push_back(valuesShape); 
-//            shapeList->push_back(indicesShape); 
-//            shapeList->push_back(countsShape); 
+            ALLOCATE(countsShape, block.getWorkspace(), shape::shapeInfoLength(1), int);
+            shape::shapeVector(uniqueCount, countsShape);
 
-            return SHAPELIST(valuesShape, indicesShape, countsShape); //shapeList;
+            shapeList->push_back(valuesShape); 
+            shapeList->push_back(indicesShape); 
+            shapeList->push_back(countsShape); 
+
+            return shapeList;
         }
 
     }
