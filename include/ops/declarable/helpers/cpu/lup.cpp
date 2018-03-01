@@ -48,18 +48,19 @@ namespace helpers {
     template <typename T>
     void invertUpperMatrix(NDArray<T>* inputMatrix, NDArray<T>* invertedMatrix) {
         int n = inputMatrix->rows();
-        invertedMatrix->assign(T(0.0));
+        invertedMatrix->setIdentity();
+
+        if (inputMatrix->isIdentityMatrix()) { // the inverse for I is I
+            return;
+        }
 
         for (int i = 0; i < n; i++)
-            (*invertedMatrix)(i, i) =  T(1.0) / (*inputMatrix)(i, i);
-
-        if (inputMatrix->isIdentityMatrix()) return;
+            (*invertedMatrix)(i, i)  /= (*inputMatrix)(i, i);
 
         for (int i = 0; i < n - 1; i++)
-            (*invertedMatrix)(i, i + 1) = - (*inputMatrix)(i, i + 1) / (*inputMatrix)(i, i);
-
+            (*invertedMatrix)(i, i + 1) -= (*inputMatrix)(i, i + 1) * (*invertedMatrix)(i + 1, i + 1) / (*inputMatrix)(i, i);
         for (int i = n - 2; i > - 1; i--) {
-            for (int j = i + 1; j < n; j++) 
+            for (int j = i + 2; j < n; j++) 
                 for (int k = i; k < n; k++) 
                     (*invertedMatrix)(i, j) -= (*invertedMatrix)(k, j) * (*inputMatrix)(i, k) / (*inputMatrix)(i, i);
         }
@@ -178,18 +179,12 @@ namespace helpers {
                 for (int j = k; j < n; j++)
                     (*upperMatrix)(k, j) = (*compound)(k, j);
             }
-
             invertUpperMatrix(upperMatrix.get(), matrix.get());
-            upperMatrix->printIndexedBuffer("U =");
-            matrix->printIndexedBuffer("U* = ");
+
             invertLowerMatrix(lowerMatrix.get(), upperMatrix.get());
-            lowerMatrix->printIndexedBuffer("L =");
-            upperMatrix->printIndexedBuffer("L* = ");
 
             nd4j::NDArrayFactory<T>::mmulHelper(matrix.get(), upperMatrix.get(), compound.get(), T(1.0f), T(0.0f));
-            compound->printIndexedBuffer("U*L* = ");
             nd4j::NDArrayFactory<T>::mmulHelper(compound.get(), permutation.get(), matrix.get(), T(1.0f), T(0.0f));
-            matrix->printIndexedBuffer("Inverse");
             for (int k = e * n2, row = 0; k < (e + 1) * n2; k++) {
                 (*output)(k) = (*matrix)(row++);
             }
