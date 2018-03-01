@@ -43,6 +43,9 @@ CUSTOM_OP_IMPL(avgpool3dnew, 1, 1, false, 0, 10) {
     int oH = output->sizeAt(idxID+1);           // output height
     int oW = output->sizeAt(idxID+2);           // output width                
     
+    REQUIRE_TRUE(iD   >= kD && iH   >= kH && iW   >= kW, 0, "CUSTOM AVGPOOL3D OP: the input depth/height/width must be greater or equal to kernel(filter) depth/height/width !");    
+    REQUIRE_TRUE(kD/2 >= pD && kH/2 >= pH && kW/2 >= pW, 0, "CUSTOM AVGPOOL3D OP: pad must not be greater than half of kernel size!");    
+
     if(!dataFormat) {
         input = input ->permute({0, 4, 1, 2, 3});                                                       // [bS, iD, iH, iW, iC] -> [bS, iC, iD, iH, iW]
         output = new NDArray<T>(output->ordering(), {bS, iC, oD, oH, oW}, block.getWorkspace());                                // [bS, iC, oD, oH, oW]
@@ -50,11 +53,6 @@ CUSTOM_OP_IMPL(avgpool3dnew, 1, 1, false, 0, 10) {
         input ->streamline('c');        
     }
 
-    
-
-    REQUIRE_TRUE(iD   >= kD && iH   >= kH && iW   >= kW, 0, "CUSTOM AVGPOOL3D OP: the input depth/height/width must be greater or equal to kernel(filter) depth/height/width !");    
-    REQUIRE_TRUE(kD/2 >= pD && kH/2 >= pH && kW/2 >= pW, 0, "CUSTOM AVGPOOL3D OP: pad must not be greater than half of kernel size!");    
-    
     if(!paddingMode)                       // SAME
         ConvolutionUtils<T>::calcPadding3D(pD, pH, pW, oD, oH, oW, iD, iH, iW, kD, kH, kW, sD, sH, sW, 1, 1, 1);    
 
@@ -166,6 +164,9 @@ CUSTOM_OP_IMPL(avgpool3dnew_bp, 2, 1, false, 0, 10) {
     int oD = gradO->sizeAt(idxID);              // output depth
     int oH = gradO->sizeAt(idxID+1);            // output height
     int oW = gradO->sizeAt(idxID+2);            // output width             
+
+    REQUIRE_TRUE(iD   >= kD && iH   >= kH && iW   >= kW, 0, "CUSTOM AVGPOOL3D_BP OP: the input depth/height/width must be greater or equal to kernel(filter) depth/height/width !");    
+    REQUIRE_TRUE(kD/2 >= pD && kH/2 >= pH && kW/2 >= pW, 0, "CUSTOM AVGPOOL3D_BP OP: pad must not be greater than half of kernel size!");    
       
     if(!dataFormat) {
         gradO = gradO ->permute({0, 4, 1, 2, 3});                                                       // [bS, oD, oH, oW, iC] -> [bS, iC, oD, oH, oW]
