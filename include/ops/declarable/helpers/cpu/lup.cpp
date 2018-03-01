@@ -56,11 +56,11 @@ namespace helpers {
         if (inputMatrix->isIdentityMatrix()) return;
 
         for (int i = 0; i < n - 1; i++)
-            (*invertedMatrix)(i, i + 1) -= (*inputMatrix)(i, i + 1) / ((*inputMatrix)(i, i) * (*inputMatrix)(i + 1, i + 1));
+            (*invertedMatrix)(i, i + 1) = - (*inputMatrix)(i, i + 1) / (*inputMatrix)(i, i);
 
         for (int i = n - 2; i > - 1; i--) {
             for (int j = i + 1; j < n; j++) 
-                for (int k = i + 1; k < n; k++) 
+                for (int k = i; k < n; k++) 
                     (*invertedMatrix)(i, j) -= (*invertedMatrix)(k, j) * (*inputMatrix)(i, k) / (*inputMatrix)(i, i);
         }
     }
@@ -149,7 +149,7 @@ namespace helpers {
         int n = input->sizeAt(-1);
         int n2 = n * n;
         int totalCount = output->lengthOf() / n2;
-
+        output->assign((T)0.0); // fill up output tensor with zeros
         std::unique_ptr<NDArray<T>> matrix(new NDArray<T>({n, n})); //, block.getWorkspace());
         std::unique_ptr<NDArray<T>> compound(new NDArray<T>({n, n})); //, block.getWorkspace());
         std::unique_ptr<NDArray<T>> permutation(new NDArray<T>({n, n}));
@@ -180,11 +180,16 @@ namespace helpers {
             }
 
             invertUpperMatrix(upperMatrix.get(), matrix.get());
+            upperMatrix->printIndexedBuffer("U =");
+            matrix->printIndexedBuffer("U* = ");
             invertLowerMatrix(lowerMatrix.get(), upperMatrix.get());
+            lowerMatrix->printIndexedBuffer("L =");
+            upperMatrix->printIndexedBuffer("L* = ");
 
             nd4j::NDArrayFactory<T>::mmulHelper(matrix.get(), upperMatrix.get(), compound.get(), T(1.0f), T(0.0f));
+            compound->printIndexedBuffer("U*L* = ");
             nd4j::NDArrayFactory<T>::mmulHelper(compound.get(), permutation.get(), matrix.get(), T(1.0f), T(0.0f));
-
+            matrix->printIndexedBuffer("Inverse");
             for (int k = e * n2, row = 0; k < (e + 1) * n2; k++) {
                 (*output)(k) = (*matrix)(row++);
             }
