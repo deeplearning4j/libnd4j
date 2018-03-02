@@ -1364,3 +1364,32 @@ TEST_F(GraphTests, Test_Hash_Function_1) {
     delete graph0D;
     delete graph1D;
 }
+
+TEST_F(GraphTests, Test_Inplace_Execution_1) {
+    NDArray<float> exp('c', {5, 4}, {0.951276f, 0.501379f, 0.501368f, 0.968136f, -0.951359f, 0.499845f, -0.501381f, 0.976955f, -0.000073f, 0.499154f, 0.000098f, 0.972500f, -0.019765f, -0.499479f, -0.005979f, -0.965330f, 0.016531f, -0.500842f, 0.004861f, -0.965910f});
+
+    auto graph = GraphExecutioner<float>::importFromFlatBuffers("./resources/ae_00.fb");
+    graph->printOut();
+    graph->tagInplaceNodes();
+
+    ASSERT_FALSE(graph->nodeById(8)->isInplace());
+    ASSERT_TRUE(graph->nodeById(9)->isInplace());
+    ASSERT_TRUE(graph->nodeById(10)->isInplace());
+    ASSERT_FALSE(graph->nodeById(11)->isInplace());
+    ASSERT_TRUE(graph->nodeById(12)->isInplace());
+    ASSERT_TRUE(graph->nodeById(17)->isInplace());
+    ASSERT_TRUE(graph->nodeById(18)->isInplace());
+
+    auto status = GraphExecutioner<float>::execute(graph, graph->getVariableSpace());
+    ASSERT_EQ(Status::OK(), status);
+
+    auto z = graph->getVariableSpace()->getVariable(18)->getNDArray();
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    auto z_17 = graph->getVariableSpace()->getVariable(17)->getNDArray();
+    ASSERT_TRUE(z_17 == z);
+
+    delete graph;
+}

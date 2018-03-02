@@ -714,6 +714,26 @@ namespace nd4j {
         }
 
         template <typename T>
+        void Graph<T>::tagInplaceNodes() {
+            // just calling, in case it wasn't built before
+            this->buildGraph();
+
+
+            for (auto v: *_nodes) {
+                // skipping unmapped nodes
+                if (_mapped->count(v) == 0)
+                    continue;
+
+                Node<T>* node = _mapped->at(v);
+                
+                if (!node->isMultiOutput())
+                    if (node->getCustomOp() != nullptr)
+                        if (node->getCustomOp()->getOpDescriptor()->allowsInplace())
+                            node->markInplace(true);
+            }
+        }
+
+        template <typename T>
         void Graph<T>::prepareOutputs() {
             // if we're dumping everything out there - we'll add external variables as well
             if (_configuration->_outputMode == OutputMode_VARIABLE_SPACE) {

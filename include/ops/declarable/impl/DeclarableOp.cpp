@@ -79,10 +79,19 @@ namespace nd4j {
         nd4j::NDArray<T>* nd4j::ops::DeclarableOp<T>::getZ(Context<T>& ctx, int inputId) {
             NDArray<T>* z = nullptr;
 
+            std::pair<int, int> pair(ctx.nodeId(), inputId);
+
             if (ctx.isInplace()) {
                 z = ctx.variable(inputId)->getNDArray();
+                if (!ctx.getVariableSpace()->hasVariable(pair)) {
+                    auto var = new Variable<T>();
+                    ctx.getVariableSpace()->putVariable(pair, var);
+                    var->markRemovable(false);
+                }
+
+                ctx.getVariableSpace()->getVariable(pair)->setNDArray(z);
             } else if (!ctx.isInplace()) {
-                std::pair<int, int> pair(ctx.nodeId(), inputId);
+                
 
                 auto var = ctx.variable(pair);
                 if (var->getNDArray() != nullptr && var->getNDArray()->nonNull()) {
