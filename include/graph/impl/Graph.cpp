@@ -726,10 +726,31 @@ namespace nd4j {
 
                 Node<T>* node = _mapped->at(v);
                 
-                if (!node->isMultiOutput())
-                    if (node->getCustomOp() != nullptr)
-                        if (node->getCustomOp()->getOpDescriptor()->allowsInplace())
-                            node->markInplace(true);
+                /**
+                 * Node can be inplace if 2 requirements met:
+                 * 1) current node allows in-place modification
+                 * 2) source node has only 1 output
+                 */                
+
+                // checking for first requirement first
+                if (node->getCustomOp() != nullptr)
+                    if (node->getCustomOp()->getOpDescriptor()->allowsInplace()){
+                        bool singleInput = true;
+                        auto inputs = node->input();
+                        for (auto &v: *inputs) {
+                            if (_mapped->count(v.first) == 0)
+                                continue;
+
+                            auto inode = _mapped->at(v.first);
+                            // checking for second requirement: inputNode must not be used as input anywhere
+                            if (inode->isMultiOutput()) {
+                                singleInput = false;
+                                break;
+                            }
+                        }
+
+                        node->markInplace(singleInput);
+                    }
             }
         }
 

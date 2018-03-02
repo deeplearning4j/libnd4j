@@ -83,22 +83,23 @@ namespace nd4j {
 
             if (ctx.isInplace()) {
                 z = ctx.variable(inputId)->getNDArray();
+
+                // hypothetically it's possible to have no variable. chances are low, but who knows. let's just create it for now
                 if (!ctx.getVariableSpace()->hasVariable(pair)) {
                     auto var = new Variable<T>();
                     ctx.getVariableSpace()->putVariable(pair, var);
-                    var->markRemovable(false);
                 }
 
-                ctx.getVariableSpace()->getVariable(pair)->setNDArray(z);
+                // now we're saving input array as output array
+                auto var = ctx.getVariableSpace()->getVariable(pair);
+                var->markRemovable(false);
+                var->setNDArray(z);
             } else if (!ctx.isInplace()) {
-                
-
                 auto var = ctx.variable(pair);
                 if (var->getNDArray() != nullptr && var->getNDArray()->nonNull()) {
                     z = var->getNDArray();
                 } else {
-
-                    nd4j_printf("Can't get Z variable!\n","");
+                    nd4j_printf("Can't get Z variable for node_%i!\n", ctx.nodeId());
                 }
             } else {
                 nd4j_printf("BOOM!\n","");
