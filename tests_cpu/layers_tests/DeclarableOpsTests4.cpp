@@ -2344,3 +2344,70 @@ TEST_F(DeclarableOpsTests4, maxpool3d_bp_test2) {
     
     delete results;
 }
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests4, maxpool3d_bp_test3) {
+
+    int bS=2, iD=3,iH=4,iW=3,  iC=3,  kD=2,kH=3,kW=2,  sD=1,sH=1,sW=1,  pD=0,pH=0,pW=0;
+    int oD=3,oH=4,oW=3;
+    int paddingMode = 0;             // 0-SAME,  1-VALID
+    int dataFormat  = 0;             // 0-NDHWC, 1-NCDHW
+
+    NDArray<double> input   ('c', {bS, iD, iH, iW, iC});
+    NDArray<double> gradO   ('c', {bS, oD, oH, oW, iC});
+    NDArray<double> expected('c', {bS, iD, iH, iW, iC}, { 0., 0., 0.,  0. ,  0. ,  0. ,  0. ,   0.  ,  0. ,  0. , 0. ,  0. ,  0. ,   0.  ,  0. ,  0. ,   0.     ,  0. ,  0. ,   0.     ,  0. ,  0. ,   0.     ,  0. ,  0. ,   0.     ,  0. ,
+                                                          0., 0., 0.,  0. ,  0. ,  0. ,  0. ,   0.  ,  0. ,  0. , 0. ,  0. ,  0. ,   0.  ,  0. ,  0. ,   0.     ,  0. ,  0. ,   0.     ,  0. ,  0.1,   0.2    ,  0.3,  1.1,   1.3    ,  1.5,
+                                                          0., 0., 0.,  1. ,  1.1,  1.2,  2.9,   3.1 ,  3.3,  0. , 0. ,  0. ,  4.7,   4.9 ,  5.1, 11.2,  11.6    , 12. ,  0. ,   0.     ,  0. ,  0. ,   0.     ,  0. ,  0. ,   0.     ,  0. ,
+                                                          0., 0., 0., 11. , 11.2, 11.4, 23.8,  24.2 , 24.6,  0. , 0. ,  0. , 12.8,  13.  , 13.2, 27.4,  27.8    , 28.2,  0. ,   0.     ,  0. , 31. ,  31.4    , 31.8, 65.6,  66.39999, 67.2,
+                                                          0., 0., 0.,  0. ,  0. ,  0. ,  0. ,   0.  ,  0. ,  0. , 0. ,  0. ,  0. ,   0.  ,  0. ,  0. ,   0.     ,  0. ,  0. ,   0.     ,  0. ,  0. ,   0.     ,  0. ,  0. ,   0.     ,  0. ,
+                                                          0., 0., 0.,  0. ,  0. ,  0. ,  0. ,   0.  ,  0. ,  0. , 0. ,  0. ,  0. ,   0.  ,  0. ,  0. ,   0.     ,  0. ,  0. ,   0.     ,  0. , 10.9,  11.     , 11.1, 22.7,  22.9    , 23.1,
+                                                          0., 0., 0., 11.8, 11.9, 12. , 24.5,  24.7 , 24.9,  0. , 0. ,  0. , 26.3,  26.5 , 26.7, 54.4,  54.8    , 55.2,  0. ,   0.     ,  0. ,  0. ,   0.     ,  0. ,  0. ,   0.     ,  0. ,
+                                                          0., 0., 0., 32.6, 32.8, 33. , 67. ,  67.4 , 67.8,  0. , 0. ,  0. , 34.4,  34.6 , 34.8, 70.6,  71.     , 71.4,  0. ,   0.     ,  0. , 74.2,  74.6    , 75. ,152. , 152.8    ,153.6});
+    NDArrayFactory<double>::linspace(1., input);
+    NDArrayFactory<double>::linspace(0.1, gradO, 0.1);
+    
+    nd4j::ops::maxpool3dnew_bp<double> op;
+    ResultSet<double>* results = op.execute({&input, &gradO}, {}, {kD,kH,kW,  sD,sH,sW,  pD,pH,pW,  paddingMode, dataFormat});
+    NDArray<double>* output = results->at(0);    
+    
+    ASSERT_EQ(Status::OK(), results->status());
+    ASSERT_TRUE(expected.isSameShape(output));
+    ASSERT_TRUE(expected.equalsTo(output));    
+    
+    delete results;
+}
+
+ 
+//////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests4, maxpool3d_bp_test4) {
+
+    int bS=2, iD=3,iH=4,iW=3,  iC=3,  kD=2,kH=3,kW=2,  sD=1,sH=1,sW=1,  pD=0,pH=0,pW=0;
+    int oD=3,oH=4,oW=3;
+    int paddingMode = 1;             // 0-SAME,  1-VALID
+    int dataFormat  = 0;             // 0-NDHWC, 1-NCDHW
+
+    NDArray<double> input   ('c', {bS, iD, iH, iW, iC});
+    NDArray<double> gradO   ('c', {bS, oD, oH, oW, iC});
+    NDArray<double> expected('c', {bS, iD, iH, iW, iC}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+                                                         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.1, 0.2, 0.3, 1.1, 1.3, 1.5, 0, 0, 0, 5.7, 6, 6.3, 
+                                                         14.1, 14.7, 15.3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11, 11.2, 11.4, 23.8, 24.2, 
+                                                         24.6, 0, 0, 0, 43.8, 44.4, 45, 93, 94.2, 95.4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+                                                         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+                                                         10.9, 11, 11.1, 22.7, 22.9, 23.1, 0, 0, 0, 38.1, 38.4, 38.7, 78.9, 79.5, 80.1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                                         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 32.6, 32.8, 33, 67, 67.4, 67.8, 0, 0, 0, 108.6, 109.2, 109.8, 222.6, 223.8, 225,});
+    NDArrayFactory<double>::linspace(1., input);
+    NDArrayFactory<double>::linspace(0.1, gradO, 0.1);
+    
+    nd4j::ops::maxpool3dnew_bp<double> op;
+    ResultSet<double>* results = op.execute({&input, &gradO}, {}, {kD,kH,kW,  sD,sH,sW,  pD,pH,pW,  paddingMode, dataFormat});
+    NDArray<double>* output = results->at(0);    
+    
+    ASSERT_EQ(Status::OK(), results->status());
+    ASSERT_TRUE(expected.isSameShape(output));
+    ASSERT_TRUE(expected.equalsTo(output));    
+ 
+    delete results;
+}
+ 
+
+

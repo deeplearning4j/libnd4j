@@ -180,15 +180,15 @@ CUSTOM_OP_IMPL(maxpool3dnew_bp, 2, 1, false, 0, 10) {
     if(!paddingMode)                       // SAME
         ConvolutionUtils<T>::calcPadding3D(pD, pH, pW, oD, oH, oW, iD, iH, iW, kD, kH, kW, sD, sH, sW, 1, 1, 1);    
 
-    NDArray<T> indices(input->ordering(), {bS, iC, oD, oH, oW}, block.getWorkspace()); 
+    int* indices = nullptr;
+    ALLOCATE(indices, block.getWorkspace(), bS*iC*oD*oH*oW, int);
 
     int iStride = iC * iD * iH * iW;
     int oStride = iC * oD * oH * oW;
     
     for(int i = 0; i < bS; ++i) {
         // input [bS, iC, iD, iH, iW], indices [bS, iC, oD, oH, oW]
-        ConvolutionUtils<T>::maxPool3dIndicesFrame(*input, indices, i*iStride, i*oStride, kD, kH, kW, sD, sH, sW, pD, pH, pW, 1, 1, 1);
-        // gradO [bS, iC, oD, oH, oW], indices [bS, iC, oD, oH, oW], gradI [bS, iC, iD, iH, iW]
+        ConvolutionUtils<T>::maxPool3dIndicesFrame(*input, indices, i*iStride, i*oStride, oD, oH, oW, kD, kH, kW, sD, sH, sW, pD, pH, pW, 1, 1, 1);
         ConvolutionUtils<T>::maxPool3dFrameBp(*gradO, indices, *gradI, i*oStride, i*iStride, kD, kH, kW, sD, sH, sW, pD, pH, pW, 1, 1, 1);
     }
 
@@ -201,6 +201,8 @@ CUSTOM_OP_IMPL(maxpool3dnew_bp, 2, 1, false, 0, 10) {
         delete gradI;
         delete input;
     }        
+
+    RELEASE(indices, block.getWorkspace());
 
     return Status::OK();
 }
