@@ -716,7 +716,8 @@ namespace nd4j {
         template <typename T>
         void Graph<T>::tagInplaceNodes() {
             // just calling, in case it wasn't built before
-            this->buildGraph();
+            if (!_built.load())
+                this->buildGraph();
 
 
             for (auto v: *_nodes) {
@@ -925,6 +926,8 @@ namespace nd4j {
                 _built = true;
             }
 
+            if (_configuration->_direction == Direction_FORWARD_ONLY && _configuration->_outputMode == OutputMode_OPTIMIZED)
+                this->tagInplaceNodes();
         }
 
 
