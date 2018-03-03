@@ -1393,3 +1393,51 @@ TEST_F(GraphTests, Test_Inplace_Execution_1) {
 
     delete graph;
 }
+
+TEST_F(GraphTests, Test_Inplace_Execution_2) {
+    Graph<float> graphA;
+    
+    auto x = new NDArray<float>('c', {5, 5});
+    x->assign(-5.0);
+
+    graphA.getVariableSpace()->putVariable(-1, x);
+
+    // abs, result is 5
+    auto nodeA0 = new Node<float>(OpType_TRANSFORM, 0, 1, {-1}, {});
+    // 1-, result -4
+    auto nodeA1 = new Node<float>(OpType_TRANSFORM, 35, 2, {1}, {});
+
+    // graph should return 4: abs(-4)
+    auto nodeA2 = new Node<float>(OpType_TRANSFORM, 0, 3, {2}, {});
+
+    // graph should return 1 - 4 = -3
+    auto nodeA21 = new Node<float>(OpType_TRANSFORM, 35, 5, {3}, {});
+
+    // 1 - -4 = 3
+    auto nodeA3 = new Node<float>(OpType_TRANSFORM, 35, 4, {2}, {});
+
+    // same abs = 3
+    auto nodeA31 = new Node<float>(OpType_TRANSFORM, 35, 6, {4}, {});
+
+    graphA.addNode(nodeA0);
+    graphA.addNode(nodeA1);
+    graphA.addNode(nodeA2);
+    graphA.addNode(nodeA3);
+    graphA.addNode(nodeA21);
+    graphA.addNode(nodeA31);
+
+    graphA.buildGraph();
+    graphA.tagInplaceNodes();
+
+    // nodes have 1 output
+    ASSERT_TRUE(graphA.nodeById(1)->isInplace());
+    ASSERT_TRUE(graphA.nodeById(2)->isInplace());
+
+    // this 2 nodes share same input: node 2, so they can't be inplace
+    ASSERT_FALSE(graphA.nodeById(3)->isInplace());
+    ASSERT_FALSE(graphA.nodeById(4)->isInplace());
+
+    // these 2 ops are standalone, so they can be run inplace 
+    ASSERT_TRUE(graphA.nodeById(5)->isInplace());
+    ASSERT_TRUE(graphA.nodeById(6)->isInplace());
+}

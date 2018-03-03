@@ -417,7 +417,7 @@ namespace nd4j {
                 var->setId(node->id());
                 var->setName(node->getName());
                 _variableSpace->putOutputVariable(var);
-                node->pickExternalOutput(var->id());
+                //node->pickExternalOutput(var->id());
 
                 // we're pushing this variable to output
                 /*
@@ -427,7 +427,7 @@ namespace nd4j {
                     pushToOutputOnce(var->id());
 */
                 this->_autos.push_back(var->id());
-                assert(node->hasExternalOutputs());
+//                assert(node->hasExternalOutputs());
 //        }
             } else if (node->hasExternalOutputs()) {
                 // TODO: we might want this behavior configurable!
@@ -738,11 +738,11 @@ namespace nd4j {
                     if (node->getCustomOp()->getOpDescriptor()->allowsInplace()){
                         bool singleInput = true;
                         auto inputs = node->input();
-                        for (auto &v: *inputs) {
-                            if (_mapped->count(v.first) == 0)
+                        for (auto &t: *inputs) {
+                            if (_mapped->count(t.first) == 0)
                                 continue;
 
-                            auto inode = _mapped->at(v.first);
+                            auto inode = _mapped->at(t.first);
                             // checking for second requirement: inputNode must not be used as input anywhere
                             if (inode->isMultiOutput()) {
                                 singleInput = false;
@@ -926,6 +926,11 @@ namespace nd4j {
                 _built = true;
             }
 
+            /**
+             *  we allow in-place execution optimizations ONLY if 2 requirements met:
+             *  1) this is FeedForward pass ONLY
+             *  2) OPTIMIZED mode is set, so no intermediate results are going to be used
+             */
             if (_configuration->_direction == Direction_FORWARD_ONLY && _configuration->_outputMode == OutputMode_OPTIMIZED)
                 this->tagInplaceNodes();
         }
