@@ -229,7 +229,7 @@ CUSTOM_OP_IMPL(conv3dnew_bp, 3, 2, false, 0, 13) {
     // calculation of gradW and gradB
     NDArray<T>  columns(input->ordering(), {iC*kD*kW*kH, oD*oH*oW});        
     NDArray<T>  sumGradW(gradW->ordering(), {bS, iC*kD*kH*kW, oC}, block.getWorkspace());
-    NDArray<T>* reshapedWeights = weights->reshape(weights->ordering(), {iC*kD*kH*kW, oC});    
+    NDArray<T>* reshapedWeights = weights->reshape(weights->ordering(), {kD*kH*kW*iC, oC});    
     NDArray<T>* reshapedGradO   = gradO->reshape(gradO->ordering(), {bS, oD*oH*oW, oC});  
         
     ResultSet<T>* inSubArrs    = NDArrayFactory<T>::allExamples(input);
@@ -240,10 +240,10 @@ CUSTOM_OP_IMPL(conv3dnew_bp, 3, 2, false, 0, 13) {
     for(int i = 0; i < bS; ++i) {
 
         ConvolutionUtils<T>::vol2col(*inSubArrs->at(i), columns, oD, oH, oW, kD, kH, kW, sD, sH, sW, pD, pH, pW, dD, dH, dW);        
-        NDArrayFactory<T>::mmulHelper(&columns, gradOsubArrs->at(i), sumGradWsubArrs->at(i), 1.0, 0.0);         // [iC*kD*kW*kH, oD*oH*oW] x [oD*oH*oW, oC] = [iC*kD*kW*kH, oC]
+        NDArrayFactory<T>::mmulHelper(&columns, gradOsubArrs->at(i), sumGradWsubArrs->at(i), 1.0, 0.0);         // [iC*kD*kW*kH, oD*oH*oW] x [oD*oH*oW, oC] = [iC*kD*kH*kW, oC]
 
         NDArray<T>* gradOsubAttT = gradOsubArrs->at(i)->transpose();
-        NDArrayFactory<T>::mmulHelper(reshapedWeights, gradOsubAttT, &columns, 1.0, 0.0);                       // [iC*kD*kH*kW, oC] x [oC, oD*oH*oW] = [iC*kD*kW*kH, oD*oH*oW]
+        NDArrayFactory<T>::mmulHelper(reshapedWeights, gradOsubAttT, &columns, 1.0, 0.0);                       // [kD*kH*kW*iC, oC] x [oC, oD*oH*oW] = [kD*kW*kH*iC, oD*oH*oW]
         delete gradOsubAttT;
         
         // [iC*kD*kW*kH, oD*oH*oW] vs [iC, iD, iH, iW]   
