@@ -210,15 +210,17 @@ namespace nd4j {
             T extraParams2[] = {1.f/pnorm};
             pNorm->template applyTransform<simdOps::Pow<T>>(extraParams2);
 
-            NDArray<T>* numerator = new NDArray<T>(col2d->getShapeInfo(), block.getWorkspace());
+            NDArray<T>* numerator;
             if (pnorm != 2) {
                 NDArray<T>* absp2 = new NDArray<T>(col2d->getShapeInfo(), block.getWorkspace());
                 col2d->template applyTransform<simdOps::Abs<T>>(absp2, nullptr);
                 T extraParams3[] = {(T) (pnorm - 2)};
                 absp2->template applyTransform<simdOps::Pow<T>>(extraParams3);
-                nd4j::NDArrayFactory<T>::mmulHelper(col2d, absp2, numerator, (T)1.f, (T)0.f);
+				numerator->template applyPairwiseTransform<simdOps::Multiply<T>>(col2d, absp2, nullptr);
                 delete absp2;
-            }
+            } else {
+				numerator = new NDArray<T>(col2d->getShapeInfo(), block.getWorkspace());
+			}
             NDArray<T>* denom = new NDArray<T>(pNorm->getShapeInfo(), block.getWorkspace());
             T extraParams4[] = {(T) (pnorm - 1)};
 
