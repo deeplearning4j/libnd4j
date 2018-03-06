@@ -7,6 +7,7 @@
 
 #include <op_boilerplate.h>
 #include <memory>
+#include <iomanip>
 #include <ops/declarable/CustomOperations.h>
 #include <ops/declarable/OpRegistrator.h>
 #include <declarable/generic/helpers/convolutions.h>
@@ -15,6 +16,30 @@
 
 namespace nd4j {
     namespace ops {
+
+template <typename T>
+void simpleMmul(const NDArray<T>& arr1, const NDArray<T>& arr2, NDArray<T>& result) {
+
+    if(arr1.rankOf() !=2 || arr2.rankOf() !=2 || result.rankOf() !=2 )
+        throw "simpleMmul: input array must have rank = 2 !";
+
+    if(arr1.sizeAt(1) != arr2.sizeAt(0))
+        throw "simpleMmul: number of columns of first array must be equal to number of rows of second array !";
+
+     // multiplication
+#pragma omp parallel for collapse(2) schedule(guided)        
+    for(int i = 0; i < arr1.sizeAt(0); ++i)
+        for(int j = 0; j < arr2.sizeAt(1); ++j) {
+            result(i,j) = 0.;                                   // initializing elements of result to 0
+            for(int k = 0; k < arr1.sizeAt(1); ++k)
+                result(i,j) += arr1(i,k) * arr2(k,j);
+        }
+}
+
+
+
+
+
         CUSTOM_OP_IMPL(conv2d, 2, 1, false, 0, 10) {
             // basically im2col + gemm
             NDArray<T>* input = INPUT_VARIABLE(0);
@@ -225,9 +250,7 @@ CUSTOM_OP_IMPL(conv2d_bp, 3, 2, false, 0, 9) {
         input   = input->permute({0, 3, 1, 2});                                 // [bS, iH, iW, iC] -> [bS, iC, iH, iW]                        
         gradI   = gradI->permute({0, 3, 1, 2});                                 // [bS, iH, iW, iC] -> [bS, iC, iH, iW]        
         weights = weights->permute({2, 0, 1, 3});                               // [kH, kW, iC, oC] -> [iC, kH, kW, oC]         
-        gradW   = gradW->permute({2, 0, 1, 3});                                 // [kH, kW, iC, oC] -> [iC, kH, kW, oC]         
-
-        // input->streamline('c');
+        gradW   = gradW->permute({2, 0, 1, 3});                                 // [kH, kW, iC, oC] -> [iC, kH, kW, oC]                 
     }
     else {
         gradO   = gradO->permute({0, 2, 3, 1});                                 // [bS, oC, oH, oW] -> [bS, oH, oW, oC]
@@ -256,34 +279,34 @@ CUSTOM_OP_IMPL(conv2d_bp, 3, 2, false, 0, 9) {
     if(!isValidMode)                       // SAME        
         ConvolutionUtils<T>::_calcPadding2D(pH, pW, oH, oW, iH, iW, kH, kW, sH, sW, dH, dW);
 
-    NDArray<T>  columns(input->ordering(), {iC, kW, kH, bS, oH, oW});        
-    NDArray<T>* columnsPermuted = columns.permute({3, 0, 1, 2, 4, 5});                                 // [iC, kW, kH, bS, oH, oW] -> [bS, iC, kW, kH, oH, oW]
-    NDArray<T>* columnsReshaped = columns.reshape(columns.ordering(), {iC*kW*kH, bS*oH*oW});
-    NDArray<T>* gradWreshaped = gradW->reshape(gradW->ordering(),{iC*kH*kW, oC});    
+    NDArray<T>  columns(input->ordering(), {iC, kH, kW, bS, oH, oW});        
+    NDArray<T>* columnsPermuted = columns.permute({3, 0, 1, 2, 4, 5});                                 // [iC, kH, kW, bS, oH, oW] -> [bS, iC, kH, kW, oH, oW]
+    NDArray<T>* columnsReshaped = columns.reshape(columns.ordering(), {iC*kH*kW, bS*oH*oW});
+    NDArray<T>* gradWreshaped   = gradW->reshape(gradW->ordering(),{iC*kH*kW, oC});    
     NDArray<T>* weightsReshaped = weights->reshape(weights->ordering(), {iC*kH*kW, oC});    
-    NDArray<T>* gradOreshaped = gradO->reshape(gradO->ordering(),{bS*oH*oW, oC});    
-    NDArray<T>* gradOreshapedT = gradOreshaped->transpose();                                            // [bS*oH*oW, oC] -> [oC, bS*oH*oW]
+    NDArray<T>* gradOreshaped   = gradO->reshape(gradO->ordering(),{bS*oH*oW, oC});    
+    NDArray<T>* gradOreshapedT  = gradOreshaped->transpose();                                           // [bS*oH*oW, oC] -> [oC, bS*oH*oW]
 
     // ----- calculation of gradW and gradB ----- //            
-    std::vector<T> extrasIm2Col({(T) kH, (T) kW, (T) sH, (T) sW, (T) pH, (T) pW, (T) dH, (T) dW, (T)(!isValidMode), (T)0.});
+    std::vector<T> extrasIm2Col({(T) kH, (T) kW, (T) sH, (T) sW, (T) pH, (T) pW, (T) dH, (T) dW});
     input->template applyTransform<simdOps::Im2col<T>>(columnsPermuted, extrasIm2Col.data());          // [bS, iC, iH, iW] is convoluted to [bS, iC, kH, kW, oH, oW]    
     NDArrayFactory<T>::mmulHelper(columnsReshaped, gradOreshaped, gradWreshaped, 1.0, 0.0);            // [iC*kW*kH, bS*oH*oW] x [bS*oH*oW, oC] = [iC*kH*kW, oC]
-    
+
     if(gradB) {
         NDArray<T>* sum = gradOreshaped->sum({0});                  // sum over bS*oH*oW
         gradB->assign(sum);
         delete sum;
     }
 
-    //----- calculation of gradI and gradW -----//            
+    //----- calculation of gradI -----//            
     NDArrayFactory<T>::mmulHelper(weightsReshaped, gradOreshapedT, columnsReshaped, 1.0, 0.0);             // [iC*kH*kW, oC] x [oC, bS*oH*oW] = [iC*kW*kH, bS*oH*oW]
-    std::vector<T> extrasCol2Im({(T) sH, (T) sW, (T) pH, (T) pW, (T) iH, (T) iW, (T) dH, (T) dW, (T)(!isValidMode)});
+    std::vector<T> extrasCol2Im({(T) sH, (T) sW, (T) pH, (T) pW, (T) iH, (T) iW, (T) dH, (T) dW});
     columnsPermuted->template applyTransform<simdOps::Col2Im<T>>(gradI, extrasCol2Im.data());               // [bS, iC, kH, kW, oH, oW] is de-convoluted to [bS, iC, iH, iW]
 
-    //----- assign array with separate new shape (caused by permute+reshape ops) to output gradW -----///
+    //----- assign array having separate new shape (caused by permute+reshape ops) to output gradW -----///
     gradW->assign(gradWreshaped);
 
-    //----- clean allocated memory on heap -----//
+    //----- clean dynamically allocated memory -----//
     delete gradOreshapedT;
     delete columnsPermuted;
     delete columnsReshaped;
@@ -294,7 +317,7 @@ CUSTOM_OP_IMPL(conv2d_bp, 3, 2, false, 0, 9) {
     delete gradW;
 
    
-    if(!isNCHW) {
+    if(!isNCHW) {        
         delete input;        
         delete gradI;
     }

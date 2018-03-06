@@ -939,7 +939,7 @@ TEST_F(ConvolutionTests, Test_Dilation2D_2) {
 TEST_F(ConvolutionTests, conv2d_bp_test1) {
 
     int bS=2, iH=4,iW=3,  iC=4,oC=3,  kH=3,kW=2,  sH=1,sW=1,  pH=0,pW=0,  dH=1,dW=1;    
-    int oD=3,oH=4,oW=3;
+    int       oH=4,oW=3;
     int paddingMode = 0;             // 0-SAME, 1-VALID;
     int dataFormat  = 0;             // 0-NHWC, 1-NCHW    
 
@@ -967,8 +967,8 @@ TEST_F(ConvolutionTests, conv2d_bp_test1) {
     NDArray<double>* gradI = results->at(0);
     NDArray<double>* gradW = results->at(1);
     
-     for(int i = 0; i<gradI->lengthOf(); ++i)
-        std::cout<<std::setw(10)<<(*gradI)(i)<<"   "<<std::setw(10)<<expGradI(i)<<std::endl;
+     // for(int i = 0; i<gradI->lengthOf(); ++i)
+     //    std::cout<<std::setw(10)<<(*gradI)(i)<<"   "<<std::setw(10)<<expGradI(i)<<std::endl;
 
     ASSERT_EQ(Status::OK(), results->status());
 
@@ -980,6 +980,97 @@ TEST_F(ConvolutionTests, conv2d_bp_test1) {
     
     delete results;
 }
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(ConvolutionTests, conv2d_bp_test2) {
+
+    int bS=2, iH=4,iW=3,  iC=4,oC=3,  kH=3,kW=2,  sH=1,sW=1,  pH=0,pW=0,  dH=1,dW=1;    
+    int       oH=2,oW=2;
+    int paddingMode = 1;             // 0-SAME, 1-VALID;
+    int dataFormat  = 0;             // 0-NHWC, 1-NCHW    
+
+    NDArray<double> input   ('c', {bS, iH, iW, iC});
+    NDArray<double> weights ('c', {kH, kW, iC, oC});
+    NDArray<double> bias    ('c', {oC}, {1,2,3});
+    NDArray<double> gradO   ('c', {bS, oH, oW, oC});
+    
+    NDArray<double> expGradI('c', {bS, iH, iW, iC},{ 0.014,0.032, 0.05 , 0.068,0.118,0.181, 0.244, 0.307,0.212,0.257, 0.302, 0.347,0.208,0.298, 0.388, 0.478,1.028,1.262, 1.496, 1.73 ,1.036,1.18 , 1.324, 1.468,
+                                                     0.928,1.018, 1.108, 1.198,2.9  ,3.134, 3.368, 3.602,2.188,2.332, 2.476, 2.62 ,1.202,1.274, 1.346, 1.418,3.142,3.313, 3.484, 3.655,2.048,2.147, 2.246, 2.345,
+                                                     0.086,0.212, 0.338, 0.464,0.694,0.973, 1.252, 1.531,0.716,0.869, 1.022, 1.175,1.216,1.522, 1.828, 2.134,3.908,4.574, 5.24 , 5.906,2.908,3.268, 3.628, 3.988,
+                                                     3.664,3.97 , 4.276, 4.582,9.236,9.902,10.568,11.234,5.788,6.148, 6.508, 6.868,3.002,3.182, 3.362, 3.542,7.174,7.561, 7.948, 8.335,4.28 ,4.487, 4.694, 4.901});
+    
+    NDArray<double> expGradW('c', {kH, kW, iC, oC},{1.84, 2., 2.16,1.84, 2., 2.16,1.84, 2., 2.16,1.84, 2., 2.16,1.84, 2., 2.16,1.84, 2., 2.16,1.84, 2., 2.16,1.84, 2., 2.16,
+                                                    1.84, 2., 2.16,1.84, 2., 2.16,1.84, 2., 2.16,1.84, 2., 2.16,1.84, 2., 2.16,1.84, 2., 2.16,1.84, 2., 2.16,1.84, 2., 2.16,
+                                                    1.84, 2., 2.16,1.84, 2., 2.16,1.84, 2., 2.16,1.84, 2., 2.16,1.84, 2., 2.16,1.84, 2., 2.16,1.84, 2., 2.16,1.84, 2., 2.16});
+    // NDArray<double> expGradB('c', {oC},{});
+
+    input = 2.;
+    NDArrayFactory<double>::linspace(0.1, weights, 0.1);
+    NDArrayFactory<double>::linspace(0.01, gradO, 0.01);    
+
+    nd4j::ops::conv2d_bp<double> op;
+    ResultSet<double>* results = op.execute({&input, &weights, &bias, &gradO}, {}, {kH,kW,  sH,sW,  pH,pW,  dH,dW, paddingMode, dataFormat});
+    NDArray<double>* gradI = results->at(0);
+    NDArray<double>* gradW = results->at(1);    
+
+    ASSERT_EQ(Status::OK(), results->status());
+
+    ASSERT_TRUE(expGradI.isSameShape(gradI));
+    ASSERT_TRUE(expGradI.equalsTo(gradI));    
+
+    ASSERT_TRUE(expGradW.isSameShape(gradW));
+    ASSERT_TRUE(expGradW.equalsTo(gradW));    
+    
+    delete results;
+}
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(ConvolutionTests, conv2d_bp_test3) {
+
+    int bS=2, iH=4,iW=3,  iC=4,oC=3,  kH=3,kW=2,  sH=1,sW=1,  pH=0,pW=0,  dH=1,dW=1;    
+    int       oH=2,oW=2;
+    int paddingMode = 1;             // 0-SAME, 1-VALID;
+    int dataFormat  = 1;             // 0-NHWC, 1-NCHW    
+
+    NDArray<double> input   ('c', {bS, iC, iH, iW});
+    NDArray<double> weights ('c', {oC, iC, kH, kW});
+    NDArray<double> bias    ('c', {oC}, {1,2,3});
+    NDArray<double> gradO   ('c', {bS, oC, oH, oW});
+    
+    NDArray<double> expGradI('c', {bS, iC, iH, iW},{ 0.567, 1.224,0.66 ,1.314, 2.82 ,1.512,1.386, 2.976,1.596,0.801, 1.71 ,0.912,0.657, 1.422,0.768,1.53 , 3.288,1.764,1.602, 3.444,1.848,0.927, 1.98 ,1.056,
+                                                     0.747, 1.62 ,0.876,1.746, 3.756,2.016,1.818, 3.912,2.1  ,1.053, 2.25 ,1.2  ,0.837, 1.818,0.984,1.962, 4.224,2.268,2.034, 4.38 ,2.352,1.179, 2.52 ,1.344,
+                                                     1.467, 3.06 ,1.596,3.186, 6.636,3.456,3.402, 7.08 ,3.684,1.845, 3.834,1.992,1.773, 3.69 ,1.92 ,3.834, 7.968,4.14 ,4.05 , 8.412,4.368,2.187, 4.536,2.352,
+                                                     2.079, 4.32 ,2.244,4.482, 9.3  ,4.824,4.698, 9.744,5.052,2.529, 5.238,2.712,2.385, 4.95 ,2.568,5.13 ,10.632,5.508,5.346,11.076,5.736,2.871, 5.94 ,3.072});
+    
+    NDArray<double> expGradW('c', {oC, iC, kH, kW},{1.3600e+00,1.3600e+00,1.3600e+00,1.3600e+00,1.3600e+00,1.3600e+00,1.3600e+00,1.3600e+00,1.3600e+00,1.3600e+00,1.3600e+00,1.3600e+00,1.3600e+00,1.3600e+00,1.3600e+00,1.3600e+00,1.3600e+00,1.3600e+00,
+                                                    1.3600e+00,1.3600e+00,1.3600e+00,1.3600e+00,1.3600e+00,1.3600e+00,2.0000e+00,2.0000e+00,2.0000e+00,2.0000e+00,2.0000e+00,2.0000e+00,2.0000e+00,2.0000e+00,2.0000e+00,2.0000e+00,2.0000e+00,2.0000e+00,
+                                                    2.0000e+00,2.0000e+00,2.0000e+00,2.0000e+00,2.0000e+00,2.0000e+00,2.0000e+00,2.0000e+00,2.0000e+00,2.0000e+00,2.0000e+00,2.0000e+00,2.6400e+00,2.6400e+00,2.6400e+00,2.6400e+00,2.6400e+00,2.6400e+00,
+                                                    2.6400e+00,2.6400e+00,2.6400e+00,2.6400e+00,2.6400e+00,2.6400e+00,2.6400e+00,2.6400e+00,2.6400e+00,2.6400e+00,2.6400e+00,2.6400e+00,2.6400e+00,2.6400e+00,2.6400e+00,2.6400e+00,2.6400e+00,2.6400e+00});
+    // NDArray<double> expGradB('c', {oC},{});
+
+    input = 2.;
+    NDArrayFactory<double>::linspace(0.1, weights, 0.1);
+    NDArrayFactory<double>::linspace(0.01, gradO, 0.01);    
+
+    nd4j::ops::conv2d_bp<double> op;
+    ResultSet<double>* results = op.execute({&input, &weights, &bias, &gradO}, {}, {kH,kW,  sH,sW,  pH,pW,  dH,dW, paddingMode, dataFormat});
+    NDArray<double>* gradI = results->at(0);
+    NDArray<double>* gradW = results->at(1);    
+
+    ASSERT_EQ(Status::OK(), results->status());
+
+    ASSERT_TRUE(expGradI.isSameShape(gradI));
+    ASSERT_TRUE(expGradI.equalsTo(gradI));    
+
+    ASSERT_TRUE(expGradW.isSameShape(gradW));
+    ASSERT_TRUE(expGradW.equalsTo(gradW));    
+    
+    delete results;
+}
+
+
+
+
 
 
 #endif //LIBND4J_CONVOLUTIONTESTS_H

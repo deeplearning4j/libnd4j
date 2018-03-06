@@ -227,7 +227,7 @@ CUSTOM_OP_IMPL(conv3dnew_bp, 3, 2, false, 0, 13) {
         ConvolutionUtils<T>::calcPadding3D(pD, pH, pW, oD, oH, oW, iD, iH, iW, kD, kH, kW, sD, sH, sW, dD, dH, dW);    
 
     // calculation of gradW and gradB
-    NDArray<T>  columns(input->ordering(), {iC*kD*kW*kH, oD*oH*oW});        
+    NDArray<T>  columns(input->ordering(), {iC*kD*kH*kW, oD*oH*oW});        
     NDArray<T>  sumGradW(gradW->ordering(), {bS, iC*kD*kH*kW, oC}, block.getWorkspace());
     NDArray<T>* reshapedWeights = weights->reshape(weights->ordering(), {kD*kH*kW*iC, oC});    
     NDArray<T>* reshapedGradO   = gradO->reshape(gradO->ordering(), {bS, oD*oH*oW, oC});  
