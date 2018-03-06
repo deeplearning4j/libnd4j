@@ -3249,6 +3249,12 @@ Nd4jStatus realExec(nd4j::ops::DeclarableOp<T>* op, Nd4jPointer* extraPointers, 
     // hypothetically at this point we have everything filled
     auto result = op->execute(inputs, outputs, ttArgs, iiArgs, isInplace);
 
+    if (!isInplace)
+        for (int e = 0; e < numOutputs; e++) {
+            if (outputs[e]->ordering() != shape::order((int *) outputShapes[e]));
+                outputs[e]->streamline(shape::order((int *) outputShapes[e]));
+        }
+
     /*
     if (!isInplace) {
         if (result->size() != numOutputs) {
