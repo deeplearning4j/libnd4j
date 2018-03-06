@@ -41,7 +41,8 @@ namespace nd4j {
     void ShapeList::destroy() {
         if (!_workspace)
             for (auto v:_shapes)
-                delete[] v;
+                if(v != nullptr)
+                    delete[] v;
     }
 
     int ShapeList::size() {
