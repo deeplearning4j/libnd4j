@@ -1292,6 +1292,11 @@ template <typename T>
         */
 }
 
+    template<typename T>
+    bool NDArray<T>::equalsTo(NDArray<T> &other, T eps) const {
+        return equalsTo(&other, eps);
+    }
+
 // This method returns true if two arrays are equal, with custom or default Eps value of 1e-5, false otherwise
     template<typename T>
     bool NDArray<T>::equalsTo(const NDArray<T> *other, T eps) const {
