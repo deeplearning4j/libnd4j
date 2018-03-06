@@ -1441,3 +1441,16 @@ TEST_F(GraphTests, Test_Inplace_Execution_2) {
     ASSERT_TRUE(graphA.nodeById(5)->isInplace());
     ASSERT_TRUE(graphA.nodeById(6)->isInplace());
 }
+
+TEST_F(GraphTests, Test_Inplace_Outputs_1) {
+    NDArray<float> x('c', {2, 3}, {1.f, 2.f, 3.f, 4.f, 5.f, 6.f});
+    NDArray<float> exp('c', {6}, {1.f, 2.f, 3.f, 4.f, 5.f, 6.f});
+    NDArray<float> z('c', {2, 3});
+
+    nd4j::ops::test_output_reshape<float> op;
+    auto result = op.execute({&x}, {&z}, {}, {});
+    ASSERT_EQ(Status::OK(), result);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+}
