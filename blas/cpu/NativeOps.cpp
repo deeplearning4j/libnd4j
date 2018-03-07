@@ -3211,7 +3211,7 @@ Nd4jStatus realExec(nd4j::ops::DeclarableOp<T>* op, Nd4jPointer* extraPointers, 
     // we're using the same fake nodeId everywhere here
 
     std::vector<nd4j::NDArray<T>*> inputs(numInputs);
-    std::vector<nd4j::NDArray<T>*> outputs(numOutputs);
+    std::vector<nd4j::NDArray<T>*> outputs;
     std::vector<T> ttArgs(numTArgs);
     std::vector<int> iiArgs(numIArgs);
 
@@ -3224,6 +3224,7 @@ Nd4jStatus realExec(nd4j::ops::DeclarableOp<T>* op, Nd4jPointer* extraPointers, 
     }
 
     // if not inplace - transferring output arrays
+    /*
     if (!isInplace)
         for (int e = 0; e < numOutputs; e++) {
             auto buffer = (T *) outputBuffers[e];
@@ -3237,7 +3238,7 @@ Nd4jStatus realExec(nd4j::ops::DeclarableOp<T>* op, Nd4jPointer* extraPointers, 
             // and we want to release shape copy once we're done
             array->triggerAllocationFlag(false, true);
         }
-
+*/
     for (int e = 0; e < numIArgs; e++)
         iiArgs[e] = iArgs[e];
 
@@ -3247,15 +3248,16 @@ Nd4jStatus realExec(nd4j::ops::DeclarableOp<T>* op, Nd4jPointer* extraPointers, 
 
 
     // hypothetically at this point we have everything filled
-    auto result = op->execute(inputs, outputs, ttArgs, iiArgs, isInplace);
+    auto result = op->execute(inputs, ttArgs, iiArgs, isInplace);
 
+    /*
     if (!isInplace)
         for (int e = 0; e < numOutputs; e++) {
             if (outputs[e]->ordering() != shape::order((int *) outputShapes[e]));
                 outputs[e]->streamline(shape::order((int *) outputShapes[e]));
         }
+*/
 
-    /*
     if (!isInplace) {
         if (result->size() != numOutputs) {
             return ND4J_STATUS_BAD_OUTPUT;
@@ -3279,7 +3281,7 @@ Nd4jStatus realExec(nd4j::ops::DeclarableOp<T>* op, Nd4jPointer* extraPointers, 
     }
 
     delete result;
-*/
+
 
     for (auto v: inputs)
         delete v;
@@ -3287,7 +3289,7 @@ Nd4jStatus realExec(nd4j::ops::DeclarableOp<T>* op, Nd4jPointer* extraPointers, 
     for (auto v: outputs)
         delete v;
 
-    return result;
+    return Status::OK();
 }
 
 template Nd4jStatus realExec<float16>(nd4j::ops::DeclarableOp<float16>*, Nd4jPointer*, Nd4jIndex, Nd4jPointer*, Nd4jPointer*, int, Nd4jPointer*, Nd4jPointer*, int, float16*, int, int*, int, bool);
