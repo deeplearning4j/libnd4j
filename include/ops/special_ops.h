@@ -214,7 +214,7 @@ namespace simdOps {
             int *strideIn = shape::stride(xShapeBuffer);
             int *strideOut = shape::stride(resultShapeBuffer);
 
-#pragma omp parallel for collapse(2)
+//#pragma omp parallel for collapse(2)
 			for(int k = 0; k < inChannels; k++)
 			{
 				for(int p = 0; p < batchSize; p++)
