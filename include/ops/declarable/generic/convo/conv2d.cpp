@@ -36,8 +36,8 @@ CUSTOM_OP_IMPL(conv2d, 2, 1, false, 0, 9) {
     int pW = INT_ARG(5);                                                        // paddings width
     int dH = INT_ARG(6);                                                        // dilations height
     int dW = INT_ARG(7);                                                        // dilations width
-    int isValidMode = INT_ARG(8);                                               // 0-SAME, 1-VALID
-    int isNCHW      = block.getIArguments()->size() > 9 ? INT_ARG(9) : 0;       // 0-NHWC, 1-NCHW    
+    int isSameMode = INT_ARG(8);                                                // 0-VALID, 1-SAME
+    int isNCHW     = block.getIArguments()->size() > 9 ? INT_ARG(9) : 0;        // 0-NCHW,  1-NHWC
 
     if(!isNCHW) {
         input   = input->permute({0, 3, 1, 2});                                 // [bS, iH, iW, iC] -> [bS, iC, iH, iW]                        
@@ -62,7 +62,7 @@ CUSTOM_OP_IMPL(conv2d, 2, 1, false, 0, 9) {
         REQUIRE_TRUE(oC == bias->lengthOf(), 0, "CUSTOM CONV2D OP: length of bias array must be equal to outChannels, but got %i instead", bias->lengthOf());        
     }            
     
-    if(!isValidMode)                       // SAME        
+    if(isSameMode)                       // SAME        
         ConvolutionUtils<T>::_calcPadding2D(pH, pW, oH, oW, iH, iW, kH, kW, sH, sW, dH, dW);
 
     NDArray<T> columns(input->ordering(), {bS, iC, kH, kW, oH, oW}, block.getWorkspace());        
@@ -105,7 +105,7 @@ DECLARE_SHAPE_FN(conv2d) {
     int pW = INT_ARG(5);                                                        // paddings width
     int dH = INT_ARG(6);                                                        // dilations height
     int dW = INT_ARG(7);                                                        // dilations width
-    int isValidMode = INT_ARG(8);                                               // 0-SAME,  1-VALID;
+    int isSameMode = INT_ARG(8);                                                // 0-VALID, 1-SAME
     int isNCHW  = block.getIArguments()->size() > 9 ? INT_ARG(9) : 0;           // 0-NDHWC, 1-NCDHW
 
     int indIH = isNCHW == 1 ? 2 : 1;
@@ -122,7 +122,7 @@ DECLARE_SHAPE_FN(conv2d) {
     int oC = weightsShapeInfo[indOC+1];                 // output channels
 
     int oH, oW;                                         // output height, width
-    ConvolutionUtils<T>::calcOutSizePool2D(oH, oW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, !isValidMode);
+    ConvolutionUtils<T>::calcOutSizePool2D(oH, oW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);
     
     int* outputShapeInfo = nullptr;
     ALLOCATE(outputShapeInfo, block.getWorkspace(), shape::shapeInfoLength(inputShapeInfo), int);
@@ -171,7 +171,7 @@ CUSTOM_OP_IMPL(conv2d_bp, 3, 2, false, 0, 9) {
     int pW = INT_ARG(5);                                                        // paddings width
     int dH = INT_ARG(6);                                                        // dilations height
     int dW = INT_ARG(7);                                                        // dilations width
-    int isValidMode = INT_ARG(8);                                               // 0-SAME, 1-VALID
+    int isSameMode = INT_ARG(8);                                                // 0-VALID, 1-SAME
     int isNCHW  = block.getIArguments()->size() > 9 ? INT_ARG(9) : 0;           // 0-NHWC, 1-NCHW    
 
     if(!isNCHW) {
@@ -195,14 +195,14 @@ CUSTOM_OP_IMPL(conv2d_bp, 3, 2, false, 0, 9) {
     int oW = gradO->sizeAt(2);           // output width    
 
     int trueoH, trueoW;          // correct output height, width
-    ConvolutionUtils<T>::calcOutSizePool2D(trueoH, trueoW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, !isValidMode);
+    ConvolutionUtils<T>::calcOutSizePool2D(trueoH, trueoW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);
 
     REQUIRE_TRUE(gradO->sizeAt(0)==bS   && gradO->sizeAt(1)==trueoH && gradO->sizeAt(2)==trueoW && gradO->sizeAt(3)==oC, 0, "CUSTOM CONV2D_BP OP: wrong shape of gradient_output (next epsilon) array !");    
     REQUIRE_TRUE(weights->sizeAt(0)==iC && weights->sizeAt(1)==kH   && weights->sizeAt(2)==kW, 0, "CUSTOM CONV2D_BP OP: wrong shape of weights array !");
     if(bias)
         REQUIRE_TRUE(bias->rankOf()==1 && bias->lengthOf()==oC, 0, "CUSTOM CONV2D_BP OP: wrong shape of biases array !");
 
-    if(!isValidMode)                       // SAME        
+    if(isSameMode)                       // SAME        
         ConvolutionUtils<T>::_calcPadding2D(pH, pW, oH, oW, iH, iW, kH, kW, sH, sW, dH, dW);
 
     NDArray<T>  columns(input->ordering(), {iC, kH, kW, bS, oH, oW}, block.getWorkspace());        
