@@ -796,8 +796,8 @@ __device__ void concatKernelGeneric(int dimension,
 
 
         if (shape::isVector(resultShapeInfo)) {
-			if (threadIdx.x == 0)
-				printf("Vector here\n");
+			//if (threadIdx.x == 0)
+			//	printf("Vector here\n");
 				
 			if (zEWS >= 1) {
 				for (int r = blockIdx.x; r < numArrays; r += gridDim.x) {
