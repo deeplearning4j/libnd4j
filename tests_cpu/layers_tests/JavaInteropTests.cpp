@@ -616,3 +616,29 @@ TEST_F(JavaInteropTests, Test_Inplace_Outputs_2) {
     ASSERT_TRUE(e.equalsTo(z));
     ASSERT_FALSE(e.ordering() == z.ordering());
 }
+
+TEST_F(JavaInteropTests, Test_Inplace_Outputs_3) {
+    NDArray<float> input('c', {2, 3, 4}, {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24});
+    NDArray<float> indices('c', {1, 6},   {0,1, 2,2, 1,2});
+    NDArray<float> output('f', {2, 6, 4});
+    NDArray<float> e('c', {2, 6, 4}, {1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12, 9,10,11,12, 5, 6, 7, 8, 9,10,11,12, 13,14,15,16, 17,18,19,20, 21,22,23,24, 21,22,23,24, 17,18,19,20, 21,22,23,24});
+
+    nd4j::ops::gather<float> op;
+
+     Nd4jPointer ptrsInBuffer[] = {(Nd4jPointer) input.getBuffer(), (Nd4jPointer) indices.getBuffer()};
+    Nd4jPointer ptrsInShapes[] = {(Nd4jPointer) input.getShapeInfo(), (Nd4jPointer) indices.getShapeInfo()};
+
+    Nd4jPointer ptrsOutBuffers[] = {(Nd4jPointer) output.getBuffer()};
+    Nd4jPointer ptrsOutShapes[] = {(Nd4jPointer) output.getShapeInfo()};
+
+    int iArgs[] = {1};
+
+    NativeOps nativeOps;
+    auto hash = op.getOpHash();
+    auto status = nativeOps.execCustomOpFloat(nullptr, hash, ptrsInBuffer, ptrsInShapes, 2, ptrsOutBuffers, ptrsOutShapes, 1, nullptr, 0, iArgs, 1, false);
+    ASSERT_EQ(Status::OK(), status);
+
+    ASSERT_TRUE(e.isSameShape(output));
+    ASSERT_TRUE(e.equalsTo(output));
+    ASSERT_FALSE(e.ordering() == output.ordering());
+}
