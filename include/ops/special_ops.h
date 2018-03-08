@@ -144,7 +144,7 @@ namespace simdOps {
                     int n = (int)nd4j::math::nd4j_ceil<T>((wend-inW) / dW);
                     wend -= n * dW;
                 }
-    			int pool_size = (int)(nd4j::math::nd4j_ceil<T>((hend-hstart) / dH) * (int) nd4j::math::nd4j_ceil<T>((wend-wstart) / dW);	//Accounts for dilation
+    			int pool_size = (int)(nd4j::math::nd4j_ceil<T>((hend-hstart) / dH) * (int) nd4j::math::nd4j_ceil<T>((wend-wstart) / dW));	//Accounts for dilation
 
     			T sum = poolingMode == 0 ? (T) -MAX_FLOAT : (T) 0;
 
