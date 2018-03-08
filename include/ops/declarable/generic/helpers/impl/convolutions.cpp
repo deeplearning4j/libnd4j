@@ -197,7 +197,7 @@ namespace ops  {
             int volD = volShapeOnly[2];
             int volH = volShapeOnly[3];
             int volW = volShapeOnly[4];
-            
+
             int kD   = colShapeOnly[2];
             int kH   = colShapeOnly[3];
             int kW   = colShapeOnly[4];            
