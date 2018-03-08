@@ -20,10 +20,10 @@ namespace nd4j {
 
 CUSTOM_OP_IMPL(conv2d, 2, 1, false, 0, 9) {
     
-    NDArray<T> *input   = INPUT_VARIABLE(0);                                    // [bS, iH, iW, iC] (NDHWC) or [bS, iC, iH, iW] (NCDHW)
-    NDArray<T> *weights = INPUT_VARIABLE(1);                                    // [kH, kW, iC, oC] (NDHWC) or [oC, iC, kH, kW] (NCDHW)
+    NDArray<T> *input   = INPUT_VARIABLE(0);                                    // [bS, iH, iW, iC] (NHWC) or [bS, iC, iH, iW] (NCHW)
+    NDArray<T> *weights = INPUT_VARIABLE(1);                                    // [kH, kW, iC, oC] (NHWC) or [oC, iC, kH, kW] (NCHW)
     NDArray<T> *bias    = block.width() > 2 ? INPUT_VARIABLE(2) : nullptr;      // [oC]
-    NDArray<T> *output  = OUTPUT_VARIABLE(0);                                   // [bS, oH, oW, oC] (NDHWC) or [bS, oC, oH, oW] (NCDHW)
+    NDArray<T> *output  = OUTPUT_VARIABLE(0);                                   // [bS, oH, oW, oC] (NHWC) or [bS, oC, oH, oW] (NCHW)
     
     REQUIRE_TRUE(input->rankOf()   == 4, 0, "CUSTOM CONV2D OP: rank of input array must be equal to 4 !");
     REQUIRE_TRUE(weights->rankOf() == 4, 0, "CUSTOM CONV2D OP: rank of weights array must be equal to 4 !");
@@ -37,7 +37,7 @@ CUSTOM_OP_IMPL(conv2d, 2, 1, false, 0, 9) {
     int dH = INT_ARG(6);                                                        // dilations height
     int dW = INT_ARG(7);                                                        // dilations width
     int isSameMode = INT_ARG(8);                                                // 0-VALID, 1-SAME
-    int isNCHW     = block.getIArguments()->size() > 9 ? INT_ARG(9) : 0;        // 0-NCHW,  1-NHWC
+    int isNCHW     = block.getIArguments()->size() > 9 ? !INT_ARG(9) : 1;       // 0-NCHW,  1-NHWC
 
     if(!isNCHW) {
         input   = input->permute({0, 3, 1, 2});                                 // [bS, iH, iW, iC] -> [bS, iC, iH, iW]                        
@@ -58,7 +58,7 @@ CUSTOM_OP_IMPL(conv2d, 2, 1, false, 0, 9) {
     
     REQUIRE_TRUE(weights->sizeAt(0) == iC, weights->sizeAt(1) == kH && weights->sizeAt(2) == kW, 0, "CUSTOM CONV2D OP: wrong shape of weights array !");    
     if (bias) {
-        REQUIRE_TRUE(bias->rankOf() == 1,    0, "CUSTOM CONV2D OP: rank of biases array must be equal to 1 !");
+        REQUIRE_TRUE(bias->rankOf() <= 2 ,   0, "CUSTOM CONV2D OP: rank of biases array must be equal to 1 or 2!");
         REQUIRE_TRUE(oC == bias->lengthOf(), 0, "CUSTOM CONV2D OP: length of bias array must be equal to outChannels, but got %i instead", bias->lengthOf());        
     }            
     
@@ -106,7 +106,7 @@ DECLARE_SHAPE_FN(conv2d) {
     int dH = INT_ARG(6);                                                        // dilations height
     int dW = INT_ARG(7);                                                        // dilations width
     int isSameMode = INT_ARG(8);                                                // 0-VALID, 1-SAME
-    int isNCHW  = block.getIArguments()->size() > 9 ? INT_ARG(9) : 0;           // 0-NDHWC, 1-NCDHW
+    int isNCHW  = block.getIArguments()->size() > 9 ? !INT_ARG(9) : 1;          // 0-NDHWC, 1-NCDHW
 
     int indIH = isNCHW == 1 ? 2 : 1;
     int indIC = isNCHW == 1 ? 1 : 3;
@@ -172,7 +172,7 @@ CUSTOM_OP_IMPL(conv2d_bp, 3, 2, false, 0, 9) {
     int dH = INT_ARG(6);                                                        // dilations height
     int dW = INT_ARG(7);                                                        // dilations width
     int isSameMode = INT_ARG(8);                                                // 0-VALID, 1-SAME
-    int isNCHW  = block.getIArguments()->size() > 9 ? INT_ARG(9) : 0;           // 0-NHWC, 1-NCHW    
+    int isNCHW  = block.getIArguments()->size() > 9 ? !INT_ARG(9) : 1;          // 0-NHWC, 1-NCHW    
 
     if(!isNCHW) {
         input   = input->permute({0, 3, 1, 2});                                 // [bS, iH, iW, iC] -> [bS, iC, iH, iW]                        
@@ -200,7 +200,7 @@ CUSTOM_OP_IMPL(conv2d_bp, 3, 2, false, 0, 9) {
     REQUIRE_TRUE(gradO->sizeAt(0)==bS   && gradO->sizeAt(1)==trueoH && gradO->sizeAt(2)==trueoW && gradO->sizeAt(3)==oC, 0, "CUSTOM CONV2D_BP OP: wrong shape of gradient_output (next epsilon) array !");    
     REQUIRE_TRUE(weights->sizeAt(0)==iC && weights->sizeAt(1)==kH   && weights->sizeAt(2)==kW, 0, "CUSTOM CONV2D_BP OP: wrong shape of weights array !");
     if(bias)
-        REQUIRE_TRUE(bias->rankOf()==1 && bias->lengthOf()==oC, 0, "CUSTOM CONV2D_BP OP: wrong shape of biases array !");
+        REQUIRE_TRUE(bias->rankOf()<=2 && bias->lengthOf()==oC, 0, "CUSTOM CONV2D_BP OP: wrong shape of biases array !");
 
     if(isSameMode)                       // SAME        
         ConvolutionUtils<T>::_calcPadding2D(pH, pW, oH, oW, iH, iW, kH, kW, sH, sW, dH, dW);

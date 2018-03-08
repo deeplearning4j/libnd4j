@@ -898,9 +898,9 @@ namespace ops  {
 //////////////////////////////////////////////////////////////////////////
 // calculation of output depth, height and width in conv3d procedure        
         template<typename T>
-        void ConvolutionUtils<T>::calcOutSizePool3D(int& oD, int& oH, int& oW, const int kD, const int kH, const int kW, const int sD, const int sH, const int sW, const int pD, const int pH, const int pW, const int dD, const int dH, const int dW, const int iD, const int iH, const int iW, const int paddingMode) {
+        void ConvolutionUtils<T>::calcOutSizePool3D(int& oD, int& oH, int& oW, const int kD, const int kH, const int kW, const int sD, const int sH, const int sW, const int pD, const int pH, const int pW, const int dD, const int dH, const int dW, const int iD, const int iH, const int iW, const int isSameMode) {
 
-            if(paddingMode) {                                           // valid
+            if(!isSameMode) {                                           // valid
                 
                 oD = (iD - (kD + (kD - 1) * (dD - 1)) + 2 * pD) / sD + 1;
                 oH = (iH - (kH + (kH - 1) * (dH - 1)) + 2 * pH) / sH + 1;
