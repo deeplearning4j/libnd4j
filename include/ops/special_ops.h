@@ -129,23 +129,22 @@ namespace simdOps {
     			int hend = hstart + kH;
     			int wend = wstart + kW;
     			if(hstart < 0){
-                    int n = (int)nd4j::math::nd4j_ceil<float>(-hstart / ((double)dH));
+                    int n = (int)nd4j::math::nd4j_ceil<T>(-hstart / dH);
                     hstart += n * dH;
                 }
                 if(wstart < 0){
-                    int n = (int)nd4j::math::nd4j_ceil<float>(-wstart / ((double)dW));
+                    int n = (int)nd4j::math::nd4j_ceil<T>(-wstart / dW);
                     wstart += n * dW;
                 }
                 if(hend > inH){
-                    int n = (int)nd4j::math::nd4j_ceil<float>((hend-inH)/((double)dH));
+                    int n = (int)nd4j::math::nd4j_ceil<T>((hend-inH) / dH);
                     hend -= n * dH;
                 }
                 if(wend > inW){
-                    int n = (int)nd4j::math::nd4j_ceil<float>((wend-inW)/((double)dW));
+                    int n = (int)nd4j::math::nd4j_ceil<T>((wend-inW) / dW);
                     wend -= n * dW;
                 }
-    			int pool_size = (int)(nd4j::math::nd4j_ceil<float>((hend-hstart)/((double)dH))
-                                                  * (int)nd4j::math::nd4j_ceil<float>((wend-wstart)/((double)dW)));	//Accounts for dilation
+    			int pool_size = (int)(nd4j::math::nd4j_ceil<T>((hend-hstart) / dH) * (int) nd4j::math::nd4j_ceil<T>((wend-wstart) / dW);	//Accounts for dilation
 
     			T sum = poolingMode == 0 ? (T) -MAX_FLOAT : (T) 0;
 
