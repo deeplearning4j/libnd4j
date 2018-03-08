@@ -78,6 +78,8 @@ namespace simdOps {
             __shared__ int strideX;
 
             __shared__ int length;
+            __shared__ int kHEff;
+            __shared__ int kWEff;
 
 			if (threadIdx.x == 0) {
 				kH = (int)extraParams[0];
@@ -106,8 +108,8 @@ namespace simdOps {
             	length = shape::length(resultShapeBuffer);
 				
 				//Replace kernel H/W with *effective* kernel H/W accounting for dilatyon
-				kH = kH + (kH-1)*(dH-1);
-				kW = kW + (kW-1)*(dW-1);
+				kHEff = kH + (kH-1)*(dH-1);
+				kWEff = kW + (kW-1)*(dW-1);
 
 				if (blockIdx.x == 0) {
 					printf("kH: %i; kW: %i; sH: %i; sW: %i; pH: %i; pW: %i; dH: %i; dW: %i; poolingMode: %i; extraParam0: %f;\n", kH, kW, sH, sW, pH, pW, dH, dW, poolingMode, (float) extraParam0);
@@ -126,8 +128,8 @@ namespace simdOps {
     			const int n = index / outW / outH / inChannels;
     			int hstart = sH * ph - pH;
     			int wstart = sW * pw - pW;
-    			int hend = hstart + kH;
-    			int wend = wstart + kW;
+    			int hend = hstart + kHEff;
+    			int wend = wstart + kWEff;
     			if(hstart < 0){
                     int n = (int)nd4j::math::nd4j_ceil<T>((T) -hstart / (T)dH);
                     hstart += n * dH;
