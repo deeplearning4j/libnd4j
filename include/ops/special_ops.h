@@ -108,6 +108,12 @@ namespace simdOps {
 				//Replace kernel H/W with *effective* kernel H/W accounting for dilatyon
 				kH = kH + (kH-1)*(dH-1);
 				kW = kW + (kW-1)*(dW-1);
+
+				if (blockIdx.x == 0) {
+					printf("kH: %i; kW: %i; sH: %i; sW: %i; pH: %i; pW: %i; dH: %i; dW: %i; poolingMode: %i; extraParam0: %f;\n", kH, kW, sH, sW, pH, pW, dH, dW, poolingMode, (float) extraParam0);
+					printf("batchSize: %i; inChannels: %i; outH: %i; outW: %i; inH: %i; inW: %i; strideB: %i; strideC: %i; strideY: %i; strideX: %i;\n", batchSize, inChannels, outH, outW, inH, inW, strideB, strideC, strideY, strideX);
+				}
+
             }
             __syncthreads();
 
