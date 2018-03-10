@@ -3,6 +3,7 @@
 //
 
 #include <gemm.h>
+#include <cstdio>
 
 namespace nd4j {
     namespace blas {
@@ -44,12 +45,18 @@ namespace nd4j {
                        T beta,
                        T *C, int ldc) {
 
+            // M - row count for A
+            // N - column count for B
+            // K - column count for A
+            // C matrix has MxN dim
             // optionally handle transpose
             // we want C always here
-            T *aT = TransA != CblasTrans ? transpose(CblasColMajor, CblasRowMajor, M, K, A) : A;
+            bool transposeAFlag = TransA != 'N' && TransA != 'n';
+            bool transposeBFlag = TransB != 'N' && TransB != 'n';
+            //T *aT = transposeAFlag ? transpose(CblasColMajor, CblasRowMajor, M, K, A) : A;
 
             // we want F always here
-            T *bT = TransB == CblasTrans ? transpose(CblasRowMajor, CblasColMajor, K, N, B) : B;
+            //T *bT = transposeBFlag ? transpose(CblasRowMajor, CblasColMajor, K, N, B) : B;
 
 
             if (beta == (T) 0.0f) {
@@ -65,26 +72,57 @@ namespace nd4j {
                 }
             }
 
+            int rowCount = (transposeAFlag?K:M);
+            int rowCountB = (transposeBFlag?N:K);
+            int columnCountA = (transposeAFlag?M:K);
+            int columnCount = (transposeBFlag?K:N);
+            int strideA = (transposeAFlag?columnCountA:1);
+            int strideB = (transposeBFlag?1:columnCount);
+
+            printf("Row count %i, Column count %i, B rows %i, A columns %i, lda %i, ldb %i\n", rowCount, columnCount, rowCountB, columnCountA, lda, ldb);
+            printf("strideA %i, strideB %i\n", strideA, strideB);
+            for (int i = 0; i < rowCount; i++) {
+                for (int j = 0; j < columnCountA; j++)
+                    printf("%010.2lf  ", (double)A[i * K + j]);
+                printf("\n");
+            }
+            if (rowCountB != columnCountA) {
+                printf("Something wrong with input matricies: %i != %i\n", columnCountA, rowCountB);
+            }
+            printf("\n==========================================\n");
+            for (int i = 0; i < rowCountB; i++) {
+                for (int j = 0; j < columnCount; j++)
+                    printf("%010.2lf  ", (double)B[i * N + j]);
+                printf("\n");
+            }
 
 #pragma omp parallel for proc_bind(spread)
-            for (int r = 0; r < M; r++) {
+            for (int r = 0; r < rowCount; r++) {
 
-                int aIdx = linearIndexC(M, K, r, 0);
-                T *aX = aT + aIdx;
-
-                for (int c = 0; c < N; c++) {
-                    int zIdx = linearIndexF(M, N, r, c);
+                int aIdx = 0; //linearIndexC(rowCount, columnCount, r, 0);
+                //T *aX = aT + aIdx;
+                 
+                printf("r = %i, aIdx = %i from %i\n", r, aIdx, rowCount * columnCountA);
+                
+                for (int c = 0; c < columnCount; c++) {
+                    int zIdx = linearIndexF(rowCount, columnCount, r, c);
 
                     T dot = (T) 0.0f;
 
                     if (alpha != (T) 0.0f) {
-                        int bIdx = linearIndexF(K, N, 0, c);
+                        int bIdx = 0; //-strideB; //linearIndexF(columnCount, columnCount, 0, c);
+                        printf("c = %i, bIdx = %i from %i\n", c, bIdx, rowCountB * columnCount);
 
-                        T *bX = bT + bIdx;
+                        //T *bX = bT + bIdx;
+                        for (int e = 0; e < rowCountB; e++) {
+                            aIdx = e * strideA + r;
+                            bIdx = e * strideB + c;// * e;
+                            printf("%i: aIdx = %i, bIdx = %i\n", e, aIdx, bIdx);
 
-                        dot = nd4j::math::nd4j_dot<T>(aX, bX, K) * alpha;
+                            dot += A[aIdx] * B[bIdx];
+//                            dot = nd4j::math::nd4j_dot<T>(aX, bX, K) * alpha;
+                        }
                     }
-
                     if (beta != (T) 0.0f) {
                         C[zIdx] = dot + beta * C[zIdx];
                     } else {
@@ -95,11 +133,11 @@ namespace nd4j {
 
 
             // if transpose was applied - dismiss transposed arrays
-            if (TransA != CblasTrans)
-                delete[] aT;
+//            if (transposeAFlag)
+//                delete[] aT;
 
-            if (TransB == CblasTrans)
-                delete[] bT;
+//            if (transposeBFlag == CblasTrans)
+//                delete[] bT;
         }
 
 
