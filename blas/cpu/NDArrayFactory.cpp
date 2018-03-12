@@ -119,7 +119,7 @@ namespace nd4j {
     
     //////////////////////////////////////////////////////////////////////////
     template<typename T>
-    nd4j::NDArray<T>* nd4j::NDArrayFactory<T>::tensorDot(const nd4j::NDArray<T>* A, const nd4j::NDArray<T>* B, const std::initializer_list<int> axesA, const std::initializer_list<int> axesB) {
+    nd4j::NDArray<T>* nd4j::NDArrayFactory<T>::tensorDot(const nd4j::NDArray<T>* A, const nd4j::NDArray<T>* B, const std::initializer_list<int>& axesA, const std::initializer_list<int>& axesB) {
         std::vector<int> aA(axesA);
         std::vector<int> aB(axesB);
         return tensorDot(A, B, aA, aB);
@@ -127,24 +127,21 @@ namespace nd4j {
 
     //////////////////////////////////////////////////////////////////////////
     template<typename T>
-    nd4j::NDArray<T>* nd4j::NDArrayFactory<T>::tensorDot(const nd4j::NDArray<T>* a, const nd4j::NDArray<T>* b, std::vector<int>& axes_0, std::vector<int>& axes_1) {
+    nd4j::NDArray<T>* nd4j::NDArrayFactory<T>::tensorDot(const nd4j::NDArray<T>* a, const nd4j::NDArray<T>* b, const std::vector<int>& axes_0, const std::vector<int>& axes_1) {
 
         std::vector<int> permutAt, permutBt, shapeAt, shapeBt;
         std::vector<int> outShape = ShapeUtils<T>::evalShapeForTensorDot(a, b, axes_0, axes_1, permutAt, permutBt, shapeAt, shapeBt);
 
-        NDArray<T>* aT = a->permute(permutAt);
-        NDArray<T>* bT = b->permute(permutBt);
-        aT->reshapei('c', shapeAt);
-        bT->reshapei('c', shapeBt);        
+        NDArray<T>* aPR = a->permute(permutAt);
+        NDArray<T>* bPR = b->permute(permutBt);
+        aPR->reshapei('c', shapeAt);
+        bPR->reshapei('c', shapeBt);        
 
-        NDArray<T>* c = nd4j::NDArrayFactory<T>::mmulHelper(aT, bT, nullptr, 1.0, 0.0);
+        NDArray<T>* c = nd4j::NDArrayFactory<T>::mmulHelper(aPR, bPR, nullptr, 1.0, 0.0);
         c->reshapei('c', outShape);
-
-        if (aT != a)
-            delete aT;
-
-        if (bT != b)
-            delete bT;
+        
+        delete aPR;        
+        delete bPR;
 
         return c;
     }
@@ -152,28 +149,26 @@ namespace nd4j {
 
     //////////////////////////////////////////////////////////////////////////
     template<typename T>
-    void nd4j::NDArrayFactory<T>::tensorDot(const nd4j::NDArray<T>* a, const nd4j::NDArray<T>* b, nd4j::NDArray<T>* c, std::vector<int>& axes_0, std::vector<int>& axes_1) {
-
-        if(c->rankOf() != 2 || c->shapeOf()[0] != a->shapeOf()[0] || c->shapeOf()[1] != b->shapeOf()[1])
-            throw "NDArrayFactory::tensorDot static function: wrong shape of C array !";
+    void nd4j::NDArrayFactory<T>::tensorDot(const nd4j::NDArray<T>* a, const nd4j::NDArray<T>* b, nd4j::NDArray<T>* c, const std::vector<int>& axes_0, const std::vector<int>& axes_1) {
 
         std::vector<int> permutAt, permutBt, shapeAt, shapeBt;
         std::vector<int> outShape = ShapeUtils<T>::evalShapeForTensorDot(a, b, axes_0, axes_1, permutAt, permutBt, shapeAt, shapeBt);
 
-        NDArray<T>* aT = a->permute(permutAt);
-        NDArray<T>* bT = b->permute(permutBt);
-        aT->reshapei('c', shapeAt);
-        bT->reshapei('c', shapeBt);        
+        NDArray<T>* aPR = a->permute(permutAt);
+        NDArray<T>* bPR = b->permute(permutBt);
+        aPR->reshapei('c', shapeAt);
+        bPR->reshapei('c', shapeBt);        
 
-        nd4j::NDArrayFactory<T>::mmulHelper(aT, bT, c, 1.0, 0.0);
-        c->reshapei('c', outShape);
+        NDArray<T>* cPR = c->reshape('c', {aPR->sizeAt(0), bPR->sizeAt(1)});
 
-        if (aT != a)
-            delete aT;
+        nd4j::NDArrayFactory<T>::mmulHelper(aPR, bPR, cPR, 1.0, 0.0);
 
-        if (bT != b)
-            delete bT;
-        
+        if(cPR->getBuffer() != c->getBuffer())            // this means some permute has been performed on c array before
+            c->assign(cPR);
+
+        delete aPR;        
+        delete bPR;
+        delete cPR;        
     }
 
 

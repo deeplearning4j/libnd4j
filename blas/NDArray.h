@@ -609,7 +609,7 @@ namespace nd4j {
         *
         * if permute have been applied before or there are weird strides, then new buffer is allocated for new array
         */
-		NDArray<T>* reshape(const char order, const std::vector<int>& shape);
+		NDArray<T>* reshape(const char order, const std::vector<int>& shape) const;
 		
         /**
         *  calculate strides and set given order

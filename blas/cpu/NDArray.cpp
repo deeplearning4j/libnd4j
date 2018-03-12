@@ -1559,6 +1559,18 @@ bool NDArray<T>::reshapei(const std::vector<int>& shape) {
 template <typename T>
     bool NDArray<T>::reshapei(const char order, const std::vector<int>& cshape) {
 
+    // check firstly whether cshape is identical to shape of array
+    if(order == ordering() && rankOf() == cshape.size()) {
+        bool areShapesSame = true;
+        for(int i = 0; i < cshape.size(); ++i)
+            if(cshape[0] != sizeAt(i)) {
+                areShapesSame = false;
+                break;
+            }
+        if(areShapesSame)
+            return areShapesSame;        
+    }
+
     std::vector<int> shape(cshape);
     int rank = shape.size();
 
@@ -1576,25 +1588,24 @@ template <typename T>
 
             int shapeLength = 1;
             for (int j = 0; j < (int) shape.size(); j++)
-                if (shape_[j] >= 1)
+                if (i != j)
                     shapeLength *= shape_[j];
 
             int realShape = nd4j::math::nd4j_abs<int>(lengthOf() / shapeLength);
             int* thisNewShape = new int[shape.size()];
 
-            for (int j = 0; j < (int) shape.size(); j++) {
-                if (i != j) {
+            for (int j = 0; j < (int) shape.size(); j++) 
+                if (i != j) 
                     thisNewShape[j] = shape_[j];
-                } else
+                else
                     thisNewShape[j] = realShape;
-            }
+            
             shape_ = thisNewShape;
         }
     }
 
-    for (int e = 0; e < (int) shape.size(); e++) {
+    for (int e = 0; e < (int) shape.size(); e++) 
         shape[e] = shape_[e];
-    }
 
     if (numberNegativesOnes > 0)
         delete[] shape_;
@@ -1613,7 +1624,7 @@ template <typename T>
     int shapeLength = shape::shapeInfoLength(rank);
     // remember old values
 
-    // we can do this only if there was no permute applied, or it's not a weird strides
+    // we can do this only if there was no permute applied, or there are no weird strides
     if (shape::canReshape(this->rankOf(), this->_shapeInfo, shape.size(), shape.data(), order == 'f')) {
         int *shapeInfoNew;
         ALLOCATE(shapeInfoNew, _workspace, shape::shapeInfoLength(rank), int);
@@ -1678,7 +1689,7 @@ template <typename T>
 //////////////////////////////////////////////////////////////////////////
 // create new array with corresponding order and shape, new array will point to the same _buffer as this array
 template <typename T>
-NDArray<T>* NDArray<T>::reshape(const char order, const std::vector<int>& shape) {
+NDArray<T>* NDArray<T>::reshape(const char order, const std::vector<int>& shape) const {
 	int shapeInfoLength = shape::shapeInfoLength(rankOf());
 	int* newShapeInfo = nullptr;
 

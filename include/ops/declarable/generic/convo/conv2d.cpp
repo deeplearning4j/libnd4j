@@ -47,6 +47,8 @@ CUSTOM_OP_IMPL(conv2d, 2, 1, false, 0, 9) {
         weights = weights->permute({1, 2, 3, 0});                               // [oC, iC, kH, kW] -> [iC, kH, kW, oC]
     }
 
+    // [bS, iC, kH, kW, oH, oW] x [oC, iC, kH, kW] = [bS, oC, oH, oW]
+
     int bS = input->sizeAt(0);           // batch size
     int iC = input->sizeAt(1);           // input channels        
     int iH = input->sizeAt(2);           // input height
@@ -68,20 +70,21 @@ CUSTOM_OP_IMPL(conv2d, 2, 1, false, 0, 9) {
     std::vector<T> extrasIm2Col({(T) kH, (T) kW, (T) sH, (T) sW, (T) pH, (T) pW, (T) dH, (T) dW});
     input->template applyTransform<simdOps::Im2col<T>>(&columns, extrasIm2Col.data());                        // [bS, iC, iH, iW] is convoluted to [bS, iC, kH, kW, oH, oW]
     
-    columns.permutei({0, 4, 5, 1, 2, 3});                                                                     // [bS, iC, kH, kW, oH, oW] -> [bS, oH, oW, iC, kH, kW]
-    columns.reshapei({bS*oH*oW, iC*kH*kW});
+    // columns.permutei({0, 4, 5, 1, 2, 3});                                                                     // [bS, iC, kH, kW, oH, oW] -> [bS, oH, oW, iC, kH, kW]
+    // columns.reshapei({bS*oH*oW, iC*kH*kW});
     NDArray<T>* outputReshaped  = output->reshape(output->ordering(), {bS*oH*oW, oC});
     NDArray<T>* weightsReshaped  = weights->reshape(weights->ordering(), {iC*kH*kW, oC});
-    NDArrayFactory<T>::mmulHelper(&columns, weightsReshaped, outputReshaped, 1.0, 0.0);                        // [bS*oH*oW, iC*kW*kH] x [iC*kH*kW, oC] = [bS*oH*oW, oC]    
+    // NDArrayFactory<T>::mmulHelper(&columns, weightsReshaped, outputReshaped, 1.0, 0.0);                        // [bS*oH*oW, iC*kW*kH] x [iC*kH*kW, oC] = [bS*oH*oW, oC]    
+    nd4j::NDArrayFactory<T>::tensorDot(&columns, weights, output, {1,2,3}, {0,1,2});                            // [bS, iC, kH, kW, oH, oW] x [iC, kH, kW, oC] = [bS, oH, oW, oC] 
 
     if(bias)
-        outputReshaped->template applyBroadcast<simdOps::Add<T>>({1}, bias);
+        output->template applyBroadcast<simdOps::Add<T>>({3}, bias);
 
 
     if(!isNCHW)
         delete input;                
     else {
-        output->assign(outputReshaped);
+        // output->assign(outputReshaped);
         delete output;        
     }    
 

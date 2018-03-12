@@ -14,9 +14,9 @@
 namespace nd4j {
      
 //////////////////////////////////////////////////////////////////////////
-// evaluate shape for array resulting from tensorDot operation, also evaluate shapes and permutation dimensions for transposition of two input arrays 
+// evaluate shape for array resulting from tensorDot operation, also evaluate shapes and dimensions permutations for transposition of two input arrays 
 template<typename T>
-std::vector<int> ShapeUtils<T>::evalShapeForTensorDot(const int* aShapeInfo, const int* bShapeInfo, std::vector<int>& axesA, std::vector<int>& axesB, std::vector<int>& permutAt, std::vector<int>& permutBt, std::vector<int>& shapeAt, std::vector<int>& shapeBt) {
+std::vector<int> ShapeUtils<T>::evalShapeForTensorDot(const int* aShapeInfo, const int* bShapeInfo, std::vector<int> axesA, std::vector<int> axesB, std::vector<int>& permutAt, std::vector<int>& permutBt, std::vector<int>& shapeAt, std::vector<int>& shapeBt) {
 
     int axeAsize = (int) axesA.size();
     int axeBsize = (int) axesB.size();                 
@@ -96,7 +96,7 @@ std::vector<int> ShapeUtils<T>::evalShapeForTensorDot(const int* aShapeInfo, con
 
 //////////////////////////////////////////////////////////////////////////
 template<typename T>
-std::vector<int> ShapeUtils<T>::evalShapeForTensorDot(const NDArray<T>* a,   const NDArray<T>* b,   std::vector<int>& axesA, std::vector<int>& axesB, std::vector<int>& permutAt, std::vector<int>& permutBt, std::vector<int>& shapeAt, std::vector<int>& shapeBt) {
+std::vector<int> ShapeUtils<T>::evalShapeForTensorDot(const NDArray<T>* a,   const NDArray<T>* b,  const std::vector<int>& axesA, const std::vector<int>& axesB, std::vector<int>& permutAt, std::vector<int>& permutBt, std::vector<int>& shapeAt, std::vector<int>& shapeBt) {
 
     return evalShapeForTensorDot(a->getShapeInfo(), b->getShapeInfo(), axesA, axesB, permutAt, permutBt, shapeAt, shapeBt);
 }

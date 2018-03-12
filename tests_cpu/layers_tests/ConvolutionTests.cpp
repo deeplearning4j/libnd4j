@@ -1253,6 +1253,8 @@ TEST_F(ConvolutionTests, conv2d_test3) {
     ResultSet<double>* results = op.execute({&input, &weights, &bias}, {}, {kH,kW,  sH,sW,  pH,pW,  dH,dW, paddingMode, dataFormat});
     NDArray<double>* output = results->at(0);    
 
+    // output->printIndexedBuffer();
+
     ASSERT_EQ(Status::OK(), results->status());
 
     ASSERT_TRUE(expOutput.isSameShape(output));
