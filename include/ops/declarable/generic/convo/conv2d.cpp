@@ -38,24 +38,27 @@ CUSTOM_OP_IMPL(conv2d, 2, 1, false, 0, 9) {
     int isSameMode = INT_ARG(8);                                                // 0-VALID, 1-SAME
     int isNCHW     = block.getIArguments()->size() > 9 ? !INT_ARG(9) : 1;       // 0-NCHW,  1-NHWC
 
+    std::vector<int> weightsAxesForDot;
+    int indOC, indOH;
+
     if(!isNCHW) {
-        input   = input->permute({0, 3, 1, 2});                                 // [bS, iH, iW, iC] -> [bS, iC, iH, iW]                        
-        weights = weights->permute({2, 0, 1, 3});                               // [kH, kW, iC, oC] -> [iC, kH, kW, oC]                 
+        indOC = 3; indOH = 1;
+        input = input->permute({0, 3, 1, 2});                                   // [bS, iH, iW, iC] -> [bS, iC, iH, iW]                        
+        weightsAxesForDot = {2,0,1};                                            // iC, kH, kW
     }
     else {        
-        output  = output->permute({0, 2, 3, 1});                                // [bS, oC, oH, oW] -> [bS, oH, oW, oC]
-        weights = weights->permute({1, 2, 3, 0});                               // [oC, iC, kH, kW] -> [iC, kH, kW, oC]
-    }
+        indOC = 0; indOH = 2;
+        weightsAxesForDot = {1,2,3};                                            // iC, kH, kW
 
-    // [bS, iC, kH, kW, oH, oW] x [oC, iC, kH, kW] = [bS, oC, oH, oW]
+    }    
 
-    int bS = input->sizeAt(0);           // batch size
-    int iC = input->sizeAt(1);           // input channels        
-    int iH = input->sizeAt(2);           // input height
-    int iW = input->sizeAt(3);           // input width
-    int oC = weights->sizeAt(3);         // output channels        
-    int oH = output->sizeAt(1);          // output height
-    int oW = output->sizeAt(2);          // output width    
+    int bS = input->sizeAt(0);                  // batch size
+    int iC = input->sizeAt(1);                  // input channels        
+    int iH = input->sizeAt(2);                  // input height
+    int iW = input->sizeAt(3);                  // input width
+    int oC = weights->sizeAt(indOC);            // output channels
+    int oH = output->sizeAt(indOH);             // output height
+    int oW = output->sizeAt(indOH+1);           // output width    
     
     REQUIRE_TRUE(weights->sizeAt(0) == iC && weights->sizeAt(1) == kH && weights->sizeAt(2) == kW, 0, "CUSTOM CONV2D OP: wrong shape of weights array !");    
     if (bias) {
@@ -69,13 +72,7 @@ CUSTOM_OP_IMPL(conv2d, 2, 1, false, 0, 9) {
     NDArray<T> columns(input->ordering(), {bS, iC, kH, kW, oH, oW}, block.getWorkspace());        
     std::vector<T> extrasIm2Col({(T) kH, (T) kW, (T) sH, (T) sW, (T) pH, (T) pW, (T) dH, (T) dW});
     input->template applyTransform<simdOps::Im2col<T>>(&columns, extrasIm2Col.data());                        // [bS, iC, iH, iW] is convoluted to [bS, iC, kH, kW, oH, oW]
-    
-    // columns.permutei({0, 4, 5, 1, 2, 3});                                                                     // [bS, iC, kH, kW, oH, oW] -> [bS, oH, oW, iC, kH, kW]
-    // columns.reshapei({bS*oH*oW, iC*kH*kW});
-    NDArray<T>* outputReshaped  = output->reshape(output->ordering(), {bS*oH*oW, oC});
-    NDArray<T>* weightsReshaped  = weights->reshape(weights->ordering(), {iC*kH*kW, oC});
-    // NDArrayFactory<T>::mmulHelper(&columns, weightsReshaped, outputReshaped, 1.0, 0.0);                        // [bS*oH*oW, iC*kW*kH] x [iC*kH*kW, oC] = [bS*oH*oW, oC]    
-    nd4j::NDArrayFactory<T>::tensorDot(&columns, weights, output, {1,2,3}, {0,1,2});                            // [bS, iC, kH, kW, oH, oW] x [iC, kH, kW, oC] = [bS, oH, oW, oC] 
+    nd4j::NDArrayFactory<T>::tensorDot(&columns, weights, output, {1,2,3}, weightsAxesForDot);                          // [bS, iC, kH, kW, oH, oW] x [iC, kH, kW, oC] = [bS, oH, oW, oC] 
 
     if(bias)
         output->template applyBroadcast<simdOps::Add<T>>({3}, bias);
@@ -85,12 +82,10 @@ CUSTOM_OP_IMPL(conv2d, 2, 1, false, 0, 9) {
         delete input;                
     else {
         // output->assign(outputReshaped);
-        delete output;        
+        // delete output;        
     }    
 
-    delete outputReshaped;
-    delete weightsReshaped;
-    delete weights;
+    // delete weights;
     
     return Status::OK();
 }

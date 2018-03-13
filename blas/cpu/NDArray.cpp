@@ -1559,11 +1559,11 @@ bool NDArray<T>::reshapei(const std::vector<int>& shape) {
 template <typename T>
     bool NDArray<T>::reshapei(const char order, const std::vector<int>& cshape) {
 
-    // check firstly whether cshape is identical to shape of array
+    // check firstly whether cshape is identical to shape of array, if yes then reshape is unnecessary 
     if(order == ordering() && rankOf() == cshape.size()) {
         bool areShapesSame = true;
         for(int i = 0; i < cshape.size(); ++i)
-            if(cshape[0] != sizeAt(i)) {
+            if(cshape[i] != sizeAt(i)) {
                 areShapesSame = false;
                 break;
             }

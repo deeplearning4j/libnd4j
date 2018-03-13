@@ -755,6 +755,40 @@ ShapeUtils<T>::matrixProductShape(int* theFirstShape, int* theSecondShape,
         return newShape;
     }
 
+////////////////////////////////////////////////////////////////////////////////
+template<typename T>
+std::vector<int> ShapeUtils<T>::evalPermutFromTo(const std::vector<int>& shapeFrom, const std::vector<int>& shapeTo) {
+
+    int rank = shapeFrom.size();
+    if(rank != shapeTo.size())
+        throw "ShapeUtils::evalPermutFromTo static method: the input shapes are not suitable for mutual permutation !";    
+
+    if (std::equal(begin(shapeFrom), end(shapeFrom), begin(shapeTo)))       // if shapes are identical (permutation is unnecessary) then return empty vector
+        return std::vector<int>();
+
+    std::vector<int> permutation(rank, -1);                                 // vector to be returned
+    std::vector<int> shapeTo2(shapeTo);                                     // make copy of const vector since we will change the content of shapeTo
+
+    for(int i=0; i<rank; ++i)
+        for(int j=0; j<rank; ++j)
+            if(shapeFrom[i] == shapeTo2[j]) {
+                permutation[j] = i;        
+                shapeTo2[j] = -1;                                           // mark coincidence as -1 in order to not account index of shapeTo twice
+                break;
+            }   
+
+    if(std::find(begin(permutation), end(permutation), -1) != end(permutation))      // if -1 is still present in vector then permutation is impossible
+        throw "ShapeUtils::evalPermutFromTo static method: the input shapes are not suitable for mutual permutation !";    
+
+    return permutation;        
+}
+
+
+
+
+
+
+
 template class ND4J_EXPORT ShapeUtils<float>;
 template class ND4J_EXPORT ShapeUtils<float16>;
 template class ND4J_EXPORT ShapeUtils<double>;

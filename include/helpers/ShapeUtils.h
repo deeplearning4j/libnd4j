@@ -82,11 +82,40 @@ namespace nd4j {
         // returns ShapeList pointer with result shape
         static int* matrixProductShape(int* theFirstShape, int* theSecondShape, bool shouldTranspondFirst, bool shouldTranspondSecond, nd4j::memory::Workspace* workspace);
 
-
-        ///////////////////////
         static int* createScalarShapeInfo(nd4j::memory::Workspace* workspace = nullptr);
         static int* createVectorShapeInfo(int length, nd4j::memory::Workspace* workspace = nullptr);
+
+        /**
+        *  This method evaluates permutation vector necessary for reducing of shapeFrom to shapeTo 
+        *  if shapeFrom is identical to shapeTo (permutation is unnecessary) then empty vector is returned
+        *  in case of permutation is impossible an exception is thrown
+        */
+        static std::vector<int> evalPermutFromTo(const std::vector<int>& shapeFrom, const std::vector<int>& shapeTo);
+
+        /**
+        *  method returns false if permut == {0,1,2,...permut.size()} - in that case permutation is unnecessary
+        */
+        FORCEINLINE static bool isPermutNecessary(const std::vector<int>& permut);
     };
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////
+///// IMLEMENTATION OF INLINE METHODS ///// 
+//////////////////////////////////////////////////////////////////////////
+
+template<typename T>
+FORCEINLINE bool ShapeUtils<T>::isPermutNecessary(const std::vector<int>& permut) {        
+
+    for(int i=0; i<permut.size(); ++i)
+        if(permut[i] != i)
+            return true;
+
+    return false;
+}
+
 
 
 }

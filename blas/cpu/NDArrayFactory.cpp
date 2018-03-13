@@ -129,19 +129,38 @@ namespace nd4j {
     template<typename T>
     nd4j::NDArray<T>* nd4j::NDArrayFactory<T>::tensorDot(const nd4j::NDArray<T>* a, const nd4j::NDArray<T>* b, const std::vector<int>& axes_0, const std::vector<int>& axes_1) {
 
-        std::vector<int> permutAt, permutBt, shapeAt, shapeBt;
+        std::vector<int> permutAt, permutBt, shapeAt, shapeBt;        
         std::vector<int> outShape = ShapeUtils<T>::evalShapeForTensorDot(a, b, axes_0, axes_1, permutAt, permutBt, shapeAt, shapeBt);
 
-        NDArray<T>* aPR = a->permute(permutAt);
-        NDArray<T>* bPR = b->permute(permutBt);
-        aPR->reshapei('c', shapeAt);
-        bPR->reshapei('c', shapeBt);        
+        NDArray<T>* aPR(const_cast<NDArray<T>*>(a)), *bPR(const_cast<NDArray<T>*>(b));
+
+        // check whether permutation is necessary
+        if(ShapeUtils<T>::isPermutNecessary(permutAt))
+            aPR = a->permute(permutAt);
+        if(ShapeUtils<T>::isPermutNecessary(permutBt))
+            bPR = b->permute(permutBt);
+        
+        // check whether reshape is necessary
+        if(!aPR->isSameShape(shapeAt)) {
+            if(aPR == a)
+                aPR = a->reshape('c', shapeAt);
+            else 
+                aPR->reshapei('c', shapeAt);
+        }
+        if(!bPR->isSameShape(shapeBt)) {
+            if(bPR == b)
+                bPR = b->reshape('c', shapeBt);
+            else 
+                bPR->reshapei('c', shapeBt);                
+        }
 
         NDArray<T>* c = nd4j::NDArrayFactory<T>::mmulHelper(aPR, bPR, nullptr, 1.0, 0.0);
         c->reshapei('c', outShape);
         
-        delete aPR;        
-        delete bPR;
+        if(aPR != a)
+            delete aPR;        
+        if(bPR != b)
+            delete bPR;
 
         return c;
     }
@@ -154,21 +173,54 @@ namespace nd4j {
         std::vector<int> permutAt, permutBt, shapeAt, shapeBt;
         std::vector<int> outShape = ShapeUtils<T>::evalShapeForTensorDot(a, b, axes_0, axes_1, permutAt, permutBt, shapeAt, shapeBt);
 
-        NDArray<T>* aPR = a->permute(permutAt);
-        NDArray<T>* bPR = b->permute(permutBt);
-        aPR->reshapei('c', shapeAt);
-        bPR->reshapei('c', shapeBt);        
+        // check whether permutation is possible for result array c and evaluate corresponding permutation vector 
+        std::vector<int> permutForC = ShapeUtils<T>::evalPermutFromTo(ShapeUtils<T>::pullShapeFromShapeInfo(c->getShapeInfo()), outShape);                
 
-        NDArray<T>* cPR = c->reshape('c', {aPR->sizeAt(0), bPR->sizeAt(1)});
+        NDArray<T> *aPR(const_cast<NDArray<T>*>(a)), *bPR(const_cast<NDArray<T>*>(b)), *cP(c);
 
-        nd4j::NDArrayFactory<T>::mmulHelper(aPR, bPR, cPR, 1.0, 0.0);
+        // check whether permutation is necessary
+        if(!permutForC.empty()) {                        // this means permutation is possible
+            cP = c->permute(permutForC);            
+        }
+        if(ShapeUtils<T>::isPermutNecessary(permutAt))
+            aPR = a->permute(permutAt);
+        if(ShapeUtils<T>::isPermutNecessary(permutBt))
+            bPR = b->permute(permutBt);    
 
-        if(cPR->getBuffer() != c->getBuffer())            // this means some permute has been performed on c array before
-            c->assign(cPR);
+        // check whether reshape is necessary        
+        if(!aPR->isSameShape(shapeAt)) {
+            if(aPR == a)
+                aPR = a->reshape('c', shapeAt);
+            else 
+                aPR->reshapei('c', shapeAt);
+        }
+        if(!bPR->isSameShape(shapeBt)) {
+            if(bPR == b)
+                bPR = b->reshape('c', shapeBt);
+            else 
+                bPR->reshapei('c', shapeBt);                
+        }
+        if(!cP->isSameShape({aPR->sizeAt(0), bPR->sizeAt(1)})) {
+            if(cP == c)
+                cP = c->reshape('c', {aPR->sizeAt(0), bPR->sizeAt(1)});
+            else
+                cP->reshapei('c', {aPR->sizeAt(0), bPR->sizeAt(1)});
+        }
+        
+        nd4j::NDArrayFactory<T>::mmulHelper(aPR, bPR, cP, 1.0, 0.0);
 
-        delete aPR;        
-        delete bPR;
-        delete cPR;        
+        if(cP->getBuffer() != c->getBuffer()) {                     // this means permute and reshape have been performed on c array before                                    
+            NDArray<T>* tempP = c->permute(permutForC);
+            tempP->assign(cP);                        
+            delete tempP;
+        }
+            
+        if(aPR != a)
+            delete aPR;        
+        if(bPR != b)
+            delete bPR;
+        if(cP != c)
+            delete cP;
     }
 
 

@@ -1063,10 +1063,7 @@ TEST_F(ConvolutionTests, conv2d_bp_test1) {
     nd4j::ops::conv2d_bp<double> op;
     ResultSet<double>* results = op.execute({&input, &weights, &bias, &gradO}, {}, {kH,kW,  sH,sW,  pH,pW,  dH,dW, paddingMode, dataFormat});
     NDArray<double>* gradI = results->at(0);
-    NDArray<double>* gradW = results->at(1);
-    
-     // for(int i = 0; i<gradI->lengthOf(); ++i)
-     //    std::cout<<std::setw(10)<<(*gradI)(i)<<"   "<<std::setw(10)<<expGradI(i)<<std::endl;
+    NDArray<double>* gradW = results->at(1);     
 
     ASSERT_EQ(Status::OK(), results->status());
 
