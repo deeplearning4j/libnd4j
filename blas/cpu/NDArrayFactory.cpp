@@ -176,13 +176,14 @@ namespace nd4j {
         
     }
 
-
-    //////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    // private
     template<typename T>
-    nd4j::NDArray<T>* NDArrayFactory<T>::mmulHelper(nd4j::NDArray<T>* A, nd4j::NDArray<T>* B, nd4j::NDArray<T>* C , T alpha, T beta) {
-        nd4j::NDArray<T>* result = C;
+    nd4j::NDArray<T>* NDArrayFactory<T>::mmulHelperNxN(nd4j::NDArray<T>* A, nd4j::NDArray<T>* B, nd4j::NDArray<T>* C , 
+        T alpha, T beta) {
 
-        if (A->rankOf() > 2 || B->rankOf() > 2) {
+           nd4j::NDArray<T>* result = C;
+
             // matmul
             if (A->rankOf() != B->rankOf()) {
                 // FIXME (r119): this is temporary fix for @shyrma, proper impl required here
@@ -220,10 +221,11 @@ namespace nd4j {
 
                     nd4j_debug("NumTads: %i\n", aL->size());
                     for (int e = 0; e < aL->size(); e++) {
-                        auto c_ = mmulHelper(aL->at(e), B);
-
-                        cL->at(e)->assign(c_);
-                        delete c_;
+                        auto c_ = mmulHelper(aL->at(e), B, cL->at(e));
+                        if (c_ != cL->at(e)) {
+                            cL->at(e)->assign(c_);
+                            delete c_;
+                        }
                     }
 
                     delete aL;
@@ -234,10 +236,12 @@ namespace nd4j {
 
                     nd4j_debug("NumTads: %i\n", bL->size());
                     for (int e = 0; e < bL->size(); e++) {
-                        auto c_ = mmulHelper(A, bL->at(e));
+                        auto c_ = mmulHelper(A, bL->at(e), cL->at(e));
 
-                        cL->at(e)->assign(c_);
-                        delete c_;
+                        if (cL->at(e) != c_) {
+                            cL->at(e)->assign(c_);
+                            delete c_;
+                        }
                     }
 
                     delete bL;
@@ -290,19 +294,29 @@ namespace nd4j {
                     auto aLt = aL->at(e);
                     auto bLt = bL->at(e);
                     auto cLt = cL->at(e);
-
-                    auto c_ = mmulHelper(aLt, bLt);
-
-                    cLt->assign(c_);
-
-                    delete c_;
+                    
+                    auto c_ = mmulHelper(aLt, bLt, cLt);
+                    if (c_ != cLt) {
+                        cLt->assign(c_);
+                        delete c_;
+                    }
                 }
 
                 delete aL;
                 delete bL;
                 delete cL;
             }
-        } else if ((A->isMatrix() && B->isRowVector()) || (A->isMatrix() && B->isColumnVector())) {
+
+        return result;
+    }
+    ////////////////////////////////////////////////////////////////////////////
+    // static
+    template<typename T>
+    nd4j::NDArray<T>* NDArrayFactory<T>::mmulHelperMxV(nd4j::NDArray<T>* A, nd4j::NDArray<T>* B, nd4j::NDArray<T>* C , 
+        T alpha, T beta) {
+        
+        nd4j::NDArray<T>* result = C;
+
             // gemv
             if (A->columns() != B->rows())
                 throw "A columns != B length";
@@ -327,19 +341,17 @@ namespace nd4j {
 
                 nd4j::blas::GEMV<T>::op(A->ordering() == 'f' ? CblasTrans : 0, A->rows(), A->columns(), alpha, A->getBuffer(), B->rows(), B->getBuffer(), 1, beta, result->getBuffer(), 1);
             }
-        } else if ((A->isRowVector() && B->isRowVector()) || (A->isColumnVector() && B->isColumnVector())) {
-            // dot
-            if (A->lengthOf() != B->lengthOf())
-                throw "A length != B length";
 
-            if (result == nullptr)
-                result = new NDArray<T>('c', {1, 1});
+        return result;
+    }
 
-            result->putScalar(0, nd4j::math::nd4j_dot(A->getBuffer(), B->getBuffer(), A->lengthOf()));
-        } else { //if ((A->isMatrix() && B->isMatrix()) || (A->isVector() && B->isMatrix()) || (A->isColumnVector() && B->isRowVector())) {
-            // gemm
-            // int[] shape = {rows(), other.columns()};
-            
+    //////////////////////////////////////////////////////////////////////////////
+    // static
+    template<typename T>
+    nd4j::NDArray<T>* NDArrayFactory<T>::mmulHelperMxM(nd4j::NDArray<T>* A, nd4j::NDArray<T>* B, nd4j::NDArray<T>* C , 
+        T alpha, T beta) {
+        nd4j::NDArray<T>* result = C;
+
             if (result == nullptr) {
                 nd4j_verbose("Creating new array: [%i x %i]\n", A->rows(), B->columns());
                 result = new NDArray<T>('f', {A->rows(), B->columns()});
@@ -462,6 +474,34 @@ namespace nd4j {
             delete tA;
             delete tB;
             delete tC;
+
+        return result;
+    }
+    //////////////////////////////////////////////////////////////////////////////
+    template<typename T>
+    nd4j::NDArray<T>* NDArrayFactory<T>::mmulHelper(nd4j::NDArray<T>* A, nd4j::NDArray<T>* B, nd4j::NDArray<T>* C , 
+        T alpha, T beta) {
+
+        nd4j::NDArray<T>* result = C;
+
+        if (A->rankOf() > 2 || B->rankOf() > 2) {
+            return mmulHelperNxN(A, B, C, alpha, beta);
+        } else if ((A->isMatrix() && B->isRowVector()) || (A->isMatrix() && B->isColumnVector())) {
+            return mmulHelperMxV(A, B, C, alpha, beta);
+        } else if ((A->isRowVector() && B->isRowVector()) || (A->isColumnVector() && B->isColumnVector())) {
+            // dot
+            if (A->lengthOf() != B->lengthOf())
+                throw "A length != B length";
+
+            if (result == nullptr)
+                result = new NDArray<T>('c', {1, 1});
+
+            result->putScalar(0, nd4j::math::nd4j_dot(A->getBuffer(), B->getBuffer(), A->lengthOf()));
+            return result;
+        } else { //if ((A->isMatrix() && B->isMatrix()) || (A->isVector() && B->isMatrix()) || (A->isColumnVector() && B->isRowVector())) {
+            // gemm
+            // int[] shape = {rows(), other.columns()};
+            return mmulHelperMxM(A, B, C, alpha, beta);
         }
 
         return result;
