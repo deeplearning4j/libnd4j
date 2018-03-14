@@ -168,13 +168,10 @@ namespace nd4j {
 
     //////////////////////////////////////////////////////////////////////////
     template<typename T>
-    void nd4j::NDArrayFactory<T>::tensorDot(const nd4j::NDArray<T>* a, const nd4j::NDArray<T>* b, nd4j::NDArray<T>* c, const std::vector<int>& axes_0, const std::vector<int>& axes_1) {
+    void nd4j::NDArrayFactory<T>::tensorDot(const nd4j::NDArray<T>* a, const nd4j::NDArray<T>* b, nd4j::NDArray<T>* c, const std::vector<int>& axes_a, const std::vector<int>& axes_b, const std::vector<int>& permutForC) {
 
         std::vector<int> permutAt, permutBt, shapeAt, shapeBt;
-        std::vector<int> outShape = ShapeUtils<T>::evalShapeForTensorDot(a, b, axes_0, axes_1, permutAt, permutBt, shapeAt, shapeBt);
-
-        // check whether permutation is possible for result array c and evaluate corresponding permutation vector 
-        std::vector<int> permutForC = ShapeUtils<T>::evalPermutFromTo(ShapeUtils<T>::pullShapeFromShapeInfo(c->getShapeInfo()), outShape);                
+        std::vector<int> outShape = ShapeUtils<T>::evalShapeForTensorDot(a, b, axes_a, axes_b, permutAt, permutBt, shapeAt, shapeBt);
 
         NDArray<T> *aPR(const_cast<NDArray<T>*>(a)), *bPR(const_cast<NDArray<T>*>(b)), *cP(c);
 

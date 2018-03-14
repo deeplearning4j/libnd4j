@@ -312,7 +312,7 @@ namespace nd4j {
         *  dimensions - array of dimensions to calculate sum over
         *  keepDims - if true then put unities in place of reduced dimensions
         */
-        NDArray<T> *sum(const std::initializer_list<int> &dimensions) const;
+        NDArray<T> *sum(const std::vector<int> &dimensions) const;        
 
 		/**
         *  method reduces array by excluding its shapes along dimensions present in given dimensions vector, result is stored in new array to be returned

@@ -866,7 +866,7 @@ template <typename T>
 //////////////////////////////////////////////////////////////////////////
 // method calculates sum along dimension(s) in this array and save it to row: as new NDArray with dimensions 1xN
     template<typename T>
-    NDArray<T> *NDArray<T>::sum(const std::initializer_list<int> &dimensions) const {
+    NDArray<T> *NDArray<T>::sum(const std::vector<int> &dimensions) const {
 
         return reduceAlongDimension<simdOps::Sum<T>>(dimensions);
 //    NativeOpExcutioner<T>::execReduce(1, _buffer, _shapeInfo, nullptr, result->_buffer, result->_shapeInfo, dims, dimensions.size(), tad->tadOnlyShapeInfo, tad->tadOffsets);

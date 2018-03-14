@@ -244,7 +244,7 @@ TEST_F(NDArrayFactoryTests, tensordot_test_3) {
     NDArray<float> b('c', {2, 5, 3, 8, 4});
     NDArray<float> c('f', {7,6,2,8,5});
                                       
-    NDArrayFactory<float>::tensorDot(&a, &b, &c, {2,1}, {4,2});
+    NDArrayFactory<float>::tensorDot(&a, &b, &c, {2,1}, {4,2}, {0,1,2,4,3});
 
     ASSERT_TRUE(c.isSameShape({7,6,2,8,5}));    
 }
@@ -273,7 +273,7 @@ TEST_F(NDArrayFactoryTests, tensordot_test_4) {
     NDArrayFactory<float>::linspace(0.5, a, 0.5);
     NDArrayFactory<float>::linspace(0.5, b, 0.5);
 
-    NDArrayFactory<float>::tensorDot(&a, &b, &c, {2,1}, {4,2});
+    NDArrayFactory<float>::tensorDot(&a, &b, &c, {2,1}, {4,2}, {0,1,2,4,3});
     
     ASSERT_TRUE(c.isSameShape(expected));
     ASSERT_TRUE(c.equalsTo(expected));

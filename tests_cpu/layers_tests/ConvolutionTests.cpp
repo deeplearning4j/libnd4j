@@ -1067,6 +1067,8 @@ TEST_F(ConvolutionTests, conv2d_bp_test1) {
 
     ASSERT_EQ(Status::OK(), results->status());
 
+    gradI->printIndexedBuffer();
+
     ASSERT_TRUE(expGradI.isSameShape(gradI));
     ASSERT_TRUE(expGradI.equalsTo(gradI));    
 
@@ -1499,7 +1501,7 @@ TEST_F(ConvolutionTests, depthwise_conv2d_test3) {
     ResultSet<double>* results = op.execute({&input, &weights, &biases}, {}, {kH,kW,  sH,sW,  pH,pW,  dH,dW, paddingMode, dataFormat});
     NDArray<double>* output = results->at(0);    
 
-    output->printBuffer();
+    // output->printBuffer();
 
     ASSERT_EQ(Status::OK(), results->status());
 

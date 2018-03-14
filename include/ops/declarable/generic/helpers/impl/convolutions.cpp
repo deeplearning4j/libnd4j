@@ -1220,6 +1220,32 @@ void ConvolutionUtils<T>::vol2col2(NDArray<T>& vol, NDArray<T>& col, const int s
         }
        
 
+//////////////////////////////////////////////////////////////////////////
+template<typename T>
+void ConvolutionUtils<T>::getSizesAndIndexesConv2d(const bool isNCHW, const NDArray<T>& input, const NDArray<T>& weights, const NDArray<T>& output, int& bS, int& iC, int& iH, int& iW, int& oC, int& oH, int& oW, int& indIOioC, int& indIiH, int& indWoC, int& indWiC, int& indWkH, int& indOoH) {
+
+    // input   [bS, iH, iW, iC] (NHWC) or [bS, iC, iH, iW] (NCHW)
+    // weights [kH, kW, iC, oC] (NHWC) or [oC, iC, kH, kW] (NCHW)
+    // output  [bS, oH, oW, oC] (NHWC) or [bS, oC, oH, oW] (NCHW)
+
+    if(isNCHW) {
+        indIOioC = 1; indIiH = 2; indWiC = 1; indWoC = 0; indWkH = 2; indOoH = 2;        
+    }
+    else {        
+        indIOioC = 3; indIiH = 1; indWiC = 2; indWoC = 3; indWkH = 0; indOoH = 1; 
+    }    
+
+    bS = input.sizeAt(0);                          // batch size
+    iC = input.sizeAt(indIOioC);                   // input channels        
+    iH = input.sizeAt(indIiH);                     // input height
+    iW = input.sizeAt(indIiH+1);                   // input width
+    oC = weights.sizeAt(indWoC);                   // output channels
+    oH = output.sizeAt(indOoH);                    // output height
+    oW = output.sizeAt(indOoH+1);                  // output width    
+}
+
+
+
  
 
 

@@ -33,7 +33,7 @@ namespace nd4j {
 
         static nd4j::NDArray<T>* tensorDot(const nd4j::NDArray<T>* A, const nd4j::NDArray<T>* B, const std::vector<int>& axesA, const std::vector<int>& axesB);
 
-        static void tensorDot(const nd4j::NDArray<T>* a, const nd4j::NDArray<T>* b, nd4j::NDArray<T>* c, const std::vector<int>& axesA, const std::vector<int>& axesB);
+        static void tensorDot(const nd4j::NDArray<T>* a, const nd4j::NDArray<T>* b, nd4j::NDArray<T>* c, const std::vector<int>& axes_a, const std::vector<int>& axes_b, const std::vector<int>& permutForC = {});
 
         static NDArray<T>* linspace(T from, T to, Nd4jIndex numElements);
         
