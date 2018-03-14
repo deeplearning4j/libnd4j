@@ -172,17 +172,19 @@ CUSTOM_OP_IMPL(conv2d_bp, 3, 2, false, 0, 9) {
     if(bias)
         REQUIRE_TRUE(bias->rankOf()<=2 && bias->lengthOf()==oC, 0, "CUSTOM CONV2D_BP OP: wrong shape of biases array !");
 
-    std::vector<int> gradOaxesForDot, permutForGradW;
+    std::vector<int> gradOaxesForDot, permutForGradW, permutForColumns;    
 
     if(!isNCHW) {
         input = input->permute({0, 3, 1, 2});                                   // [bS, iH, iW, iC] -> [bS, iC, iH, iW]                        
         gradI = gradI->permute({0, 3, 1, 2});                                   // [bS, iH, iW, iC] -> [bS, iC, iH, iW]                        
-        gradOaxesForDot = {0, 1, 2};                                            // bS, oH, oW        
-        permutForGradW  = {2, 0, 1, 3};                                         // [kH, kW, iC, oC] -> [iC, kH, kW, oC]        
+        gradOaxesForDot  = {0, 1, 2};                                           // bS, oH, oW        
+        permutForGradW   = {2, 0, 1, 3};                                        // [kH, kW, iC, oC] -> [iC, kH, kW, oC]        
+        permutForColumns = {2, 3, 1, 0, 4, 5};                                  // [bS, iC, kH, kW, oH, oW] -> [kH, kW, iC, bS, oH, oW]
     }
     else {
-        gradOaxesForDot = {0, 2, 3};                                            // bS, oH, oW
-        permutForGradW  = {1, 2, 3, 0};                                         // [oC, iC, kH, kW] -> [iC, kH, kW, oC]
+        gradOaxesForDot  = {0, 2, 3};                                           // bS, oH, oW
+        permutForGradW   = {1, 2, 3, 0};                                        // [oC, iC, kH, kW] -> [iC, kH, kW, oC]
+        permutForColumns = {1, 2, 3, 0, 4, 5};                                  // [bS, iC, kH, kW, oH, oW] -> [iC, kH, kW, bS, oH, oW]
     }
 
     if(isSameMode)                       // SAME        
@@ -194,11 +196,16 @@ CUSTOM_OP_IMPL(conv2d_bp, 3, 2, false, 0, 9) {
     input->template applyTransform<simdOps::Im2col<T>>(&columns, extrasIm2Col.data());                          // [bS, iC, iH, iW] is convoluted to [bS, iC, kH, kW, oH, oW]        
     nd4j::NDArrayFactory<T>::tensorDot(&columns, gradO, gradW, {0,4,5}, gradOaxesForDot, permutForGradW);       // [bS, iC, kH, kW, oH, oW] x [bS, oH, oW, oC]/[bS, oC, oH, oW] = [iC, kH, kW, oC]
 
-    if(gradB)         
-        gradO->template reduceAlongDimension<simdOps::Sum<T>>(gradB, gradOaxesForDot, false, gradB->rankOf()==2);             // sum over bS, oH, oW
+    if(gradB) {        
+        if(gradB->rankOf() == 2) 
+            gradB = gradB->reshape(gradB->ordering(), {(int)gradB->lengthOf()});
+        gradO->template reduceAlongDimension<simdOps::Sum<T>>(gradB, gradOaxesForDot);                          // sum over bS, oH, oW
+        if(gradB != OUTPUT_VARIABLE(2)) 
+            delete gradB;
+    }
 
     //----- calculation of gradI -----//            
-    nd4j::NDArrayFactory<T>::tensorDot(weights, gradO, &columns, {indWoC}, {indIOioC}, {1, 2, 3, 0, 4, 5});     // [kH, kW, iC, oC]/[oC, iC, kH, kW]] x [bS, oH, oW, oC]/[bS, oC, oH, oW] = [iC, kH, kW, bS, oH, oW]
+    nd4j::NDArrayFactory<T>::tensorDot(weights, gradO, &columns, {indWoC}, {indIOioC}, permutForColumns);       // [kH, kW, iC, oC]/[oC, iC, kH, kW]] x [bS, oH, oW, oC]/[bS, oC, oH, oW] = [kH, kW, iC, bS, oH, oW]/[iC, kH, kW, bS, oH, oW]
     std::vector<T> extrasCol2Im({(T) sH, (T) sW, (T) pH, (T) pW, (T) iH, (T) iW, (T) dH, (T) dW});
     columns.template applyTransform<simdOps::Col2Im<T>>(gradI, extrasCol2Im.data());                            // [bS, iC, kH, kW, oH, oW] is de-convoluted to [bS, iC, iH, iW]
   
