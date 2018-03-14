@@ -354,11 +354,11 @@ namespace nd4j {
         bool needDupA = false;
         bool needDupB = false;
         if (A->isView()) {
-            nd4j_printf("mmulHelperMxM: A matrix is a view\n", "");
+//            nd4j_printf("mmulHelperMxM: A matrix is a view\n", "");
             needDupA = true;
         }
         if (B->isView()) {
-            nd4j_printf("mmulHelperMxM: B matrix is a view\n", "");
+//            nd4j_printf("mmulHelperMxM: B matrix is a view\n", "");
             needDupB = true;
         }
 
@@ -366,7 +366,7 @@ namespace nd4j {
                 nd4j_verbose("Creating new array: [%i x %i]\n", A->rows(), B->columns());
                 result = new NDArray<T>('f', {A->rows(), B->columns()});
             }
-
+            
 
             int *aShape = A->shapeOf();
             int *bShape = B->shapeOf();
@@ -385,7 +385,7 @@ namespace nd4j {
             
             nd4j::NDArray<T>* tA;
             nd4j::NDArray<T>* tB;//         auto tA = A->dup('f'); //new nd4j::NDArray<T>(A->getBuffer(), A->getShapeInfo(), A->getWorkspace());
-            nd4j::NDArray<T>* tC = result; //C->dup('f');//         auto tB = B->dup('f'); //new nd4j::NDArray<T>(B->getBuffer(), B->getShapeInfo(), B->getWorkspace());
+            nd4j::NDArray<T>* tC = result; //->dup('f'); //C->dup('f');//         auto tB = B->dup('f'); //new nd4j::NDArray<T>(B->getBuffer(), B->getShapeInfo(), B->getWorkspace());
             //auto tC = C->dup('f'); //new nd4j::NDArray<T>(result->getBuffer(), result->getShapeInfo(), result->getWorkspace());
             if (needDupA) {
                 tA = new nd4j::NDArray<T>(A->getBuffer(), A->getShapeInfo(), A->getWorkspace());
@@ -416,11 +416,6 @@ namespace nd4j {
                 if (aOrder == 'c') {
                     // we might need to transpose matrices,
                     // todo: we need dup(c/f) helper here
-                    if (!needDupA)
-                        nd4j_printf("mmulHelperMxM: A matrix is duplicated, but it should be avoided.\n", "");
-                    if (!needDupB)
-                        nd4j_printf("mmulHelperMxM: B matrix is duplicated, but it should be avoided.\n", "");
-
                     pA = tA->dup('f');
                     pB = tB->dup('f');
                 } else {
@@ -444,8 +439,6 @@ namespace nd4j {
                 //printf("Going tRoute here\n");
                 if (aOrder == 'c') {
                     // dup(F) A here
-                    if (!needDupA)
-                        nd4j_printf("mmulHelperMxM: A matrix is duplicated, but it should be avoided.\n", "");
 
                     pA = tA->dup('f');
                     pB = tB;
@@ -453,8 +446,6 @@ namespace nd4j {
                     // dup(F) B here
                     pA = tA;
                     pB = tB->dup('f');
-                    if (!needDupB)
-                        nd4j_printf("mmulHelperMxM: B matrix is duplicated, but it should be avoided.\n", "");
                 }
 
                 // pC = tC->dup('f');
@@ -491,8 +482,7 @@ namespace nd4j {
             }
 
             if (cOrder != 'f') {
-                if (!needDupA)
-                    nd4j_printf("mmulHelperMxM: C matrix is assigned, but it should be avoided.\n", "");
+                nd4j_printf("mmulHelperMxM: C matrix is assigned, but it should be avoided.\n", "");
                 tC->assign(pC);
             }
 
@@ -508,7 +498,7 @@ namespace nd4j {
 
             delete tA;
             delete tB;
-//            delete tC;
+            //delete tC;
 
         return result;
     }
