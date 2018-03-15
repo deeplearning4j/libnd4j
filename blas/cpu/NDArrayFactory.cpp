@@ -12,6 +12,7 @@
 #include <types/float16.h>
 #include <helpers/ShapeUtils.h>
 #include <helpers/BlasHelper.h>
+#include <cblas.h>
 
 namespace nd4j {
 
@@ -350,155 +351,139 @@ namespace nd4j {
     template<typename T>
     nd4j::NDArray<T>* NDArrayFactory<T>::mmulHelperMxM(nd4j::NDArray<T>* A, nd4j::NDArray<T>* B, nd4j::NDArray<T>* C , 
         T alpha, T beta) {
+
         nd4j::NDArray<T>* result = C;
-        bool needDupA = false;
-        bool needDupB = false;
+
+        bool needAllocA = false;
+        bool needAllocB = false;
+
         if (A->isView()) {
-//            nd4j_printf("mmulHelperMxM: A matrix is a view\n", "");
-            needDupA = true;
+            needAllocA = true;
         }
         if (B->isView()) {
-//            nd4j_printf("mmulHelperMxM: B matrix is a view\n", "");
-            needDupB = true;
+            needAllocB = true;
         }
 
-            if (result == nullptr) {
-                nd4j_verbose("Creating new array: [%i x %i]\n", A->rows(), B->columns());
-                result = new NDArray<T>('f', {A->rows(), B->columns()});
-            }
+        if (result == nullptr) {
+            nd4j_verbose("mmulHelperMxM: Creating new array: [%i x %i]\n", A->rows(), B->columns());
+            result = new NDArray<T>('f', {A->rows(), B->columns()});
+        }
             
+        int *aShape = A->shapeOf();
+        int *bShape = B->shapeOf();
+        int *cShape = result->shapeOf();
 
-            int *aShape = A->shapeOf();
-            int *bShape = B->shapeOf();
-            int *cShape = result->shapeOf();
+        char rOrder;
 
-            char rOrder;
+        int M, N, K, lda, ldb, ldc;
+        char transA = 'N', transB = 'N';
 
-            int M, N, K, lda, ldb, ldc;
-            char transA = 'N', transB = 'N';
+        M = cShape[0];
+        N = cShape[1];
+        K = aShape[1];
 
-            nd4j::NDArray<T>* pA = nullptr;
-            nd4j::NDArray<T>* pB = nullptr;
-            nd4j::NDArray<T>* pC = nullptr;;
+        rOrder = 'f'; //aOrder;
 
-            //_C = new NDArray<T>(C, cShapeInfo);
-            
-            nd4j::NDArray<T>* tA;
-            nd4j::NDArray<T>* tB;//         auto tA = A->dup('f'); //new nd4j::NDArray<T>(A->getBuffer(), A->getShapeInfo(), A->getWorkspace());
-            nd4j::NDArray<T>* tC = result; //->dup('f'); //C->dup('f');//         auto tB = B->dup('f'); //new nd4j::NDArray<T>(B->getBuffer(), B->getShapeInfo(), B->getWorkspace());
-            //auto tC = C->dup('f'); //new nd4j::NDArray<T>(result->getBuffer(), result->getShapeInfo(), result->getWorkspace());
-            if (needDupA) {
-                tA = new nd4j::NDArray<T>(A->getBuffer(), A->getShapeInfo(), A->getWorkspace());
-            }
-            else 
-                tA = A->dup('f');
+        lda = aShape[0];
+        ldb = bShape[0];
+        ldc = cShape[0];
 
-            if (needDupB) {
-                tB = new nd4j::NDArray<T>(B->getBuffer(), B->getShapeInfo(), B->getWorkspace());
-            }
-            else 
-                tB = B->dup('f');
+        nd4j::NDArray<T>* pA = nullptr;
+        nd4j::NDArray<T>* pB = nullptr;
+        nd4j::NDArray<T>* pC = nullptr;;
 
-            char aOrder = tA->ordering();
-            char bOrder = tB->ordering();
-            char cOrder = tC->ordering();
+        nd4j::NDArray<T>* tA;
+        nd4j::NDArray<T>* tB;
+        nd4j::NDArray<T>* tC = result; 
+        
+        if (needAllocA) {
+            tA = new nd4j::NDArray<T>(A->getBuffer(), A->getShapeInfo(), A->getWorkspace());
+        }
+        else 
+            tA = A->dup('f');
 
-            if (cOrder != 'f') {
-                pC = tC->dup('f');
-                nd4j_printf("mmulHelperMxM: C matrix was duplicated but it should be avoided.\n", "");
+        if (needAllocB) {
+            tB = new nd4j::NDArray<T>(B->getBuffer(), B->getShapeInfo(), B->getWorkspace());
+        }
+        else 
+            tB = B->dup('f');
+
+        char aOrder = tA->ordering();
+        char bOrder = tB->ordering();
+        char cOrder = tC->ordering();
+
+        if (cOrder != 'f') {
+            pC = tC->dup('f');
+        } else {
+            pC = tC;
+        }
+
+        if (aOrder == bOrder) {
+            //printf("Going dRoute here\n");
+
+            if (aOrder == 'c') {
+                // we might need to transpose matrices,
+                // todo: we need dup(c/f) helper here
+                pA = tA->dup('f');
+                pB = tB->dup('f');
+//                transA = 'p';
+//                transB = 'c';
             } else {
-                pC = tC;
+//                transA = 'c';
+//                transB = 'p';
+//            }
+            pA = tA;
+            pB = tB;
             }
-
-            if (aOrder == bOrder) {
-                //printf("Going dRoute here\n");
-
-                if (aOrder == 'c') {
-                    // we might need to transpose matrices,
-                    // todo: we need dup(c/f) helper here
-                    pA = tA->dup('f');
-                    pB = tB->dup('f');
-                } else {
-                    pA = tA;
-                    pB = tB;
-                }
-
-                rOrder = 'f';
-
-                M = cShape[0];
-                N = cShape[1];
-                K = aShape[1];
-
-                lda = aShape[0];
-                ldb = bShape[0];
-                ldc = cShape[0];
-
-                transA = 'N';
-                transB = 'N';
+        } else {
+            //printf("Going tRoute here\n");
+            if (aOrder == 'c') {
+                pA = tA->dup('f');
+                pB = tB;
             } else {
-                //printf("Going tRoute here\n");
-                if (aOrder == 'c') {
-                    // dup(F) A here
-
-                    pA = tA->dup('f');
-                    pB = tB;
-                } else {
-                    // dup(F) B here
-                    pA = tA;
-                    pB = tB->dup('f');
-                }
-
-                // pC = tC->dup('f');
-
-                M = cShape[0];
-                N = cShape[1];
-                K = aShape[1];
-
-                rOrder = aOrder;
-
-                lda = aShape[0];
-                ldb = bShape[0];
-                ldc = cShape[0];
-
-                transA = 'N';
-                transB = 'N';
+                // dup(F) B here
+                pA = tA;
+                pB = tB->dup('f');
             }
+        }
 
 
-            // we'll use platform-specific gemm here eventually. maybe tomorrow.
-            // TODO: put proper _gemm here
-            if (BlasHelper::getInstance()->template hasGEMM<T>()) {
-                nd4j_debug("Using provided GEMM pointer\n","");
-                if (sizeof(T) == 4)
-                    BlasHelper::getInstance()->sgemm()(CblasColMajor, CblasNoTrans, CblasNoTrans, M, N, K, (float) alpha, (float *) pA->getBuffer(), lda, (float *) pB->getBuffer(), ldb, (float) beta, (float *) pC->getBuffer(), ldc);
-                else if (sizeof(T) == 8)
-                    BlasHelper::getInstance()->dgemm()(CblasColMajor, CblasNoTrans, CblasNoTrans, M, N, K, (double) alpha, (double *) pA->getBuffer(), lda, (double *) pB->getBuffer(), ldb, (double) beta, (double *) pC->getBuffer(), ldc);
-                else
-                    nd4j::blas::GEMM<T>::op(rOrder, transA, transB, M, N, K, alpha, pA->getBuffer(), lda, pB->getBuffer(), ldb, beta, pC->getBuffer(), ldc);
-            } else {
-                nd4j_debug("Using fallback GEMM impl\n","");
 
+        // we'll use platform-specific gemm here eventually. maybe tomorrow.
+        // TODO: put proper _gemm here
+        if (BlasHelper::getInstance()->template hasGEMM<T>()) {
+            nd4j_debug("Using provided GEMM pointer\n","");
+            if (sizeof(T) == 4)
+                BlasHelper::getInstance()->sgemm()(CblasColMajor, CblasNoTrans, CblasNoTrans, M, N, K, (float) alpha, (float *) pA->getBuffer(), lda, (float *) pB->getBuffer(), ldb, (float) beta, (float *) pC->getBuffer(), ldc);
+            else if (sizeof(T) == 8)
+                BlasHelper::getInstance()->dgemm()(CblasColMajor, CblasNoTrans, CblasNoTrans, M, N, K, (double) alpha, (double *) pA->getBuffer(), lda, (double *) pB->getBuffer(), ldb, (double) beta, (double *) pC->getBuffer(), ldc);
+            else
                 nd4j::blas::GEMM<T>::op(rOrder, transA, transB, M, N, K, alpha, pA->getBuffer(), lda, pB->getBuffer(), ldb, beta, pC->getBuffer(), ldc);
-            }
+        } else {
+            nd4j_debug("mmulHelperMxM: Using fallback GEMM impl\n","");
+           
+            nd4j::blas::GEMM<T>::op(rOrder, transA, transB, M, N, K, alpha, pA->getBuffer(), lda, pB->getBuffer(), ldb, beta, pC->getBuffer(), ldc);
+        }
 
-            if (cOrder != 'f') {
-                nd4j_printf("mmulHelperMxM: C matrix is assigned, but it should be avoided.\n", "");
+        if (tC != pC) {
+//                nd4j_printf("mmulHelperMxM: C matrix is assigned, but it should be avoided.\n", "");
                 tC->assign(pC);
-            }
+        }
 
-            if (tA != pA)
-                delete pA;
+        if (tA != pA)
+            delete pA;
 
-            if (tB != pB)
-                delete pB;
+        if (tB != pB)
+            delete pB;
 
-            if (tC != pC)
-                delete pC;
+        if (tC != pC)
+            delete pC;
 
-
+        if (tA != A)
             delete tA;
+
+        if (tB != B)
             delete tB;
-            //delete tC;
 
         return result;
     }
