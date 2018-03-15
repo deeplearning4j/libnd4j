@@ -1438,6 +1438,8 @@ TEST_F(ConvolutionTests, depthwise_conv2d_test1) {
     ResultSet<double>* results = op.execute({&input, &weights}, {}, {kH,kW,  sH,sW,  pH,pW,  dH,dW, paddingMode, dataFormat});
     NDArray<double>* output = results->at(0);    
 
+    output->printIndexedBuffer();
+
     ASSERT_EQ(Status::OK(), results->status());
 
     ASSERT_TRUE(expOutput.isSameShape(output));

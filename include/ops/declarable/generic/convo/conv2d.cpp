@@ -42,23 +42,20 @@ CUSTOM_OP_IMPL(conv2d, 2, 1, false, 0, 9) {
     int indIOioC, indIiH, indWoC, indWiC, indWkH, indOoH;       // corresponding indexes
     ConvolutionUtils<T>::getSizesAndIndexesConv2d(isNCHW, *input, *weights, *output, bS, iC, iH, iW, oC, oH, oW, indIOioC, indIiH, indWoC, indWiC, indWkH, indOoH);
 
-    std::vector<int> weightsAxesForDot, permutForGradW;
-
-    if(!isNCHW) {
-        weightsAxesForDot = {2,0,1};                                            // iC, kH, kW
-        input = input->permute({0, 3, 1, 2});                                   // [bS, iH, iW, iC] -> [bS, iC, iH, iW]                        
-    }
-    else {
-        weightsAxesForDot = {1,2,3};                                            // iC, kH, kW
-        permutForGradW   = {0, 2, 3, 1};                                        // [bS, oC, oH, oW] -> [bS, oH, oW, oC]
-    }
-
     REQUIRE_TRUE(weights->sizeAt(indWiC) == iC && weights->sizeAt(indWkH) == kH && weights->sizeAt(indWkH+1) == kW, 0, "CUSTOM CONV2D OP: wrong shape of weights array !");    
     if (bias) {
         REQUIRE_TRUE(bias->rankOf() <= 2,    0, "CUSTOM CONV2D OP: rank of biases array must be equal to 1 or 2!");
         REQUIRE_TRUE(oC == bias->lengthOf(), 0, "CUSTOM CONV2D OP: length of bias array must be equal to outChannels, but got %i instead", bias->lengthOf());        
     }            
+
+    std::vector<int> weightsAxesForDot = {indWiC, indWkH, indWkH+1};                                                        // iC, kH, kW
     
+    std::vector<int> permutForOutput;
+    if(!isNCHW)
+        input = input->permute({0, 3, 1, 2});                                       // [bS, iH, iW, iC] -> [bS, iC, iH, iW] if NHWC
+    else
+        permutForOutput = {0, indOoH, indOoH+1, indIOioC};                          // [bS, oC, oH, oW] -> [bS, oH, oW, oC]
+     
     if(isSameMode)                       // SAME        
         ConvolutionUtils<T>::_calcPadding2D(pH, pW, oH, oW, iH, iW, kH, kW, sH, sW, dH, dW);
 
@@ -68,7 +65,7 @@ CUSTOM_OP_IMPL(conv2d, 2, 1, false, 0, 9) {
     input->template applyTransform<simdOps::Im2col<T>>(&columns, extrasIm2Col.data());                        // [bS, iC, iH, iW] is convoluted to [bS, iC, kH, kW, oH, oW]
 
     // [bS, iC, kH, kW, oH, oW] x [kH, kW, iC, oC]/[oC, iC, kH, kW] = [bS, oH, oW, oC]
-    nd4j::NDArrayFactory<T>::tensorDot(&columns, weights, output, {1,2,3}, weightsAxesForDot, permutForGradW);
+    nd4j::NDArrayFactory<T>::tensorDot(&columns, weights, output, {1,2,3}, weightsAxesForDot, permutForOutput);
 
     if(bias)
         output->template applyBroadcast<simdOps::Add<T>>({indIOioC}, bias);

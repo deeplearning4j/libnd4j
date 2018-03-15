@@ -173,7 +173,7 @@ namespace nd4j {
         std::vector<int> permutAt, permutBt, shapeAt, shapeBt;
         std::vector<int> outShape = ShapeUtils<T>::evalShapeForTensorDot(a, b, axes_a, axes_b, permutAt, permutBt, shapeAt, shapeBt);
 
-        NDArray<T> *aPR(const_cast<NDArray<T>*>(a)), *bPR(const_cast<NDArray<T>*>(b)), *cP(c);
+        NDArray<T> *aPR(const_cast<NDArray<T>*>(a)), *bPR(const_cast<NDArray<T>*>(b)), *cP(c), *cPR(nullptr);
 
         // check whether permutation is necessary
         if(!permutForC.empty()) {                        // this means permutation is possible
@@ -197,21 +197,16 @@ namespace nd4j {
             else 
                 bPR->reshapei('c', shapeBt);                
         }
-        if(!cP->isSameShape({aPR->sizeAt(0), bPR->sizeAt(1)})) {
-            if(cP == c)
-                cP = c->reshape('c', {aPR->sizeAt(0), bPR->sizeAt(1)});
-            else
-                cP->reshapei('c', {aPR->sizeAt(0), bPR->sizeAt(1)});
-        }
-        
-        nd4j::NDArrayFactory<T>::mmulHelper(aPR, bPR, cP, 1.0, 0.0);
+        if(!cP->isSameShape({aPR->sizeAt(0), bPR->sizeAt(1)}))
+            cPR = cP->reshape('c', {aPR->sizeAt(0), bPR->sizeAt(1)});
+                
+        nd4j::NDArrayFactory<T>::mmulHelper(aPR, bPR, cPR, 1.0, 0.0);
 
-        if(cP->getBuffer() != c->getBuffer()) {                     // this means permute and reshape have been performed on c array before                                    
-            NDArray<T>* tempP = c->permute(permutForC);
-            tempP->assign(cP);                        
-            delete tempP;
-        }
-            
+        if(cPR && cPR->getBuffer() != cP->getBuffer())                     // this means both permute and reshape have been performed on c, cP always points on c->getBuffer()
+            cP->assign(cPR);                        
+        
+        if(cPR)
+            delete cPR;
         if(aPR != a)
             delete aPR;        
         if(bPR != b)
@@ -220,6 +215,48 @@ namespace nd4j {
             delete cP;
     }
 
+//////////////////////////////////////////////////////////////////////////
+    template<typename T>
+    void nd4j::NDArrayFactory<T>::tensorDot(const nd4j::NDArray<T>* a, const nd4j::NDArray<T>* b, nd4j::NDArray<T>* c, const std::vector<std::vector<int>>& modifA, const std::vector<std::vector<int>>& modifB, const std::vector<std::vector<int>>& modifC) {
+
+        NDArray<T> *aPR(const_cast<NDArray<T>*>(a)), *bPR(const_cast<NDArray<T>*>(b)), *cP(c), *cPR(nullptr);
+        
+        if(!modifA[0].empty())                                  // if permutation of a is required
+            aPR = a->permute(modifA[0]);            
+        if(!modifB[0].empty())                                  // if permutation of b is required
+            bPR = b->permute(modifB[0]);            
+        if(!modifC[0].empty())                                  // if permutation of c is required
+            cP = c->permute(modifC[0]);            
+                
+        if(!modifA[1].empty()) {                                // if reshaping of a is required
+            if(aPR == a)
+                aPR = a->reshape(a->ordering(), modifA[1]);
+            else 
+                aPR->reshapei(aPR->ordering(), modifA[1]);
+        }        
+        if(!modifB[1].empty()) {                                // if reshaping of b is required
+            if(bPR == b)
+                bPR = b->reshape(b->ordering(), modifB[1]);
+            else 
+                bPR->reshapei(bPR->ordering(), modifB[1]);
+        }        
+        if(!modifC[1].empty())                                 // if reshaping of c is required
+            cPR = cP->reshape(cP->ordering(), modifC[1]);
+
+        nd4j::NDArrayFactory<T>::mmulHelper(aPR, bPR, cPR, 1.0, 0.0);
+
+        if(cPR && cPR->getBuffer() != cP->getBuffer())         // this means both permute and reshape have been performed on c, cP always points on c->getBuffer()
+            cP->assign(cPR);                        
+        
+        if(cPR)
+            delete cPR;
+        if(aPR != a)
+            delete aPR;
+        if(bPR != b)
+            delete bPR;
+        if(cP != c)
+            delete cPR;        
+    }
 
     //////////////////////////////////////////////////////////////////////////
     template<typename T>

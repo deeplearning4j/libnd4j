@@ -17,7 +17,7 @@ CUSTOM_OP_IMPL(depthwise_conv2d, 2, 1, false, 0, 9) {
     NDArray<T> *input   = INPUT_VARIABLE(0);                                    // [bS, iH, iW, iC] (NHWC) or [bS, iC, iH, iW] (NCHW)
     NDArray<T> *weights = INPUT_VARIABLE(1);                                    // [kH, kW, iC, mC] (NHWC) or [mC, iC, kH, kW] (NCHW)
     NDArray<T> *bias    = block.width() > 2 ? INPUT_VARIABLE(2) : nullptr;      // [oC] = iC*mC
-    NDArray<T> *output  = OUTPUT_VARIABLE(0);                                   // [bS, oH, oW, iC*mC] (NHWC) or [bS, iC*mC, oH, oW] (NCHW)
+    NDArray<T> *output  = OUTPUT_VARIABLE(0);                                   // [bS, oH, oW, iC*mC] (NHWC) or [bS, mC*iC, oH, oW] (NCHW)
     
     REQUIRE_TRUE(input->rankOf()   == 4, 0, "CUSTOM DEPTHWISECONV2D OP: rank of input array must be equal to 4 !");
     REQUIRE_TRUE(weights->rankOf() == 4, 0, "CUSTOM DEPTHWISECONV2D OP: rank of weights array must be equal to 4 !");
@@ -33,61 +33,57 @@ CUSTOM_OP_IMPL(depthwise_conv2d, 2, 1, false, 0, 9) {
     int isSameMode = INT_ARG(8);                                                // 0-VALID, 1-SAME
     int isNCHW     = block.getIArguments()->size() > 9 ? !INT_ARG(9) : 1;       // 0-NCHW,  1-NHWC
 
-    if(!isNCHW) {
-        input   = input->permute({0, 3, 1, 2});                                 // [bS, iH, iW, iC] -> [bS, iC, iH, iW]                        
-        weights = weights->permute({2, 0, 1, 3});                               // [kH, kW, iC, mC] -> [iC, kH, kW, mC]                 
-    }
-    else {        
-        output  = output->permute({0, 2, 3, 1});                                // [bS, iC*mC, oH, oW] -> [bS, oH, oW, iC*mC]
-        weights = weights->permute({1, 2, 3, 0});                               // [mC, iC, kH, kW] -> [iC, kH, kW, mC]
-    }
+    int bS, iC, iH, iW, mC, oH, oW;                         // batch size, input channels, input height/width, channels multiplier(oC = iC*mC), output height/width
+    int indIOioC, indIiH, indWmC, indWiC, indWkH, indOoH;   // corresponding indexes
+    ConvolutionUtils<T>::getSizesAndIndexesConv2d(isNCHW, *input, *weights, *output, bS, iC, iH, iW, mC, oH, oW, indIOioC, indIiH, indWmC, indWiC, indWkH, indOoH);
+    int oC = output->sizeAt(indIOioC);                     // output channels
 
-    int bS = input->sizeAt(0);           // batch size
-    int iC = input->sizeAt(1);           // input channels        
-    int iH = input->sizeAt(2);           // input height
-    int iW = input->sizeAt(3);           // input width
-    int mC = weights->sizeAt(3);         // channels multiplier, oC = iC*mC    
-    int oH = output->sizeAt(1);          // output height
-    int oW = output->sizeAt(2);          // output width    
-    int oC = output->sizeAt(3);          // output channels
-    
-    REQUIRE_TRUE(weights->sizeAt(0) == iC && weights->sizeAt(1) == kH && weights->sizeAt(2) == kW, 0, "CUSTOM DEPTHWISECONV2D OP: wrong shape of weights array !");    
-    REQUIRE_TRUE(output->sizeAt(3) == iC*mC, 0, "CUSTOM DEPTHWISECONV2D OP: the output_channels must be equal to input_channels * channels_multiplier !");    
+    REQUIRE_TRUE(weights->sizeAt(indWiC) == iC && weights->sizeAt(indWkH) == kH && weights->sizeAt(indWkH+1) == kW, 0, "CUSTOM DEPTHWISECONV2D OP: wrong shape of weights array !");    
+    REQUIRE_TRUE(output->sizeAt(indIOioC) == iC*mC, 0, "CUSTOM DEPTHWISECONV2D OP: the output_channels must be equal to input_channels * channels_multiplier !");    
     if (bias) {
         REQUIRE_TRUE(bias->rankOf() <= 2 ,   0, "CUSTOM DEPTHWISECONV2D OP: rank of biases array must be equal to 1 or 2!");
         REQUIRE_TRUE(oC == bias->lengthOf(), 0, "CUSTOM DEPTHWISECONV2D OP: length of bias array must be equal to outChannels, but got %i instead", bias->lengthOf());        
     }            
+
+    std::vector<int> weightsAxesForDot = {indWkH, indWkH+1};                                // kH, kW
     
+    std::vector<std::vector<int>> modifColumns;
+
+    if(!isNCHW) {
+        modifColumns = {{bS, iC, kH*kW, oH, oW},{}};
+        input = input->permute({0, 3, 1, 2});                                           // [bS, iH, iW, iC] -> [bS, iC, iH, iW] 
+        
+    }
+    else {
+        output = output->permute({0, 2, 3, 1});                                         // [bS, mC*iC, oH, oW] -> [bS, oH, oW, mC*iC] 
+        
+    }
+
     if(isSameMode)                       // SAME        
         ConvolutionUtils<T>::_calcPadding2D(pH, pW, oH, oW, iH, iW, kH, kW, sH, sW, dH, dW);
 
     NDArray<T> columns(input->ordering(), {bS, iC, kH, kW, oH, oW}, block.getWorkspace());                
     std::vector<T> extrasIm2Col({(T) kH, (T) kW, (T) sH, (T) sW, (T) pH, (T) pW, (T) dH, (T) dW});
-    input->template applyTransform<simdOps::Im2col<T>>(&columns, extrasIm2Col.data());                      // [bS, iC, iH, iW] is convoluted to [bS, iC, kH, kW, oH, oW]
+    input->template applyTransform<simdOps::Im2col<T>>(&columns, extrasIm2Col.data());                      // [bS, iC, iH, iW] is convoluted to [bS, iC, kH, kW, oH, oW]    
+    // NDArray<T>* result = nd4j::NDArrayFactory<T>::tensorDot(&columns, weights, {2,3}, weightsAxesForDot);   // [bS, iC, oH, oW, iC, mC] / [bS, iC, oH, oW, mC, iC] = [bS, iC, kH, kW, oH, oW] x [kH, kW, iC, mC] / [mC, iC, kH, kW]     
 
-    columns.permutei({1, 0, 4, 5, 2, 3});                                                                   // [bS, iC, kH, kW, oH, oW] -> [iC, bS, oH, oW, kH, kW]
-    columns.reshapei({iC, bS*oH*oW, kH*kW});
-    NDArray<T>* outputPermuted = output->reshape(output->ordering(), {bS*oH*oW, iC, mC});
-    outputPermuted->permutei({1, 0, 2});                                                                    // [bS*oH*oW, iC, mC] -> [iC, bS*oH*oW, mC]
-    NDArray<T>* weightsReshaped = weights->reshape(weights->ordering(), {iC, kH*kW, mC});
-    NDArrayFactory<T>::mmulHelper(&columns, weightsReshaped, outputPermuted, 1.0, 0.0);                     // [iC, bS*oH*oW, kW*kH] x [iC, kH*kW, mC] = [iC, bS*oH*oW, mC]    
 
-    outputPermuted->permutei({1, 0, 2});                                                                    // [iC, bS*oH*oW, mC] -> [bS*oH*oW, iC, mC]
+    // nd4j::NDArrayFactory<T>::tensorDot(&columns, weights, output, {1,2,3}, weightsAxesForDot, permutForOutput);    
+// [iC, bS*oH*oW, kW*kH] x [iC, kH*kW, mC] = [iC, bS*oH*oW, mC]
+    
+    // [bS, iC, kH, kW, oH, oW] x [kH, kW, iC, mC] = [bS, oH, oW, iC*mC]
 
     if(bias)
-        outputPermuted->template applyBroadcast<simdOps::Add<T>>({1,2}, bias);
+        output->template applyBroadcast<simdOps::Add<T>>({3}, bias);
+
+    // delete result; 
+    
 
     if(!isNCHW)
-        delete input;                
-    else {        
-        output->assign(outputPermuted);
-        delete output;        
-    }    
+        delete input;                  
+    else 
+        delete output;
 
-    delete outputPermuted;
-    delete weightsReshaped;
-    delete weights;
-    
     return Status::OK();
 }
 
