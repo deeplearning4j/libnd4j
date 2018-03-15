@@ -1244,8 +1244,32 @@ void ConvolutionUtils<T>::getSizesAndIndexesConv2d(const bool isNCHW, const NDAr
     oW = output.sizeAt(indOoH+1);                  // output width    
 }
 
+//////////////////////////////////////////////////////////////////////////
+template<typename T>
+void ConvolutionUtils<T>::getSizesAndIndexesConv3d(const bool isNCDHW, const NDArray<T>& input, const NDArray<T>& weights, const NDArray<T>& output, int& bS, int& iC, int& iD, int& iH, int& iW, int& oC, int& oD, int& oH, int& oW, int& indIOioC, int& indIOioD, int& indWoC, int& indWiC, int& indWkD) {
+    
+    // input   [bS, iD, iH, iW, iC] (NDHWC) or [bS, iC, iD, iH, iW] (NCDHW)
+    // weights [kD, kH, kW, iC, oC] (NDHWC) or [oC, iC, kD, kH, kW] (NCDHW)    
+    // output  [bS, oD, oH, oW, oC] (NDHWC) or [bS, oC, oD, oH, oW] (NCDHW)
 
+    if(isNCDHW) {
+        indIOioC = 1; indIOioD = 2; indWiC = 1; indWoC = 0; indWkD = 2;
+    }
+    else {        
+        indIOioC = 4; indIOioD = 1; indWiC = 3; indWoC = 4; indWkD = 0;
+    }    
 
+    bS = input.sizeAt(0);                          // batch size
+    iC = input.sizeAt(indIOioC);                   // input channels        
+    iD = input.sizeAt(indIOioD);                   // input depth
+    iH = input.sizeAt(indIOioD+1);                 // input height
+    iW = input.sizeAt(indIOioD+2);                 // input width
+    oC = weights.sizeAt(indWoC);                   // output channels    
+    oD = output.sizeAt(indIOioD);                  // output depth
+    oH = output.sizeAt(indIOioD+1);                // output height
+    oW = output.sizeAt(indIOioD+2);                // output width    
+
+}
  
 
 

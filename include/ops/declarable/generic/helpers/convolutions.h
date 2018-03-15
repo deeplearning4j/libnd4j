@@ -73,8 +73,11 @@ namespace nd4j {
             // calculation of output height and width in 2D deconvolution procedure
             static void calcOutSizeDeconv2D(int& oH, int& oW, const int kH, const int kW, const int sH, const int sW, const int pH, const int pW, const int dH, const int dW, const int iH, const int iW, const int isSameMode);
 
-            // evaluates values of sizes and corresponding indexes using input/weights/output arrays depending on data format
+            // evaluates sizes values and indexes using input/weights/output arrays depending on data format
             static void getSizesAndIndexesConv2d(const bool isNCHW, const NDArray<T>& input, const NDArray<T>& weights, const NDArray<T>& output, int& bS, int& iC, int& iH, int& iW, int& oC, int& oH, int& oW, int& indIOioC, int& indIiH, int& indWoC, int& indWiC, int& indWkH, int& indOoH);
+            
+            // evaluates sizes values and indexes using input/weights/output arrays depending on data format
+            static void getSizesAndIndexesConv3d(const bool isNCDHW, const NDArray<T>& input, const NDArray<T>& weights, const NDArray<T>& output, int& bS, int& iC, int& iD, int& iH, int& iW, int& oC, int& oD, int& oH, int& oW, int& indIOioC, int& indIOioD, int& indWoC, int& indWiC, int& indWkD);
     };
 
 }
