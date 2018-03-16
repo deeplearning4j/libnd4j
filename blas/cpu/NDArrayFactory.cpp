@@ -220,32 +220,48 @@ namespace nd4j {
     void nd4j::NDArrayFactory<T>::tensorDot(const nd4j::NDArray<T>* a, const nd4j::NDArray<T>* b, nd4j::NDArray<T>* c, const std::vector<std::vector<int>>& modifA, const std::vector<std::vector<int>>& modifB, const std::vector<std::vector<int>>& modifC) {
 
         NDArray<T> *aPR(const_cast<NDArray<T>*>(a)), *bPR(const_cast<NDArray<T>*>(b)), *cP(c), *cPR(nullptr);
-        
-        if(!modifA[0].empty())                                  // if permutation of a is required
-            aPR = a->permute(modifA[0]);            
-        if(!modifB[0].empty())                                  // if permutation of b is required
-            bPR = b->permute(modifB[0]);            
-        if(!modifC[0].empty())                                  // if permutation of c is required
-            cP = c->permute(modifC[0]);            
                 
-        if(!modifA[1].empty()) {                                // if reshaping of a is required
-            if(aPR == a)
-                aPR = a->reshape(a->ordering(), modifA[1]);
-            else 
-                aPR->reshapei(aPR->ordering(), modifA[1]);
-        }        
-        if(!modifB[1].empty()) {                                // if reshaping of b is required
-            if(bPR == b)
-                bPR = b->reshape(b->ordering(), modifB[1]);
-            else 
-                bPR->reshapei(bPR->ordering(), modifB[1]);
-        }        
-        if(!modifC[1].empty())                                 // if reshaping of c is required
-            cPR = cP->reshape(cP->ordering(), modifC[1]);
+        // work with a input array 
+        if(!modifA.empty()) {
+            
+            if(!modifA[0].empty())                                  // if permutation of a is required
+                aPR = a->permute(modifA[0]);            
+            
+            if(!modifA[1].empty()) {                                // if reshaping of a is required
+                if(aPR == a)
+                    aPR = a->reshape(a->ordering(), modifA[1]);
+                else 
+                    aPR->reshapei(aPR->ordering(), modifA[1]);
+            }        
+        }
 
+        // work with b input array 
+        if(!modifB.empty()) {
+            
+            if(!modifB[0].empty())                                  // if permutation of b is required
+                bPR = b->permute(modifB[0]);            
+
+            if(!modifB[1].empty()) {                                // if reshaping of b is required
+                if(bPR == b)
+                    bPR = b->reshape(b->ordering(), modifB[1]);
+                else 
+                    bPR->reshapei(bPR->ordering(), modifB[1]);
+            }        
+        }
+        
+        // work with c output array 
+        if(!modifC.empty()) {
+            
+            if(!modifC[0].empty())                                 // if permutation of c is required
+                cP = c->permute(modifC[0]);            
+        
+            if(!modifC[1].empty())                                 // if reshaping of c is required
+                cPR = cP->reshape(cP->ordering(), modifC[1]);
+        }    
+                
         nd4j::NDArrayFactory<T>::mmulHelper(aPR, bPR, cPR, 1.0, 0.0);
 
-        if(cPR && cPR->getBuffer() != cP->getBuffer())         // this means both permute and reshape have been performed on c, cP always points on c->getBuffer()
+        if(cPR && cPR->getBuffer() != cP->getBuffer())             // this means both permute and reshape have been performed on c, cP always points on c->getBuffer()
             cP->assign(cPR);                        
         
         if(cPR)
@@ -255,7 +271,7 @@ namespace nd4j {
         if(bPR != b)
             delete bPR;
         if(cP != c)
-            delete cPR;        
+            delete cP;
     }
 
     //////////////////////////////////////////////////////////////////////////

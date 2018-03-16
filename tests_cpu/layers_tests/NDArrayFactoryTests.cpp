@@ -297,6 +297,36 @@ TEST_F(NDArrayFactoryTests, tensordot_test_5) {
 }
 
 ////////////////////////////////////////////////////////////////////
+TEST_F(NDArrayFactoryTests, tensordot_test_6) {
+
+    int bS=2, iH=3,iW=2,  iC=2,mC=2,  kH=2,kW=2;
+    int       oC=iC*mC;
+    int       oH=3,oW=2;        
+
+    NDArray<float> a('c', {bS, iC, kH, kW, oH, oW});
+    NDArray<float> b('c', {kH, kW, iC, mC});
+    NDArray<float> c('c', {bS, oH, oW, iC*mC});
+    NDArray<float> expected('c', {bS, oH, oW, iC*mC}, {100.,110.,336.,370.,107.,118.,345.,380.,114.,126.,354.,390.,121.,134.,363.,400.,128.,142.,372.,410.,135.,150.,381.,420.,
+                                                       436.,494.,768.,850.,443.,502.,777.,860.,450.,510.,786.,870.,457.,518.,795.,880.,464.,526.,804.,890.,471.,534.,813.,900.});
+
+    NDArrayFactory<float>::linspace(0.5, a, 0.5);
+    NDArrayFactory<float>::linspace(0.5, b, 0.5);
+
+    NDArray<float>* cR = c.reshape(a.ordering(), {bS, oH, oW, iC, mC});
+    
+    // [iC, bS*oH*oW, kW*kH] x [iC, kH*kW, mC] = [iC, bS*oH*oW, mC]
+    NDArrayFactory<float>::tensorDot(&a, &b, cR, {{1,0,4,5,2,3}, {iC,bS*oH*oW,kW*kH}},  {{2,0,1,3},{iC,kH*kW,mC}},  {{3,0,1,2,4},{iC, bS*oH*oW, mC}});
+    delete cR;
+    
+    ASSERT_TRUE(c.isSameShape(expected));
+    ASSERT_TRUE(c.equalsTo(expected));
+}
+
+
+
+
+
+////////////////////////////////////////////////////////////////////
 // TEST_F(NDArrayFactoryTests, mmulHelper_test_9) {
 
 //     NDArray<double> x('c', {4, 4}, {1.524000, 1.756820, 0.233741, 0.289458, 

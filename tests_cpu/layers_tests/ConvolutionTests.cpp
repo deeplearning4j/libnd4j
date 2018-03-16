@@ -1436,9 +1436,7 @@ TEST_F(ConvolutionTests, depthwise_conv2d_test1) {
 
     nd4j::ops::depthwise_conv2d<double> op;
     ResultSet<double>* results = op.execute({&input, &weights}, {}, {kH,kW,  sH,sW,  pH,pW,  dH,dW, paddingMode, dataFormat});
-    NDArray<double>* output = results->at(0);    
-
-    output->printIndexedBuffer();
+    NDArray<double>* output = results->at(0);        
 
     ASSERT_EQ(Status::OK(), results->status());
 
@@ -1501,7 +1499,7 @@ TEST_F(ConvolutionTests, depthwise_conv2d_test3) {
     ResultSet<double>* results = op.execute({&input, &weights, &biases}, {}, {kH,kW,  sH,sW,  pH,pW,  dH,dW, paddingMode, dataFormat});
     NDArray<double>* output = results->at(0);    
 
-    // output->printBuffer();
+    // output->printIndexedBuffer();
 
     ASSERT_EQ(Status::OK(), results->status());
 
@@ -1540,6 +1538,8 @@ TEST_F(ConvolutionTests, depthwise_conv2d_bp_test1) {
     NDArray<double>* gradW = results->at(1);
 
     ASSERT_EQ(Status::OK(), results->status());
+
+    gradI->printIndexedBuffer();
 
     ASSERT_TRUE(expGradI.isSameShape(gradI));
     ASSERT_TRUE(expGradI.equalsTo(gradI));    

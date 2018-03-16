@@ -2124,9 +2124,32 @@ TEST_F(DeclarableOpsTests4, maxpool3d_bp_test4) {
     delete results;
 }
  
+//////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests4, maxpool2d_test1) {
+  
+    int bS = 3;                 // batch size (number of samples)
+    int iC = 3;                 // input channels
+    int iH = 28, iW = 28;       // input height/width
+    int kH = 2,  kW = 2;        // kernel (filter) height/width
+    int sH = 1,  sW = 1;        // stride height/width
+    int pH = 0,  pW = 0;        // padding height/width
+    int dH = 1,  dW = 1;        // dilation height/width
+    
+    int oH = 27, oW = 27;       // output height/width
+    
+    int isSameMode = 0;         // 1-SAME,  0-VALID
 
+    NDArray<double> input   ('c', {bS, iC, iH, iW});    
+    
+    nd4j::ops::maxpool2d<double> op;
+    ResultSet<double>* results = op.execute({&input}, {}, {kH,kW,  sH,sW,  pH,pW,  dH,dW, isSameMode});
+    NDArray<double>* output = results->at(0);    
 
-
+    ASSERT_EQ(Status::OK(), results->status());    
+    ASSERT_TRUE(output->isSameShape({bS, iC, oH, oW}));    
+    
+    delete results;
+}
 
 
 

@@ -36,7 +36,7 @@ namespace nd4j {
         static void tensorDot(const nd4j::NDArray<T>* a, const nd4j::NDArray<T>* b, nd4j::NDArray<T>* c, const std::vector<int>& axes_a, const std::vector<int>& axes_b, const std::vector<int>& permutForC = {});
 
         /**
-        *  modif is vector containing 2 vectors with integers
+        *  modif    - vector, if it is not empty then it should contain exactly 2 vectors with integers 
         *  modif[0] - permutation vector, if it is empty then no permutation is applied
         *  modif[1] - reshape vector, if it is empty then no reshaping is applied
         */
