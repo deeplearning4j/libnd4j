@@ -1537,9 +1537,7 @@ TEST_F(ConvolutionTests, depthwise_conv2d_bp_test1) {
     NDArray<double>* gradI = results->at(0);
     NDArray<double>* gradW = results->at(1);
 
-    ASSERT_EQ(Status::OK(), results->status());
-
-    gradI->printIndexedBuffer();
+    ASSERT_EQ(Status::OK(), results->status());    
 
     ASSERT_TRUE(expGradI.isSameShape(gradI));
     ASSERT_TRUE(expGradI.equalsTo(gradI));    

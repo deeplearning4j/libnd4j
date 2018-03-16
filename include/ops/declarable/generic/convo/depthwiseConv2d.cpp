@@ -219,8 +219,8 @@ CUSTOM_OP_IMPL(depthwise_conv2d_bp, 3, 2, false, 0, 9) {
     }
 
     //----- calculation of gradI -----//                
-    nd4j::NDArrayFactory<T>::tensorDot(gradW, gradO, &columns, modifGradW, modifGradO2, modifColumns); // [iC, kH*kW, mC] x [iC, mC, bS*oH*oW] = [iC, kW*kH, bS*oH*oW]
-    columns.template applyTransform<simdOps::Col2Im<T>>(gradI, extrasCol2Im.data());                   // [bS, iC, kH, kW, oH, oW] is de-convoluted to [bS, iC, iH, iW]
+    nd4j::NDArrayFactory<T>::tensorDot(weights, gradO, &columns, modifGradW, modifGradO2, modifColumns); // [iC, kH*kW, mC] x [iC, mC, bS*oH*oW] = [iC, kW*kH, bS*oH*oW]    
+    columns.template applyTransform<simdOps::Col2Im<T>>(gradI, extrasCol2Im.data());                     // [bS, iC, kH, kW, oH, oW] is de-convoluted to [bS, iC, iH, iW]
 
     if(!isNCHW) {        
         delete input;        
