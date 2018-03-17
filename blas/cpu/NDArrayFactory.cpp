@@ -173,7 +173,7 @@ namespace nd4j {
         std::vector<int> permutAt, permutBt, shapeAt, shapeBt;
         std::vector<int> outShape = ShapeUtils<T>::evalShapeForTensorDot(a, b, axes_a, axes_b, permutAt, permutBt, shapeAt, shapeBt);
 
-        NDArray<T> *aPR(const_cast<NDArray<T>*>(a)), *bPR(const_cast<NDArray<T>*>(b)), *cP(c), *cPR(nullptr);
+        NDArray<T> *aPR(const_cast<NDArray<T>*>(a)), *bPR(const_cast<NDArray<T>*>(b)), *cP(c), *cPR(c);
 
         // check whether permutation is necessary
         if(!permutForC.empty()) {                        // this means permutation is possible
@@ -202,10 +202,10 @@ namespace nd4j {
                 
         nd4j::NDArrayFactory<T>::mmulHelper(aPR, bPR, cPR, 1.0, 0.0);
 
-        if(cPR && cPR->getBuffer() != cP->getBuffer())                     // this means both permute and reshape have been performed on c, cP always points on c->getBuffer()
+        if(cPR->getBuffer() != cP->getBuffer())                     // this means both permute and reshape have been performed on c, cP always points on c->getBuffer()
             cP->assign(cPR);                        
         
-        if(cPR)
+        if(cPR != c)
             delete cPR;
         if(aPR != a)
             delete aPR;        
@@ -219,7 +219,7 @@ namespace nd4j {
     template<typename T>
     void nd4j::NDArrayFactory<T>::tensorDot(const nd4j::NDArray<T>* a, const nd4j::NDArray<T>* b, nd4j::NDArray<T>* c, const std::vector<std::vector<int>>& modifA, const std::vector<std::vector<int>>& modifB, const std::vector<std::vector<int>>& modifC) {
 
-        NDArray<T> *aPR(const_cast<NDArray<T>*>(a)), *bPR(const_cast<NDArray<T>*>(b)), *cP(c), *cPR(nullptr);
+        NDArray<T> *aPR(const_cast<NDArray<T>*>(a)), *bPR(const_cast<NDArray<T>*>(b)), *cP(c), *cPR(c);
                 
         // work with a input array 
         if(!modifA.empty()) {
@@ -261,10 +261,10 @@ namespace nd4j {
                 
         nd4j::NDArrayFactory<T>::mmulHelper(aPR, bPR, cPR, 1.0, 0.0);
 
-        if(cPR && cPR->getBuffer() != cP->getBuffer())             // this means both permute and reshape have been performed on c, cP always points on c->getBuffer()
+        if(cPR->getBuffer() != cP->getBuffer())             // this means both permute and reshape have been performed on c, cP always points on c->getBuffer()
             cP->assign(cPR);                        
         
-        if(cPR)
+        if(cPR != c)
             delete cPR;
         if(aPR != a)
             delete aPR;
