@@ -286,9 +286,10 @@ TEST_F(ShapeUtilsTests, evalPermutFromTo_test5) {
         
         std::vector<int> result = ShapeUtils<float>::evalPermutFromTo({a,b,c,d}, {c,d,a,8});          
     }    
-    catch(const char* error) {
+    // catch(const char* error) {
+    catch(...) {
 
-        std::cout << error << std::endl; 
+        // std::cout << error << std::endl; 
         ASSERT_TRUE(1);
     }
 }
@@ -302,9 +303,10 @@ TEST_F(ShapeUtilsTests, evalPermutFromTo_test6) {
         
         std::vector<int> result = ShapeUtils<float>::evalPermutFromTo({a,b,c,d}, {a,b,c,d,d});  
     }    
-    catch(const char* error) {
+    // catch(const char* error) {
+    catch(...) {
 
-        std::cout << error << std::endl; 
+        // std::cout << error << std::endl; 
         ASSERT_TRUE(1);            
     }
 }
