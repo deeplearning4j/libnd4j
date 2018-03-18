@@ -291,7 +291,6 @@ TEST_F(ShapeUtilsTests, evalPermutFromTo_test5) {
         std::cout << error << std::endl; 
         ASSERT_TRUE(1);
     }
-    ASSERT_TRUE(1);
 }
 
 //////////////////////////////////////////////////////////////////
@@ -308,7 +307,6 @@ TEST_F(ShapeUtilsTests, evalPermutFromTo_test6) {
         std::cout << error << std::endl; 
         ASSERT_TRUE(1);            
     }
-    ASSERT_TRUE(1);
 }
 
 //////////////////////////////////////////////////////////////////
