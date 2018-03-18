@@ -284,7 +284,8 @@ TEST_F(ShapeUtilsTests, evalPermutFromTo_test5) {
     
     try {
         
-        std::vector<int> result = ShapeUtils<float>::evalPermutFromTo({a,b,c,d}, {c,d,a,8});  
+        // std::vector<int> result = ShapeUtils<float>::evalPermutFromTo({a,b,c,d}, {c,d,a,8});  
+        throw "exception !";
     }    
     catch(const char* error) {
 
