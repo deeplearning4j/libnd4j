@@ -40,9 +40,9 @@ CUSTOM_OP_IMPL(conv2d, 2, 1, false, 0, 9) {
     
     int bS, iC, iH, iW, oC, oH, oW;                             // batch size, input channels, input height/width, output channels, output height/width;
     int indIOioC, indIiH, indWoC, indWiC, indWkH, indOoH;       // corresponding indexes
-    ConvolutionUtils<T>::getSizesAndIndexesConv2d(isNCHW, *input, *weights, *output, bS, iC, iH, iW, oC, oH, oW, indIOioC, indIiH, indWoC, indWiC, indWkH, indOoH);
+    ConvolutionUtils<T>::getSizesAndIndexesConv2d(isNCHW, *input, *output, bS, iC, iH, iW, oC, oH, oW, indIOioC, indIiH, indWiC, indWoC, indWkH, indOoH);
 
-    REQUIRE_TRUE(weights->sizeAt(indWiC) == iC && weights->sizeAt(indWkH) == kH && weights->sizeAt(indWkH+1) == kW, 0, "CUSTOM CONV2D OP: wrong shape of weights array !");    
+    REQUIRE_TRUE(weights->sizeAt(indWiC) == iC && weights->sizeAt(indWoC) == oC && weights->sizeAt(indWkH) == kH && weights->sizeAt(indWkH+1) == kW, 0, "CUSTOM CONV2D OP: wrong shape of weights array !");
     if (bias) {
         REQUIRE_TRUE(bias->rankOf() <= 2,    0, "CUSTOM CONV2D OP: rank of biases array must be equal to 1 or 2!");
         REQUIRE_TRUE(oC == bias->lengthOf(), 0, "CUSTOM CONV2D OP: length of bias array must be equal to outChannels, but got %i instead", bias->lengthOf());        
@@ -159,13 +159,13 @@ CUSTOM_OP_IMPL(conv2d_bp, 3, 2, false, 0, 9) {
 
     int bS, iC, iH, iW, oC, oH, oW;                             // batch size, input channels, input height/width, output channels, output height/width;
     int indIOioC, indIiH, indWoC, indWiC, indWkH, indOoH;       // corresponding indexes
-    ConvolutionUtils<T>::getSizesAndIndexesConv2d(isNCHW, *input, *weights, *gradO, bS, iC, iH, iW, oC, oH, oW, indIOioC, indIiH, indWoC, indWiC, indWkH, indOoH);
+    ConvolutionUtils<T>::getSizesAndIndexesConv2d(isNCHW, *input, *gradO, bS, iC, iH, iW, oC, oH, oW, indIOioC, indIiH, indWiC, indWoC, indWkH, indOoH);
 
     int trueoH, trueoW;          // true output height, width
     ConvolutionUtils<T>::calcOutSizePool2D(trueoH, trueoW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);
 
-    REQUIRE_TRUE(gradO->sizeAt(0)==bS   && gradO->sizeAt(indOoH)==trueoH && gradO->sizeAt(indOoH+1)==trueoW && gradO->sizeAt(indIOioC)==oC, 0, "CUSTOM CONV2D_BP OP: wrong shape of gradient_output (next epsilon) array !");
-    REQUIRE_TRUE(weights->sizeAt(indWiC)==iC && weights->sizeAt(indWkH)==kH   && weights->sizeAt(indWkH+1)==kW, 0, "CUSTOM CONV2D_BP OP: wrong shape of weights array !");
+    REQUIRE_TRUE(gradO->sizeAt(0)==bS && gradO->sizeAt(indOoH)==trueoH && gradO->sizeAt(indOoH+1)==trueoW && gradO->sizeAt(indIOioC)==oC, 0, "CUSTOM CONV2D_BP OP: wrong shape of gradient_output (next epsilon) array !");
+    REQUIRE_TRUE(weights->sizeAt(indWiC)==iC && weights->sizeAt(indWoC)==oC && weights->sizeAt(indWkH)==kH && weights->sizeAt(indWkH+1)==kW, 0, "CUSTOM CONV2D_BP OP: wrong shape of weights array !");
     if(bias)
         REQUIRE_TRUE(bias->rankOf()<=2 && bias->lengthOf()==oC, 0, "CUSTOM CONV2D_BP OP: wrong shape of biases array !");
 

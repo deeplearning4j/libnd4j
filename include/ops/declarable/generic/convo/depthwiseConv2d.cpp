@@ -33,10 +33,10 @@ CUSTOM_OP_IMPL(depthwise_conv2d, 2, 1, false, 0, 9) {
     int isSameMode = INT_ARG(8);                                                // 0-VALID, 1-SAME
     int isNCHW     = block.getIArguments()->size() > 9 ? !INT_ARG(9) : 1;       // 0-NCHW,  1-NHWC
 
-    int bS, iC, iH, iW, mC, oH, oW;                         // batch size, input channels, input height/width, channels multiplier(oC = iC*mC), output height/width
+    int bS, iC, iH, iW, mC, oC, oH, oW;                     // batch size, input channels, input height/width, channels multiplier(oC = iC*mC), output channels, output height/width
     int indIOioC, indIiH, indWmC, indWiC, indWkH, indOoH;   // corresponding indexes
-    ConvolutionUtils<T>::getSizesAndIndexesConv2d(isNCHW, *input, *weights, *output, bS, iC, iH, iW, mC, oH, oW, indIOioC, indIiH, indWmC, indWiC, indWkH, indOoH);
-    int oC = output->sizeAt(indIOioC);                     // output channels
+    ConvolutionUtils<T>::getSizesAndIndexesConv2d(isNCHW, *input, *output, bS, iC, iH, iW, oC, oH, oW, indIOioC, indIiH, indWiC, indWmC, indWkH, indOoH);    
+    mC = weights->sizeAt(indWmC);                           // channels multiplier
 
     REQUIRE_TRUE(weights->sizeAt(indWiC) == iC && weights->sizeAt(indWkH) == kH && weights->sizeAt(indWkH+1) == kW, 0, "CUSTOM DEPTHWISECONV2D OP: wrong shape of weights array !");    
     REQUIRE_TRUE(output->sizeAt(indIOioC) == iC*mC, 0, "CUSTOM DEPTHWISECONV2D OP: the output_channels must be equal to input_channels * channels_multiplier !");    
@@ -165,16 +165,16 @@ CUSTOM_OP_IMPL(depthwise_conv2d_bp, 3, 2, false, 0, 9) {
     int isSameMode = INT_ARG(8);                                                // 0-VALID, 1-SAME
     int isNCHW  = block.getIArguments()->size() > 9 ? !INT_ARG(9) : 1;          // 0-NHWC, 1-NCHW    
 
-    int bS, iC, iH, iW, mC, oH, oW;                         // batch size, input channels, input height/width, channels multiplier(oC = iC*mC), output height/width
+    int bS, iC, iH, iW, mC, oC, oH, oW;                     // batch size, input channels, input height/width, channels multiplier(oC = iC*mC), output channels, output height/width
     int indIOioC, indIiH, indWmC, indWiC, indWkH, indOoH;   // corresponding indexes
-    ConvolutionUtils<T>::getSizesAndIndexesConv2d(isNCHW, *input, *weights, *gradO, bS, iC, iH, iW, mC, oH, oW, indIOioC, indIiH, indWmC, indWiC, indWkH, indOoH);
-    int oC = gradO->sizeAt(indIOioC);                     // output channels
+    ConvolutionUtils<T>::getSizesAndIndexesConv2d(isNCHW, *input, *gradO, bS, iC, iH, iW, oC, oH, oW, indIOioC, indIiH, indWiC, indWmC, indWkH, indOoH);    
+    mC = weights->sizeAt(indWmC);                           // channels multiplier
 
     int trueoH, trueoW;          // correct output height, width
     ConvolutionUtils<T>::calcOutSizePool2D(trueoH, trueoW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);
 
-    REQUIRE_TRUE(gradO->sizeAt(0)==bS   && gradO->sizeAt(indOoH)==trueoH && gradO->sizeAt(indOoH+1)==trueoW && gradO->sizeAt(indIOioC)==mC*iC, 0, "CUSTOM DEPTHWISECONV2D_BP OP: wrong shape of gradient_output (next epsilon) array !");    
-    REQUIRE_TRUE(weights->sizeAt(indWiC)==iC && weights->sizeAt(indWkH)==kH   && weights->sizeAt(indWkH+1)==kW, 0, "CUSTOM DEPTHWISECONV2D_BP OP: wrong shape of weights array !");
+    REQUIRE_TRUE(gradO->sizeAt(0)==bS && gradO->sizeAt(indOoH)==trueoH && gradO->sizeAt(indOoH+1)==trueoW && gradO->sizeAt(indIOioC)==mC*iC, 0, "CUSTOM DEPTHWISECONV2D_BP OP: wrong shape of gradient_output (next epsilon) array !");    
+    REQUIRE_TRUE(weights->sizeAt(indWiC)==iC && weights->sizeAt(indWkH)==kH && weights->sizeAt(indWkH+1)==kW, 0, "CUSTOM DEPTHWISECONV2D_BP OP: wrong shape of weights array !");
     if(bias)
         REQUIRE_TRUE(bias->rankOf()<=2 && bias->lengthOf()==oC, 0, "CUSTOM DEPTHWISECONV2D_BP OP: wrong shape of biases array !");
 
