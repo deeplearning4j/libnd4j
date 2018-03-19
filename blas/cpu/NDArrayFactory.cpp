@@ -376,7 +376,8 @@ namespace nd4j {
         char rOrder;
 
         int M, N, K, lda, ldb, ldc;
-        char transA = 'N', transB = 'N';
+        char transA = CblasTrans, 
+             transB = CblasNoTrans;
 
         M = cShape[0];
         N = cShape[1];
@@ -398,15 +399,17 @@ namespace nd4j {
         
         if (needAllocA) {
             tA = new nd4j::NDArray<T>(A->getBuffer(), A->getShapeInfo(), A->getWorkspace());
+            nd4j_printf("Matrix A was recreated from view.\n", "");
         }
         else 
-            tA = A->dup('f');
+            tA = A; 
 
         if (needAllocB) {
             tB = new nd4j::NDArray<T>(B->getBuffer(), B->getShapeInfo(), B->getWorkspace());
+//            nd4j_printf("Matrix B was recreated from view.\n", "");
         }
         else 
-            tB = B->dup('f');
+            tB = B; 
 
         char aOrder = tA->ordering();
         char bOrder = tB->ordering();
@@ -418,35 +421,11 @@ namespace nd4j {
             pC = tC;
         }
 
-        if (aOrder == bOrder) {
-            //printf("Going dRoute here\n");
+//        bool transAFlag = TransA != CblasTrans;
+//        bool transBFlag = TransB == CblasTrans;
 
-            if (aOrder == 'c') {
-                // we might need to transpose matrices,
-                // todo: we need dup(c/f) helper here
-                pA = tA->dup('f');
-                pB = tB->dup('f');
-//                transA = 'p';
-//                transB = 'c';
-            } else {
-//                transA = 'c';
-//                transB = 'p';
-//            }
-            pA = tA;
-            pB = tB;
-            }
-        } else {
-            //printf("Going tRoute here\n");
-            if (aOrder == 'c') {
-                pA = tA->dup('f');
-                pB = tB;
-            } else {
-                // dup(F) B here
-                pA = tA;
-                pB = tB->dup('f');
-            }
-        }
-
+        pB = tB->dup('f');
+        pA = tA->dup('c');
 
 
         // we'll use platform-specific gemm here eventually. maybe tomorrow.
@@ -464,7 +443,6 @@ namespace nd4j {
            
             nd4j::blas::GEMM<T>::op(rOrder, transA, transB, M, N, K, alpha, pA->getBuffer(), lda, pB->getBuffer(), ldb, beta, pC->getBuffer(), ldc);
         }
-
         if (tC != pC) {
 //                nd4j_printf("mmulHelperMxM: C matrix is assigned, but it should be avoided.\n", "");
                 tC->assign(pC);
