@@ -918,23 +918,21 @@ TEST_F(ConvolutionTests, Test_Conv1D_ff_1) {
     NDArrayFactory<double>::linspace(1, bias);
 
     nd4j::ops::conv1d<double> op;
-    auto result_FF = op.execute({&input, &weights, &bias}, {}, {2, 1, 0});
+    auto result_FF = op.execute({&input, &weights, &bias}, {}, {2, 1, 0, 0});
 
     ASSERT_EQ(ND4J_STATUS_OK, result_FF->status());
 
     auto z = result_FF->at(0);
 
-
     ASSERT_TRUE(expFF.isSameShape(z));
     ASSERT_TRUE(expFF.equalsTo(z));
-
 
     nd4j::ops::conv1d_bp<double> op_bp;
 
     auto epsilonNxt = z->dup();
     NDArrayFactory<double>::linspace(1, *epsilonNxt);
 
-    auto result_BP = op_bp.execute({&input, &weights, &bias, epsilonNxt}, {}, {2, 1, 0});
+    auto result_BP = op_bp.execute({&input, &weights, &bias, epsilonNxt}, {}, {2, 1, 0, 0});
     ASSERT_EQ(ND4J_STATUS_OK, result_BP->status());
 
     auto eps = result_BP->at(0);

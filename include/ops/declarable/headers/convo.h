@@ -19,8 +19,8 @@ namespace nd4j {
          * 1: stride
          * 2: padding
          */
-        DECLARE_CUSTOM_OP(conv1d, 2, 1, false, 0, 3);
-        DECLARE_CUSTOM_OP(conv1d_bp, 3, 2, false, 0, 3);
+        DECLARE_CUSTOM_OP(conv1d, 2, 1, false, 0, 4);
+        DECLARE_CUSTOM_OP(conv1d_bp, 3, 2, false, 0, 4);
 
         /**
          * 2D convolution implementation
