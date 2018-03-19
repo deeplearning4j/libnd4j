@@ -282,32 +282,15 @@ TEST_F(ShapeUtilsTests, evalPermutFromTo_test5) {
     
     int a=1, b=2, c=3, d=4;
     
-    try {
-        
-        std::vector<int> result = ShapeUtils<float>::evalPermutFromTo({a,b,c,d}, {c,d,a,8});          
-    }    
-    catch (const std::string& err) {
-    
-        std::cout<< "Exception !" << std::endl;
-        std::cerr<< err << std::endl;
-        ASSERT_TRUE(1);
-    }    
+    EXPECT_THROW(ShapeUtils<float>::evalPermutFromTo({a,b,c,d}, {c,d,a,8}), const char*);              
 }
 
 //////////////////////////////////////////////////////////////////
 TEST_F(ShapeUtilsTests, evalPermutFromTo_test6) {
     
     int a=1, b=2, c=3, d=4;
-    
-    try {
         
-        std::vector<int> result = ShapeUtils<float>::evalPermutFromTo({a,b,c,d}, {a,b,c,d,d});  
-    }    
-    catch (const std::string& err) {
-    
-        std::cerr<< err << std::endl;
-        ASSERT_TRUE(1);
-    }
+    EXPECT_THROW(ShapeUtils<float>::evalPermutFromTo({a,b,c,d}, {a,b,c,d,d}), const char*);    
 }
 
 //////////////////////////////////////////////////////////////////
