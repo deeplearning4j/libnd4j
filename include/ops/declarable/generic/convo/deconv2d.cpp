@@ -203,9 +203,13 @@ namespace nd4j {
                 STORE_2_RESULTS(*epsilon, *gradW);
             }
 
-
-
             return ND4J_STATUS_OK;
+
+
+
+
+
+
             // NDArray<T> *input   = INPUT_VARIABLE(0);                                                // [bS, iH, iW, iC] (NDHWC) or [bS, iC, iH, iW] (NCDHW)
             // NDArray<T> *weights = INPUT_VARIABLE(1);                                                // [kH, kW, oC, iC] (NDHWC) or [iC, oC, kH, kW] (NCDHW)
             // NDArray<T> *bias    = block.width() > 3 ? INPUT_VARIABLE(2) : nullptr;                  // [oC]
@@ -243,32 +247,17 @@ namespace nd4j {
             // if(bias)
             //     REQUIRE_TRUE(bias->rankOf()<=2 && bias->lengthOf()==oC, 0, "CUSTOM CONV2D_BP OP: wrong shape of biases array !");
 
-            // // pass gradI through conv2d_ff 
+            // // firstly pass gradI through conv2d_ff 
             // nd4j::ops::conv2d<T> conv2d;
             // ResultSet<T>* results = conv2d.execute({gradO, weights}, {gradI}, {}, {kH,kW,  sH,sW,  pH,pW,  dH,dW,  paddingMode,  isNCHW});
             // if (results->status() != ND4J_STATUS_OK)
-            //     return results->status();
 
+            // if(isSameMode)                       // SAME        
+            //     ConvolutionUtils<T>::_calcPadding2D(pH, pW, oH, oW, iH, iW, kH, kW, sH, sW, dH, dW);                
 
-
-            // nd4j::ops::conv2d<T> op;
-            // Nd4jStatus r1 = op.execute({gradO, weights}, {gradI}, {}, {kH,kW,  sH,sW,  pH,pW,  dH,dW, isSameMode, isNCHW});
-            // if (r1 != ND4J_STATUS_OK)
-            //     return r1;
-
-            // int oY = 0;
-            // int oX = 0;
-            // int inY = gradO->sizeAt(2);
-            // int inX = gradO->sizeAt(3);
-
-            // ConvolutionUtils<T>::calcOutSizePool2D(oY, oX, kH, kW, sH, sW, pH, pW, dH, dW, inY, inX, isSameMode);
-
-            // if (isSameMode) {
-            //     ConvolutionUtils<T>::_calcPadding2D(pH, pW, oY, oX, inY, inX, kH, kW, sH, sW, dH, dW);
-            // }
-
-            // std::vector<T> extrasIm2Col({(T) kH, (T) kW, (T) sH, (T) sW, (T) pH, (T) pW, (T) dH, (T) dW, isSameMode ? (T) 1.0f : (T) 0.0f, 0.0});
-            // auto columns = new NDArray<T>('c', {input->sizeAt(0), weights->sizeAt(1), kH, kW, oY, oX });
+            // std::vector<T> extrasIm2Col({(T) kH, (T) kW, (T) sH, (T) sW, (T) pH, (T) pW, (T) dH, (T) dW});            
+            // NDArray<T>  columns(input->ordering(), {bS, iC, kH, kW, oH, oW}, block.getWorkspace());              
+            
             // gradO->template applyTransform<simdOps::Im2col<T>>(columns, extrasIm2Col.data());
 
             // auto gW = NDArrayFactory<T>::tensorDot(input, columns, {0, 2, 3}, {0, 4, 5});
