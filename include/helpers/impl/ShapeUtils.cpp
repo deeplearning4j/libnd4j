@@ -761,7 +761,7 @@ std::vector<int> ShapeUtils<T>::evalPermutFromTo(const std::vector<int>& shapeFr
 
     int rank = shapeFrom.size();
     if(rank != shapeTo.size())
-        throw std::invalid_argument(std::string("ShapeUtils::evalPermutFromTo static method: the input shapes are not suitable for mutual permutation !"));    
+        throw std::string("ShapeUtils::evalPermutFromTo static method: the input shapes are not suitable for mutual permutation !");    
 
     if (std::equal(begin(shapeFrom), end(shapeFrom), begin(shapeTo)))       // if shapes are identical (permutation is unnecessary) then return empty vector
         return std::vector<int>();
@@ -778,7 +778,7 @@ std::vector<int> ShapeUtils<T>::evalPermutFromTo(const std::vector<int>& shapeFr
             }   
 
     if(std::find(begin(permutation), end(permutation), -2) != end(permutation))      // if -2 is still present in vector then permutation is impossible
-        throw std::invalid_argument(std::string("ShapeUtils::evalPermutFromTo static method: the input shapes are not suitable for mutual permutation !"));    
+        throw std::string("ShapeUtils::evalPermutFromTo static method: the input shapes are not suitable for mutual permutation !");    
 
     return permutation;        
 }
