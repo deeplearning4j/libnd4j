@@ -1814,11 +1814,37 @@ TEST_F(ConvolutionTests, conv3d_test8) {
     
     delete results;
 }
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(ConvolutionTests, pointwise_conv2d_test1) {
+
+    int bS=2, iH=4,iW=3,  iC=4,oC=3;        
+ 
+    int dataFormat = 1;           // 1-NHWC, 0-NCHW    
+
+    NDArray<double> input   ('c', {bS, iH, iW, iC});
+    NDArray<double> weights ('c', {1,   1, iC, oC});
+    NDArray<double> bias    ('c', {oC});
+
+    
+    NDArray<double> expOutput('c', {bS, iH, iW, oC},{ 5.4, 6.2, 7.0, 5.4, 6.2, 7.0, 5.4, 6.2, 7.0, 5.4, 6.2, 7.0, 5.4, 6.2, 7.0, 5.4, 6.2, 7.0, 5.4, 6.2, 
+                                                      7.0, 5.4, 6.2, 7.0, 5.4, 6.2, 7.0, 5.4, 6.2, 7.0, 5.4, 6.2, 7.0, 5.4, 6.2, 7.0, 5.4, 6.2, 7.0, 5.4, 
+                                                      6.2, 7.0, 5.4, 6.2, 7.0, 5.4, 6.2, 7.0, 5.4, 6.2, 7.0, 5.4, 6.2, 7.0, 5.4, 6.2, 7.0, 5.4, 6.2, 7.0, 
+                                                      5.4, 6.2, 7.0, 5.4, 6.2, 7.0, 5.4, 6.2, 7.0, 5.4, 6.2, 7.0});
+    input = 2.;
+    NDArrayFactory<double>::linspace(0.1, weights, 0.1);
+    bias = 1.;
+
+    nd4j::ops::pointwise_conv2d<double> op;
+    ResultSet<double>* results = op.execute({&input, &weights, &bias}, {}, {dataFormat});
+    NDArray<double>* output = results->at(0);    
+
+    ASSERT_EQ(Status::OK(), results->status());
+
+    ASSERT_TRUE(expOutput.isSameShape(output));
+    ASSERT_TRUE(expOutput.equalsTo(output));    
+    
+    delete results;
+}
+
 #endif //LIBND4J_CONVOLUTIONTESTS_H
-
-
- 
-
-
- 
-
