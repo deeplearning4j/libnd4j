@@ -12,6 +12,7 @@
 #include <types/float16.h>
 #include <helpers/ShapeUtils.h>
 #include <helpers/BlasHelper.h>
+#include <cblas.h>
 
 namespace nd4j {
 
@@ -707,12 +708,13 @@ NDArray<T>* NDArrayFactory<T>::simpleMMul(const NDArray<T>* a, const NDArray<T>*
                 c->template applyScalar<simdOps::Multiply<T>>(beta);            
         }        
     }
-
-    for(int row = 0; row < a->shapeOf()[0]; ++row)
-        for(int col = 0; col < b->shapeOf()[1]; ++col)
-            for(int j = 0; j < a->shapeOf()[1]; ++j)
-                for(int i = 0; i < b->shapeOf()[0]; ++i)
-                    (*dot)(row,col) += (*a)(row,j)*(*b)(i,col);
+    int M = a->shapeOf()[0];
+    int N = b->shapeOf()[1];
+    int K = a->shapeOf()[1];
+    for(int row = 0; row < M; ++row)
+        for(int col = 0; col < N; ++col)
+            for(int j = 0; j < K; ++j)
+                    (*dot)(row,col) += (*a)(row,j)*(*b)(j,col);
 
     if(alpha != (T)1.)
         dot->template applyScalar<simdOps::Multiply<T>>(alpha);
