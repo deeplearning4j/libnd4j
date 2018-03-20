@@ -122,92 +122,6 @@ namespace nd4j {
 
         //////////////////////////////////////////////////////////////////////////
         CUSTOM_OP_IMPL(deconv2d_bp, 3, 2, false, 0, 9) {
-            //  NDArray<T> *input = INPUT_VARIABLE(0);
-            // NDArray<T> *weights = INPUT_VARIABLE(1);
-            // NDArray<T> *bias = nullptr;
-            // NDArray<T> *epsilonNext = nullptr; //INPUT_VARIABLE(2);
-
-            // REQUIRE_TRUE(block.width() >= 3, 0, "deconv2d_bp: Number of input variables should be 3 or 4, but got %i instead", block.width());
-
-            // // bias is still optional
-            // if (block.width() == 4) {
-            //     bias = INPUT_VARIABLE(2);
-            //     epsilonNext = INPUT_VARIABLE(3);
-            // } else if (block.width() == 3) {
-            //     epsilonNext = INPUT_VARIABLE(2);
-            // }
-
-            // REQUIRE_TRUE(epsilonNext->rankOf() == 4, 0, "epsilon should have rank of 4, but got %i instead", epsilonNext->rankOf());
-
-            // //epsilonNext->rankOf() == 4 && weights->rankOf() == 4
-            // REQUIRE_TRUE(input->rankOf() == 4, 0, "Input should be 4D, but got %iD instead", input->rankOf());
-            // REQUIRE_TRUE(weights->rankOf() == 4, 0, "Weights should be 4D, but got %iD instead", weights->rankOf());
-            // REQUIRE_TRUE(epsilonNext->rankOf() == 4, 0, "Epsilon should be 4D, but got %iD instead", epsilonNext->rankOf());
-
-            // int kY = INT_ARG(0);
-            // int kX = INT_ARG(1);
-            // int sY = INT_ARG(2);
-            // int sX = INT_ARG(3);
-            // int pY = INT_ARG(4);
-            // int pX = INT_ARG(5);
-            // int dY = INT_ARG(6);
-            // int dX = INT_ARG(7);
-            // const bool isSameMode = INT_ARG(8) != 0;
-            // bool isNCHW = true;
-            // if (block.getIArguments()->size() > 9)
-            //     isNCHW = INT_ARG(9) == 0;
-
-            // NDArray<T>* epsilon = OUTPUT_VARIABLE(0);
-            // NDArray<T>* gradW = OUTPUT_VARIABLE(1);
-            // NDArray<T>* gradB = nullptr;
-
-            // if (bias != nullptr)
-            //     gradB = OUTPUT_VARIABLE(2);
-
-            // // epsilon for deconv2d is FF conv pass
-
-            // nd4j::ops::conv2d<T> op;
-            // Nd4jStatus r1 = op.execute({epsilonNext, weights}, {epsilon}, {}, {kY, kX, sY, sX, pY, pX, dY, dX, INT_ARG(8), 0});
-            // if (r1 != ND4J_STATUS_OK)
-            //     return r1;
-
-            // int oY = 0;
-            // int oX = 0;
-            // int inY = epsilonNext->sizeAt(2);
-            // int inX = epsilonNext->sizeAt(3);
-
-            // ConvolutionUtils<T>::calcOutSizePool2D(oY, oX, kY, kX, sY, sX, pY, pX, dY, dX, inY, inX, isSameMode);
-
-            // if (isSameMode) {
-            //     ConvolutionUtils<T>::_calcPadding2D(pY, pX, oY, oX, inY, inX, kY, kX, sY, sX, dY, dX);
-            // }
-
-            // std::vector<T> extrasIm2Col({(T) kY, (T) kX, (T) sY, (T) sX, (T) pY, (T) pX, (T) dY, (T) dX, isSameMode ? (T) 1.0f : (T) 0.0f, 0.0});
-            // auto columns = new NDArray<T>('c', {input->sizeAt(0), weights->sizeAt(1), kY, kX, oY, oX });
-            // epsilonNext->template applyTransform<simdOps::Im2col<T>>(columns, extrasIm2Col.data());
-
-            // auto gW = NDArrayFactory<T>::tensorDot(input, columns, {0, 2, 3}, {0, 4, 5});
-            // gradW->assign(gW);
-
-            // delete gW;
-            // delete columns;
-
-            // if (gradB != nullptr) {
-            //     auto sum = epsilonNext->template reduceAlongDimension<simdOps::Sum<T>>({0, 2, 3});
-            //     gradB->assign(sum);
-            //     delete sum;
-
-            //     STORE_3_RESULTS(*epsilon, *gradW, *gradB);
-            // } else {
-            //     STORE_2_RESULTS(*epsilon, *gradW);
-            // }
-
-            // return ND4J_STATUS_OK;
-
-
-
-
-
 
             NDArray<T> *input   = INPUT_VARIABLE(0);                                                // [bS, iH, iW, iC] (NDHWC) or [bS, iC, iH, iW] (NCDHW)
             NDArray<T> *weights = INPUT_VARIABLE(1);                                                // [kH, kW, oC, iC] (NDHWC) or [iC, oC, kH, kW] (NCDHW)
@@ -250,7 +164,7 @@ namespace nd4j {
 
             // ----- calculation of gradI -> pass it through conv2d_ff ----- //
             nd4j::ops::conv2d<T> conv2d;
-            const Nd4jStatus status = conv2d.execute({gradO, weights}, {gradI}, {}, {kH,kW,  sH,sW,  pH,pW,  dH,dW,  isSameMode,  !isNCHW});             
+            const Nd4jStatus status = conv2d.execute({gradO, weights}, {gradI}, {}, {kH,kW,  sH,sW,  pH,pW,  dH,dW,  isSameMode,  !isNCHW});
             if (status != ND4J_STATUS_OK)
                 return status;
 
