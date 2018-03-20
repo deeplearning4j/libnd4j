@@ -1808,14 +1808,28 @@ TEST_F(ConvolutionTests, conv3d_test8) {
     
     nd4j::ops::conv3dnew<float> op;
     ResultSet<float>* results = op.execute({&input, &weights}, {}, {kD,kH,kW,  sD,sH,sW,  pD,pH,pW,  dD,dH,dW, paddingMode, dataFormat});
-    NDArray<float>* output = results->at(0);    
 
     ASSERT_EQ(Status::OK(), results->status());
+
+    NDArray<float>* output = results->at(0);
     ASSERT_TRUE(expected.isSameShape(output));
     ASSERT_TRUE(expected.equalsTo(output));    
     
     delete results;
 }
+
+
+TEST_F(ConvolutionTests, conv3d_test9) {
+    NDArray<float> x('c', {4, 2, 28, 28, 3});
+    NDArray<float> y('c', {2, 5, 5, 3, 4});
+
+    nd4j::ops::conv3dnew<float> op;
+    auto result = op.execute({&x, &y}, {}, {2,5,5, 5,4,3, 0,0,0, 1,1,1, 0,0});
+    ASSERT_EQ(Status::OK(), result->status());
+
+    delete result;
+}
+
 #endif //LIBND4J_CONVOLUTIONTESTS_H
 
 
