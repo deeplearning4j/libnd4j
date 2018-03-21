@@ -12,7 +12,7 @@
 #include <types/float16.h>
 #include <helpers/ShapeUtils.h>
 #include <helpers/BlasHelper.h>
-#include <cblas.h>
+//#include <cblas.h>
 
 namespace nd4j {
 
@@ -440,8 +440,8 @@ namespace nd4j {
         char rOrder;
 
         int M, N, K, lda, ldb, ldc;
-        char transA = CblasTrans, 
-             transB = CblasNoTrans;
+        CBLAS_TRANSPOSE transA = CblasNoTrans, 
+                        transB = CblasNoTrans;
 
         M = cShape[0];
         N = cShape[1];
@@ -470,7 +470,6 @@ namespace nd4j {
 
         if (needAllocB) {
             tB = new nd4j::NDArray<T>(B->getBuffer(), B->getShapeInfo(), B->getWorkspace());
-//            nd4j_printf("Matrix B was recreated from view.\n", "");
         }
         else 
             tB = B; 
@@ -479,12 +478,13 @@ namespace nd4j {
         char bOrder = tB->ordering();
         char cOrder = tC->ordering();
 
-        if (cOrder != 'f') {
+        if (cOrder != rOrder) {
             pC = tC->dup('f');
         } else {
             pC = tC;
         }
 
+// the lines in gemm.cpp for reference
 //        bool transAFlag = TransA != CblasTrans;
 //        bool transBFlag = TransB == CblasTrans;
 
@@ -497,9 +497,9 @@ namespace nd4j {
         if (BlasHelper::getInstance()->template hasGEMM<T>()) {
             nd4j_debug("Using provided GEMM pointer\n","");
             if (sizeof(T) == 4)
-                BlasHelper::getInstance()->sgemm()(CblasColMajor, CblasNoTrans, CblasNoTrans, M, N, K, (float) alpha, (float *) pA->getBuffer(), lda, (float *) pB->getBuffer(), ldb, (float) beta, (float *) pC->getBuffer(), ldc);
+                BlasHelper::getInstance()->sgemm()(CblasColMajor, transA, transB, M, N, K, (float) alpha, (float *) pA->getBuffer(), lda, (float *) pB->getBuffer(), ldb, (float) beta, (float *) pC->getBuffer(), ldc);
             else if (sizeof(T) == 8)
-                BlasHelper::getInstance()->dgemm()(CblasColMajor, CblasNoTrans, CblasNoTrans, M, N, K, (double) alpha, (double *) pA->getBuffer(), lda, (double *) pB->getBuffer(), ldb, (double) beta, (double *) pC->getBuffer(), ldc);
+                BlasHelper::getInstance()->dgemm()(CblasColMajor, transA, transB, M, N, K, (double) alpha, (double *) pA->getBuffer(), lda, (double *) pB->getBuffer(), ldb, (double) beta, (double *) pC->getBuffer(), ldc);
             else
                 nd4j::blas::GEMM<T>::op(rOrder, transA, transB, M, N, K, alpha, pA->getBuffer(), lda, pB->getBuffer(), ldb, beta, pC->getBuffer(), ldc);
         } else {
@@ -507,9 +507,9 @@ namespace nd4j {
            
             nd4j::blas::GEMM<T>::op(rOrder, transA, transB, M, N, K, alpha, pA->getBuffer(), lda, pB->getBuffer(), ldb, beta, pC->getBuffer(), ldc);
         }
+
         if (tC != pC) {
-//                nd4j_printf("mmulHelperMxM: C matrix is assigned, but it should be avoided.\n", "");
-                tC->assign(pC);
+            tC->assign(pC);
         }
 
         if (tA != pA)
