@@ -181,6 +181,123 @@ DECLARE_SHAPE_FN(sconv2d) {
 }
 
 
+
+// CUSTOM_OP_IMPL(sconv2d_bp, 3, 2, false, 0, 9) {
+
+//     NDArray<T> *input        = INPUT_VARIABLE(0);                                           // [bS, iH, iW, iC]  (NHWC) or [bS, iC, iH, iW]  (NCHW)
+//     NDArray<T> *gradO        = INPUT_VARIABLE(1);                                           // [bS, oH, oW, oC] (NHWC) or [bS, oC, oH, oW] (NCHW), epsilon_next
+//     NDArray<T> *weightsDepth = INPUT_VARIABLE(2);                                           // [kH, kW, iC, mC]  (NHWC) or [mC, iC, kH, kW]  (NCHW)
+//     NDArray<T> *weightsPoint = nullptr;                                                     // [1, 1, iC*mC, pC] (NHWC) or [pC, iC*mC, 1, 1] (NCHW)
+//     NDArray<T> *bias         = nullptr;                                                     // [oC], oC = iC*mC if weightsPoint=nullptr else oC = pC    
+    
+//     NDArray<T> *gradI = OUTPUT_VARIABLE(0);                                                 // [bS, iH, iW, iC] (NHWC) or [bS, iC, iH, iW] (NCHW), epsilon
+//     NDArray<T> *gradW = OUTPUT_VARIABLE(1);                                                 // [kH, kW, iC, oC] (NHWC) or [oC, iC, kH, kW] (NCHW)
+//     NDArray<T> *gradB = block.width() > 3 ? OUTPUT_VARIABLE(2) : nullptr;                   // [oC]
+
+//     if(block.width() == 3) {
+//         if((INPUT_VARIABLE(2))->rankOf() == 4)
+//             weightsPoint = INPUT_VARIABLE(2);
+//         else
+//             bias = INPUT_VARIABLE(2);
+//     }
+//     else if(block.width() == 4) {
+//         weightsPoint = INPUT_VARIABLE(2);
+//         bias = INPUT_VARIABLE(3);
+//     }
+
+//     REQUIRE_TRUE(input->rankOf()   == 4, 0, "CUSTOM SCONV2D OP: rank of input array must be equal to 4 !");
+//     REQUIRE_TRUE(weightsDepth->rankOf() == 4, 0, "CUSTOM SCONV2D OP: rank of weightsDepth array must be equal to 4 !");
+//     if(weightsPoint)
+//         REQUIRE_TRUE(weightsPoint->rankOf() == 4, 0, "CUSTOM SCONV2D OP: rank of weightsPoint array must be equal to 4 !");
+//     if(bias)
+//         REQUIRE_TRUE(bias->rankOf() == 1 || bias->rankOf() == 2, 0, "CUSTOM SCONV2D OP: rank of biases array must be equal to 1 or 2 !");           
+
+//     int kH = INT_ARG(0);                                                        // filter(kernel) height
+//     int kW = INT_ARG(1);                                                        // filter(kernel) width
+//     int sH = INT_ARG(2);                                                        // strides height
+//     int sW = INT_ARG(3);                                                        // strides width
+//     int pH = INT_ARG(4);                                                        // paddings height
+//     int pW = INT_ARG(5);                                                        // paddings width
+//     int dH = INT_ARG(6);                                                        // dilations height
+//     int dW = INT_ARG(7);                                                        // dilations width
+//     int isSameMode = INT_ARG(8);                                                // 0-VALID, 1-SAME
+//     int isNCHW     = block.getIArguments()->size() > 9 ? !INT_ARG(9) : 1;       // 0-NCHW,  1-NHWC
+    
+//     int bS, iC, iH, iW, mC, oC, oH, oW;                     // batch size, input channels, input height/width, channels multiplier(oC = iC*mC), output channels, output height/width
+//     int indIOioC, indIiH, indWmC, indWiC, indWkH, indOoH;   // corresponding indexes
+//     ConvolutionUtils<T>::getSizesAndIndexesConv2d(isNCHW, *input, *output, bS, iC, iH, iW, oC, oH, oW, indIOioC, indIiH, indWiC, indWmC, indWkH, indOoH);    
+//     mC = weightsDepth->sizeAt(indWmC);                      // channels multiplier
+
+//     REQUIRE_TRUE(weightsDepth->sizeAt(indWiC) == iC && weightsDepth->sizeAt(indWkH) == kH && weightsDepth->sizeAt(indWkH+1) == kW, 0, "CUSTOM SCONV2D OP: wrong shape of weightsDepth array !");
+//     if(weightsPoint)
+//         REQUIRE_TRUE(weightsPoint->sizeAt(indWmC) == oC && weightsPoint->sizeAt(indWiC) == iC*mC && weightsPoint->sizeAt(indWkH) == 1 && weightsPoint->sizeAt(indWkH+1) == 1, 0, "CUSTOM SCONV2D OP: wrong shape of weightsPoint array !");    
+//     if (bias)        
+//         REQUIRE_TRUE(oC == bias->lengthOf(), 0, "CUSTOM SCONV2D OP: length of bias array must be equal to outChannels, but got %i instead", bias->lengthOf());        
+  
+//     if (iC == 1) {
+//         nd4j_debug("CUSTOM SCONV2D OP: for input_channels=1 this op is equivalent to standard conv2d\n","");
+//         nd4j::ops::conv2d<T> c2d;
+//         return c2d.execute(&block);
+//     }
+    
+//     Nd4jStatus status;
+
+//     // ----- perform depthwise convolution (oC = iC*mC) ----- //
+//     if (!weightsPoint) {        // weightsPoint == nullptr
+        
+//         nd4j::ops::depthwise_conv2d<T> op;
+//         status = op.execute({input, weightsDepth, bias}, {output}, {}, {kH,kW, sH,sW, pH,pW, dH,dW, isSameMode, !isNCHW});                                   
+//     }
+    
+//     // ----- perform pointwise convolution (oC = pC) ----- //
+//     else {             
+
+//         std::vector<std::vector<int>> modifColumns = {{1,0,4,5,2,3}, {iC,bS*oH*oW,kH*kW}};  // [bS,iC,kH,kW,oH,oW] -> [iC,bS,oH,oW,kH,kW] -> [iC,bS*oH*oW,kH*kW]
+//         std::vector<std::vector<int>> modifWeights;
+//         std::vector<int> reshapeForinputConv2d, permutForInputConv2d;
+
+//         if(!isNCHW) {                
+//             input = input->permute({0, 3, 1, 2});                                           // [bS,iH,iW,iC]    -> [bS,iC,iH,iW] 
+//             permutForInputConv2d  = {1, 2, 0, 3};                                           // [iC, bS, oH*oW, mC] -> [bS, oH*oW, iC, mC]
+//             reshapeForinputConv2d = {bS, oH, oW, iC*mC};
+//             modifWeights = {{2,0,1,3},{iC,kH*kW,mC}};                                       // [kH,kW,iC,mC]    -> [iC,kH,kW,mC]    -> [iC,kH*kW,mC]
+//         }
+//         else {
+//             permutForInputConv2d  = {1, 0, 3, 2};                                           // [iC, bS, oH*oW, mC] -> [bS, iC, mC, oH*oW]
+//             reshapeForinputConv2d = {bS, iC*mC, oH, oW};        
+//             modifWeights = {{1,2,3,0},{iC,kH*kW,mC}};                                       // [mC,iC,kH,kW]    -> [iC,kH,kW,mC]    -> [iC,kH*kW,mC]           
+//         }
+
+//         if(isSameMode)                       // SAME        
+//             ConvolutionUtils<T>::_calcPadding2D(pH, pW, oH, oW, iH, iW, kH, kW, sH, sW, dH, dW);
+
+//         NDArray<T> columns(input->ordering(), {bS, iC, kH, kW, oH, oW}, block.getWorkspace());
+//         std::vector<T> extrasIm2Col({(T) kH, (T) kW, (T) sH, (T) sW, (T) pH, (T) pW, (T) dH, (T) dW});
+//         input->template applyTransform<simdOps::Im2col<T>>(&columns, extrasIm2Col.data());                            // [bS, iC, iH, iW] is convoluted to [bS, iC, kH, kW, oH, oW]    
+                    
+//         NDArray<T>* inputConv2d = NDArrayFactory<T>::tensorDot(&columns, weightsDepth, modifColumns, modifWeights);   // [iC, bS*oH*oW, kW*kH] x [iC, kH*kW, mC] = [iC, bS*oH*oW, mC]
+//         inputConv2d->reshapei(input->ordering(), {iC, bS, oH*oW, mC});      // [iC, bS*oH*oW, mC] -> [iC, bS, oH*oW, mC]
+//         inputConv2d->permutei(permutForInputConv2d);                        // [iC, bS, oH*oW, mC] -> [bS, oH*oW, iC, mC] / [bS, iC, mC, oH*oW]
+//         inputConv2d->reshapei(reshapeForinputConv2d);                       // [bS, oH*oW, iC, mC] / [bS, iC, mC, oH*oW]  -> [bS, oH, oW, iC*mC] / [bS, iC*mC, oH, oW]
+        
+//         // perform usual conv2d using inputConv2d as input and weightsPoint as weights
+//         nd4j::ops::conv2d<T> op;
+//         status = op.execute({inputConv2d, weightsPoint, bias}, {output}, {}, {1,1, 1,1, 0,0, 1,1, isSameMode, !isNCHW});
+
+//         delete inputConv2d;
+//         if(!isNCHW)
+//             delete input;        
+//     }
+  
+//     if (status != ND4J_STATUS_OK)
+//         return status;
+    
+    
+//     return Status::OK();
+// }
+
+
+
         //////////////////////////////////////////////////////////////////////////
         CUSTOM_OP_IMPL(sconv2d_bp, 4, 2, false, 0, 9) {
             NDArray<T> *input = INPUT_VARIABLE(0);
