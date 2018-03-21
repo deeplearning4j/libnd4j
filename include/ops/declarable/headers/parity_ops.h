@@ -94,6 +94,17 @@ namespace nd4j {
         DECLARE_CUSTOM_OP(diag_part, 1, 1, false, 0, 0);
 
         /**
+         * Returns a diagonal vector for any submatricies with in a given tensor. 
+         * It is an op inverse to matrix_set_giag.
+         * Using input tensor as batched 2D diagonals flat them to vector (1D) with diagonal values.
+         *
+         * Input : batched tensor with rank >=2
+         * Output: tensor with rank lesser by 1 from input 
+         */
+        DECLARE_CUSTOM_OP(matrix_diag_part, 1, 1, false, 0, 0);
+
+
+        /**
          * This operation takes 2 arrays: original values, and values to be excluded. And returns 2 arrays: values left after exclusion, and indices in original array for surivals.
          * Expected arguments:
          * 0: vector with original values
