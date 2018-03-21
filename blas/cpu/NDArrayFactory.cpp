@@ -485,12 +485,24 @@ namespace nd4j {
         }
 
 // the lines in gemm.cpp for reference
-//        bool transAFlag = TransA != CblasTrans;
+//        bool transAFlag = TransA == CblasTrans;
 //        bool transBFlag = TransB == CblasTrans;
+        transA = (aOrder == 'c'?CblasNoTrans:CblasTrans);
+        transB = (bOrder == 'c'?CblasTrans:CblasNoTrans);
 
-        pB = tB->dup('f');
-        pA = tA->dup('c');
-
+        if (tB->ews() == -1) {
+            pB = tB->dup('f');
+            transB = CblasNoTrans;
+        }
+        else 
+            pB = tB; //->dup('f');
+        if (tA->ews() == -1) {
+            pA = tA->dup('c');
+            transA = CblasNoTrans;
+        }
+        else 
+            pA = tA; //->dup('c');
+        
 
         // we'll use platform-specific gemm here eventually. maybe tomorrow.
         // TODO: put proper _gemm here
