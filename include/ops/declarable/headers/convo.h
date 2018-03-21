@@ -53,7 +53,7 @@ namespace nd4j {
          * bias: optional, vector
          */
         DECLARE_CUSTOM_OP(sconv2d, 2, 1, false, 0, 9);
-        DECLARE_CUSTOM_OP(sconv2d_bp, 4, 2, false, 0, 9);
+        DECLARE_CUSTOM_OP(sconv2d_bp, 3, 2, false, 0, 9);
 
         /**
          * 2D deconvolution implementation
