@@ -153,7 +153,7 @@ namespace nd4j {
             ConvolutionUtils<T>::getSizesAndIndexesConv2d(isNCHW, *input, *gradO, bS, iC, iH, iW, oC, oH, oW, indIOioC, indIiH, indWoC, indWiC, indWkH, indOoH);
 
             int trueoH, trueoW;          // true output height, width
-            ConvolutionUtils<T>::calcOutSizeDeconv2D(trueoH, trueoH, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);
+            ConvolutionUtils<T>::calcOutSizePool2D(trueoH, trueoW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);
 
             REQUIRE_TRUE(gradO->sizeAt(0)==bS   && gradO->sizeAt(indOoH)==trueoH && gradO->sizeAt(indOoH+1)==trueoW && gradO->sizeAt(indIOioC)==oC, 0,  "CUSTOM DECONV2D_BP OP: wrong shape of gradient_output (next epsilon) array !");
             REQUIRE_TRUE(weights->sizeAt(indWoC)==oC && weights->sizeAt(indWiC)==iC && weights->sizeAt(indWkH)==kH && weights->sizeAt(indWkH+1)==kW, 0, "CUSTOM DECONV2D_BP OP: wrong shape of weights array !");
