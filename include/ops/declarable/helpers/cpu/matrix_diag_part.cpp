@@ -29,9 +29,8 @@ int matrixDiagPart(const NDArray<T>* input, NDArray<T>* output) {
 #pragma omp parallel for if(listOut->size() > Environment::getInstance()->elementwiseThreshold()) schedule(static)
     // condition is hold: listOut->size() == listDiag->size()
     for(int i = 0; i < listOut->size(); ++i)       
-//        for(int j = 0; j < listDiag->size(); ++j)
-            for (int e = 0; e < lastDimension; e++)
-                (*listOut->at(i))(e) = (*listDiag->at(i))(e, e);            
+        for(int j = 0; j < lastDimension; ++j)
+            (*listOut->at(i))(j) = (*listDiag->at(i))(j, j);            
     
     delete listOut;
     delete listDiag;

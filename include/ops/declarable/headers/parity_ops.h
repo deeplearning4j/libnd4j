@@ -56,6 +56,11 @@ namespace nd4j {
         DECLARE_CONFIGURABLE_OP(matrix_set_diag, 2, 1, false, 0, 0);
 
         /**
+         * Returns a batched matrix tensor with diagonal values given (as TF.matrix_diag).
+         */
+        DECLARE_CUSTOM_OP(matrix_diag, 1, 1, false, 0, 0);
+
+        /**
         * This op calculates regularized incomplete beta integral Ix(a, b).
         * Implementation is based on two algorithms depending on input values of a and b:
         * - when a and b are both >  maxValue (3000.), then apply Gauss-Legendre quadrature method
