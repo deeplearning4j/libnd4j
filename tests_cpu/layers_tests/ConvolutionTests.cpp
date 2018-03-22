@@ -561,7 +561,7 @@ TEST_F(ConvolutionTests, sconv2D_BP_pointwise_1) {
 
     ASSERT_TRUE(_gradWD->isSameShape(&expGWD));
     ASSERT_TRUE(_gradWD->isSameShape(&weightsD));
-
+_gradWD->printIndexedBuffer();
     ASSERT_TRUE(_gradWD->equalsTo(&expGWD));
 
     ASSERT_TRUE(_epsilon->isSameShape(&input));
