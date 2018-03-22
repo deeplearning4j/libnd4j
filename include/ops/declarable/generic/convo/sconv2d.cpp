@@ -268,7 +268,7 @@ CUSTOM_OP_IMPL(sconv2d_bp, 3, 2, false, 0, 9) {
     //     return op.execute(&block);
     // }
         
-    // if weightsPoint != nullptr then perform point-wise backprop first, at the same time calculating gradWP    
+    // if weightsPoint != nullptr then perform point-wise backprop first, then calculate gradWP    
     if (weightsPoint){           
         nd4j::ops::sconv2d<T> opFF;
         ResultSet<T>* resultFF = opFF.execute({input, weightsDepth}, {}, {kH,kW, sH,sW, pH,pW, dH,dW, isSameMode, !isNCHW});
@@ -286,49 +286,45 @@ CUSTOM_OP_IMPL(sconv2d_bp, 3, 2, false, 0, 9) {
     }
     
     // -----prepare permutation arrays and axes for dot product ----- //
-    std::vector<std::vector<int>> modifColumns = {{1,2,3,0,4,5}, {iC,kW*kH,bS*oH*oW}};  // [bS,iC,kH,kW,oH,oW] -> [iC,kH,kW,bS,oH,oW] -> [iC,kW*kH,bS*oH*oW]
-    std::vector<std::vector<int>> modifGradO1, modifGradO2, modifWeights;
-    std::vector<int> reshapeArrForGradO;         
+    std::vector<std::vector<int>> modifColumns1 = {{1,0,4,5,2,3}, {iC, bS*oH*oW, kH*kW}};    // [bS,iC,kH,kW,oH,oW] -> [iC,bS,oH,oW,kH,kW] -> [iC,bS*oH*oW,kH*kW]
+    std::vector<std::vector<int>> modifColumns2 = {{1,2,3,0,4,5}, {iC, kW*kH, bS*oH*oW}};    // [bS,iC,kH,kW,oH,oW] -> [iC,kH,kW,bS,oH,oW] -> [iC,kW*kH,bS*oH*oW]
+    std::vector<std::vector<int>> modifGradO, modifWeights, modifGradWD;
     
     if(!isNCHW) {                
-        input = input->permute({0, 3, 1, 2});                                           // [bS, iH, iW, iC] -> [bS, iC, iH, iW] 
-        gradI = gradI->permute({0, 3, 1, 2});                                           // [bS, iH, iW, iC] -> [bS, iC, iH, iW]                                
-        reshapeArrForGradO = {bS, oH, oW, iC, mC};                                      // [bS,oH,oW,iC*mC] -> [bS,oH,oW,iC,mC]
-        modifGradO1 = {{3,0,1,2,4},{iC, bS*oH*oW, mC}};                                 // [bS,oH,oW,iC,mC] -> [iC,bS,oH,oW,mC] -> [iC,bS*oH*oW,mC]
-        modifGradO2 = {{3,4,0,1,2},{iC, mC, bS*oH*oW}};                                 // [bS,oH,oW,iC,mC] -> [iC,mC,bS,oH,oW] -> [iC,mC,bS*oH*oW]
-        modifWeights = {{2,0,1,3},{iC,kH*kW,mC}};                                       // [kH,kW,iC,mC]    -> [iC,kH,kW,mC]    -> [iC,kH*kW,mC]
+        input = input->permute({0, 3, 1, 2});                                           // [bS, iH, iW, iC]    -> [bS, iC, iH, iW] 
+        gradI = gradI->permute({0, 3, 1, 2});                                           // [bS, iH, iW, iC]    -> [bS, iC, iH, iW]                                
+        
+        modifGradO = {{bS,oH,oW,iC,mC},{bS*oH*oW, iC, mC},{1, 2, 0}};                   // [bS, oH, oW, iC*mC] -> [bS, oH, oW, iC, mC]-> [bS*oH*oW, iC, mC] -> [iC, mC, bS*oH*oW]
+        modifWeights = {{kH*kW, iC, mC}, {1,0,2}};                                      // [kH, kW, iC, mC]    -> [kH*kW, iC, mC]  -> [iC, kH*kW, mC]
+        modifGradWD  = {{kH*kW, iC, mC}, {1,2,0}};                                      // [kH, kW, iC, mC]    -> [kH*kW, iC, mC]  -> [iC, mC, kH, kW]
     }
     else {
-        reshapeArrForGradO = {bS, iC, mC, oH, oW};                                      // [bS,iC*mC,oH,oW] -> [bS,iC,mC,oH,oW]
-        modifGradO1 = {{1,0,3,4,2},{iC, bS*oH*oW, mC}};                                 // [bS,iC,mC,oH,oW] -> [iC,bS,oH,oW,mC] -> [iC,bS*oH*oW,mC]
-        modifGradO2 = {{1,2,0,3,4},{iC, mC, bS*oH*oW}};                                 // [bS,iC,mC,oH,oW] -> [iC,mC,bS,oH,oW] -> [iC,mC,bS*oH*oW]
-        modifWeights = {{2,0,1,3},{iC,kH*kW,mC}};                                       // [kH,kW,iC,mC]    -> [iC,kH,kW,mC]    -> [iC,kH*kW,mC]
+        modifGradO = {{bS,iC,mC,oH,oW},{1,2,0,3,4},{iC, mC, bS*oH*oW}};                 // [bS, iC*mC, oH, oW] -> [bS, iC, mC, oH, oW] -> [iC, mC, bS, oH, oW] -> [iC, mC, bS*oH*oW]
+        modifWeights = {{mC, iC, kH*kW}, {1,2,0}};                                      // [mC, iC, kH, kW]    -> [mC, iC, kH*kW]      -> [iC, kH*kW, mC]
+        modifGradWD  = {{mC, iC, kH*kW}, {1,0,2}};                                      // [mC, iC, kH, kW]    -> [mC, iC, kH*kW]      -> [iC, mC, kH, kW]
     }
 
     NDArray<T> columns(input->ordering(), {bS, iC, kH, kW, oH, oW}, block.getWorkspace());
     std::vector<T> extrasIm2Col({(T) kH, (T) kW, (T) sH, (T) sW, (T) pH, (T) pW, (T) dH, (T) dW});
-    input->template applyTransform<simdOps::Im2col<T>>(&columns, extrasIm2Col.data());                              // [bS, iC, iH, iW] is convoluted to [bS, iC, kH, kW, oH, oW]    
+    input->template applyTransform<simdOps::Im2col<T>>(&columns, extrasIm2Col.data());                     // [bS, iC, iH, iW] is convoluted to [bS, iC, kH, kW, oH, oW]    
 
     // ----- calculation of gradWD ----- //
-    NDArray<T>* gradOReshaped = gradO->reshape(gradO->ordering(), reshapeArrForGradO);
-    nd4j::NDArrayFactory<T>::tensorDot(&columns, gradOReshaped, gradWD, modifColumns, modifGradO1, modifWeights);    // [iC, kW*kH, bS*oH*oW] x [iC, bS*oH*oW, mC] =  [iC, kH*kW, mC]
+    nd4j::NDArrayFactory<T>::tensorDot(gradO, &columns, gradWD, modifGradO, modifColumns1, modifGradWD);   // [iC, mC, bS*oH*oW]  x  [iC, bS*oH*oW, kH*kW] = [iC, mC, kH*kW]   
   
     // ----- calculate gradB if required  ----- //
     if(gradB && !weightsPoint) {        
         if(gradB->rankOf() == 2) 
             gradB = gradB->reshape(gradB->ordering(), {(int)gradB->lengthOf()});
-        gradO->template reduceAlongDimension<simdOps::Sum<T>>(gradB, {0,indOoH,indOoH+1});                           // sum over bS, oH, oW
+        gradO->template reduceAlongDimension<simdOps::Sum<T>>(gradB, {0,indOoH,indOoH+1});                       // sum over bS, oH, oW
         if(gradB != OUTPUT_VARIABLE(2)) 
             delete gradB;
     }
 
-    //----- calculation of gradI -----//
-    nd4j::NDArrayFactory<T>::tensorDot(weightsDepth, gradOReshaped, &columns, modifWeights, modifGradO2, modifColumns);  // [iC, kH*kW, mC] x [iC, mC, bS*oH*oW] = [iC, kW*kH, bS*oH*oW]    
+    //----- calculation of gradI -----//    
+    nd4j::NDArrayFactory<T>::tensorDot(weightsDepth, gradO, &columns, modifWeights, modifGradO, modifColumns2);   // [iC, kH*kW, mC] x [iC, mC, bS*oH*oW] = [iC, kW*kH, bS*oH*oW]        
     std::vector<T> extrasCol2Im({(T) sH, (T) sW, (T) pH, (T) pW, (T) iH, (T) iW, (T) dH, (T) dW});
-    columns.template applyTransform<simdOps::Col2Im<T>>(gradI, extrasCol2Im.data());                                     // [bS, iC, kH, kW, oH, oW] is de-convoluted to [bS, iC, iH, iW]            
+    columns.template applyTransform<simdOps::Col2Im<T>>(gradI, extrasCol2Im.data());                              // [bS, iC, kH, kW, oH, oW] is de-convoluted to [bS, iC, iH, iW]
     
-    delete gradOReshaped;
-
     if(!isNCHW) {
         delete input;
         delete gradI;

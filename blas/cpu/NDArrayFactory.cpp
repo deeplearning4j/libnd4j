@@ -221,76 +221,42 @@ namespace nd4j {
     void nd4j::NDArrayFactory<T>::tensorDot(const nd4j::NDArray<T>* a, const nd4j::NDArray<T>* b, nd4j::NDArray<T>* c, const std::vector<std::vector<int>>& modifA, const std::vector<std::vector<int>>& modifB, const std::vector<std::vector<int>>& modifC) {
 
         NDArray<T> *aPR(const_cast<NDArray<T>*>(a)), *bPR(const_cast<NDArray<T>*>(b)), *cP(c), *cPR(c);
-        std::string whatToDoWithA, whatToDoWithB, whatToDoWithC;         // "" - nothing; "p" - permutation only; "r" - reshaping only; "pr" - permutation+reshaping; "rp" - reshaping/permutation; another string - throw exception
+        std::string whatToDoWithA, whatToDoWithB, whatToDoWithC;         // "" - nothing; "p" - permutation; "r" - reshaping; "pr" - permutation+reshaping; "rp" - reshaping/permutation, and so on; if another string is produced - throw exception
 
-        if(!modifA.empty()) {
-            if(!modifA[0].empty())
-                whatToDoWithA = (modifA[0].size() == a->rankOf()) ? whatToDoWithA + "p0" : whatToDoWithA + "r0";
-            if(!modifA[1].empty())
-                whatToDoWithA = (modifA[1].size() == a->rankOf()) ? whatToDoWithA + "p1" : whatToDoWithA + "r1";
-        }
+        for(const auto& arr : modifA) 
+            whatToDoWithA = (std::find(arr.begin(), arr.end(), 0) != arr.end()) ? whatToDoWithA + "p" : whatToDoWithA + "r";        // when 0 is present in arr then it is permutation array, otherwise - it is reshaping array            
 
-        if(!modifB.empty()) {
-            if(!modifB[0].empty())
-                whatToDoWithB = (modifB[0].size() == b->rankOf()) ? whatToDoWithB + "p0" : whatToDoWithB + "r0";
-            if(!modifB[1].empty())
-                whatToDoWithB = (modifB[1].size() == b->rankOf()) ? whatToDoWithB + "p1" : whatToDoWithB + "r1";
-        }
+        for(const auto& arr : modifB) 
+            whatToDoWithB = (std::find(arr.begin(), arr.end(), 0) != arr.end()) ? whatToDoWithB + "p" : whatToDoWithB + "r";    
 
-        if(!modifC.empty()) {
-            if(!modifC[0].empty())
-                whatToDoWithC = (modifC[0].size() == c->rankOf()) ? whatToDoWithC + "p0" : whatToDoWithC + "r0";
-            if(!modifC[1].empty())
-                whatToDoWithC = (modifC[1].size() == c->rankOf()) ? whatToDoWithC + "p1" : whatToDoWithC + "r1";
-        }
-        
-        // work with a input array 
-        if(whatToDoWithA == "p0") 
-            aPR = a->permute(modifA[0]);
-        else if(whatToDoWithA == "r0")
-            aPR = a->reshape(a->ordering(), modifA[0]);
-        else if(whatToDoWithA == "p0r1") {
-            aPR = a->permute(modifA[0]);
-            aPR->reshapei(aPR->ordering(), modifA[1]);
-        }
-        else if(whatToDoWithA == "r0p1") {
-            aPR = a->reshape(a->ordering(), modifA[0]);
-            aPR->permutei(modifA[1]);
-        }
-        else if(whatToDoWithA != "")
-            throw "NDArrayFactory::tensorDot static function: wrong input array for modification of A array !";
+        for(const auto& arr : modifC) 
+            whatToDoWithC = (std::find(arr.begin(), arr.end(), 0) != arr.end()) ? whatToDoWithC + "p" : whatToDoWithC + "r";    
 
-        // work with b input array 
-        if(whatToDoWithB == "p0") 
-            bPR = b->permute(modifB[0]);
-        else if(whatToDoWithB == "r0")
-            bPR = b->reshape(b->ordering(), modifB[0]);
-        else if(whatToDoWithB == "p0r1") {
-            bPR = b->permute(modifB[0]);
-            bPR->reshapei(bPR->ordering(), modifB[1]);
-        }
-        else if(whatToDoWithB == "r0p1") {
-            bPR = b->reshape(b->ordering(), modifB[0]);
-            bPR->permutei(modifB[1]);
-        }
-        else if(whatToDoWithB != "")
-            throw "NDArrayFactory::tensorDot static function: wrong input array for modification of B array !";
 
-        // work with c output array 
-        if(whatToDoWithC == "p0") 
-            cP = c->permute(modifC[0]);
-        else if(whatToDoWithC == "r0")
-            cPR = c->reshape(c->ordering(), modifC[0]);
-        else if(whatToDoWithC == "p0r1") {
-            cP = c->permute(modifC[0]);
-            cPR = cP->reshape(cP->ordering(), modifC[1]);
-        }
-        else if(whatToDoWithC == "r0p1") {
-            cP  = c->reshape(c->ordering(), modifC[0]);
-            cPR = cP->permute(modifC[1]);
-        }
-        else if(whatToDoWithC != "")
-            throw "NDArrayFactory::tensorDot static function: wrong input array for modification of C array !";
+        // first step for a array
+        if(!whatToDoWithA.empty())
+            aPR = (whatToDoWithA[0] == 'p') ? a->permute(modifA[0]) : a->reshape(a->ordering(), modifA[0]);
+        // first step for b array
+        if(!whatToDoWithB.empty())
+            bPR = (whatToDoWithB[0] == 'p') ? b->permute(modifB[0]) : b->reshape(b->ordering(), modifB[0]);
+        // first step for c array
+        if(!whatToDoWithC.empty())
+            cP  = (whatToDoWithC[0] == 'p') ? c->permute(modifC[0]) : c->reshape(c->ordering(), modifC[0]);
+        // second step for c array
+        if(whatToDoWithC.size() > 1)
+            cPR = (whatToDoWithC[1] == 'p') ? cP->permute(modifC[1]) : cP->reshape(c->ordering(), modifC[1]);
+
+
+        // rest steps for a array
+        for(int i = 1; i < whatToDoWithA.size(); ++i)
+            if(whatToDoWithA[i] == 'p') aPR->permutei(modifA[i]); else aPR->reshapei(modifA[i]);
+        // rest steps for b array
+        for(int i = 1; i < whatToDoWithB.size(); ++i)
+            if(whatToDoWithB[i] == 'p') bPR->permutei(modifB[i]); else bPR->reshapei(modifB[i]);
+        // rest steps for c array
+        for(int i = 2; i < whatToDoWithC.size(); ++i)
+            if(whatToDoWithC[i] == 'p') cPR->permutei(modifC[i]); else cPR->reshapei(modifC[i]);
+                
                 
         nd4j::NDArrayFactory<T>::mmulHelper(aPR, bPR, cPR, 1.0, 0.0);
 
@@ -314,52 +280,25 @@ namespace nd4j {
         NDArray<T> *aPR(const_cast<NDArray<T>*>(a)), *bPR(const_cast<NDArray<T>*>(b));
         std::string whatToDoWithA, whatToDoWithB;         // "" - nothing; "p" - permutation only; "r" - reshaping only; "pr" - permutation+reshaping; "rp" - reshaping/permutation; another string - throw exception
 
-        if(!modifA.empty()) {
-            if(!modifA[0].empty())
-                whatToDoWithA = (modifA[0].size() == a->rankOf()) ? whatToDoWithA + "p0" : whatToDoWithA + "r0";
-            if(!modifA[1].empty())
-                whatToDoWithA = (modifA[1].size() == a->rankOf()) ? whatToDoWithA + "p1" : whatToDoWithA + "r1";
-        }
+        for(const auto& arr : modifA) 
+            whatToDoWithA = (std::find(arr.begin(), arr.end(), 0) != arr.end()) ? whatToDoWithA + "p" : whatToDoWithA + "r";        // when 0 is present in arr then it is permutation array, otherwise - it is reshaping array            
 
-        if(!modifB.empty()) {
-            if(!modifB[0].empty())
-                whatToDoWithB = (modifB[0].size() == b->rankOf()) ? whatToDoWithB + "p0" : whatToDoWithB + "r0";
-            if(!modifB[1].empty())
-                whatToDoWithB = (modifB[1].size() == b->rankOf()) ? whatToDoWithB + "p1" : whatToDoWithB + "r1";
-        }
-        
-        // work with a input array 
-        if(whatToDoWithA == "p0") 
-            aPR = a->permute(modifA[0]);
-        else if(whatToDoWithA == "r0")
-            aPR = a->reshape(a->ordering(), modifA[0]);
-        else if(whatToDoWithA == "p0r1") {
-            aPR = a->permute(modifA[0]);
-            aPR->reshapei(aPR->ordering(), modifA[1]);
-        }
-        else if(whatToDoWithA == "r0p1") {
-            aPR = a->reshape(a->ordering(), modifA[0]);
-            aPR->permutei(modifA[1]);
-        }
-        else if(whatToDoWithA != "")
-            throw "NDArrayFactory::tensorDot static function: wrong input array for modification of A array !";
+        for(const auto& arr : modifB) 
+            whatToDoWithB = (std::find(arr.begin(), arr.end(), 0) != arr.end()) ? whatToDoWithB + "p" : whatToDoWithB + "r";    
 
-        // work with b input array 
-        if(whatToDoWithB == "p0") 
-            bPR = b->permute(modifB[0]);
-        else if(whatToDoWithB == "r0")
-            bPR = b->reshape(b->ordering(), modifB[0]);
-        else if(whatToDoWithB == "p0r1") {
-            bPR = b->permute(modifB[0]);
-            bPR->reshapei(bPR->ordering(), modifB[1]);
-        }
-        else if(whatToDoWithB == "r0p1") {
-            bPR = b->reshape(b->ordering(), modifB[0]);
-            bPR->permutei(modifB[1]);
-        }
-        else if(whatToDoWithB != "")
-            throw "NDArrayFactory::tensorDot static function: wrong input array for modification of B array !";
+        // first step for a array
+        if(!whatToDoWithA.empty())
+            aPR = (whatToDoWithA[0] == 'p') ? a->permute(modifA[0]) : a->reshape(a->ordering(), modifA[0]);
+        // first step for b array
+        if(!whatToDoWithB.empty())
+            bPR = (whatToDoWithB[0] == 'p') ? b->permute(modifB[0]) : b->reshape(b->ordering(), modifB[0]);
 
+        // rest steps for a array
+        for(int i = 1; i < whatToDoWithA.size(); ++i)
+            if(whatToDoWithA[i] == 'p') aPR->permutei(modifA[i]); else aPR->reshapei(modifA[i]);
+        // rest steps for b array
+        for(int i = 1; i < whatToDoWithB.size(); ++i)
+            if(whatToDoWithB[i] == 'p') bPR->permutei(modifB[i]); else bPR->reshapei(modifB[i]);
                 
         NDArray<T>* result = nd4j::NDArrayFactory<T>::mmulHelper(aPR, bPR, nullptr, 1.0, 0.0);
         
