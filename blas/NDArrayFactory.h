@@ -11,8 +11,19 @@
 namespace nd4j {
     template<typename T>
     class NDArrayFactory {
-    public:
 
+    private:
+        // helpers for helper 
+        // multiptication N-dimensions tensor on other N-dimensions one
+        static nd4j::NDArray<T>* mmulHelperNxN(nd4j::NDArray<T>* A, nd4j::NDArray<T>* B, nd4j::NDArray<T>* C, T alpha, T beta);
+        // multiptication Matrix to vector
+        static nd4j::NDArray<T>* mmulHelperMxV(nd4j::NDArray<T>* A, nd4j::NDArray<T>* B, nd4j::NDArray<T>* C, T alpha, T beta);
+        // multiptication Matrix to Matrix
+        static nd4j::NDArray<T>* mmulHelperMxM(nd4j::NDArray<T>* A, nd4j::NDArray<T>* B, nd4j::NDArray<T>* C, T alpha, T beta);
+
+
+
+    public:
         static NDArray<T>* createUninitialized(NDArray<T>* other);
 
         static ResultSet<T>* multipleTensorsAlongDimension(NDArray<T>* ndArray, std::vector<int> &indices, std::vector<int> &dimensions);
@@ -42,7 +53,7 @@ namespace nd4j {
         static void tensorDot(const nd4j::NDArray<T>* a, const nd4j::NDArray<T>* b, nd4j::NDArray<T>* c, const std::vector<std::vector<int>>& modifA, const std::vector<std::vector<int>>& modifB, const std::vector<std::vector<int>>& modifC);
         static nd4j::NDArray<T>* tensorDot(const nd4j::NDArray<T>* a, const nd4j::NDArray<T>* b, const std::vector<std::vector<int>>& modifA, const std::vector<std::vector<int>>& modifB);
 #endif
-        
+
         static NDArray<T>* linspace(T from, T to, Nd4jIndex numElements);
         
         static void linspace(T from, NDArray<T>& arr, T step = 1.0f);
@@ -55,7 +66,6 @@ namespace nd4j {
         static NDArray<T>* concat(const std::vector<NDArray<T> *>& vectors, int axis = 0, NDArray<T>* target = nullptr);
 
         static NDArray<T>* simpleMMul(const nd4j::NDArray<T>* a, const nd4j::NDArray<T>* b, nd4j::NDArray<T>* c , const T alpha, const T beta);
-
     };
 }
 
