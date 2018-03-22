@@ -243,7 +243,7 @@ namespace nd4j {
         if(!whatToDoWithC.empty())
             cP  = (whatToDoWithC[0] == 'p') ? c->permute(modifC[0]) : c->reshape(c->ordering(), modifC[0]);
         // second step for c array
-        if(whatToDoWithC.size() > 1)
+        if(whatToDoWithC.size() > 1)        // second step is required because there may be allocation of new c-buffer due to permutation+reshaping operations, we have to remember/store last modified array with original c-buffer
             cPR = (whatToDoWithC[1] == 'p') ? cP->permute(modifC[1]) : cP->reshape(c->ordering(), modifC[1]);
 
 

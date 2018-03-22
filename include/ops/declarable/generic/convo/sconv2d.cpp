@@ -65,60 +65,26 @@ CUSTOM_OP_IMPL(sconv2d, 2, 1, false, 0, 9) {
         return c2d.execute(&block);
     }
     
-    Nd4jStatus status;
 
-    // ----- perform depthwise convolution (oC = iC*mC) ----- //
-    if (!weightsPoint) {        // weightsPoint == nullptr
-        
-        nd4j::ops::depthwise_conv2d<T> op;
-        status = op.execute({input, weightsDepth, bias}, {output}, {}, {kH,kW, sH,sW, pH,pW, dH,dW, isSameMode, !isNCHW});                                   
-    }
-    
-    // ----- perform pointwise convolution (oH = iH, oW = iW) ----- //
-    else {             
+    NDArray<T>* outputDepth = output;
+    if(weightsPoint)                        // if pointwise convolution is expected
+        outputDepth = new NDArray<T>(output->ordering(), !isNCHW ? std::vector<int>({bS, oH, oW, iC*mC}) : std::vector<int>({bS, iC*mC, oH, oW}));    
 
-        std::vector<std::vector<int>> modifColumns = {{1,0,4,5,2,3}, {iC,bS*oH*oW,kH*kW}};  // [bS,iC,kH,kW,oH,oW] -> [iC,bS,oH,oW,kH,kW] -> [iC,bS*oH*oW,kH*kW]
-        std::vector<std::vector<int>> modifWeights;
-        std::vector<int> reshapeForinputConv2d, permutForInputConv2d;
-
-        if(!isNCHW) {                
-            input = input->permute({0, 3, 1, 2});                                           // [bS,iH,iW,iC]    -> [bS,iC,iH,iW] 
-            permutForInputConv2d  = {1, 2, 0, 3};                                           // [iC, bS, oH*oW, mC] -> [bS, oH*oW, iC, mC]
-            reshapeForinputConv2d = {bS, oH, oW, iC*mC};
-            modifWeights = {{2,0,1,3},{iC,kH*kW,mC}};                                       // [kH,kW,iC,mC]    -> [iC,kH,kW,mC]    -> [iC,kH*kW,mC]
-        }
-        else {
-            permutForInputConv2d  = {1, 0, 3, 2};                                           // [iC, bS, oH*oW, mC] -> [bS, iC, mC, oH*oW]
-            reshapeForinputConv2d = {bS, iC*mC, oH, oW};        
-            modifWeights = {{1,2,3,0},{iC,kH*kW,mC}};                                       // [mC,iC,kH,kW]    -> [iC,kH,kW,mC]    -> [iC,kH*kW,mC]           
-        }
-
-        // if(isSameMode)                       // SAME        
-        //     ConvolutionUtils<T>::_calcPadding2D(pH, pW, oH, oW, iH, iW, kH, kW, sH, sW, dH, dW);
-
-        NDArray<T> columns(input->ordering(), {bS, iC, kH, kW, oH, oW}, block.getWorkspace());
-        std::vector<T> extrasIm2Col({(T) kH, (T) kW, (T) sH, (T) sW, (T) pH, (T) pW, (T) dH, (T) dW});
-        input->template applyTransform<simdOps::Im2col<T>>(&columns, extrasIm2Col.data());                            // [bS, iC, iH, iW] is convoluted to [bS, iC, kH, kW, oH, oW]    
-                    
-        NDArray<T>* inputConv2d = NDArrayFactory<T>::tensorDot(&columns, weightsDepth, modifColumns, modifWeights);   // [iC, bS*oH*oW, kW*kH] x [iC, kH*kW, mC] = [iC, bS*oH*oW, mC]
-        inputConv2d->reshapei(input->ordering(), {iC, bS, oH*oW, mC});      // [iC, bS*oH*oW, mC] -> [iC, bS, oH*oW, mC]
-        inputConv2d->permutei(permutForInputConv2d);                        // [iC, bS, oH*oW, mC] -> [bS, oH*oW, iC, mC] / [bS, iC, mC, oH*oW]
-        inputConv2d->reshapei(reshapeForinputConv2d);                       // [bS, oH*oW, iC, mC] / [bS, iC, mC, oH*oW]  -> [bS, oH, oW, iC*mC] / [bS, iC*mC, oH, oW]
-        
-        // perform usual conv2d using inputConv2d as input and weightsPoint as weights
-        nd4j::ops::conv2d<T> op;
-        status = op.execute({inputConv2d, weightsPoint, bias}, {output}, {}, {1,1, 1,1, 0,0, 1,1, isSameMode, !isNCHW});
-
-        delete inputConv2d;
-        if(!isNCHW)
-            delete input;        
-    }
-  
-    if (status != ND4J_STATUS_OK)
+    // ----- perform depthwise convolution (if weightsPoint is absent then oC = iC*mC) ----- //
+    nd4j::ops::depthwise_conv2d<T> op;
+    Nd4jStatus status = op.execute({input, weightsDepth, weightsPoint ? nullptr : bias}, {outputDepth}, {}, {kH,kW, sH,sW, pH,pW, dH,dW, isSameMode, !isNCHW});                                   
+    if (status != ND4J_STATUS_OK) 
         return status;
     
+    // ----- perform pointwise convolution (oH = iH, oW = iW) ----- //
+    if (weightsPoint) {
+
+        nd4j::ops::conv2d<T> op;        
+        status = op.execute({outputDepth, weightsPoint, bias}, {output}, {}, {1,1, 1,1, 0,0, 1,1, isSameMode, !isNCHW});  // in this case oH=iH, oW=iW
+        delete outputDepth;
+    }
     
-    return Status::OK();
+    return status;
 }
 
 
@@ -268,72 +234,35 @@ CUSTOM_OP_IMPL(sconv2d_bp, 3, 2, false, 0, 9) {
     //     return op.execute(&block);
     // }
         
-    // if weightsPoint != nullptr then perform point-wise backprop first, then calculate gradWP    
+    // ----- if weightsPoint is present, perform pointwise backprop first and calculate gradWP at this step ----- //
     if (weightsPoint){           
+
         nd4j::ops::sconv2d<T> opFF;
         ResultSet<T>* resultFF = opFF.execute({input, weightsDepth}, {}, {kH,kW, sH,sW, pH,pW, dH,dW, isSameMode, !isNCHW});
-        NDArray<T>* depthInput = resultFF->at(0);          // [bS, oH, oW, mC]  (NHWC) or [bS, mC, oH, oW] (NCHW)
+        NDArray<T>* inputPoint = resultFF->at(0);          // [bS, oH, oW, mC]  (NHWC) or [bS, mC, oH, oW] (NCHW)
 
         std::initializer_list<int> gradIDepthShape = !isNCHW ? std::initializer_list<int>({bS, oH, oW, iC*mC}) : std::initializer_list<int>({bS, iC*mC, oH, oW});
         NDArray<T>* gradIDepth = new NDArray<T>(gradIDepthShape, block.getWorkspace());             // [bS, oH, oW, iC*mC]  (NHWC) or [bS, iC*mC, oH, oW] (NCHW)
 
         nd4j::ops::conv2d_bp<T> opBP;
-        opBP.execute({depthInput, weightsPoint, bias, gradO}, {gradIDepth, gradWP, gradB}, {}, {1,1, 1,1, 0,0, 1,1, isSameMode, !isNCHW});      // in this case oH=iH and oW=iW
+        opBP.execute({inputPoint, weightsPoint, bias, gradO}, {gradIDepth, gradWP, gradB}, {}, {1,1, 1,1, 0,0, 1,1, isSameMode, !isNCHW});      // in this case oH=iH and oW=iW
     
         gradO = gradIDepth;
 
+        bias = gradB = nullptr;                     // if pointwise backprop was done then don't calculate gradB at depthwise_conv2d_bp step
+
         delete resultFF;
-    }
-    
-    // -----prepare permutation arrays and axes for dot product ----- //
-    std::vector<std::vector<int>> modifColumns1 = {{1,0,4,5,2,3}, {iC, bS*oH*oW, kH*kW}};    // [bS,iC,kH,kW,oH,oW] -> [iC,bS,oH,oW,kH,kW] -> [iC,bS*oH*oW,kH*kW]
-    std::vector<std::vector<int>> modifColumns2 = {{1,2,3,0,4,5}, {iC, kW*kH, bS*oH*oW}};    // [bS,iC,kH,kW,oH,oW] -> [iC,kH,kW,bS,oH,oW] -> [iC,kW*kH,bS*oH*oW]
-    std::vector<std::vector<int>> modifGradO, modifWeights, modifGradWD;
-    
-    if(!isNCHW) {                
-        input = input->permute({0, 3, 1, 2});                                           // [bS, iH, iW, iC]    -> [bS, iC, iH, iW] 
-        gradI = gradI->permute({0, 3, 1, 2});                                           // [bS, iH, iW, iC]    -> [bS, iC, iH, iW]                                
-        
-        modifGradO = {{bS,oH,oW,iC,mC},{bS*oH*oW, iC, mC},{1, 2, 0}};                   // [bS, oH, oW, iC*mC] -> [bS, oH, oW, iC, mC]-> [bS*oH*oW, iC, mC] -> [iC, mC, bS*oH*oW]
-        modifWeights = {{kH*kW, iC, mC}, {1,0,2}};                                      // [kH, kW, iC, mC]    -> [kH*kW, iC, mC]  -> [iC, kH*kW, mC]
-        modifGradWD  = {{kH*kW, iC, mC}, {1,2,0}};                                      // [kH, kW, iC, mC]    -> [kH*kW, iC, mC]  -> [iC, mC, kH, kW]
-    }
-    else {
-        modifGradO = {{bS,iC,mC,oH,oW},{1,2,0,3,4},{iC, mC, bS*oH*oW}};                 // [bS, iC*mC, oH, oW] -> [bS, iC, mC, oH, oW] -> [iC, mC, bS, oH, oW] -> [iC, mC, bS*oH*oW]
-        modifWeights = {{mC, iC, kH*kW}, {1,2,0}};                                      // [mC, iC, kH, kW]    -> [mC, iC, kH*kW]      -> [iC, kH*kW, mC]
-        modifGradWD  = {{mC, iC, kH*kW}, {1,0,2}};                                      // [mC, iC, kH, kW]    -> [mC, iC, kH*kW]      -> [iC, mC, kH, kW]
-    }
+    }    
 
-    NDArray<T> columns(input->ordering(), {bS, iC, kH, kW, oH, oW}, block.getWorkspace());
-    std::vector<T> extrasIm2Col({(T) kH, (T) kW, (T) sH, (T) sW, (T) pH, (T) pW, (T) dH, (T) dW});
-    input->template applyTransform<simdOps::Im2col<T>>(&columns, extrasIm2Col.data());                     // [bS, iC, iH, iW] is convoluted to [bS, iC, kH, kW, oH, oW]    
+    // ----- apply depthwise_conv2d_bp ----- //
+    nd4j::ops::depthwise_conv2d_bp<T> op;
+    Nd4jStatus status = op.execute({input, weightsDepth, bias, gradO}, {gradI, gradWD, gradB}, {}, {kH,kW, sH,sW, pH,pW, dH,dW, isSameMode, !isNCHW});                                   
 
-    // ----- calculation of gradWD ----- //
-    nd4j::NDArrayFactory<T>::tensorDot(gradO, &columns, gradWD, modifGradO, modifColumns1, modifGradWD);   // [iC, mC, bS*oH*oW]  x  [iC, bS*oH*oW, kH*kW] = [iC, mC, kH*kW]   
-  
-    // ----- calculate gradB if required  ----- //
-    if(gradB && !weightsPoint) {        
-        if(gradB->rankOf() == 2) 
-            gradB = gradB->reshape(gradB->ordering(), {(int)gradB->lengthOf()});
-        gradO->template reduceAlongDimension<simdOps::Sum<T>>(gradB, {0,indOoH,indOoH+1});                       // sum over bS, oH, oW
-        if(gradB != OUTPUT_VARIABLE(2)) 
-            delete gradB;
-    }
-
-    //----- calculation of gradI -----//    
-    nd4j::NDArrayFactory<T>::tensorDot(weightsDepth, gradO, &columns, modifWeights, modifGradO, modifColumns2);   // [iC, kH*kW, mC] x [iC, mC, bS*oH*oW] = [iC, kW*kH, bS*oH*oW]        
-    std::vector<T> extrasCol2Im({(T) sH, (T) sW, (T) pH, (T) pW, (T) iH, (T) iW, (T) dH, (T) dW});
-    columns.template applyTransform<simdOps::Col2Im<T>>(gradI, extrasCol2Im.data());                              // [bS, iC, kH, kW, oH, oW] is de-convoluted to [bS, iC, iH, iW]
-    
-    if(!isNCHW) {
-        delete input;
-        delete gradI;
-    }
     if(weightsPoint)
         delete gradO;
     
-    return Status::OK();
-    
+    return status;
+
 }
 
 

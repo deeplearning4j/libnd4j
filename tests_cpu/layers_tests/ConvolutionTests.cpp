@@ -1747,4 +1747,44 @@ TEST_F(ConvolutionTests, pointwise_conv2d_test1) {
     delete results;
 }
 
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(ConvolutionTests, sconv2d_bp_test1) {
+
+    int bS=2, iH=4,iW=3,  iC=2,mC=2,  kH=3,kW=2,  sH=1,sW=1,  pH=0,pW=0,  dH=1,dW=1;    
+    int       oH=4,oW=3;
+    int       oC=iC*mC;
+    int paddingMode = 1;             // 1-SAME, 0-VALID;
+    int dataFormat  = 1;             // 1-NHWC, 0-NCHW    
+
+    NDArray<double> input   ('c', {bS, iH, iW, iC});
+    NDArray<double> weightsDepth ('c', {kH, kW, iC, mC});
+    NDArray<double> bias    ('c', {oC}, {1,2,3,4});
+    NDArray<double> gradO   ('c', {bS, oH, oW, oC});
+    
+    NDArray<double> expGradI('c', {bS, iH, iW, iC},{0.07 ,  0.19 , 0.348,  0.652, 0.588,  0.956, 0.387,  0.687, 1.326,  2.022, 1.878,  2.67 , 1.071,  1.515, 2.982,  3.966, 3.534,  4.614, 1.606,  1.982, 3.932,  4.748, 4.428,  5.308,
+                                                    1.126,  1.63 , 3.228,  4.3  , 3.468,  4.604, 3.123,  3.999, 7.95 ,  9.798, 8.502, 10.446, 3.807,  4.827, 9.606, 11.742,10.158, 12.39 , 4.198,  4.958, 9.884, 11.468,10.38 , 12.028});
+    
+    NDArray<double> expGradW('c', {kH, kW, iC, mC},{19.08, 19.44,19.8 , 20.16,12.24, 12.48,12.72, 12.96,22.56, 23.04,23.52, 24. ,14.4 , 14.72,15.04, 15.36,14.76, 15.12,15.48, 15.84, 9.36,  9.6 , 9.84, 10.08});
+
+    input = 2.;
+    NDArrayFactory<double>::linspace(0.1, weightsDepth, 0.1);
+    NDArrayFactory<double>::linspace(0.01, gradO, 0.01);    
+
+    nd4j::ops::sconv2d_bp<double> op;
+    ResultSet<double>* results = op.execute({&input, &gradO, &weightsDepth, &bias}, {}, {kH,kW,  sH,sW,  pH,pW,  dH,dW, paddingMode, dataFormat});
+    NDArray<double>* gradI = results->at(0);
+    NDArray<double>* gradWD = results->at(1);
+
+    ASSERT_EQ(Status::OK(), results->status());    
+
+    ASSERT_TRUE(expGradI.isSameShape(gradI));
+    ASSERT_TRUE(expGradI.equalsTo(gradI));    
+
+    ASSERT_TRUE(expGradW.isSameShape(gradWD));
+    ASSERT_TRUE(expGradW.equalsTo(gradWD));    
+    
+    delete results;
+}
+
 #endif //LIBND4J_CONVOLUTIONTESTS_H

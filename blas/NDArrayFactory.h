@@ -37,9 +37,7 @@ namespace nd4j {
 
 #ifndef __JAVACPP_HACK__
         /**
-        *  modif    - vector, if it is not empty then it should contain exactly 2 vectors with integers 
-        *  modif[0] - permutation or reshape vector (depends on vector size), if it is empty then no permutation/reshaping is applied
-        *  modif[1] - permutation or reshape vector, if it is empty then no permutation/reshaping is applied
+        *  modif - (can be empty) vector containing a subsequence of permutation/reshaping arrays (in any order), user must take care of correctness of such arrays by himself 
         */
         static void tensorDot(const nd4j::NDArray<T>* a, const nd4j::NDArray<T>* b, nd4j::NDArray<T>* c, const std::vector<std::vector<int>>& modifA, const std::vector<std::vector<int>>& modifB, const std::vector<std::vector<int>>& modifC);
         static nd4j::NDArray<T>* tensorDot(const nd4j::NDArray<T>* a, const nd4j::NDArray<T>* b, const std::vector<std::vector<int>>& modifA, const std::vector<std::vector<int>>& modifB);
