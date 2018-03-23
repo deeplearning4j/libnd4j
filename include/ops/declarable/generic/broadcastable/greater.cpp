@@ -2,26 +2,24 @@
 // @author raver119@gmail.com
 //
 
+#include <ops/declarable/generic/helpers/BroadcastHelper.h>
 #include <ops/declarable/headers/broadcastable.h>
 
 namespace nd4j {
     namespace ops {
         CUSTOM_OP_IMPL(greater, 2, 1, true, 0, 0) {
-            auto x = INPUT_VARIABLE(0);
-            auto y = INPUT_VARIABLE(1);
-            auto z = OUTPUT_VARIABLE(0);
+            NDArray<T> *x = INPUT_VARIABLE(0);
+            NDArray<T> *y = INPUT_VARIABLE(1);
+            NDArray<T> *z = OUTPUT_VARIABLE(0);
 
-            REQUIRE_TRUE(x->isSameShape(y) || (x->isScalar() && y->isScalar()) || (x->isVector() && y->isVector()), 0, "Both inputs should have equal shape");
+            auto tZ = BroadcastHelper<T>::template broadcast_apply<simdOps::GreaterThan<T>>(x, y, z);
+            if (tZ == nullptr)
+                return ND4J_STATUS_KERNEL_FAILURE;
+            else if (tZ != z) {
+                OVERWRITE_RESULT(tZ);
+            }
 
-            auto lambda = LAMBDA_TT(_x, _y) {
-                return _x > _y ? (T) 1.0f : (T) 0.0f;
-            };
-
-            x->applyPairwiseLambda(y, lambda, z);
-
-            STORE_RESULT(z);
-
-            return ND4J_STATUS_OK;
+            return Status::OK();
         }
 
         DECLARE_SHAPE_FN(greater) {
