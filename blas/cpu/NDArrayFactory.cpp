@@ -256,13 +256,13 @@ namespace nd4j {
         // rest steps for c array
         for(int i = 2; i < whatToDoWithC.size(); ++i)
             if(whatToDoWithC[i] == 'p') cPR->permutei(modifC[i]); else cPR->reshapei(modifC[i]);
-                
-                
+
+
         nd4j::NDArrayFactory<T>::mmulHelper(aPR, bPR, cPR, 1.0, 0.0);
 
         if(cPR->getBuffer() != cP->getBuffer())             // this means both permutation and reshaping have been performed on c. Note: cP always points on c->getBuffer()
-            cP->assign(cPR);                        
-        
+            cP->assign(cPR);
+
         if(cPR != c)
             delete cPR;
         if(aPR != a)
