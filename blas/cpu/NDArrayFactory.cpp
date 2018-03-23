@@ -510,16 +510,6 @@ namespace nd4j {
         if (BlasHelper::getInstance()->template hasGEMM<T>()) {
             nd4j_debug("Using provided GEMM pointer\n","");
 
-            if (transA == CblasTrans)
-                lda = K;
-            else
-                lda = M;
-
-            if (transB == CblasTrans)
-                ldb = N;
-            else
-                ldb = K;
-
             if (sizeof(T) == 4)
                 BlasHelper::getInstance()->sgemm()(CblasColMajor, transA, transB, M, N, K, (float) alpha, (float *) pA->getBuffer(), lda, (float *) pB->getBuffer(), ldb, (float) beta, (float *) pC->getBuffer(), ldc);
             else if (sizeof(T) == 8)
