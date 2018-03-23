@@ -549,3 +549,19 @@ TEST_F(DeclarableOpsTests7, Test_Dynamic_Stitch_119_1) {
     delete result;
 }
 
+
+TEST_F(DeclarableOpsTests7, Test_Dynamic_Partition_119) {
+    NDArray<float> x('c', {5, 4, 11});
+    NDArray<float> y('c', {5, 4}, {0,1,2,3, 1,0,2,3, 2,3,1,0, 2,1,0,3, 0,1,2,3});
+    NDArray<float> e('c', {5, 11});
+
+    nd4j::ops::dynamic_partition<float> op;
+    auto result = op.execute({&x, &y}, {}, {4});
+    ASSERT_EQ(Status::OK(), result->status());
+    ASSERT_EQ(4, result->size());
+    auto z = result->at(0);
+
+    ASSERT_TRUE(e.isSameShape(z));
+
+    delete result;
+}

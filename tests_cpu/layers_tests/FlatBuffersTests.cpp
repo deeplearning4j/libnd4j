@@ -610,6 +610,19 @@ TEST_F(FlatBuffersTest, transpose) {
     delete graph;
 }
 
+TEST_F(FlatBuffersTest, Test_Stitches) {
+    nd4j::ops::realdiv<float> op0;
+
+
+    auto graph = GraphExecutioner<float>::importFromFlatBuffers("./resources/partition_stitch_misc.fb");
+    graph->printOut();
+
+    auto result = GraphExecutioner<float>::execute(graph);
+    ASSERT_EQ(ND4J_STATUS_OK, result);
+
+    delete graph;
+}
+
 
 /*
 // FIXME: uncomment this test once conv_0 fb reexported
