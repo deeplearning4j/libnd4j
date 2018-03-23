@@ -1,6 +1,5 @@
 //
-//  @author raver119@gmail.com
-//  modified by GS <sgazeos@gmail.com> 3/23/2018
+//  @author @shugeo
 //
 
 #include <ops/declarable/CustomOperations.h>
@@ -25,20 +24,20 @@ namespace ops {
                     int pos = (*index)(i);
                     REQUIRE_TRUE(pos >= 0, 0, "dynamic_stitch: Index value should be non-negative."
                         " But %i was given", pos);
-                    REQUIRE_TRUE(pos < output->lengthOf(), 0, 
-                        "dynamic_stitch: Index should be less than %i. But %i was given", 
+                    REQUIRE_TRUE(pos < output->lengthOf(), 0,
+                        "dynamic_stitch: Index should be less than %i. But %i was given",
                         output->lengthOf(), pos);
                     (*output)(pos) = (*data)(i);
-                } 
+                }
             }
         }
         else {
         std::vector<int> restDims(output->rankOf() - 1);
-        for (int i = restDims.size(); i > 0;  i--) 
+        for (int i = restDims.size(); i > 0;  i--)
             restDims[restDims.size() - i] = output->rankOf() - i;
 
         ResultSet<T>* listOfOutTensors = NDArrayFactory<T>::allTensorsAlongDimension(output, restDims);
-        
+
         for (int e = 0; e < numOfData; e++) {
             NDArray<T>* data = INPUT_VARIABLE(numOfData + e);
             NDArray<T>* index = INPUT_VARIABLE(e);
@@ -47,7 +46,7 @@ namespace ops {
                 sourceDims[sourceDims.size() - i] = data->rankOf() - i;
 
             ResultSet<T>* listOfTensors = NDArrayFactory<T>::allTensorsAlongDimension(data, sourceDims);
-            
+
             for (int i = 0; i < index->lengthOf(); i++) {
                 int pos = (*index)(i);
                 REQUIRE_TRUE(pos >= 0, 0, "dynamic_stitch: Index value should be non-negative."
@@ -80,7 +79,7 @@ namespace ops {
                     maxValue = static_cast<int>((*input)(e));
             }
         }
-        
+
         int *outShapeInfo;
         int outRank = shape::rank(restShape) - shape::rank(firstShape) + 1;
         ALLOCATE(outShapeInfo, block.getWorkspace(), shape::shapeInfoLength(outRank), int);
@@ -93,7 +92,7 @@ namespace ops {
         shape::updateStrides(outShapeInfo, shape::order(firstShape));
 
         //shape::shapeVector(maxValue + 1, newShape);
-        
+
         return SHAPELIST(outShapeInfo);
     }
 }
