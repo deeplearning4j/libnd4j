@@ -62,7 +62,7 @@ namespace nd4j {
             }
 
 
-#pragma omp parallel for proc_bind(spread)
+//#pragma omp parallel for proc_bind(spread)
             for (int r = 0; r < M; r++) {
                 int aIdx;
                 for (int c = 0; c < N; c++) {
@@ -74,8 +74,8 @@ namespace nd4j {
                         int bIdx; // = linearIndexF(K, N, 0, c);
 
                         for (int k = 0; k < K; k++) {
-                            aIdx = (transAFlag?linearIndexF(M, K, r, k):linearIndexC(M, K, r, k));
-                            bIdx = (transBFlag?linearIndexC(K, N, k, c):linearIndexF(K,N, k, c));
+                            aIdx = (transAFlag ? linearIndexC(M, K, r, k) : linearIndexF(M, K, r, k));
+                            bIdx = (transBFlag ? linearIndexC(K, N, k, c) : linearIndexF(K,N, k, c));
                             dot += alpha * A[aIdx] * B[bIdx];//A[aIdx]nd4j::math::nd4j_dot<T>(aX, bX, K) * alpha;
                         }
                     }
