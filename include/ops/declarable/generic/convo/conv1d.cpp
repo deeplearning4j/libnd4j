@@ -17,8 +17,8 @@ CUSTOM_OP_IMPL(conv1d, 2, 1, false, 0, 4) {
     NDArray<T> *bias    = block.width() > 2 ? INPUT_VARIABLE(2) : nullptr;      // [oC]
     NDArray<T> *output  = OUTPUT_VARIABLE(0);                                   // [bS, oW, oC] (NWC) or [bS, oC, oW] (NCW)
     
-    REQUIRE_TRUE(input->rankOf()   == 3, 0, "CUSTOM CONV1D OP: rank of input array must be equal to 3 !");
-    REQUIRE_TRUE(weights->rankOf() == 3, 0, "CUSTOM CONV1D OP: rank of weights array must be equal to 3 !");
+    REQUIRE_TRUE(input->rankOf()   == 3, 0, "CUSTOM CONV1D OP: rank of input array must be equal to 3, but got %i instead !", input->rankOf());
+    REQUIRE_TRUE(weights->rankOf() == 3, 0, "CUSTOM CONV1D OP: rank of weights array must be equal to 3, but got %i instead !", weights->rankOf());
                                          
     int kW = INT_ARG(0);                                                        // filter(kernel) width
     int sW = INT_ARG(1);                                                        // strides width
@@ -111,9 +111,9 @@ CUSTOM_OP_IMPL(conv1d_bp, 3, 2, false, 0, 4) {
     NDArray<T> *gradW = OUTPUT_VARIABLE(1);                                                 // [kW, iC, oC] (NWC) or [oC, iC, kW] (NCW)
     NDArray<T> *gradB = block.width() > 3 ? OUTPUT_VARIABLE(2) : nullptr;                   // [oC]
     
-    REQUIRE_TRUE(input->rankOf()   == 3, 0, "CUSTOM CONV1D_BP OP: rank of input array must be equal to 3 !");
-    REQUIRE_TRUE(weights->rankOf() == 3, 0, "CUSTOM CONV1D_BP OP: rank of weights array must be equal to 3 !");
-    REQUIRE_TRUE(gradO->rankOf()   == 3, 0, "CUSTOM CONV1D_BP OP: rank of gradO array must be equal to 3 !");
+    REQUIRE_TRUE(input->rankOf()   == 3, 0, "CUSTOM CONV1D_BP OP: rank of input array must be equal to 3, but got %i instead !", input->rankOf());
+    REQUIRE_TRUE(weights->rankOf() == 3, 0, "CUSTOM CONV1D_BP OP: rank of weights array must be equal to 3, but got %i instead !", weights->rankOf());
+    REQUIRE_TRUE(gradO->rankOf()   == 3, 0, "CUSTOM CONV1D_BP OP: rank of gradO array must be equal to 3, but got %i instead !", gradO->rankOf());
                                      
     int kW = INT_ARG(0);                                                        // filter(kernel) width
     int sW = INT_ARG(1);                                                        // strides width

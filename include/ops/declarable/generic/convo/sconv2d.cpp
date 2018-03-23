@@ -30,12 +30,12 @@ CUSTOM_OP_IMPL(sconv2d, 2, 1, false, 0, 9) {
         bias = INPUT_VARIABLE(3);
     }
 
-    REQUIRE_TRUE(input->rankOf()   == 4, 0, "CUSTOM SCONV2D OP: rank of input array must be equal to 4 !");
-    REQUIRE_TRUE(weightsDepth->rankOf() == 4, 0, "CUSTOM SCONV2D OP: rank of weightsDepth array must be equal to 4 !");
+    REQUIRE_TRUE(input->rankOf()   == 4, 0, "CUSTOM SCONV2D OP: rank of input array must be equal to 4, but got %i instead !", input->rankOf());
+    REQUIRE_TRUE(weightsDepth->rankOf() == 4, 0, "CUSTOM SCONV2D OP: rank of weightsDepth array must be equal to 4, but got %i instead !", weightsDepth->rankOf());
     if(weightsPoint)
-        REQUIRE_TRUE(weightsPoint->rankOf() == 4, 0, "CUSTOM SCONV2D OP: rank of weightsPoint array must be equal to 4 !");
+        REQUIRE_TRUE(weightsPoint->rankOf() == 4, 0, "CUSTOM SCONV2D OP: rank of weightsPoint array must be equal to 4, but got %i instead !", weightsPoint->rankOf());
     if(bias)
-        REQUIRE_TRUE(bias->rankOf() == 1 || bias->rankOf() == 2, 0, "CUSTOM SCONV2D OP: rank of biases array must be equal to 1 or 2 !");           
+        REQUIRE_TRUE(bias->rankOf() == 1 || bias->rankOf() == 2, 0, "CUSTOM SCONV2D OP: rank of biases array must be equal to 1 or 2, but got %i instead !", bias->rankOf());;           
 
     int kH = INT_ARG(0);                                                        // filter(kernel) height
     int kW = INT_ARG(1);                                                        // filter(kernel) width
@@ -53,9 +53,13 @@ CUSTOM_OP_IMPL(sconv2d, 2, 1, false, 0, 9) {
     ConvolutionUtils<T>::getSizesAndIndexesConv2d(isNCHW, *input, *output, bS, iC, iH, iW, oC, oH, oW, indIOioC, indIiH, indWiC, indWmC, indWkH, indOoH);    
     mC = weightsDepth->sizeAt(indWmC);                      // channels multiplier
 
-    REQUIRE_TRUE(weightsDepth->sizeAt(indWiC) == iC && weightsDepth->sizeAt(indWkH) == kH && weightsDepth->sizeAt(indWkH+1) == kW, 0, "CUSTOM SCONV2D OP: wrong shape of weightsDepth array !");
-    if(weightsPoint)
-        REQUIRE_TRUE(weightsPoint->sizeAt(indWmC) == oC && weightsPoint->sizeAt(indWiC) == iC*mC && weightsPoint->sizeAt(indWkH) == 1 && weightsPoint->sizeAt(indWkH+1) == 1, 0, "CUSTOM SCONV2D OP: wrong shape of weightsPoint array !");    
+
+    std::string expectedWeightsDShape = ShapeUtils<T>::shapeAsString(ShapeUtils<T>::composeShapeUsingDimsAndIdx({mC,iC,kH,kW,  indWmC,indWiC,indWkH,indWkH+1}));            
+    REQUIRE_TRUE(expectedWeightsDShape == ShapeUtils<T>::shapeAsString(*weightsDepth), 0, "CUSTOM SCONV2D OP: wrong shape of weightsDepth array, expected is %s, but got %s instead !", expectedWeightsDShape.c_str(), ShapeUtils<T>::shapeAsString(*weightsDepth).c_str());    
+    if(weightsPoint) {        
+        std::string expectedWeightsPShape = ShapeUtils<T>::shapeAsString(ShapeUtils<T>::composeShapeUsingDimsAndIdx({oC,iC*mC,1,1,  indWmC,indWiC,indWkH,indWkH+1}));            
+        REQUIRE_TRUE(expectedWeightsPShape == ShapeUtils<T>::shapeAsString(*weightsPoint), 0, "CUSTOM SCONV2D OP: wrong shape of weightsPoint array, expected is %s, but got %s instead !", expectedWeightsPShape.c_str(), ShapeUtils<T>::shapeAsString(*weightsPoint).c_str());            
+    }
     if (bias)        
         REQUIRE_TRUE(oC == bias->lengthOf(), 0, "CUSTOM SCONV2D OP: length of bias array must be equal to outChannels, but got %i instead", bias->lengthOf());        
   
@@ -179,16 +183,16 @@ CUSTOM_OP_IMPL(sconv2d_bp, 3, 2, false, 0, 9) {
     }
         
 
-    REQUIRE_TRUE(input->rankOf()   == 4, 0, "CUSTOM SCONV2D_BP OP: rank of input array must be equal to 4 !");
-    REQUIRE_TRUE(gradO->rankOf()   == 4, 0, "CUSTOM SCONV2D_BP OP: rank of gradI (epsilon_next) array must be equal to 4 !");
-    REQUIRE_TRUE(weightsDepth->rankOf() == 4, 0, "CUSTOM SCONV2D_BP OP: rank of weightsDepth array must be equal to 4 !");
+    REQUIRE_TRUE(input->rankOf()   == 4, 0, "CUSTOM SCONV2D_BP OP: rank of input array must be equal to 4, but got %i instead !", input->rankOf());
+    REQUIRE_TRUE(gradO->rankOf()   == 4, 0, "CUSTOM SCONV2D_BP OP: rank of gradI (epsilon_next) array must be equal to 4, but got %i instead !", gradO->rankOf());
+    REQUIRE_TRUE(weightsDepth->rankOf() == 4, 0, "CUSTOM SCONV2D_BP OP: rank of weightsDepth array must be equal to 4 !, but got %i instead !", weightsDepth->rankOf());
     if(weightsPoint) {
-        REQUIRE_TRUE(weightsPoint->rankOf() == 4, 0, "CUSTOM SCONV2D_BP OP: rank of weightsPoint array must be equal to 4 !");
-        REQUIRE_TRUE(gradWP->rankOf() == 4, 0, "CUSTOM SCONV2D_BP OP: rank of weightsPoint gradients array must be equal to 4 !");
+        REQUIRE_TRUE(weightsPoint->rankOf() == 4, 0, "CUSTOM SCONV2D_BP OP: rank of weightsPoint array must be equal to 4, but got %i instead !", weightsPoint->rankOf());
+        REQUIRE_TRUE(gradWP->rankOf() == 4, 0, "CUSTOM SCONV2D_BP OP: rank of weightsPoint gradients array must be equal to 4, but got %i instead !", gradWP->rankOf());
     }
     if(bias) {
-        REQUIRE_TRUE(bias->rankOf() == 1  || bias->rankOf()  == 2, 0, "CUSTOM SCONV2D_BP OP: rank of biases array must be equal to 1 or 2 !");           
-        REQUIRE_TRUE(gradB->rankOf() == 1 || gradB->rankOf() == 2, 0, "CUSTOM SCONV2D_BP OP: rank of gradients biases array must be equal to 1 or 2 !");           
+        REQUIRE_TRUE(bias->rankOf() == 1  || bias->rankOf()  == 2, 0, "CUSTOM SCONV2D_BP OP: rank of biases array must be equal to 1 or 2, but got %i instead !", bias->rankOf());;           
+        REQUIRE_TRUE(gradB->rankOf() == 1 || gradB->rankOf() == 2, 0, "CUSTOM SCONV2D_BP OP: rank of gradients biases array must be equal to 1 or 2, but got %i instead !", gradB->rankOf());;           
     }
 
     int kH = INT_ARG(0);                                                        // filter(kernel) height
@@ -207,21 +211,15 @@ CUSTOM_OP_IMPL(sconv2d_bp, 3, 2, false, 0, 9) {
     ConvolutionUtils<T>::getSizesAndIndexesConv2d(isNCHW, *input, *gradO, bS, iC, iH, iW, oC, oH, oW, indIOioC, indIiH, indWiC, indWmC, indWkH, indOoH);    
     mC = weightsDepth->sizeAt(indWmC);                      // channels multiplier
 
-    REQUIRE_TRUE(weightsDepth->sizeAt(indWiC) == iC && weightsDepth->sizeAt(indWkH) == kH && weightsDepth->sizeAt(indWkH+1) == kW, 0, 
-                "CUSTOM SCONV2D_BP OP: wrong shape of weightsDepth array! Should be [%i, %i, %i, %i], but got [%i, %i, %i, %i] instead !", 
-                !isNCHW?kH:mC, !isNCHW?kW:iC, !isNCHW?iC:kH, !isNCHW?mC:kW, weightsDepth->sizeAt(0), weightsDepth->sizeAt(1), weightsDepth->sizeAt(2), weightsDepth->sizeAt(3));
+    
 
-    REQUIRE_TRUE(gradWD->sizeAt(indWiC) == iC && gradWD->sizeAt(indWkH) == kH && gradWD->sizeAt(indWkH+1) == kW, 0, 
-                "CUSTOM SCONV2D_BP OP: wrong shape of gradients weightsDepth array! Should be [%i, %i, %i, %i], but got [%i, %i, %i, %i] instead !", 
-                !isNCHW?kH:mC, !isNCHW?kW:iC, !isNCHW?iC:kH, !isNCHW?mC:kW, gradWD->sizeAt(0), gradWD->sizeAt(1), gradWD->sizeAt(2), gradWD->sizeAt(3));
-
+    std::string expectedWeightsDShape = ShapeUtils<T>::shapeAsString(ShapeUtils<T>::composeShapeUsingDimsAndIdx({mC,iC,kH,kW,  indWmC,indWiC,indWkH,indWkH+1}));            
+    REQUIRE_TRUE(expectedWeightsDShape == ShapeUtils<T>::shapeAsString(*weightsDepth), 0, "CUSTOM SCONV2D_BP OP: wrong shape of weightsDepth array, expected is %s, but got %s instead !", expectedWeightsDShape.c_str(), ShapeUtils<T>::shapeAsString(*weightsDepth).c_str());    
+    REQUIRE_TRUE(expectedWeightsDShape == ShapeUtils<T>::shapeAsString(*gradWD),       0, "CUSTOM SCONV2D_BP OP: wrong shape of gradWD array, expected is %s, but got %s instead !", expectedWeightsDShape.c_str(), ShapeUtils<T>::shapeAsString(*gradWD).c_str());
     if(weightsPoint) {
-        REQUIRE_TRUE(weightsPoint->sizeAt(indWmC) == oC && weightsPoint->sizeAt(indWiC) == iC*mC && weightsPoint->sizeAt(indWkH) == 1 && weightsPoint->sizeAt(indWkH+1) == 1, 0,
-                    "CUSTOM SCONV2D_BP OP: wrong shape of weightsPoint array! Should be [%i, %i, %i, %i], but got [%i, %i, %i, %i] instead !", 
-                    !isNCHW?1:oC, !isNCHW?1:iC*mC, !isNCHW?iC*mC:1, !isNCHW?oC:1, weightsPoint->sizeAt(0), weightsPoint->sizeAt(1), weightsPoint->sizeAt(2), weightsPoint->sizeAt(3));
-        REQUIRE_TRUE(gradWP->sizeAt(indWmC) == oC && gradWP->sizeAt(indWiC) == iC*mC && gradWP->sizeAt(indWkH) == 1 && gradWP->sizeAt(indWkH+1) == 1, 0,
-                    "CUSTOM SCONV2D_BP OP: wrong shape of gradients weightsPoint array! Should be [%i, %i, %i, %i], but got [%i, %i, %i, %i] instead !", 
-                    !isNCHW?1:oC, !isNCHW?1:iC*mC, !isNCHW?iC*mC:1, !isNCHW?oC:1, gradWP->sizeAt(0), gradWP->sizeAt(1), gradWP->sizeAt(2), gradWP->sizeAt(3));         
+        std::string expectedWeightsPShape = ShapeUtils<T>::shapeAsString(ShapeUtils<T>::composeShapeUsingDimsAndIdx({oC,iC*mC,1,1,  indWmC,indWiC,indWkH,indWkH+1}));            
+        REQUIRE_TRUE(expectedWeightsPShape == ShapeUtils<T>::shapeAsString(*weightsPoint), 0, "CUSTOM SCONV2D_BP OP: wrong shape of weightsPoint array, expected is %s, but got %s instead !", expectedWeightsPShape.c_str(), ShapeUtils<T>::shapeAsString(*weightsPoint).c_str());
+        REQUIRE_TRUE(expectedWeightsPShape == ShapeUtils<T>::shapeAsString(*gradWP),       0, "CUSTOM SCONV2D_BP OP: wrong shape of gradWP array, expected is %s, but got %s instead !", expectedWeightsPShape.c_str(), ShapeUtils<T>::shapeAsString(*gradWP).c_str());
     }
     if (bias) {
         REQUIRE_TRUE(oC == bias->lengthOf(),  0, "CUSTOM SCONV2D_BP OP: length of bias array must be equal to outChannels, but got %i instead", bias->lengthOf());        
