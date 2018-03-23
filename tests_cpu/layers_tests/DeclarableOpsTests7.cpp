@@ -383,5 +383,50 @@ TEST_F(DeclarableOpsTests7, TestRandomCrop_2) {
     delete result;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests7, TestSegmentMax_1) {
+    NDArray<double> x({1.8, 2.5,  
+                        4.,  9., 2.1, 2.4,  
+                        3.,  
+                        9., 2.1, 2.1, 
+                       0.7, 0.1, 3., 4.2, 2.2, 1. 
+    });
+    NDArray<double> idx({0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 2.0, 3.0, 3.0, 3.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0});
+    NDArray<double> exp({2.5, 9.0, 3.0, 9.0, 4.2});
+
+    nd4j::ops::segment_max<double> op;
+
+    auto result = op.execute({&x, &idx}, {}, {});
+    ASSERT_EQ(result->status(), Status::OK());
+    ASSERT_TRUE(exp.equalsTo(result->at(0)));
+
+    delete result;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests7, TestSegmentMax_2) {
+    NDArray<double> x('c', {4, 4}, {
+        1.8, 2.5,  4.,  9., 
+        2.1, 2.4,  3.,  9.,
+        2.1, 2.1, 0.7, 0.1,
+         3., 4.2, 2.2, 1. 
+    });
+    NDArray<double> idx({0.0, 0.0, 1.0, 2.0});
+    NDArray<double> exp('c', {3, 4}, {2.1, 2.5, 4.0, 9.0,
+                                      2.1, 2.1, 0.7, 0.1,
+                                       3., 4.2, 2.2, 1.}); 
+
+    nd4j::ops::segment_max<double> op;
+
+    auto result = op.execute({&x, &idx}, {}, {});
+    ASSERT_EQ(result->status(), Status::OK());
+    result->at(0)->printIndexedBuffer("Output");
+    result->at(0)->printShapeInfo("Out Shape");
+    exp.printIndexedBuffer("Expect");
+    exp.printShapeInfo("Exp Shape");
+//    ASSERT_TRUE(z.equalsTo(result->at(0)));
+
+    delete result;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
