@@ -19,9 +19,9 @@ namespace ops {
         for (int e = 0; e < numOfData; e++) {
             NDArray<T>* data = INPUT_VARIABLE(numOfData + e);
             NDArray<T>* index = INPUT_VARIABLE(e);
-            REQUIRE_TRUE(data->lengthOf() == index->lengthOf(), 0, 
-                "dynamic_stitch: The length of proper index and data arrays should be equal. But %i and %i were given.", 
-                index->lengthOf(), data->lengthOf());
+//            REQUIRE_TRUE(data->lengthOf() == index->lengthOf(), 0, 
+//                "dynamic_stitch: The length of proper index and data arrays should be equal. But %i and %i were given.", 
+//                index->lengthOf(), data->lengthOf());
 
             for (int i = 0; i < index->lengthOf(); i++) {
                 T val = (*data)(i); 
