@@ -594,18 +594,18 @@ TEST_F(DeclarableOpsTests7, Test_Dynamic_Partition_119_1) {
 //    x.assign(1.f);
 //    e.assign(1.f);
     nd4j::ops::dynamic_partition<float> op;
-    auto result = op.execute({&x, &y}, {}, {4});
+    auto result = op.execute({&x, &y}, {}, {3});
     ASSERT_EQ(Status::OK(), result->status());
-    ASSERT_EQ(4, result->size());
+    ASSERT_EQ(3, result->size());
     auto z = result->at(0);
     z->printShapeInfo("Output shape info");
     result->at(1)->printShapeInfo("Shape2");
     result->at(2)->printShapeInfo("Shape3");
-    result->at(3)->printShapeInfo("Shape4");
+//    result->at(3)->printShapeInfo("Shape4");
     z->printIndexedBuffer("Output1");
     result->at(1)->printIndexedBuffer("Output2");
     result->at(2)->printIndexedBuffer("Output3");
-    result->at(3)->printIndexedBuffer("Output4");
+//    result->at(3)->printIndexedBuffer("Output4");
     ASSERT_TRUE(e.isSameShape(z));
 
     delete result;
