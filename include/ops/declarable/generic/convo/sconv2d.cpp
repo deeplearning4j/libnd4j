@@ -239,8 +239,8 @@ CUSTOM_OP_IMPL(sconv2d_bp, 3, 2, false, 0, 9) {
         ResultSet<T>* resultFF = opFF.execute({input, weightsDepth}, {}, {kH,kW, sH,sW, pH,pW, dH,dW, isSameMode, !isNCHW});
         NDArray<T>* inputPoint = resultFF->at(0);          // [bS, oH, oW, mC]  (NHWC) or [bS, mC, oH, oW] (NCHW)
 
-        std::initializer_list<int> gradIDepthShape = !isNCHW ? std::initializer_list<int>({bS, oH, oW, iC*mC}) : std::initializer_list<int>({bS, iC*mC, oH, oW});
-        NDArray<T>* gradIDepth = new NDArray<T>(gradIDepthShape, block.getWorkspace());             // [bS, oH, oW, iC*mC]  (NHWC) or [bS, iC*mC, oH, oW] (NCHW)
+        std::vector<int> gradIDepthShape = ShapeUtils<T>::composeShapeUsingDimsAndIdx({bS,iC*mC,oH,oW,  0,indIOioC,indIiH,indIiH+1});
+        NDArray<T>* gradIDepth = new NDArray<T>(inputPoint->ordering(), gradIDepthShape, block.getWorkspace());                 // [bS, oH, oW, iC*mC]  (NHWC) or [bS, iC*mC, oH, oW] (NCHW)
 
         nd4j::ops::conv2d_bp<T> opBP;
         opBP.execute({inputPoint, weightsPoint, bias, gradO}, {gradIDepth, gradWP, gradB}, {}, {1,1, 1,1, 0,0, 1,1, isSameMode, !isNCHW});      // in this case oH=iH and oW=iW
