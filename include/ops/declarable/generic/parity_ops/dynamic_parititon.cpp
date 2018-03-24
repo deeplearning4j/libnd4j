@@ -10,6 +10,7 @@ namespace ops {
     CUSTOM_OP_IMPL(dynamic_partition, 2, 1, false, 0, 1) {
         NDArray<T>* input = INPUT_VARIABLE(0);
         NDArray<T>* indices = INPUT_VARIABLE(1);
+
         //NDArray<T>* indexVector = ; // linearize to actualize
         REQUIRE_TRUE(input->rankOf() >= indices->rankOf(), 0, "dynamic_partition: data tensor rank should be non-lesser than indices\' tensor, but %i < %i given,",
             input->rankOf(), indices->rankOf());
