@@ -344,3 +344,64 @@ TEST_F(DeclarableOpsTests7, TestMatrixDiag_2) {
 
 
 ////////////////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests7, TestRandomCrop_1) {
+    NDArray<double> x('c', {2, 2, 4}, {
+        1.8, 2.5,  4.,  9., 
+        2.1, 2.4,  3.,  9.,
+        2.1, 2.1, 0.7, 0.1,
+         3., 4.2, 2.2, 1. 
+
+    });
+    NDArray<double> shape({1.0, 2.0, 3.0});
+    nd4j::ops::random_crop<double> op;
+
+    auto result = op.execute({&x, &shape}, {}, {});
+    ASSERT_EQ(result->status(), Status::OK());
+    result->at(0)->printIndexedBuffer("Output");
+//    ASSERT_TRUE(z.equalsTo(result->at(0)));
+
+    delete result;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests7, TestRandomCrop_2) {
+    NDArray<double> x('c', {2, 2, 4}, {
+        1.8, 2.5,  4.,  9., 
+        2.1, 2.4,  3.,  9.,
+        2.1, 2.1, 0.7, 0.1,
+         3., 4.2, 2.2, 1. 
+
+    });
+    NDArray<double> shape({2.0, 2.0, 2.0});
+    nd4j::ops::random_crop<double> op;
+
+    auto result = op.execute({&x, &shape}, {}, {});
+    ASSERT_EQ(result->status(), Status::OK());
+    result->at(0)->printIndexedBuffer("Output");
+//    ASSERT_TRUE(z.equalsTo(result->at(0)));
+
+    delete result;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+/*
+TEST_F(DeclarableOpsTests7, Test_Dynamic_Stitch_119) {
+    NDArray<float> indices0('c', {2}, {1.0f, 10.f});
+    NDArray<float> indices1('c', {2, 3}, {0,7,9, 5,8,3});
+    NDArray<float> indices2('c', {3, 1}, {6, 4, 2});
+
+    NDArray<float> data0('c', {2,5,4});
+    NDArray<float> data1('c', {2,3,5,4});
+    NDArray<float> data2('c', {3,1,5,4});
+
+    nd4j::ops::dynamic_stitch<float> op;
+    auto result = op.execute({&indices0, &indices1, &indices2, &data0, &data1, &data2}, {}, {});
+
+    ASSERT_EQ(Status::OK(), result->status());
+
+    delete result;
+}
+
+*/
