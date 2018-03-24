@@ -29,7 +29,8 @@ namespace ops {
         int numPartition = INT_ARG(0);
         NDArray<T>* indices = INPUT_VARIABLE(1);
         std::vector<int> partitionSizes(numPartition, 0);
-
+        int* in = inputShape->at(0);
+        int* idx = inputShape->at(1); 
         for (int i = 0; i < numPartition; i++) {
             for (int e = 0; e < indices->lengthOf(); ++e)
                 if ((*indices)(e) == T(i))
@@ -37,10 +38,17 @@ namespace ops {
         }
 
         auto shapes = SHAPELIST();
+        int outRank = shape::rank(in) - shape::rank(idx) + 1;
         for (int e = 0; e < numPartition; e++) {
             int *newShape;
-            ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(1), int);
-            shape::shapeVector(partitionSizes[e], newShape);
+            ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(outRank), int);
+            //shape::shapeVector(partitionSizes[e], newShape);
+            newShape[0] = outRank;
+            newShape[1] = partitionSizes[e];
+            for(int i = 1; i < outRank; ++i)
+                newShape[i + 1] = shape::sizeAt(in, outRank + i - 1);
+
+            shape::updateStrides(newShape, shape::order(in));
 
             shapes->push_back(newShape);
         }
