@@ -248,14 +248,14 @@ namespace nd4j {
             if(whatToDoWithB[i] == 'p') bPR->permutei(modifB[i]); else bPR->reshapei(modifB[i]);
 
         // now work with c array
-        std::vector<NDArray<T>*> cArrs; 
+        std::vector<NDArray<T>*> cArrs = {c}; 
         if(!whatToDoWithC.empty()) {
             cArrs = std::vector<NDArray<T>*>(whatToDoWithC.size()+1, c);
             for(int i = 0; i < cArrs.size()-1; ++i)                               
                 cArrs[i+1] = (whatToDoWithC[i] == 'p') ? cArrs[i]->permute(modifC[i]) : cArrs[i]->reshape(c->ordering(), modifC[i]);  // since we ignore first element in cArrs (that is cArrs[0]) then it is always equal to c
         }
-
-        nd4j::NDArrayFactory<T>::mmulHelper(aPR, bPR, whatToDoWithC.empty() ? c : cArrs.back(), 1.0, 0.0);
+        
+        nd4j::NDArrayFactory<T>::mmulHelper(aPR, bPR, cArrs[cArrs.size()-1], 1.0, 0.0);
 
         // check whether new buffer allocation was happened for c array        
         if(!whatToDoWithC.empty()) {
