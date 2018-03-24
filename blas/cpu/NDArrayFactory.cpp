@@ -218,9 +218,9 @@ namespace nd4j {
 #ifndef __JAVACPP_HACK__
 //////////////////////////////////////////////////////////////////////////
     template<typename T>
-    void nd4j::NDArrayFactory<T>::tensorDot(const nd4j::NDArray<T>* a, const nd4j::NDArray<T>* b, nd4j::NDArray<T>* c, const std::vector<std::vector<int>>& modifA, const std::vector<std::vector<int>>& modifB, const std::vector<std::vector<int>>& modifC) {
+    void nd4j::NDArrayFactory<T>::tensorDot(const NDArray<T>* a, const NDArray<T>* b, NDArray<T>* c, const std::vector<std::vector<int>>& modifA, const std::vector<std::vector<int>>& modifB, const std::vector<std::vector<int>>& modifC) {
 
-        NDArray<T> *aPR(const_cast<NDArray<T>*>(a)), *bPR(const_cast<NDArray<T>*>(b)), *cP(c), *cPR(c);
+        NDArray<T> *aPR(const_cast<NDArray<T>*>(a)), *bPR(const_cast<NDArray<T>*>(b));
         std::string whatToDoWithA, whatToDoWithB, whatToDoWithC;         // "" - nothing; "p" - permutation; "r" - reshaping; "pr" - permutation+reshaping; "rp" - reshaping/permutation, and so on; if another string is produced - throw exception
 
         for(const auto& arr : modifA) 
@@ -239,13 +239,6 @@ namespace nd4j {
         // first step for b array
         if(!whatToDoWithB.empty())
             bPR = (whatToDoWithB[0] == 'p') ? b->permute(modifB[0]) : b->reshape(b->ordering(), modifB[0]);
-        // first step for c array
-        if(!whatToDoWithC.empty())
-            cP  = (whatToDoWithC[0] == 'p') ? c->permute(modifC[0]) : c->reshape(c->ordering(), modifC[0]);
-        // second step for c array
-        if(whatToDoWithC.size() > 1)        // second step is required because there may be allocation of new c-buffer due to permutation+reshaping operations, we have to remember/store last modified array with original c-buffer
-            cPR = (whatToDoWithC[1] == 'p') ? cP->permute(modifC[1]) : cP->reshape(c->ordering(), modifC[1]);
-
 
         // rest steps for a array
         for(int i = 1; i < whatToDoWithA.size(); ++i)
@@ -253,24 +246,31 @@ namespace nd4j {
         // rest steps for b array
         for(int i = 1; i < whatToDoWithB.size(); ++i)
             if(whatToDoWithB[i] == 'p') bPR->permutei(modifB[i]); else bPR->reshapei(modifB[i]);
-        // rest steps for c array
-        for(int i = 2; i < whatToDoWithC.size(); ++i)
-            if(whatToDoWithC[i] == 'p') cPR->permutei(modifC[i]); else cPR->reshapei(modifC[i]);
 
+        // now work with c array
+        std::vector<NDArray<T>*> cArrs; 
+        if(!whatToDoWithC.empty()) {
+            cArrs = std::vector<NDArray<T>*>(whatToDoWithC.size()+1, c);
+            for(int i = 0; i < cArrs.size()-1; ++i)                               
+                cArrs[i+1] = (whatToDoWithC[i] == 'p') ? cArrs[i]->permute(modifC[i]) : cArrs[i]->reshape(c->ordering(), modifC[i]);  // since we ignore first element in cArrs (that is cArrs[0]) then it is always equal to c
+        }
 
-        nd4j::NDArrayFactory<T>::mmulHelper(aPR, bPR, cPR, 1.0, 0.0);
+        nd4j::NDArrayFactory<T>::mmulHelper(aPR, bPR, whatToDoWithC.empty() ? c : cArrs.back(), 1.0, 0.0);
 
-        if(cPR->getBuffer() != cP->getBuffer())             // this means both permutation and reshaping have been performed on c. Note: cP always points on c->getBuffer()
-            cP->assign(cPR);
-
-        if(cPR != c)
-            delete cPR;
+        // check whether new buffer allocation was happened for c array        
+        if(!whatToDoWithC.empty()) {
+            for(int i = cArrs.size()-1; i > 0; --i) {
+                if(cArrs[i]->getBuffer() != cArrs[i-1]->getBuffer())
+                    cArrs[i-1]->assign(cArrs[i]);
+                delete cArrs[i];
+            }
+        }
+        
         if(aPR != a)
             delete aPR;
         if(bPR != b)
             delete bPR;
-        if(cP != c)
-            delete cP;
+
     }
 
 //////////////////////////////////////////////////////////////////////////
