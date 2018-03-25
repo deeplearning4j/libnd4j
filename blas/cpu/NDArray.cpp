@@ -212,7 +212,7 @@ template <typename T>
     }
 
     template<typename T>
-    std::string NDArray<T>::toIndexedString(int limit) {
+    std::string NDArray<T>::asIndexedString(int limit) {
         std::ostringstream os;
         os << "[";
 
@@ -232,7 +232,7 @@ template <typename T>
     }
 
     template<typename T>
-    std::string NDArray<T>::toString(int limit) {
+    std::string NDArray<T>::asString(int limit) {
         std::ostringstream os;
         os << "[";
 

@@ -445,7 +445,7 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* varia
                     auto list = __variableSpace->getVariable(node->id())->hasNDArrayList() ? __variableSpace->getVariable(node->id())->getNDArrayList() : nullptr;
                     auto shape = ShapeUtils<T>::shapeAsString(*array);
                     if (array != nullptr) {
-                        auto values = array->toIndexedString(16);
+                        auto values = array->asIndexedString(16);
                         nd4j_debug("node_%i finished. result shape: %s; first values: %s\n", node->id(), shape.c_str(), values.c_str());
                     } else if (list != nullptr) {
                         nd4j_debug("node_% is ListOp, skipping evaluation", node->id());

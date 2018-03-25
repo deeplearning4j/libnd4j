@@ -271,8 +271,8 @@ namespace nd4j {
         */ 
         void printIndexedBuffer(const char* msg = nullptr, int limit = -1) const;
 
-        std::string toIndexedString(int limit = -1);
-        std::string toString(int limit = -1);
+        std::string asIndexedString(int limit = -1);
+        std::string asString(int limit = -1);
 
         /**
         *  this method assigns values of given array to this one
