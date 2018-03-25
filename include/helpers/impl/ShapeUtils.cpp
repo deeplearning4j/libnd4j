@@ -754,8 +754,8 @@ ShapeUtils<T>::matrixProductShape(int* theFirstShape, int* theSecondShape,
         int *newShape;
         ALLOCATE(newShape, workspace, shape::shapeInfoLength(1), int);
 
-        newShape[0] = length;
-        newShape[1] = 1;
+        newShape[0] = 1;
+        newShape[1] = length;
         newShape[2] = 1;
         newShape[3] = 0;
         newShape[4] = 1;

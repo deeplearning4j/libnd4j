@@ -34,13 +34,18 @@ namespace nd4j {
                 auto z0 = OUTPUT_VARIABLE(0); //new NDArray<T>('c', {(int) saved.size()});
                 auto z1 = OUTPUT_VARIABLE(1); //new NDArray<T>('c', {(int) saved.size()});
 
+
+                REQUIRE_TRUE(z0->lengthOf() == saved.size(), 0, "ListDiff: output/actual size mismatch");
+                REQUIRE_TRUE(z1->lengthOf() == saved.size(), 0, "ListDiff: output/actual size mismatch");
+
                 memcpy(z0->buffer(), saved.data(), saved.size() * sizeof(T));
                 memcpy(z1->buffer(), indices.data(), indices.size() * sizeof(T));
 
-                OVERWRITE_2_RESULTS(z0, z1);
+                //OVERWRITE_2_RESULTS(z0, z1);
+                STORE_2_RESULTS(z0, z1);
             }
 
-            return ND4J_STATUS_OK;
+            return Status::OK();
         };
 
         DECLARE_SHAPE_FN(listdiff) {
@@ -59,6 +64,8 @@ namespace nd4j {
                 if (idx < 0)
                     saved++;
             }
+
+            REQUIRE_TRUE(saved > 0, 0, "ListDiff: no matches found");
 
             int *shapeX = ShapeUtils<T>::createVectorShapeInfo(saved, block.workspace());
             int *shapeY = ShapeUtils<T>::createVectorShapeInfo(saved, block.workspace());
