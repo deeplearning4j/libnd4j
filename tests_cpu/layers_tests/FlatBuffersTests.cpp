@@ -623,6 +623,18 @@ TEST_F(FlatBuffersTest, Test_Stitches) {
     delete graph;
 }
 
+TEST_F(FlatBuffersTest, Test_TensorDotMisc) {
+    Environment::getInstance()->setVerbose(true);
+    Environment::getInstance()->setDebug(true);
+
+    auto graph = GraphExecutioner<float>::importFromFlatBuffers("./resources/tensor_dot_misc.fb");
+    graph->printOut();
+
+    auto result = GraphExecutioner<float>::execute(graph);
+    ASSERT_EQ(ND4J_STATUS_OK, result);
+
+    delete graph;
+}
 
 /*
 // FIXME: uncomment this test once conv_0 fb reexported

@@ -610,3 +610,21 @@ TEST_F(DeclarableOpsTests7, Test_Dynamic_Partition_119_1) {
 
     delete result;
 }
+
+
+TEST_F(DeclarableOpsTests7, Test_Gather_Vector_Case_119) {
+    NDArray<float> input('c', {4}, {2.f, 3.f, 4.f, 5.f});
+    NDArray<float> indices('c', {2}, {0.f, 2.f});
+    NDArray<float> exp('c', {2}, {2.f, 4.f});
+
+    nd4j::ops::gather<float> op;
+    auto result = op.execute({&input, &indices}, {}, {});
+    ASSERT_EQ(Status::OK(), result->status());
+
+    auto z = result->at(0);
+
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+}
