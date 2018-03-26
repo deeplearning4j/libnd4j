@@ -7,27 +7,27 @@
 
 namespace nd4j {
     namespace ops {
-        CUSTOM_OP_IMPL(segment_min, 2, 1, false, 0, 0) {
+        CUSTOM_OP_IMPL(segment_mean, 2, 1, false, 0, 0) {
             NDArray<T>* input = INPUT_VARIABLE(0);
             NDArray<T>* idxSegments = INPUT_VARIABLE(1);
             NDArray<T>* segmentedOutput = OUTPUT_VARIABLE(0);
-            REQUIRE_TRUE(idxSegments->isVector(), 0, "segment_min: segment indexes array should be a vector, but it rank is %i.", idxSegments->rankOf());
-            REQUIRE_TRUE(idxSegments->lengthOf() == input->sizeAt(0), 0, "segment_min: segment indexes array length should be equal to the input first dimension, but %i != %i.", idxSegments->lengthOf(), input->sizeAt(0));
+            REQUIRE_TRUE(idxSegments->isVector(), 0, "segment_mean: segment indexes array should be a vector, but it rank is %i.", idxSegments->rankOf());
+            REQUIRE_TRUE(idxSegments->lengthOf() == input->sizeAt(0), 0, "segment_mean: segment indexes array length should be equal to the input first dimension, but %i != %i.", idxSegments->lengthOf(), input->sizeAt(0));
 
             T val = (*idxSegments)(0);
             for (int e = 1; e < idxSegments->lengthOf(); e++) {
-                REQUIRE_TRUE(val <= (*idxSegments)(e), 0, "segment_min: segment indices should be arranged, but %2.1f > %2.1f",
+                REQUIRE_TRUE(val <= (*idxSegments)(e), 0, "segment_mean: segment indices should be arranged, but %2.1f > %2.1f",
                     val, (*idxSegments)(e))
                 
                 val = (*idxSegments)(e);
             }
 
-            helpers::segmentMinFunctor(input, idxSegments, segmentedOutput);
+            helpers::segmentMeanFunctor(input, idxSegments, segmentedOutput);
 
             return ND4J_STATUS_OK;
         }
 
-        DECLARE_SHAPE_FN(segment_min) {
+        DECLARE_SHAPE_FN(segment_mean) {
 
             NDArray<T>* idxVector = INPUT_VARIABLE(1);
 
