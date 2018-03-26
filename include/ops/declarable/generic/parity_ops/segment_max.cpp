@@ -55,13 +55,15 @@ namespace nd4j {
                 int pos = 0;
                 maxT->assign(listOfTensors->at(0));
                 for (int i = 1; i < idxSegments->lengthOf(); i++) {
-                    for (int e = 0; e < maxT->lengthOf(); e++) {
-                       (*maxT)(e) = nd4j::math::nd4j_max((*maxT)(e), (*listOfTensors->at(i))(e));
+                    if ((*idxSegments)(i) == idx) {
+                        for (int e = 0; e < maxT->lengthOf(); e++) {
+                           (*maxT)(e) = nd4j::math::nd4j_max((*maxT)(e), (*listOfTensors->at(i))(e));
+                        }
                     }
-                     //int maxInd = listOfTensors->at(i)->argMax();
-                    if ((*idxSegments)(i) != idx) {
+                    else {
                         maxT = listOfOutTensors->at(++pos);
                         maxT->assign(listOfTensors->at(i));
+                        idx = (*idxSegments)(i);
                     }
                 }
                 delete listOfTensors;

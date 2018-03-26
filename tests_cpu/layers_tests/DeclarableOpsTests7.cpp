@@ -422,6 +422,62 @@ TEST_F(DeclarableOpsTests7, TestSegmentMax_2) {
 
     auto result = op.execute({&x, &idx}, {}, {});
     ASSERT_EQ(result->status(), Status::OK());
+    ASSERT_EQ(result->size(), 1);
+//    exp.printIndexedBuffer("Expect");
+//    exp.printShapeInfo("Exp Shape");
+    ASSERT_TRUE(exp.equalsTo(result->at(0)));
+
+    delete result;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests7, TestSegmentMax_3) {
+    NDArray<double> x('c', {4, 4, 4}, {
+     91. ,  82. ,  37. ,  64. ,
+     55.1,  46.4,  73. ,  28. ,
+    119.1,  12.1, 112.7,  13.1,
+     14. , 114.2,  16.2, 117. ,
+
+     51. ,  42. ,  67. ,   24.,
+     15.1,  56.4,  93. ,   28.,
+    109.1,  82.1,  12.7, 113.1,
+    114. ,  14.2, 116.2,  11. ,
+
+     31. ,  22. ,  87.,   44. ,
+     55.1,  46.4,  73.,   28. ,
+    119.1,  12.1, 112.7,  13.1,
+     14. , 114.2,  16.2, 117. ,
+
+     91. ,  82. ,  37.,   64. ,
+     55.1,  46.4,  73.,   28. ,
+    119.1,  12.1, 112.7,  13.1,
+     14. , 114.2,  16.2, 117. });
+
+// ----------------------------------------------------------------
+
+    NDArray<double> idx({0.0, 1.0, 1.0, 2.0});
+    NDArray<double> exp('c', {3, 4, 4}, {
+                     91. , 82. , 37. , 64.,
+                     55.1, 46.4, 73. , 28.,
+                    119.1, 12.1,112.7, 13.1,
+                     14. ,114.2, 16.2,117.,
+    
+                     51. , 42. , 87. , 44.,
+                     55.1, 56.4, 93. , 28.,
+                    119.1, 82.1,112.7,113.1,
+                    114. ,114.2,116.2,117.,
+    
+                     91. , 82. , 37. , 64.,
+                     55.1, 46.4, 73. , 28.,
+                    119.1, 12.1,112.7, 13.1,
+                     14. ,114.2, 16.2,117. }); 
+
+    //{ 2.1, 2.5,  4.,  9., 2.1, 2.1, 0.7, 0.1, 3.,  4.2, 2.2, 1.}
+
+    nd4j::ops::segment_max<double> op;
+
+    auto result = op.execute({&x, &idx}, {}, {});
+    ASSERT_EQ(result->status(), Status::OK());
     result->at(0)->printIndexedBuffer("Output");
     result->at(0)->printShapeInfo("Out Shape");
     exp.printIndexedBuffer("Expect");
@@ -431,24 +487,3 @@ TEST_F(DeclarableOpsTests7, TestSegmentMax_2) {
     delete result;
 }
 
-////////////////////////////////////////////////////////////////////////////////
-
-/*
-TEST_F(DeclarableOpsTests7, Test_Dynamic_Stitch_119) {
-    NDArray<float> indices0('c', {2}, {1.0f, 10.f});
-    NDArray<float> indices1('c', {2, 3}, {0,7,9, 5,8,3});
-    NDArray<float> indices2('c', {3, 1}, {6, 4, 2});
-
-    NDArray<float> data0('c', {2,5,4});
-    NDArray<float> data1('c', {2,3,5,4});
-    NDArray<float> data2('c', {3,1,5,4});
-
-    nd4j::ops::dynamic_stitch<float> op;
-    auto result = op.execute({&indices0, &indices1, &indices2, &data0, &data1, &data2}, {}, {});
-
-    ASSERT_EQ(Status::OK(), result->status());
-
-    delete result;
-}
-
-*/

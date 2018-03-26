@@ -52,6 +52,7 @@ namespace nd4j {
                     if ((*idxSegments)(i) != idx) {
                         minT = listOfOutTensors->at(++pos);
                         minT->assign(listOfTensors->at(i));
+                        idx = (*idxSegments)(i);
                     }
                 }
                 delete listOfTensors;
