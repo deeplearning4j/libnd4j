@@ -416,6 +416,8 @@ TEST_F(DeclarableOpsTests7, TestSegmentMax_2) {
                                       2.1, 2.1, 0.7, 0.1,
                                        3., 4.2, 2.2, 1.}); 
 
+    //{ 2.1, 2.5,  4.,  9., 2.1, 2.1, 0.7, 0.1, 3.,  4.2, 2.2, 1.}
+
     nd4j::ops::segment_max<double> op;
 
     auto result = op.execute({&x, &idx}, {}, {});
@@ -424,7 +426,7 @@ TEST_F(DeclarableOpsTests7, TestSegmentMax_2) {
     result->at(0)->printShapeInfo("Out Shape");
     exp.printIndexedBuffer("Expect");
     exp.printShapeInfo("Exp Shape");
-//    ASSERT_TRUE(z.equalsTo(result->at(0)));
+    ASSERT_TRUE(exp.equalsTo(result->at(0)));
 
     delete result;
 }
