@@ -623,6 +623,7 @@ TEST_F(FlatBuffersTest, Test_Stitches) {
     delete graph;
 }
 
+/*
 TEST_F(FlatBuffersTest, Test_TensorDotMisc) {
     Environment::getInstance()->setVerbose(true);
     Environment::getInstance()->setDebug(true);
@@ -635,6 +636,7 @@ TEST_F(FlatBuffersTest, Test_TensorDotMisc) {
 
     delete graph;
 }
+ */
 
 /*
 // FIXME: uncomment this test once conv_0 fb reexported
