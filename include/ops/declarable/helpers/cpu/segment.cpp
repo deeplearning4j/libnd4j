@@ -126,6 +126,7 @@ namespace helpers {
                    count++;
                 }
                 else {
+                   (*output)(idx) = val / count;
                     idx = static_cast<int>((*indices)(e));
                     val = (*input)(e);
                     count = 1;
@@ -143,10 +144,10 @@ namespace helpers {
             int numOfClasses = output->sizeAt(0); // number of classes
             std::vector<std::pair<NDArray<T>*, int>> outputs(numOfClasses);
             NDArray<T>* meanT = listOfOutTensors->at(idx);
-            T count = T(0.f);
+            T count = T(1.f);
             NDArray<T>* meanV = meanT->dup();
-            //meanT->assign(listOfTensors->at(0));
-            for (int i = 0; i < indices->lengthOf(); i++) {
+            meanV->assign(listOfTensors->at(0));
+            for (int i = 1; i < indices->lengthOf(); i++) {
                 if (static_cast<int>((*indices)(i)) == idx) {
                     for (int e = 0; e < meanT->lengthOf(); e++) {
                        (*meanV)(e) += (*listOfTensors->at(i))(e);
@@ -154,13 +155,14 @@ namespace helpers {
                     count += T(1.f);
                 }
                 else {
+                    //meanT->assign(meanV);
+                    meanV->template applyScalar<simdOps::Divide<T>>(count, meanT);
                     idx = static_cast<int>((*indices)(i));
                     meanT = listOfOutTensors->at(idx);
-                    meanV = meanT->dup();
                     meanV->assign(listOfTensors->at(i));
                     count = T(1.f);
                 }
-                meanV->template applyPairwiseTransform<simdOps::Divide<T>>(meanT, &count);
+                meanV->template applyScalar<simdOps::Divide<T>>(count, meanT);
             }
             delete meanV;
             delete listOfTensors;
