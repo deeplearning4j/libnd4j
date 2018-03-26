@@ -2618,16 +2618,3 @@ TEST_F(NDArrayTest, Test_diagonal_18) {
 }
 
 
-//////////////////////////////////////////////////////////////////////
-TEST_F(NDArrayTest, float16_test1) {
-    
-    std::vector<float16> vec(5, 1.);
-    std::vector<float16>::iterator it = begin(vec);
-    auto comparison = [] (const float16& a1, const float16& a2) { return a1 < a2; };
-    std::sort(vec.begin(), vec.end(), comparison); // sorted in ascending order
-    
-    
-    ASSERT_TRUE(1);
-    
-}
-
