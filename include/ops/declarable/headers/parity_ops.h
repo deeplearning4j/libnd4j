@@ -694,5 +694,66 @@ namespace nd4j {
          *    (N+1)D tensor filled by 0 and 1 accordingly the mask
          */
         DECLARE_CUSTOM_OP(sequence_mask, 1, 1, false, 0, 0);
+
+        /**
+         * segment_max op. - make a tensor filled by max values according to index tensor given.
+         *
+         * input params:
+         *    0 - the tensor with data;
+         *    1 - the tensor with indices.
+         *
+         * return value:
+         *    tensor with max values according to indices sets.
+         */
+        DECLARE_CUSTOM_OP(segment_max, 2, 1, false, 0, 0);
+
+        /**
+         * segment_min op. - make a tensor filled by min values according to index tensor given.
+         *
+         * input params:
+         *    0 - the tensor with data;
+         *    1 - the tensor with indices.
+         *
+         * return value:
+         *    tensor with min values according to indices sets.
+         */
+        DECLARE_CUSTOM_OP(segment_min, 2, 1, false, 0, 0);
+
+        /**
+         * segment_sum op. - make a tensor filled by sum of values according to index tensor given.
+         *
+         * input params:
+         *    0 - the tensor with data;
+         *    1 - the tensor with indices.
+         *
+         * return value:
+         *    tensor with sum of values according to indices sets.
+         */
+        DECLARE_CUSTOM_OP(segment_sum, 2, 1, false, 0, 0);
+
+        /**
+         * segment_prod op. - make a tensor filled by product of values according to index tensor given.
+         *
+         * input params:
+         *    0 - the tensor with data;
+         *    1 - the tensor with indices.
+         *
+         * return value:
+         *    tensor with product of values according to indices sets.
+         */
+        DECLARE_CUSTOM_OP(segment_prod, 2, 1, false, 0, 0);
+
+        /**
+         * segment_mean op. - make a tensor filled by average of values according to index tensor given.
+         *
+         * input params:
+         *    0 - the tensor with data;
+         *    1 - the tensor with indices.
+         *
+         * return value:
+         *    tensor with average of values according to indices sets.
+         */
+        DECLARE_CUSTOM_OP(segment_mean, 2, 1, false, 0, 0);
+
     }
 }
