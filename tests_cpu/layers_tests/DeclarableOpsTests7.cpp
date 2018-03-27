@@ -628,3 +628,37 @@ TEST_F(DeclarableOpsTests7, Test_Gather_Vector_Case_119) {
 
     delete result;
 }
+
+TEST_F(DeclarableOpsTests7, Test_SequenceMask_1) {
+    NDArray<float> input('c', {4, 4},   {1.f, 2.f, 3.f, 4.f, 5.f, 6.f, 7.f, 8.f, 9.f, 10.f, 11.f, 12.f, 13.f, 14.f, 15.f, 16.f});
+    NDArray<float> exp('c', {4, 4, 16}, {
+                                        1.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,  0.f,  0.f,  0.f,  0.f,  0.f,  0.f, 0.f, 
+                                        1.f, 1.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,  0.f,  0.f,  0.f,  0.f,  0.f,  0.f, 0.f, 
+                                        1.f, 1.f, 1.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,  0.f,  0.f,  0.f,  0.f,  0.f,  0.f, 0.f, 
+                                        1.f, 1.f, 1.f, 1.f, 0.f, 0.f, 0.f, 0.f, 0.f,  0.f,  0.f,  0.f,  0.f,  0.f,  0.f, 0.f, 
+                                        1.f, 1.f, 1.f, 1.f, 1.f, 0.f, 0.f, 0.f, 0.f,  0.f,  0.f,  0.f,  0.f,  0.f,  0.f, 0.f, 
+                                        1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 0.f, 0.f, 0.f,  0.f,  0.f,  0.f,  0.f,  0.f,  0.f, 0.f, 
+                                        1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 0.f, 0.f,  0.f,  0.f,  0.f,  0.f,  0.f,  0.f, 0.f, 
+                                        1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 0.f,  0.f,  0.f,  0.f,  0.f,  0.f,  0.f, 0.f, 
+                                        1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f,  0.f,  0.f,  0.f,  0.f,  0.f,  0.f, 0.f, 
+                                        1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f,  1.f,  0.f,  0.f,  0.f,  0.f,  0.f, 0.f, 
+                                        1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f,  1.f,  1.f,  0.f,  0.f,  0.f,  0.f, 0.f, 
+                                        1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f,  1.f,  1.f,  1.f,  0.f,  0.f,  0.f, 0.f, 
+                                        1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f,  1.f,  1.f,  1.f,  1.f,  0.f,  0.f, 0.f, 
+                                        1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f,  1.f,  1.f,  1.f,  1.f,  1.f,  0.f, 0.f, 
+                                        1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f,  1.f,  1.f,  1.f,  1.f,  1.f,  1.f, 0.f, 
+                                        1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f,  1.f,  1.f,  1.f,  1.f,  1.f,  1.f, 1.f });
+
+    nd4j::ops::sequence_mask<float> op;
+    auto result = op.execute({&input}, {}, {});
+    ASSERT_EQ(Status::OK(), result->status());
+
+    auto z = result->at(0);
+    z->printIndexedBuffer("Output");
+    z->printShapeInfo("Shape");
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
+
+}
