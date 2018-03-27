@@ -522,9 +522,9 @@ TEST_F(DeclarableOpsTests7, Test_Dynamic_Stitch_119) {
     nd4j::ops::dynamic_stitch<float> op;
     auto result = op.execute({&indices0, &indices1, &indices2, &data0, &data1, &data2}, {}, {});
     ASSERT_EQ(Status::OK(), result->status());
-    result->at(0)->printIndexedBuffer("Output");
-    exp.printIndexedBuffer("Expect");
-    result->at(0)->printShapeInfo("Output shape");
+//    result->at(0)->printIndexedBuffer("Output");
+//    exp.printIndexedBuffer("Expect");
+//    result->at(0)->printShapeInfo("Output shape");
     ASSERT_TRUE(exp.isSameShape(result->at(0)));
     ASSERT_TRUE(exp.equalsTo(result->at(0)));
     delete result;
@@ -561,11 +561,11 @@ TEST_F(DeclarableOpsTests7, Test_Dynamic_Partition_119) {
     ASSERT_EQ(Status::OK(), result->status());
     ASSERT_EQ(4, result->size());
     auto z = result->at(0);
-    z->printShapeInfo("Output shape info");
-    z->printIndexedBuffer("Output1");
-    result->at(1)->printIndexedBuffer("Output2");
-    result->at(2)->printIndexedBuffer("Output3");
-    result->at(3)->printIndexedBuffer("Output4");
+//    z->printShapeInfo("Output shape info");
+//    z->printIndexedBuffer("Output1");
+//    result->at(1)->printIndexedBuffer("Output2");
+//    result->at(2)->printIndexedBuffer("Output3");
+//    result->at(3)->printIndexedBuffer("Output4");
     ASSERT_TRUE(e.isSameShape(z));
 
     delete result;
@@ -598,13 +598,13 @@ TEST_F(DeclarableOpsTests7, Test_Dynamic_Partition_119_1) {
     ASSERT_EQ(Status::OK(), result->status());
     ASSERT_EQ(3, result->size());
     auto z = result->at(0);
-    z->printShapeInfo("Output shape info");
-    result->at(1)->printShapeInfo("Shape2");
-    result->at(2)->printShapeInfo("Shape3");
+//    z->printShapeInfo("Output shape info");
+//    result->at(1)->printShapeInfo("Shape2");
+//    result->at(2)->printShapeInfo("Shape3");
 //    result->at(3)->printShapeInfo("Shape4");
-    z->printIndexedBuffer("Output1");
-    result->at(1)->printIndexedBuffer("Output2");
-    result->at(2)->printIndexedBuffer("Output3");
+//    z->printIndexedBuffer("Output1");
+//    result->at(1)->printIndexedBuffer("Output2");
+//    result->at(2)->printIndexedBuffer("Output3");
 //    result->at(3)->printIndexedBuffer("Output4");
     ASSERT_TRUE(e.isSameShape(z));
 
@@ -654,11 +654,39 @@ TEST_F(DeclarableOpsTests7, Test_SequenceMask_1) {
     ASSERT_EQ(Status::OK(), result->status());
 
     auto z = result->at(0);
-    z->printIndexedBuffer("Output");
-    z->printShapeInfo("Shape");
+//    z->printIndexedBuffer("Output");
+//    z->printShapeInfo("Shape");
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
 
     delete result;
 
+}
+
+TEST_F(DeclarableOpsTests7, Test_SequenceMask_2) {
+    NDArray<double> input('c', {2, 2, 2},   {10., 20., 30., 4., 0., 6., 7., 8.});
+    NDArray<double> exp('c', {2, 2, 2, 30}, {
+    1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+    1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+                                                                                                                      
+    1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.,
+    1., 1., 1., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+                                                                                                                      
+    0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+    1., 1., 1., 1., 1., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+                                                                                                                      
+    1., 1., 1., 1., 1., 1., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
+    1., 1., 1., 1., 1., 1., 1., 1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.});
+
+    nd4j::ops::sequence_mask<double> op;
+    auto result = op.execute({&input}, {}, {});
+    ASSERT_EQ(Status::OK(), result->status());
+
+    auto z = result->at(0);
+//    z->printIndexedBuffer("Output");
+//    z->printShapeInfo("Shape");
+    ASSERT_TRUE(exp.isSameShape(z));
+    ASSERT_TRUE(exp.equalsTo(z));
+
+    delete result;
 }
