@@ -513,8 +513,8 @@ NDArray<T>::NDArray(const NDArray<T> *other, const bool copyStrides, nd4j::memor
 ////////////////////////////////////////////////////////////////////////
 // copy constructor
 template <typename T>
-    NDArray<T>::NDArray(const NDArray<T>& other)
-{
+NDArray<T>::NDArray(const NDArray<T>& other) {
+
     int arrLength = shape::length(other._shapeInfo);
     int shapeLength = shape::shapeInfoByteLength(other._shapeInfo);
 
@@ -534,6 +534,25 @@ template <typename T>
     _isBuffAlloc = true; 
     _isShapeAlloc = true;
     this->assign(&other);
+}
+
+////////////////////////////////////////////////////////////////////////
+// move constructor
+template <typename T>
+NDArray<T>::NDArray(NDArray<T>&& other) noexcept {
+
+    _isView       = other._isView;
+    _buffer       = other._buffer; 
+    _shapeInfo    = other._shapeInfo;
+    _workspace    = other._workspace;
+    _bufferD      = other._bufferD;
+    _shapeInfoD   = other._shapeInfoD;
+    _isShapeAlloc = other._isShapeAlloc;
+    _isBuffAlloc  = other._isBuffAlloc;
+    _dataType     = other._dataType;
+
+    other._buffer = other._bufferD = nullptr;
+    other._shapeInfo = other._shapeInfoD = nullptr;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -616,6 +635,36 @@ template<typename T>
         this->assign(&other);
     }
 
+    return *this;
+}
+
+////////////////////////////////////////////////////////////////////////
+// move assignment operator
+template <typename T>
+NDArray<T>& NDArray<T>::operator=(NDArray<T>&& other) noexcept {
+
+    if (this == &other) 
+        return *this;
+
+    if(_isBuffAlloc && _workspace == nullptr)
+        delete []_buffer;
+    if(_isShapeAlloc && _workspace == nullptr)
+        delete []_shapeInfo;
+
+    _isView       = other._isView;
+    _buffer       = other._buffer; 
+    _shapeInfo    = other._shapeInfo;
+    _workspace    = other._workspace;
+    _bufferD      = other._bufferD;
+    _shapeInfoD   = other._shapeInfoD;
+    _isShapeAlloc = other._isShapeAlloc;
+    _isBuffAlloc  = other._isBuffAlloc;
+    _dataType     = other._dataType;
+
+    other._buffer = other._bufferD = nullptr;
+    other._shapeInfo = other._shapeInfoD = nullptr;
+
+    std::cout<<"move assignment operator "<<std::endl;
     return *this;
 }
 
@@ -3094,7 +3143,7 @@ NDArray<T> NDArray<T>::operator+(const NDArray<T>& other) const {
     ////////////////////////////////////////////////////////////////////////
     // default destructor
     template<typename T>
-    NDArray<T>::~NDArray() {
+    NDArray<T>::~NDArray() noexcept {
         if (_isBuffAlloc && _workspace == nullptr && _buffer != nullptr)
             delete[] _buffer;
 

@@ -525,7 +525,7 @@ CUSTOM_OP_IMPL(sru_bp_logic, 8, 4, true, 0, 0) {
     gradInit->assign(inGradCt);
     // gradX 
     weights->transposei();                                                               // [K x 3K]
-    *gradX = mmul(*weights, gradU) + gradHX;        
+    gradX->assign( mmul(*weights, gradU) + gradHX);
     if(applyMask)
         gradX->template applyBroadcast<simdOps::Multiply<T>>({0,1}, mask, gradX, nullptr);       // apply mask
 
@@ -534,7 +534,7 @@ CUSTOM_OP_IMPL(sru_bp_logic, 8, 4, true, 0, 0) {
 
     // gradW [bS x 3K x K]
     input->permutei({0, 2, 1});                                               // [bS x N x K]
-    *gradW = mmul(gradU, *input);    
+    gradW->assign( mmul(gradU, *input) );    
     
     return ND4J_STATUS_OK;
 }
