@@ -33,14 +33,9 @@ void rnnCell(const std::vector<NDArray<T>*>& inArrs, NDArray<T>* ht) {
 
     const int numUnits  = ht_1->sizeAt(1);
     
-    NDArray<T>* bx = b->subarray({{0,        numUnits}});      // input-to-hidden biases
-    NDArray<T>* bh = b->subarray({{numUnits, 2*numUnits}});    // hidden-to-hidden biases
-
     // ht is current cell output [bS x numUnits], that is at current time step t        
-    ht->assign(activation<T>(mmul(*xt, *Wx) + *bx  +  mmul(*ht_1, *Wh) + *bh));      // [bS x numUnits] + [numUnits]  +  [bS x numUnits] + [numUnits] = [bS x numUnits]    
+    ht->assign(activation<T>(mmul(*xt, *Wx) + (*b)({{0, numUnits}})  +  mmul(*ht_1, *Wh) + (*b)({{numUnits, 2*numUnits}})));      // [bS x numUnits] + [numUnits]  +  [bS x numUnits] + [numUnits] = [bS x numUnits]    
 
-    delete bx;
-    delete bh;
 }
 
 

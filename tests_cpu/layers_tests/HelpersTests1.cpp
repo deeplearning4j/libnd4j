@@ -1416,3 +1416,44 @@ TEST_F(HelpersTests1, rnnCell_test3) {
     ASSERT_TRUE(expHt.isSameShape(ht));
     ASSERT_TRUE(expHt.equalsTo(ht));
 }
+
+// NDArray<double>  func() { return NDArray<double>('c', {2, 2}, {1,2,3,4});};
+// ///////////////////////////////////////////////////////////////////
+// TEST_F(HelpersTests1, xt_test1) {
+    
+//     NDArray<double> xt  ('c', {2, 2}, {1,2,3,4});
+    
+//     NDArray<double> r(func());
+
+//     // xt({{},{1,2}});
+//     // xt({{},{1,2}})(0)=20;
+//     // xt({{},{1,2}})(1)=40;
+//     // xt.printIndexedBuffer();
+//     ASSERT_TRUE(1);
+//     // ASSERT_TRUE(xt({{1,},{}}).getBuffer() == xt.getBuffer());
+// }
+
+
+class Base
+{
+public:
+    Base() {std::cout<<"default ctor ";}
+    Base(const Base& b) {std::cout<<"copy ctor ";}
+    // Base(Base&& b) {std::cout<<"move ctor ";}
+    ~Base() {};
+    int _a;    
+};
+
+Base  func() { return Base();}
+///////////////////////////////////////////////////////////////////
+TEST_F(HelpersTests1, xt_test1) {
+        
+    // NDArray<double> arr(func());
+    // Base a;
+    // func();
+    Base b=func();      // default ctor copy ctor copy ctor
+    // b._a = 11;
+    
+    ASSERT_TRUE(1);
+
+}
