@@ -2762,10 +2762,9 @@ TEST_F(DeclarableOpsTests1, sru_bp_logic1) {
     NDArray<double>* gradB    = resultsBP->at(2); 
     NDArray<double>* gradInit = resultsBP->at(3);
 
-    // ASSERT_TRUE(expGradX.equalsTo(gradX, 1e-4)); 
-    // ASSERT_TRUE(expGradW.equalsTo(gradW));
-    // ASSERT_TRUE(expGradB.equalsTo(gradB));
-    gradInit->printIndexedBuffer();
+    ASSERT_TRUE(expGradX.equalsTo(gradX, 1e-4)); 
+    ASSERT_TRUE(expGradW.equalsTo(gradW));
+    ASSERT_TRUE(expGradB.equalsTo(gradB));
     ASSERT_TRUE(expGradInit.equalsTo(gradInit));
     
     delete resultsBP;

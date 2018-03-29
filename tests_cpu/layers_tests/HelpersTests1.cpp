@@ -1033,14 +1033,13 @@ TEST_F(HelpersTests1, SVD_test16) {
     
     svd.DivideAndConquer(0, 3, 1, 1, 1);
     // svd._m.printIndexedBuffer();
-
-    ASSERT_TRUE(expM.equalsTo(&svd._m));
-    ASSERT_TRUE(expU.equalsTo(&svd._u));
-    ASSERT_TRUE(expV.equalsTo(&svd._v));
-
     ASSERT_TRUE(expM.isSameShapeStrict(&svd._m));
     ASSERT_TRUE(expU.isSameShapeStrict(&svd._u));
     ASSERT_TRUE(expV.isSameShapeStrict(&svd._v));
+
+    ASSERT_TRUE(expM.equalsTo(&svd._m));
+    ASSERT_TRUE(expU.equalsTo(&svd._u));
+    ASSERT_TRUE(expV.equalsTo(&svd._v));    
 }
 
 ///////////////////////////////////////////////////////////////////

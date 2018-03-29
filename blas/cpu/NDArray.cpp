@@ -612,7 +612,7 @@ template<typename T>
 	if (this == &other) return *this;
 
     if (_shapeInfo != nullptr && _buffer != nullptr && shape::equalsSoft(_shapeInfo, other._shapeInfo))
-        this->assign(&other);
+        this->assign(&other);        
         // memcpy(_buffer, other._buffer, arrLength*sizeOfT());               // copy elements of other current array
     else {
         if(_isBuffAlloc && _workspace == nullptr)
@@ -664,7 +664,6 @@ NDArray<T>& NDArray<T>::operator=(NDArray<T>&& other) noexcept {
     other._buffer = other._bufferD = nullptr;
     other._shapeInfo = other._shapeInfoD = nullptr;
 
-    std::cout<<"move assignment operator "<<std::endl;
     return *this;
 }
 
@@ -2734,8 +2733,19 @@ bool NDArray<T>::isUnitary() {
                 offset += first * stridesOf[d];
             }
         }
+
         NDArray<T> result(this->_buffer + offset, newShape, this->_workspace);
         result._isShapeAlloc = true;
+
+        // check whether units are present in newShape, if yes then remove them by applying corresponding reshape
+        // for example if result has shape {1,a,1,b} then after reshaping it acquire new shape {a,b}
+        // std::vector<int> nonUnitDims;
+        // for(int i = 0; i < result.rankOf(); ++i)
+        //     if(newShape[i+1] != 1)
+        //         nonUnitDims.push_back(newShape[i+1]);
+
+        // if(nonUnitDims.size() != result.rankOf())
+        //     result.reshapei(nonUnitDims);
 
         return result;
     }

@@ -690,8 +690,9 @@ void SVD<T>::DivideAndConquer(int col1, int col2, int row1W, int col1W, int shif
     T alphaK;
     T betaK; 
     T r0; 
-    T lambda, phi, c0, s0;
-    NDArray<T> l, f;
+    T lambda, phi, c0, s0;    
+    NDArray<T> l(_u.ordering(), {1, k}, _u.getWorkspace());
+    NDArray<T> f(_u.ordering(), {1, n-k-1}, _u.getWorkspace());
     
     if(n < _switchSize) { 
                             
@@ -744,14 +745,19 @@ void SVD<T>::DivideAndConquer(int col1, int col2, int row1W, int col1W, int shif
     
     r0 = math::nd4j_sqrt<T>((math::nd4j_abs<T>(alphaK * lambda) * math::nd4j_abs<T>(alphaK * lambda)) + math::nd4j_abs<T>(betaK * phi) * math::nd4j_abs<T>(betaK * phi));
     
-    if (_calcU) {
-        l = _u({{col1+k, col1+k+1},{col1, col1+k}});        
-        f = _u({{col1+k+1, col1+k+2},{col1+k+1, col1+n}});        
-    } 
-    else {        
-        l = _u({{1, 2},{col1, col1+k}});
-        f = _u({{0, 1},{col1+k+1, col1+n}});
+    if(_calcU) {
+        l.assign(_u({{col1+k, col1+k+1},{col1, col1+k}}));
+        f.assign(_u({{col1+k+1, col1+k+2},{col1+k+1, col1+n}}));
     }
+    else {
+        l.assign(_u({{1, 2},{col1, col1+k}}));
+        f.assign(_u({{0, 1},{col1+k+1, col1+n}}));
+    }
+
+    // UofSVD.printIndexedBuffer();
+    // VofSVD.printIndexedBuffer();
+    // singVals.printIndexedBuffer();
+    // printf("!! \n");
     
     if (_calcV) 
         _v(row1W+k, col1W) = 1.;
@@ -816,7 +822,7 @@ void SVD<T>::DivideAndConquer(int col1, int col2, int row1W, int col1W, int shif
     deflation(col1, col2, k, row1W, col1W, shift);
       
     NDArray<T> UofSVD, VofSVD, singVals;  
-    calcBlockSVD(col1 + shift, n, UofSVD, singVals, VofSVD);
+    calcBlockSVD(col1 + shift, n, UofSVD, singVals, VofSVD);    
     
     if(_calcU) {
         NDArray<T>* pTemp = _u.subarray({{col1, col1+n+1},{col1, col1+n+1}});
