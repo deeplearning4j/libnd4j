@@ -4211,7 +4211,7 @@ __host__ __device__
 #ifdef __CUDACC__
     __host__ __device__
 #endif
-    ND4J_EXPORT void printShapeInfoLinear(const char *msg, int rank, int *shape, int *strides) {
+    INLINEDEF void printShapeInfoLinear(const char *msg, int rank, int *shape, int *strides) {
         printf("%s : [", msg);
         for (int i = 0; i < rank; i++) {
             printf("%i, ", shape[i]);
