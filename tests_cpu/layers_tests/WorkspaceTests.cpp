@@ -202,6 +202,8 @@ TEST_F(WorkspaceTests, Test_Graph_1) {
     auto status = GraphExecutioner<float>::execute(graph);
     ASSERT_EQ(Status::OK(), status);
 
+    auto arr = new NDArray<float>('c', {5, 7});
+
     delete graph;
 }
 
