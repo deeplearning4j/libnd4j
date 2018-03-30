@@ -741,9 +741,10 @@ namespace nd4j {
 
         /**
         *  operator returns sub-array with buffer pointing at this->_buffer with offset defined by given intervals
-        *  idx - intervals of indexes which define the sub-arrays  to point on
+        *  idx - intervals of indexes which define the sub-arrays to point on
+        *  keepUnitiesInShape - if false then eliminate unities from resulting array shape, for example {1,a,1,b} -> {a,b}
         */
-        NDArray<T> operator()(const Intervals& idx)  const;
+        NDArray<T> operator()(const Intervals& idx, bool keepUnitiesInShape = false)  const;
 
         /**
         *  addition operator: array + other

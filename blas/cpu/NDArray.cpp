@@ -2705,10 +2705,10 @@ bool NDArray<T>::isUnitary() {
     ////////////////////////////////////////////////////////////////////////
     // operator returns sub-array with buffer pointing at this->_buffer + certain offset
     template<typename T>
-    NDArray<T> NDArray<T>::operator()(const Intervals& idx)  const {
+    NDArray<T> NDArray<T>::operator()(const Intervals& idx, bool keepUnitiesInShape)  const {
 
         if (idx.size() != this->rankOf())
-            throw "NDArray::operator(Intervals): number of indices should match with rank of array!";
+            throw "NDArray::operator(Intervals): number of indices should match the rank of array!";
 
         int *newShape;
         ALLOCATE(newShape, _workspace, shape::shapeInfoLength(this->rankOf()), int);
@@ -2737,19 +2737,21 @@ bool NDArray<T>::isUnitary() {
         NDArray<T> result(this->_buffer + offset, newShape, this->_workspace);
         result._isShapeAlloc = true;
 
-        // check whether units are present in newShape, if yes then remove them by applying corresponding reshape
-        // for example if result has shape {1,a,1,b} then after reshaping it acquire new shape {a,b}
-        // std::vector<int> nonUnitDims;
-        // for(int i = 0; i < result.rankOf(); ++i)
-        //     if(newShape[i+1] != 1)
-        //         nonUnitDims.push_back(newShape[i+1]);
+        if(!keepUnitiesInShape) {
+            // check whether units are present in newShape, if yes then remove them by applying corresponding reshape
+            // for example if result has shape {1,a,1,b} then after reshaping it acquire new shape {a,b}
+            std::vector<int> nonUnitDims;
+            for(int i = 0; i < result.rankOf(); ++i)
+                if(newShape[i+1] != 1)
+                    nonUnitDims.push_back(newShape[i+1]);
 
-        // if(nonUnitDims.size() != result.rankOf())
-        //     result.reshapei(nonUnitDims);
+            if(nonUnitDims.size() != result.rankOf())
+                result.reshapei(nonUnitDims);
+        }
 
         return result;
     }
-    
+        
 ////////////////////////////////////////////////////////////////////////
 // addition operator array + array
 template<typename T>
