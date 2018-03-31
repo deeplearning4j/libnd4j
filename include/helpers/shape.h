@@ -4042,8 +4042,10 @@ __host__ __device__
                 printf("H: Index %d [%d] must not be >= shape[%d].\n", i,indices[i],shape[i]);
 #endif
 
-                printShapeInfoLinear("getOffsetFailed", rank, shape, stride);
-
+#ifdef __CUDA_ARCH__
+                if (threadIdx.x == 0 && blockIdx.x == 0)
+                    printShapeInfoLinear("getOffsetFailed", rank, shape, stride);
+#endif
                 return -1;
             }
 
