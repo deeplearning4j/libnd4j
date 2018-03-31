@@ -3058,7 +3058,7 @@ template<typename T>
 void NDArray<T>::setValueIn2DMatrix(const T& value, const int diag, const char direction) {
 
     if(rankOf() != 2)
-       throw std::string("NDArray::setValueIn2DMatrix method: array must have rank = 2, but got " + std::to_string(rankOf()) + " instead !");
+       throw std::string("NDArray::setValueIn2DMatrix method: array must have rank = 2, but got " + toStringValue(rankOf()) + " instead !");
 
     const int rows = sizeAt(0);
     const int cols = sizeAt(1);
@@ -3082,7 +3082,7 @@ void NDArray<T>::setValueIn2DMatrix(const T& value, const int diag, const char d
             break;
 
         default:
-            throw std::string("NDArray::setValueIn2DMatrix method: wrong value of direction argument, expected is 'u' or 'l', but got " + std::to_string(direction) + " instead !");
+            throw std::string("NDArray::setValueIn2DMatrix method: wrong value of direction argument, expected is 'u' or 'l', but got " + std::string(1,direction) + " instead !");
     }  
 }
 
