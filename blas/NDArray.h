@@ -887,8 +887,8 @@ namespace nd4j {
         *      diag < 0 below main diagonal
         *      diag > 0 above main diagonal
         *  direction - in what direction to fill matrix. There are 2 possible directions:
-        *      'u' - fill up, mathematically this corresponds to lower triangular block, 
-        *      'l' - fill down, mathematically this corresponds to upper triangular block, 
+        *      'u' - fill up, mathematically this corresponds to lower triangular matrix 
+        *      'l' - fill down, mathematically this corresponds to upper triangular matrix
         */
         void setValueIn2DMatrix(const T& value, const int diag, const char direction);
 
