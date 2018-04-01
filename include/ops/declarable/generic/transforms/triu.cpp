@@ -48,21 +48,21 @@ CUSTOM_OP_IMPL(triu, 1, 1, false, 0, 0) {
 
 DECLARE_SHAPE_FN(triu) {
 
-	int* gradOShapeInfo = inputShape->at(0);
+	int* inShapeInfo = inputShape->at(0);
 
-    int rank = (gradOShapeInfo[0] == 1) ? 2 : gradOShapeInfo[0];
+    int rank = (inShapeInfo[0] == 1) ? 2 : inShapeInfo[0];
     
     int* outShapeInfo = nullptr;
 	ALLOCATE(outShapeInfo, block.getWorkspace(), shape::shapeInfoLength(rank), int);    
-    memcpy(outShapeInfo, gradOShapeInfo, (1 + rank) * sizeof(int));                     // copy rank and dimensions values only
+    memcpy(outShapeInfo, inShapeInfo, (1 + rank) * sizeof(int));                     // copy rank and dimensions values only
 
-    if(gradOShapeInfo[0] == 1) {
+    if(inShapeInfo[0] == 1) {
         outShapeInfo[0] = rank; 
-        outShapeInfo[1] = gradOShapeInfo[1];
-        outShapeInfo[2] = gradOShapeInfo[1];
+        outShapeInfo[1] = inShapeInfo[1];
+        outShapeInfo[2] = inShapeInfo[1];
     }
 
-	shape::updateStrides(outShapeInfo, shape::order(gradOShapeInfo));
+	shape::updateStrides(outShapeInfo, shape::order(inShapeInfo));
 
     return SHAPELIST(outShapeInfo);    
 }
