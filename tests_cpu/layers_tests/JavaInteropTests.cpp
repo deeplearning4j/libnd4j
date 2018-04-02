@@ -642,3 +642,11 @@ TEST_F(JavaInteropTests, Test_Inplace_Outputs_3) {
     ASSERT_TRUE(e.equalsTo(output));
     ASSERT_FALSE(e.ordering() == output.ordering());
 }
+
+TEST_F(JavaInteropTests, Test_Reduce3_EdgeCase) {
+    NDArray<double> x('c', {3, 4, 5});
+    NDArray<double> y('c', {3, 4, 5});
+    NDArray<double> z('c', {5});
+
+
+}

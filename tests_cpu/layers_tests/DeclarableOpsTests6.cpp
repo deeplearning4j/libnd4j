@@ -976,5 +976,8 @@ TEST_F(DeclarableOpsTests6, Test_Reduce3_Edge) {
 
 
     std::vector<int> dims = {0, 1};
-    auto z = x.template applyReduce3<simdOps::CosineSimilarity<double>>(&y, dims, nullptr);
+    auto z = x.applyReduce3<simdOps::CosineSimilarity<double>>(&y, dims, nullptr);
+    ASSERT_TRUE(z != nullptr);
+
+    delete z;
 }
