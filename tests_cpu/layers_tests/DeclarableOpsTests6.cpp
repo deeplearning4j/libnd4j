@@ -969,3 +969,12 @@ TEST_F(DeclarableOpsTests6, Test_Gather_Discrepancy_119_2) {
 
     delete result;
 }
+
+TEST_F(DeclarableOpsTests6, Test_Reduce3_Edge) {
+    NDArray<double> x('c', {3, 4, 5});
+    NDArray<double> y('c', {3, 4, 5});
+
+
+    std::vector<int> dims = {0, 1};
+    auto z = x.template applyReduce3<simdOps::CosineSimilarity<double>>(&y, dims, nullptr);
+}
