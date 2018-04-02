@@ -2579,9 +2579,3 @@ TEST_F(DeclarableOpsTests4, triu_bp_test4) {
     delete results;
 }
 
-
-
-
-
-
-
