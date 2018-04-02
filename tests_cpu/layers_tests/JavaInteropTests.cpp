@@ -648,5 +648,8 @@ TEST_F(JavaInteropTests, Test_Reduce3_EdgeCase) {
     NDArray<double> y('c', {3, 4, 5});
     NDArray<double> z('c', {5});
 
+    std::vector<int> dims = {0, 1};
 
+    NativeOps nativeOps;
+    nativeOps.execReduce3Double(nullptr, 2, x.buffer(), x.shapeInfo(), nullptr, y.buffer(), y.shapeInfo(), z.buffer(), z.shapeInfo(), dims.data(), (int) dims.size());
 }
