@@ -653,3 +653,16 @@ TEST_F(JavaInteropTests, Test_Reduce3_EdgeCase) {
     NativeOps nativeOps;
     nativeOps.execReduce3Double(nullptr, 2, x.buffer(), x.shapeInfo(), nullptr, y.buffer(), y.shapeInfo(), z.buffer(), z.shapeInfo(), dims.data(), (int) dims.size());
 }
+
+TEST_F(JavaInteropTests, Test_SimpleIf_Output) {
+    Environment::getInstance()->setDebug(true);
+    Environment::getInstance()->setVerbose(true);
+
+    NativeOps ops;
+
+    auto pl = nd4j::graph::readFlatBuffers("./resources/simpleif_0_java.fb");
+    auto ptr = ops.executeFlatGraphFloat(nullptr, pl);
+
+    Environment::getInstance()->setDebug(false);
+    Environment::getInstance()->setVerbose(false);
+}
