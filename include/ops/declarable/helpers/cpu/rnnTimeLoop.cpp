@@ -34,7 +34,7 @@ void rnnTimeLoop(const std::vector<NDArray<T>*>& inArrs, NDArray<T>* h, NDArray<
         *hFinal = 0.;   
 
 // #pragma omp parallel for if(bS > Environment::getInstance()->elementwiseThreshold()) schedule(guided) 
-// #pragma omp parallel for schedule(guided)     
+#pragma omp parallel for schedule(guided)     
     // loop through batch of inputs           
     for (int e = 0; e < bS; ++e) {              
         
