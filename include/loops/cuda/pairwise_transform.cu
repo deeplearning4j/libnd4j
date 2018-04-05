@@ -498,12 +498,13 @@ namespace functions {
 
 	            int *deviceTADShapeInfo = reinterpret_cast<int *>(extraPointers[10]);
 
-	            if (nd4j::Environment::getInstance()->isDebugAndVerbose())
-		            printf("D4 opNum:[%i]\n", opNum);
+	            if (nd4j::Environment::getInstance()->isDebugAndVerbose()) {
+		            printf("F4 opNum:[%i]; <<<X: [%i]; Y: [%i]; Z: [%i]>>>\n", opNum, launchDims.x,launchDims.y, launchDims.z);
+	            }
 
 	            int *allocationPointer = reinterpret_cast<int *>(extraPointers[3]);
 
-            	pairWiseTransformStridedFloat<<<launchDims.x,launchDims.y, launchDims.z, *stream>>> ( opNum, n, dx, y, xStride, yStride, extraParams, result, resultStride, allocationPointer, deviceTADShapeInfo);
+            	pairWiseTransformStridedFloat<<<48, 1024, 1024, *stream>>> ( opNum, n, dx, y, xStride, yStride, extraParams, result, resultStride, allocationPointer, deviceTADShapeInfo);
 
 	            if (nd4j::Environment::getInstance()->isDebug())
 		            checkCudaErrors(cudaStreamSynchronize(*stream));
@@ -518,7 +519,7 @@ namespace functions {
 	            int *deviceTADShapeInfo = reinterpret_cast<int *>(extraPointers[10]);
 
 	            if (nd4j::Environment::getInstance()->isDebugAndVerbose())
-		            printf("D4 opNum:[%i]\n", opNum);
+		            printf("H4 opNum:[%i]\n", opNum);
 
 	            int *allocationPointer = reinterpret_cast<int *>(extraPointers[3]);
 
