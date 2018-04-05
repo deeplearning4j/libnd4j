@@ -360,15 +360,6 @@ __device__ void pairWiseTransformStridedGeneric(
 		T *result,
 		int incz, int *allocationPointer, int *tadOnlyShapeInfo) {
 
-	__shared__ UnifiedSharedMemory *manager;
-
-     if (threadIdx.x == 0) {
-        extern __shared__ unsigned char shmem[];
-        manager = new(shmem) UnifiedSharedMemory((int *) shmem);
-	    manager->init(sizeof(UnifiedSharedMemory), 0, sizeof(functions::pairwise_transforms::PairWiseTransform<T>), sizeof(shape::TAD), 0);
-	}
-	__syncthreads();
-
 	functions::pairwise_transforms::PairWiseTransform<T>::transformCuda(
 		opNum,
 		n,
@@ -380,9 +371,8 @@ __device__ void pairWiseTransformStridedGeneric(
 		result,
 		incz,
 		allocationPointer,
-		manager,
+		nullptr,
 		tadOnlyShapeInfo);
-
 }
 
 
