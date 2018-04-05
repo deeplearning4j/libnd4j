@@ -4,6 +4,7 @@
 
 #include<ops/declarable/helpers/rnnTimeLoop.h>
 #include<ops/declarable/helpers/rnnCell.h>
+#include <helpers/BlasHelper.h>
 
 namespace nd4j    {
 namespace ops     {
@@ -33,6 +34,7 @@ void rnnTimeLoop(const std::vector<NDArray<T>*>& inArrs, NDArray<T>* h, NDArray<
     else 
         *hFinal = 0.;   
 
+    BlasHelper::getInstance();          // to avoid memory leak in pragma parallel loops
 // #pragma omp parallel for if(bS > Environment::getInstance()->elementwiseThreshold()) schedule(guided) 
 #pragma omp parallel for schedule(guided)     
     // loop through batch of inputs           

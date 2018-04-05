@@ -1444,7 +1444,7 @@ TEST_F(DeclarableOpsTests6, dynamic_rnn_test2) {
 }
 
 ///////////////////////////////////////////////////////////////////
-TEST_F(DeclarableOpsTests6, dynamic_rnn_test4) {
+TEST_F(DeclarableOpsTests6, dynamic_rnn_test3) {
 
     const int bS       = 2;
     const int inSize   = 3;
@@ -1486,7 +1486,7 @@ TEST_F(DeclarableOpsTests6, dynamic_rnn_test4) {
 }
 
 ///////////////////////////////////////////////////////////////////
-TEST_F(DeclarableOpsTests6, dynamic_rnn_test5) {
+TEST_F(DeclarableOpsTests6, dynamic_rnn_test4) {
 
     const int bS       = 2;
     const int inSize   = 3;
@@ -1527,7 +1527,7 @@ TEST_F(DeclarableOpsTests6, dynamic_rnn_test5) {
 }
 
 ///////////////////////////////////////////////////////////////////
-TEST_F(DeclarableOpsTests6, dynamic_rnn_test6) {
+TEST_F(DeclarableOpsTests6, dynamic_rnn_test5) {
 
     const int bS       = 2;
     const int inSize   = 3;
