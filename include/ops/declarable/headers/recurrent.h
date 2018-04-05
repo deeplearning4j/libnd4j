@@ -267,6 +267,27 @@ namespace nd4j {
        * Implementation of operation "static RNN time sequences" with peep hole connections:
        *
        * Input arrays: 
+       *    0: input with shape [time x batchSize x inSize] or [batchSize x time x numUnits], time - number of time steps, batchSize - batch size, inSize - number of features       
+       *    1: input-to-hidden  weights, [inSize   x numUnits] 
+       *    2: hidden-to-hidden weights, [numUnits x numUnits] 
+       *    3: biases, [2*numUnits] 
+       *    4: (optional) initial cell output [batchSize x numUnits], that is at time step = 0       
+       *    5: (optional) vector with shape [batchSize] containing integer values within [0,time), each element of this vector set max time step per each input in batch, this means there are no calculations for time >= maxTimeStep       
+       *
+       *  Input integer arguments:
+       *    0: (optional) timeMajor - if non zero then input shape is [time, bS, ...], else [bS, time, ...]
+       *  
+       * Output arrays: 
+       *    0: cell outputs [time x batchSize x numUnits] or [batchSize x time x numUnits]
+       *    1: cell final non-zero output [batchSize x numUnits]
+       */                  
+        DECLARE_CUSTOM_OP(dynamic_rnn, 4, 2, false, 0, 0);
+
+    //////////////////////////////////////////////////////////////////////////
+    /**
+       * Implementation of operation "static RNN time sequences" with peep hole connections:
+       *
+       * Input arrays: 
        *    0: input with shape [time x batchSize x inSize], time - number of time steps, batchSize - batch size, inSize - number of features       
        *    1: input-to-hidden  weights for forward RNN, [inSize   x numUnitsFW] 
        *    2: hidden-to-hidden weights for forward RNN, [numUnitsFW x numUnitsFW] 
