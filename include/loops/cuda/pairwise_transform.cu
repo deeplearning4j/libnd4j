@@ -494,7 +494,7 @@ namespace functions {
 
 	            int *allocationPointer = reinterpret_cast<int *>(extraPointers[3]);
 
-            	pairWiseTransformStridedFloat<<<48, 1024, 1024, *stream>>> ( opNum, n, dx, y, xStride, yStride, extraParams, result, resultStride, allocationPointer, deviceTADShapeInfo);
+            	pairWiseTransformStridedFloat<<<launchDims.x, launchDims.y, launchDims.z, *stream>>> ( opNum, n, dx, y, xStride, yStride, extraParams, result, resultStride, allocationPointer, deviceTADShapeInfo);
 
 	            if (nd4j::Environment::getInstance()->isDebug())
 		            checkCudaErrors(cudaStreamSynchronize(*stream));
@@ -606,8 +606,8 @@ namespace functions {
 
             template<typename T>
             __device__ void PairWiseTransform<T>::transformCuda(const int opNum, Nd4jIndex n, T *dx, T *y, int incx, int incy, T *extraParams, T *result, int incz, int *allocationPointer, UnifiedSharedMemory *manager, int *tadOnlyShapeInfo) {
-                    //DISPATCH_BY_OPNUM(transformCuda, PARAMS(n, dx, y, incx, incy, extraParams, result, incz, allocationPointer, manager, tadOnlyShapeInfo), PAIRWISE_TRANSFORM_OPS);
-                PairWiseTransform<T>::template transformCuda<simdOps::Add<T>>(n, dx, y, incx, incy, extraParams, result, incz, allocationPointer, manager, tadOnlyShapeInfo);
+                    DISPATCH_BY_OPNUM(transformCuda, PARAMS(n, dx, y, incx, incy, extraParams, result, incz, allocationPointer, manager, tadOnlyShapeInfo), PAIRWISE_TRANSFORM_OPS);
+               // PairWiseTransform<T>::template transformCuda<simdOps::Add<T>>(n, dx, y, incx, incy, extraParams, result, incz, allocationPointer, manager, tadOnlyShapeInfo);
 			}
 
 
@@ -810,16 +810,15 @@ namespace functions {
 			int *tadOnlyShapeInfo) {
 		int tid = blockIdx.x * blockDim.x + threadIdx.x;
 
-		//if (incx == incy && incy == incz && incx == 1) {
+		if (incx == incy && incy == incz && incx == 1) {
 			for (int i = tid; i < n; i += gridDim.x * blockDim.x) {
 				result[i] = OpType::op(dx[i], dy[i], params);
 			}
-		/*} else {
+		} else {
 			for (Nd4jIndex i = tid; i < n; i += gridDim.x * blockDim.x) {
 				result[i * incz] = OpType::op(dx[i * incx], dy[i * incy], params);
 			}
 		}
-		*/
 	}
     }
 }
