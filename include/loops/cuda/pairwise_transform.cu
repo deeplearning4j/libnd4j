@@ -606,8 +606,8 @@ namespace functions {
 
             template<typename T>
             __device__ void PairWiseTransform<T>::transformCuda(const int opNum, Nd4jIndex n, T *dx, T *y, int incx, int incy, T *extraParams, T *result, int incz, int *allocationPointer, UnifiedSharedMemory *manager, int *tadOnlyShapeInfo) {
-                    DISPATCH_BY_OPNUM(transformCuda, PARAMS(n, dx, y, incx, incy, extraParams, result, incz, allocationPointer, manager, tadOnlyShapeInfo), PAIRWISE_TRANSFORM_OPS);
-
+                    //DISPATCH_BY_OPNUM(transformCuda, PARAMS(n, dx, y, incx, incy, extraParams, result, incz, allocationPointer, manager, tadOnlyShapeInfo), PAIRWISE_TRANSFORM_OPS);
+                PairWiseTransform<T>::template transformCuda<simdOps::Add<T>>(n, dx, y, incx, incy, extraParams, result, incz, allocationPointer, manager, tadOnlyShapeInfo);
 			}
 
 
