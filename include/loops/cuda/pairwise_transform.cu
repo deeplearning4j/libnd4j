@@ -810,15 +810,16 @@ namespace functions {
 			int *tadOnlyShapeInfo) {
 		int tid = blockIdx.x * blockDim.x + threadIdx.x;
 
-		if (incx == incy && incy == incz && incx == 1) {
-			for (Nd4jIndex i = tid; i < n; i += gridDim.x * blockDim.x) {
+		//if (incx == incy && incy == incz && incx == 1) {
+			for (int i = tid; i < n; i += gridDim.x * blockDim.x) {
 				result[i] = OpType::op(dx[i], dy[i], params);
 			}
-		} else {
+		/*} else {
 			for (Nd4jIndex i = tid; i < n; i += gridDim.x * blockDim.x) {
 				result[i * incz] = OpType::op(dx[i * incx], dy[i * incy], params);
 			}
 		}
+		*/
 	}
     }
 }
