@@ -360,15 +360,6 @@ __device__ void pairWiseTransformStridedGeneric(
 		T *result,
 		int incz, int *allocationPointer, int *tadOnlyShapeInfo) {
 
-	__shared__ UnifiedSharedMemory *manager;
-
-     if (threadIdx.x == 0) {
-        extern __shared__ unsigned char shmem[];
-        manager = new(shmem) UnifiedSharedMemory((int *) shmem);
-	    manager->init(sizeof(UnifiedSharedMemory), 0, sizeof(functions::pairwise_transforms::PairWiseTransform<T>), sizeof(shape::TAD), 0);
-	}
-	__syncthreads();
-
 	functions::pairwise_transforms::PairWiseTransform<T>::transformCuda(
 		opNum,
 		n,
@@ -380,9 +371,8 @@ __device__ void pairWiseTransformStridedGeneric(
 		result,
 		incz,
 		allocationPointer,
-		manager,
+		nullptr,
 		tadOnlyShapeInfo);
-
 }
 
 
@@ -498,12 +488,13 @@ namespace functions {
 
 	            int *deviceTADShapeInfo = reinterpret_cast<int *>(extraPointers[10]);
 
-	            if (nd4j::Environment::getInstance()->isDebugAndVerbose())
-		            printf("D4 opNum:[%i]\n", opNum);
+	            if (nd4j::Environment::getInstance()->isDebugAndVerbose()) {
+		            printf("F4 opNum:[%i]; <<<X: [%i]; Y: [%i]; Z: [%i]>>>\n", opNum, launchDims.x,launchDims.y, launchDims.z);
+	            }
 
 	            int *allocationPointer = reinterpret_cast<int *>(extraPointers[3]);
 
-            	pairWiseTransformStridedFloat<<<launchDims.x,launchDims.y, launchDims.z, *stream>>> ( opNum, n, dx, y, xStride, yStride, extraParams, result, resultStride, allocationPointer, deviceTADShapeInfo);
+            	pairWiseTransformStridedFloat<<<launchDims.x, launchDims.y, launchDims.z, *stream>>> ( opNum, n, dx, y, xStride, yStride, extraParams, result, resultStride, allocationPointer, deviceTADShapeInfo);
 
 	            if (nd4j::Environment::getInstance()->isDebug())
 		            checkCudaErrors(cudaStreamSynchronize(*stream));
@@ -518,7 +509,7 @@ namespace functions {
 	            int *deviceTADShapeInfo = reinterpret_cast<int *>(extraPointers[10]);
 
 	            if (nd4j::Environment::getInstance()->isDebugAndVerbose())
-		            printf("D4 opNum:[%i]\n", opNum);
+		            printf("H4 opNum:[%i]\n", opNum);
 
 	            int *allocationPointer = reinterpret_cast<int *>(extraPointers[3]);
 
@@ -616,7 +607,7 @@ namespace functions {
             template<typename T>
             __device__ void PairWiseTransform<T>::transformCuda(const int opNum, Nd4jIndex n, T *dx, T *y, int incx, int incy, T *extraParams, T *result, int incz, int *allocationPointer, UnifiedSharedMemory *manager, int *tadOnlyShapeInfo) {
                     DISPATCH_BY_OPNUM(transformCuda, PARAMS(n, dx, y, incx, incy, extraParams, result, incz, allocationPointer, manager, tadOnlyShapeInfo), PAIRWISE_TRANSFORM_OPS);
-
+               // PairWiseTransform<T>::template transformCuda<simdOps::Add<T>>(n, dx, y, incx, incy, extraParams, result, incz, allocationPointer, manager, tadOnlyShapeInfo);
 			}
 
 
@@ -820,7 +811,7 @@ namespace functions {
 		int tid = blockIdx.x * blockDim.x + threadIdx.x;
 
 		if (incx == incy && incy == incz && incx == 1) {
-			for (Nd4jIndex i = tid; i < n; i += gridDim.x * blockDim.x) {
+			for (int i = tid; i < n; i += gridDim.x * blockDim.x) {
 				result[i] = OpType::op(dx[i], dy[i], params);
 			}
 		} else {
