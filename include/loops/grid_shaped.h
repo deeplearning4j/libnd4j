@@ -21,6 +21,8 @@ namespace functions {
 
             template<typename OpType>
             static __device__ void transformCuda(T *dx, int *xShapeBuffer, T *y, int *yShapeBuffer, T *result, int *resultShapeBuffer, T *extraParams, int *allocationPointer, UnifiedSharedMemory *manager, int *tadOnlyShapeInfo);
+
+            static __device__ void transformCuda(int opTypeA, int opNumA, int opTypeB, int opNumB,  T *dx, int *xShapeBuffer, T *y, int *yShapeBuffer, T *result, int *resultShapeBuffer, T *extraParams, int *allocationPointer, UnifiedSharedMemory *manager, int *tadOnlyShapeInfo);
         };
     }
 }
