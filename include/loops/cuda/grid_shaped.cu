@@ -120,11 +120,11 @@ namespace functions {
                 resultRank = _rank(resultShapeBuffer);
                 n = shape::length(xShapeBuffer);
 
-                xShape = _shape(xShapeBuffer);
-                yShape = _shape(yShapeBuffer);
+                xShape = _shapeOf(xShapeBuffer);
+                yShape = _shapeOf(yShapeBuffer);
 
                 if (dx != result) {
-                    zShape = _shape(resultShapeBuffer);
+                    zShape = _shapeOf(resultShapeBuffer);
                     zStride = _stride(resultShapeBuffer);
                 }
 
