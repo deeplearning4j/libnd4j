@@ -88,9 +88,13 @@ namespace functions {
             return shape::shapeOf(shape);
         }
 
-    __device__ int* _shapeOf(int *shape) {
-        return shape::shapeOf(shape);
-    }
+        __device__ int* _stride(int *shape) {
+            return shape::stride(shape);
+        }
+
+        __device__ int _rank(int* shape) {
+            return shape::rank(shape);
+        }
 
         template<typename T>
         template<typename OpType>
@@ -102,11 +106,30 @@ namespace functions {
             __shared__ int resultRank;
             __shared__ Nd4jIndex n;
 
+            __shared__ int *xShape;
+            __shared__ int *yShape;
+            __shared__ int *zShape;
+
+            __shared__ int *xStride;
+            __shared__ int *yStride;
+            __shared__ int *zStride;
+
             if (threadIdx.x == 0) {
-                xRank = shape::rank(xShapeBuffer);
-                yRank = shape::rank(yShapeBuffer);
-                resultRank = shape::rank(resultShapeBuffer);
+                xRank = _rank(xShapeBuffer);
+                yRank = _rank(yShapeBuffer);
+                resultRank = _rank(resultShapeBuffer);
                 n = shape::length(xShapeBuffer);
+
+                xShape = _shape(xShapeBuffer);
+                yShape = _shape(yShapeBuffer);
+
+                if (dx != result) {
+                    zShape = _shape(resultShapeBuffer);
+                    zStride = _stride(resultShapeBuffer);
+                }
+
+                xStride = _stride(xShapeBuffer);
+                yStride = _stride(yShapeBuffer);
             }
             __syncthreads();
 
@@ -115,24 +138,24 @@ namespace functions {
 
             if (dx == result) {
                 for (Nd4jIndex i = tid; i < n; i += gridDim.x * blockDim.x) {
-                    _ind2subC(xRank,shape::shapeOf(xShapeBuffer), i, xCoord);
-                    _ind2subC(yRank,shape::shapeOf(yShapeBuffer), i, yCoord);
+                    _ind2subC(xRank, xShape, i, xCoord);
+                    _ind2subC(yRank, yShape, i, yCoord);
 
-                    Nd4jIndex xOffset = _getOffset(0, shape::shapeOf(xShapeBuffer), shape::stride(xShapeBuffer), xCoord, xRank);
-                    Nd4jIndex yOffset = _getOffset(0, shape::shapeOf(yShapeBuffer), shape::stride(yShapeBuffer), yCoord, yRank);
+                    Nd4jIndex xOffset = _getOffset(0, xShape, xStride, xCoord, xRank);
+                    Nd4jIndex yOffset = _getOffset(0, yShape, yStride, yCoord, yRank);
                     result[xOffset] = OpType::op(dx[xOffset], y[yOffset], extraParams);
                 }
             } else {
                 int resultCoord[MAX_RANK];
 
                 for (Nd4jIndex i = tid; i < n; i += gridDim.x * blockDim.x) {
-                    _ind2subC(xRank,shape::shapeOf(xShapeBuffer), i, xCoord);
-                    _ind2subC(yRank,shape::shapeOf(yShapeBuffer), i, yCoord);
-                    _ind2subC(resultRank,shape::shapeOf(resultShapeBuffer), i, resultCoord);
+                    _ind2subC(xRank, xShape, i, xCoord);
+                    _ind2subC(yRank, yShape, i, yCoord);
+                    _ind2subC(resultRank, zShape, i, resultCoord);
 
-                    Nd4jIndex xOffset = _getOffset(0, shape::shapeOf(xShapeBuffer), shape::stride(xShapeBuffer), xCoord, xRank);
-                    Nd4jIndex yOffset = _getOffset(0, shape::shapeOf(yShapeBuffer), shape::stride(yShapeBuffer), yCoord, yRank);
-                    Nd4jIndex resultOffset = _getOffset(0, shape::shapeOf(resultShapeBuffer), shape::stride(resultShapeBuffer), resultCoord, resultRank);
+                    Nd4jIndex xOffset = _getOffset(0, xShape, xStride, xCoord, xRank);
+                    Nd4jIndex yOffset = _getOffset(0, yShape, yStride, yCoord, yRank);
+                    Nd4jIndex resultOffset = _getOffset(0, zShape, zStride, resultCoord, resultRank);
                     result[resultOffset] = OpType::op(dx[xOffset], y[yOffset], extraParams);
                 }
             }
