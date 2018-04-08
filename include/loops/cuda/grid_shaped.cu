@@ -122,7 +122,7 @@ namespace functions {
         __device__ T _invertedOpExecutor(int opTypeA, int opNumA, int opTypeB, int opNumB, T x, T y, T *extras) {
             // this code is basically InvertedMetaOp, reorganized to suit per-type execution
 
-            Nd4jPointer *wrap = reinterpret_cast<Nd4jPointer *> (params);
+            Nd4jPointer *wrap = reinterpret_cast<Nd4jPointer *> (extras);
             T *paramsA = reinterpret_cast<T *> (wrap[0]);
             T *paramsB = reinterpret_cast<T *> (wrap[1]);
             T intermediate;
@@ -130,7 +130,7 @@ namespace functions {
             // Executing first op, opA
             switch(opTypeA) {
                 case 2: {
-                    EXECUTE_2OE(opNumA, x, y, parasA, intermediate, OPS_A(PAIRWISE_TRANSFORM_OPS));
+                    EXECUTE_2OE(opNumA, x, y, paramsA, intermediate, OPS_A(PAIRWISE_TRANSFORM_OPS));
                 };
                 break;
                 default: {
