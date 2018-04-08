@@ -2,6 +2,7 @@
 #ifndef OPS_H_
 #define OPS_H_
 
+#include <op_boilerplate.h>
 #include <array/DataTypeUtils.h>
 #include <helpers/shape.h>
 #include <vector>
@@ -17,11 +18,9 @@
 #define AFFINITY close
 #define DOUBLE_PI_T T(2.0 * 3.14159265358979323846)
 
-
 #define no_op_exec_special 	static const bool requiresSpecial = false; static void execSpecial(T *dx, int *xShapeBuffer, T *result, int *resultShapeBuffer, T *extraParams, int *tadShapeInfo, Nd4jIndex *tadOffsets) {}
 #define no_op_exec_special_accumulation 	static const bool requiresSpecialAccumulation = false; static void execSpecial(T *x, int *xShapeInfo, T *extraParams, T *result, int *resultShapeInfoBuffer, int *dimension, int dimensionLength, int *tadShapeInfo, Nd4jIndex *tadOffset){}
 #ifdef __CUDACC__
-#define meta_def __noinline__ __device__
 #include <helpers/sharedmem.h>
 #define no_op_exec_special_cuda static __device__ void execSpecialCuda(T *dx,int *xShapeBuffer,T *result,int *resultShapeBuffer,T *extraParams, int *allocationPointer, T *reductionPointer, UnifiedSharedMemory *manager, int *tadShapeInfo, Nd4jIndex *tadOffsets) {}
 #define no_op_exec_special_accumulation_cuda 	static inline __device__ void execSpecialCuda(T *dx, int *xShapeInfo, T *extraParams, T *result, int *resultShapeInfo, int *dimension, int dimensionLength, T *reductionBuffer, UnifiedSharedMemory *manager, int *tadOnlyShapeInfo, Nd4jIndex *tadOffsets) {}
@@ -35,32 +34,10 @@
 //#define isinf std::isinf
 //#endif
 
-#define meta_def inline
 #define no_op_exec_special_cuda
 #define no_op_exec_special_accumulation_cuda
 #endif
 
-#ifdef __CUDACC__
-#define op_def inline __device__ __host__
-#define op_def_special inline __device__
-
-// 610 is for tests only
-// 600 is Tesla P100
-// 530 is Tegra
-#if __CUDA_ARCH__ == 600 || __CUDA_ARCH__ == 530
-#define NATIVE_HALFS
-#endif
-
-#elif _MSC_VER
-#define op_def __pragma("omp declare simd") inline
-#define op_def_special __pragma("omp declare simd") inline
-#elif __clang__
-#define op_def inline
-#define op_def_special inline
-#elif __GNUC__
-#define op_def _Pragma("omp declare simd") inline __attribute__((always_inline))
-#define op_def_special _Pragma("omp declare simd") inline __attribute__((always_inline))
-#endif
 
 #define SELU_ALPHA 1.6732632423543772848170429916717
 #define SELU_LAMBDA 1.0507009873554804934193349852946

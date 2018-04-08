@@ -132,10 +132,6 @@ namespace metaOps {
 	};
 
 
-
-
-
-
     template<typename T, typename OpTypeA, typename OpTypeB>
     class ReduceMetaOp {
     public:
