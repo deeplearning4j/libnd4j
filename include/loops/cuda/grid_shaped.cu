@@ -64,6 +64,28 @@ __device__ static inline void invertedMetaPairwiseShapedGeneric(const int opType
     functions::grid::GRIDShaped<T>::template transformCuda<OpClass>(dx, xShapeInfo, dy, yShapeInfo, dz, zShapeInfo, paramsPtr, nullptr, nullptr, nullptr);
 };
 
+template<typename T, typename OpClass>
+__device__ static inline void invertedMetaPairwiseShapedGeneric(const int opTypeA, const int opNumA, const int opTypeB, const int opNumB, long N, T *dx, int *xShapeInfo, T *dy, int *yShapeInfo, T *dz, int *zShapeInfo, T *extraA, T *extraB, T scalarA, T scalarB) {
+    __shared__ Nd4jPointer params[2];
+    __shared__ T *paramsPtr;
+    if (threadIdx.x == 0) {
+        if (opTypeA == 0) {
+            params[0] = (Nd4jPointer *) &scalarA;
+        }
+        else params[0] = (Nd4jPointer *) extraA;
+
+        if (opTypeB == 0) {
+            params[1] = (Nd4jPointer *) &scalarB;
+        }
+        else params[1] = (Nd4jPointer *) extraB;
+
+        paramsPtr = (T *) params;
+    }
+    __syncthreads();
+
+    functions::grid::GRIDShaped<T>::template transformCuda<OpClass>(opTypeA, opNumA, opTypeB, opNumB, dx, xShapeInfo, dy, yShapeInfo, dz, zShapeInfo, paramsPtr, nullptr, nullptr, nullptr);
+};
+
 
 
 #ifndef __CLION_IDE__
@@ -97,9 +119,39 @@ namespace functions {
         }
 
         template <typename T>
-        __device__ T _executeOp(int opTypeA, int opNumA, int opTypeB, int opNumB, T x, T y, T *extras) {
+        __device__ T _invertedOpExecutor(int opTypeA, int opNumA, int opTypeB, int opNumB, T x, T y, T *extras) {
+            // this code is basically InvertedMetaOp, reorganized to suit per-type execution
 
-            return x;
+            Nd4jPointer *wrap = reinterpret_cast<Nd4jPointer *> (params);
+            T *paramsA = reinterpret_cast<T *> (wrap[0]);
+            T *paramsB = reinterpret_cast<T *> (wrap[1]);
+            T intermediate;
+
+            // Executing first op, opA
+            switch(opTypeA) {
+                case 2: {
+                    EXECUTE_2OE(opNumA, x, y, parasA, intermediate, OPS_A(PAIRWISE_TRANSFORM_OPS));
+                };
+                break;
+                default: {
+                    PRINT_FIRST("Unknown opTypeA provided: [%i]\n", opTypeA);
+                }
+                break;
+            }
+
+            // Executing second op, opB
+            switch(opTypeB) {
+                case 0: {
+                    EXECUTE_1OE(opNumB, intermediate, paramsB, intermediate, OPS_B(SCALAR_OPS));
+                }
+                break;
+                default: {
+                    PRINT_FIRST("Unknown opTypeB provided: [%i]\n", opTypeB);
+                }
+                break;
+            }
+
+            return intermediate;
         }
 
         template<typename T>
@@ -148,7 +200,7 @@ namespace functions {
 
                     Nd4jIndex xOffset = _getOffset(0, xShape, xStride, xCoord, xRank);
                     Nd4jIndex yOffset = _getOffset(0, yShape, yStride, yCoord, yRank);
-                    result[xOffset] = _execute(opTypeA, opNumA, opTypeB, opNumB, dx[xOffset], y[yOffset], extraParams); //OpType::op(dx[xOffset], y[yOffset], extraParams);
+                    result[xOffset] = _invertedOpExecutor(opTypeA, opNumA, opTypeB, opNumB, dx[xOffset], y[yOffset], extraParams); //OpType::op(dx[xOffset], y[yOffset], extraParams);
                 }
             } else {
                 int resultCoord[MAX_RANK];
@@ -161,7 +213,7 @@ namespace functions {
                     Nd4jIndex xOffset = _getOffset(0, xShape, xStride, xCoord, xRank);
                     Nd4jIndex yOffset = _getOffset(0, yShape, yStride, yCoord, yRank);
                     Nd4jIndex resultOffset = _getOffset(0, zShape, zStride, resultCoord, resultRank);
-                    result[resultOffset] = _execute(opTypeA, opNumA, opTypeB, opNumB, dx[xOffset], y[yOffset], extraParams); //OpType::op(dx[xOffset], y[yOffset], extraParams);
+                    result[resultOffset] = _invertedOpExecutor(opTypeA, opNumA, opTypeB, opNumB, dx[xOffset], y[yOffset], extraParams); //OpType::op(dx[xOffset], y[yOffset], extraParams);
                 }
             }
         }
