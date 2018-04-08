@@ -5,12 +5,11 @@
 #include <pointercast.h>
 #include <helpers/TAD.h>
 #include <types/float16.h>
-#include "../grid_shaped.h"
+#include <loops/grid_shaped.h>
 
 
-#include <ops/ops.h>
 #include <ops/meta_ops.h>
-#include "../legacy_ops.h"
+#include <loops/legacy_ops.h>
 
 
 #define GRID_WIDTH 19 // number of pointers within single grid row

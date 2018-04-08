@@ -5,28 +5,7 @@
 #include <pointercast.h>
 #include <op_boilerplate.h>
 
-
-#ifdef __CUDACC__
-#define op_def inline __device__ __host__
-#define op_def_special inline __device__
-
-// 610 is for tests only
-// 600 is Tesla P100
-// 530 is Tegra
-#if __CUDA_ARCH__ == 600 || __CUDA_ARCH__ == 530
-#define NATIVE_HALFS
-#endif
-
-#elif _MSC_VER
-#define op_def __pragma("omp declare simd") inline
-#define op_def_special __pragma("omp declare simd") inline
-#elif __clang__
-#define op_def inline
-#define op_def_special inline
-#elif __GNUC__
-#define op_def _Pragma("omp declare simd") inline __attribute__((always_inline))
-#define op_def_special _Pragma("omp declare simd") inline __attribute__((always_inline))
-#endif
+#include <ops/ops.h>
 
 namespace metaOps {
     /**

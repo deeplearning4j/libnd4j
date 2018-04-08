@@ -53,8 +53,8 @@
 
 #ifdef __CUDACC__
 #define meta_def __noinline__ __device__
-#define op_def inline __device__ __host__
-#define op_def_special inline __device__
+#define op_def __noinline__ __device__ __host__
+#define op_def_special __noinline__ __device__
 
 // 610 is for tests only
 // 600 is Tesla P100
