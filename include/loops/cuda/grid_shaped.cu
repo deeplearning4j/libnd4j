@@ -2,6 +2,7 @@
 
 
 #include <op_boilerplate.h>
+#include <pointercast.h>
 #include <helpers/TAD.h>
 #include <types/float16.h>
 #include "../grid_shaped.h"
@@ -74,6 +75,23 @@ DISPATCH_KERNEL_META(invertedMetaPairwiseShaped_Pairwise_Scalar_, invertedMetaPa
 
 namespace functions {
     namespace grid {
+
+        __device__ void _ind2subC(int rank, int *shape, int idx, int *coords) {
+            shape::ind2subC(rank, shape, idx, coords);
+        }
+
+        __device__ Nd4jIndex _getOffset(Nd4jIndex offset,  int *shape, int *stride, int *coords, int rank) {
+            return shape::getOffset(offset, shape, stride, coords, rank);
+        }
+
+        __device__ int* _shapeOf(int *shape) {
+            return shape::shapeOf(shape);
+        }
+
+    __device__ int* _shapeOf(int *shape) {
+        return shape::shapeOf(shape);
+    }
+
         template<typename T>
         template<typename OpType>
         __device__ void GRIDShaped<T>::transformCuda(T *dx, int *xShapeBuffer, T *y, int *yShapeBuffer, T *result, int *resultShapeBuffer, T *extraParams, int *allocationPointer, UnifiedSharedMemory *manager, int *tadOnlyShapeInfo) {
@@ -97,24 +115,24 @@ namespace functions {
 
             if (dx == result) {
                 for (Nd4jIndex i = tid; i < n; i += gridDim.x * blockDim.x) {
-                    shape::ind2subC(xRank,shape::shapeOf(xShapeBuffer), i, xCoord);
-                    shape::ind2subC(yRank,shape::shapeOf(yShapeBuffer), i, yCoord);
+                    _ind2subC(xRank,shape::shapeOf(xShapeBuffer), i, xCoord);
+                    _ind2subC(yRank,shape::shapeOf(yShapeBuffer), i, yCoord);
 
-                    Nd4jIndex xOffset = shape::getOffset(0, shape::shapeOf(xShapeBuffer), shape::stride(xShapeBuffer), xCoord, xRank);
-                    Nd4jIndex yOffset = shape::getOffset(0, shape::shapeOf(yShapeBuffer), shape::stride(yShapeBuffer), yCoord, yRank);
+                    Nd4jIndex xOffset = _getOffset(0, shape::shapeOf(xShapeBuffer), shape::stride(xShapeBuffer), xCoord, xRank);
+                    Nd4jIndex yOffset = _getOffset(0, shape::shapeOf(yShapeBuffer), shape::stride(yShapeBuffer), yCoord, yRank);
                     result[xOffset] = OpType::op(dx[xOffset], y[yOffset], extraParams);
                 }
             } else {
                 int resultCoord[MAX_RANK];
 
                 for (Nd4jIndex i = tid; i < n; i += gridDim.x * blockDim.x) {
-                    shape::ind2subC(xRank,shape::shapeOf(xShapeBuffer), i, xCoord);
-                    shape::ind2subC(yRank,shape::shapeOf(yShapeBuffer), i, yCoord);
-                    shape::ind2subC(resultRank,shape::shapeOf(resultShapeBuffer), i, resultCoord);
+                    _ind2subC(xRank,shape::shapeOf(xShapeBuffer), i, xCoord);
+                    _ind2subC(yRank,shape::shapeOf(yShapeBuffer), i, yCoord);
+                    _ind2subC(resultRank,shape::shapeOf(resultShapeBuffer), i, resultCoord);
 
-                    Nd4jIndex xOffset = shape::getOffset(0, shape::shapeOf(xShapeBuffer), shape::stride(xShapeBuffer), xCoord, xRank);
-                    Nd4jIndex yOffset = shape::getOffset(0, shape::shapeOf(yShapeBuffer), shape::stride(yShapeBuffer), yCoord, yRank);
-                    Nd4jIndex resultOffset = shape::getOffset(0, shape::shapeOf(resultShapeBuffer), shape::stride(resultShapeBuffer), resultCoord, resultRank);
+                    Nd4jIndex xOffset = _getOffset(0, shape::shapeOf(xShapeBuffer), shape::stride(xShapeBuffer), xCoord, xRank);
+                    Nd4jIndex yOffset = _getOffset(0, shape::shapeOf(yShapeBuffer), shape::stride(yShapeBuffer), yCoord, yRank);
+                    Nd4jIndex resultOffset = _getOffset(0, shape::shapeOf(resultShapeBuffer), shape::stride(resultShapeBuffer), resultCoord, resultRank);
                     result[resultOffset] = OpType::op(dx[xOffset], y[yOffset], extraParams);
                 }
             }
