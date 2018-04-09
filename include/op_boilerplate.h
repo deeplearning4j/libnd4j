@@ -1074,7 +1074,7 @@
 #define _EXPAND_OP_SIMPLE(NAME, TYPE, PARAMZ, NUM_A, TYPE_A) case NUM_A: {MIX3(NAME, NUM_A, TYPE) LAUNCH(launchDims.x, launchDims.y, launchDims.z, *stream) PARAMZ;} break;
 
 #define _EXPAND_OP_CALL_1(NAME, TYPE, PARAMZ, NUM_A, TYPE_A) NAME<TYPE_A<TYPE>>PARAMZ;
-#define _EXPAND_OP_DIRECT(PARAMZ, NUM_A, TYPE_A)  case NUM_A: { TYPE_A::template op<T>(PARAMZ); break; }    
+#define _EXPAND_OP_DIRECT(PARAMZ, NUM_A, TYPE_A)  case NUM_A: { TYPE_A::template op<T>PARAMZ; break; }    
 #define _EXPAND_OP_CALL_T(TYPE, NUM_A, TYPE_A) OpTracker::getInstance()->storeOperation(TYPE, #TYPE_A, NUM_A);
 
 #define _EXPAND_FACTORY_CALL(TYPE, LAYER_ID, LAYER_NAME, ACTIVATION_ID, ACTIVATION_NAME) if (activationNum == ACTIVATION_ID && layerNum == LAYER_ID) { return new LAYER_NAME<TYPE, ACTIVATION_NAME<TYPE>>(); };
@@ -1165,7 +1165,7 @@
 #define BUILD_CALL_1(NAME, TYPE, SIGNATURE, OPS) EVAL(_EXEC_BUILDER_1(NAME, TYPE, SIGNATURE, OPS))
 #define BUILD_TRACKER(TYPE, OPS) EVAL(_EXEC_TRACKER(TYPE, OPS))
 
-#define EXECUTE_NOE(SIGNATURE, LIST_A) switch(opNum) {EVAL(_EXEC_OP_DIRECT((SIGNATURE), LIST_A)) default: { printf("[ERROR] Unknown opNum=%d on %s:%d", opNum, __FILE__, __LINE__); }};
+#define EXECUTE_NOE(SIGNATURE, LIST_A) switch(opNum) {EVAL(_EXEC_OP_DIRECT(SIGNATURE, LIST_A)) default: { printf("[ERROR] Unknown opNum=%d on %s:%d", opNum, __FILE__, __LINE__); }};
 
 #define RETURNING_DISPATCH_BY_OPNUM(NAME, SIGNATURE, ...) if(false){} EVAL(_EXEC_OPS(_EXPAND_RETURNING_PACKED_OP_CALL, NAME, (SIGNATURE), __VA_ARGS__)) else{ printf("[ERROR] Unknown opNum=%d on %s:%d", opNum, __FILE__, __LINE__); return 0; }
 #define PARAMS(...) __VA_ARGS__
