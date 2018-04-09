@@ -119,7 +119,7 @@ __device__ static inline void invertedMetaPairwiseStridedNumericGeneric(const in
     functions::grid::GRIDStrided<T>::transformCuda(opTypeA, opNumA, opTypeB, opNumB, N, dx, dy, xStride, yStride, paramsPtr, dz, zStride, nullptr, nullptr, nullptr);
 };
 
-extern "C" __global__ void invertedMetaPairwiseStridedNumericFloat(const int opTypeA, const int opNumA, const int opTypeB, const int opNumB, Nd4jIndex N, float *dx, int xStride, float *dy, int yStride, float *dz, int zStride, float *extraA, float *extraB, float scalarA, T scalarB) {
+extern "C" __global__ void invertedMetaPairwiseStridedNumericFloat(const int opTypeA, const int opNumA, const int opTypeB, const int opNumB, Nd4jIndex N, float *dx, int xStride, float *dy, int yStride, float *dz, int zStride, float *extraA, float *extraB, float scalarA, float scalarB) {
     invertedMetaPairwiseStridedNumericGeneric<float>(opTypeA, opNumA, opTypeB, opNumB, N, dx, xStride, dy, yStride, dz, zStride, extraA, extraB, scalarA, scalarB);
 }
 
