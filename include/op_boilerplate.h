@@ -49,7 +49,7 @@
 #ifndef OP_BOILERPLATE_HH
 #define OP_BOILERPLATE_HH
 
-//#include <helpers/OpTracker.h>
+#include <helpers/OpTracker.h>
 
 #ifdef __CUDACC__
 #define meta_def __noinline__ __device__
