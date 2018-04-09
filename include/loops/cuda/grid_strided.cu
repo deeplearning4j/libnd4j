@@ -135,7 +135,7 @@ namespace functions {
          * @tparam T
          */
         template <typename T>
-        __device__ T _execute_2OE(const int opType, const int opNum, T x, T y, T *extras) {
+        __device__ T _execute_2OEF(const int opType, const int opNum, T x, T y, T *extras) {
             T z;
             switch(opType) {
                 case 2: {
@@ -156,7 +156,7 @@ namespace functions {
         * @tparam T
         */
         template <typename T>
-        __device__ T _execute_1OE(const int opType, const int opNum, T x, T *extras) {
+        __device__ T _execute_1OEF(const int opType, const int opNum, T x, T *extras) {
             T z;
             switch(opType) {
                 case 0: {
