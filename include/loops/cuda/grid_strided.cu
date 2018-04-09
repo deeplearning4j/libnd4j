@@ -97,7 +97,7 @@ __device__ static inline void invertedMetaPairwiseStridedGeneric(const int opTyp
 };
 
 
-template<typename T, typename OpClass>
+template<typename T>
 __device__ static inline void invertedMetaPairwiseStridedNumericGeneric(const int opTypeA, const int opNumA, const int opTypeB, const int opNumB, Nd4jIndex N, T *dx, int xStride, T *dy, int yStride, T *dz, int zStride, T *extraA, T *extraB, T scalarA, T scalarB) {
     __shared__ Nd4jPointer params[2];
     __shared__ T *paramsPtr;
