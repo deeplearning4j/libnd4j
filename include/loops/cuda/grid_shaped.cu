@@ -162,7 +162,7 @@ namespace functions {
             T z;
             switch(opType) {
                 case 2: {
-                    EXECUTE_2OE(opNum, x, y, extras, z, OPS_A(PAIRWISE_TRANSFORM_OPS));
+                    EXECUTE_NOE((x, y, extras)), OPS_A(PAIRWISE_TRANSFORM_OPS));
                 };
                 break;
                 default: {
@@ -183,7 +183,7 @@ namespace functions {
             T z;
             switch(opType) {
                 case 0: {
-                    EXECUTE_1OE(opNum, x, extrs, z, OPS_A(SCALAR_OPS));
+                    EXECUTE_NOE((x, extrs), OPS_A(SCALAR_OPS));
                 }
                 break;
                 default: {
