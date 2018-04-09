@@ -227,11 +227,11 @@ namespace functions {
 
             if (incx == incy && incy == incz && incx == 1) {
                 for (Nd4jIndex i = tid; i < n; i += gridDim.x * blockDim.x) {
-                    result[i] = _invertedOpExecutorB(dx[i], dy[i], params);
+                    result[i] = _invertedOpExecutorB(opTypeA, opNumA, opTypeB, opNumB, dx[i], dy[i], params);
                 }
             } else {
                 for (Nd4jIndex i = tid; i < n; i += gridDim.x * blockDim.x) {
-                    result[i * incz] = _invertedOpExecutorB(dx[i * incx], dy[i * incy], params);
+                    result[i * incz] = _invertedOpExecutorB(opTypeA, opNumA, opTypeB, opNumB, dx[i * incx], dy[i * incy], params);
                 }
             }
         }
