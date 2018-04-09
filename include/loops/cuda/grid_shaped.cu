@@ -358,7 +358,7 @@ namespace functions {
 #endif
                 }
             }
+            */
         }
-*/
     }
 }
