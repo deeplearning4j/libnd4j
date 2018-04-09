@@ -153,6 +153,48 @@ namespace functions {
             return shape::rank(shape);
         }
 
+        /**
+         * This method is able to execute various ops that takes 2 operands (x, y) + extras
+         * @tparam T
+         */
+        template <typename T>
+        __device__ T _execute_2OE(const int opType, const int opNum, T x, T y, T *extras) {
+            T z;
+            switch(opType) {
+                case 2: {
+                    EXECUTE_NOE((x, y, extras), OPS_A(PAIRWISE_TRANSFORM_OPS));
+                };
+                break;
+                default: {
+                    PRINT_FIRST("Unknown opType provided: [%i]\n", opType);
+                }
+                break;
+            }
+            return z;
+        }
+
+
+        /**
+        * This method is able to execute various ops that takes 1 operand (x) + extras
+        * @tparam T
+        */
+        template <typename T>
+        __device__ T _execute_1OE(const int opType, const int opNum, T x, T *extras) {
+            T z;
+            switch(opType) {
+                case 0: {
+                    EXECUTE_NOE((x, extras), OPS_A(SCALAR_OPS));
+                }
+                break;
+                default: {
+                    PRINT_FIRST("Unknown opType provided: [%i]\n", opType);
+                }
+                break;
+            }
+
+            return z;
+        }
+
         template <typename T>
         __device__ T _invertedOpExecutorA(const int opTypeA, const int opNumA, const int opTypeB, const int opNumB, T x, T y, T *extras) {
             // this code is basically InvertedMetaOp, reorganized to suit per-type execution
