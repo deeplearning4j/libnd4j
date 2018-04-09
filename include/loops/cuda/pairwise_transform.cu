@@ -30,6 +30,7 @@
  * @param incz the result stride
  * @param blockSize the block size
  */
+
 template <typename T>
 __device__ void pairWiseTransformGeneric(
 		int opNum,
@@ -41,15 +42,6 @@ __device__ void pairWiseTransformGeneric(
 		int *yShapeInfo, int yRank,
 		int *resultShapeInfo, int zRank, int *allocationPointer, int *tadOnlyShapeInfo) {
 
-	__shared__ UnifiedSharedMemory *manager;
-
-     if (threadIdx.x == 0) {
-        extern __shared__ unsigned char shmem[];
-        manager = new(shmem) UnifiedSharedMemory((int *) shmem);
-	    manager->init(sizeof(UnifiedSharedMemory), 0, sizeof(functions::pairwise_transforms::PairWiseTransform<T>), sizeof(shape::TAD), xRank);
-    }
-    __syncthreads();
-
 	functions::pairwise_transforms::PairWiseTransform<T>::transformCuda(
 		opNum,
 	    dx,
@@ -60,9 +52,8 @@ __device__ void pairWiseTransformGeneric(
 	    resultShapeInfo,
 	    params,
 	    allocationPointer,
-	    manager, tadOnlyShapeInfo);
+	    nullptr, tadOnlyShapeInfo);
 }
-
 
 /**
  * The api for the driver interface
@@ -80,6 +71,8 @@ __device__ void pairWiseTransformGeneric(
  * @param incz the result stride
  * @param blockSize the block size
  */
+
+
 extern "C" __global__ void pairWiseTransformDouble(
 		int opNum,
 		double *dx,
@@ -101,24 +94,6 @@ extern "C" __global__ void pairWiseTransformDouble(
 
 }
 
-
-
-/**
- * The api for the driver interface
- * @param opNum the op number
- * @param n the length of the problem
- * @param xOffset the offset for x
- * @param yOffset the offset for y
- * @param resultOffset the offset for result
- * @param dx the input
- * @param dy the pair wise array
- * @param incx the stride for x
- * @param incy the stride for y
- * @param params the parameters for the problem
- * @param result the result buffer
- * @param incz the result stride
- * @param blockSize the block size
- */
 extern "C" __global__ void pairWiseTransformFloat(
 		int opNum,
 		float *dx,
@@ -158,7 +133,6 @@ extern "C" __global__ void pairWiseTransformHalf(
 			xShapeInfo, xRank,
 			yShapeInfo, yRank,
 			resultShapeInfo, zRank, allocationPointer, tadOnlyShapeInfo);
-
 }
 
 /**
@@ -177,6 +151,8 @@ extern "C" __global__ void pairWiseTransformHalf(
  * @param incz the result stride
  * @param blockSize the block size
  */
+
+/*
 template <typename T>
 __device__ void pairWiseTransformGeneric(
 		int opNum,
@@ -217,7 +193,7 @@ __device__ void pairWiseTransformGeneric(
 			tadOnlyShapeInfo);
 
 }
-
+*/
 
 /**
  * The api for the driver interface
@@ -235,6 +211,7 @@ __device__ void pairWiseTransformGeneric(
  * @param incz the result stride
  * @param blockSize the block size
  */
+/*
 extern "C" __global__ void pairWiseTransformDoubleIndex(
 		int opNum,
 		double *dx,
@@ -262,24 +239,6 @@ extern "C" __global__ void pairWiseTransformDoubleIndex(
 
 }
 
-
-
-/**
- * The api for the driver interface
- * @param opNum the op number
- * @param n the length of the problem
- * @param xOffset the offset for x
- * @param yOffset the offset for y
- * @param resultOffset the offset for result
- * @param dx the input
- * @param dy the pair wise array
- * @param incx the stride for x
- * @param incy the stride for y
- * @param params the parameters for the problem
- * @param result the result buffer
- * @param incz the result stride
- * @param blockSize the block size
- */
 extern "C" __global__ void pairWiseTransformFloatIndex(
 		int opNum,
 		float *dx,
@@ -331,6 +290,8 @@ extern "C" __global__ void pairWiseTransformHalfIndex(
 			yIndexes,
 			resultIndexes, allocationPointer, tadOnlyShapeInfo);
 }
+
+*/
 
 /**
  * The api for the driver interface
@@ -616,12 +577,15 @@ namespace functions {
                     DISPATCH_BY_OPNUM(transformCuda, PARAMS(dx, xShapeBuffer, y, yShapeBuffer, result, resultShapeBuffer, extraParams, allocationPointer, manager, tadOnlyShapeInfo), PAIRWISE_TRANSFORM_OPS);
 			}
 
+			/*
             template<typename T>
 			__device__ void PairWiseTransform<T>::transformCuda(const int opNum, T *dx, int *xShapeBuffer, T *y, int *yShapeBuffer, T *result, int *resultShapeBuffer, T *extraParams, int *indexes, int *yIndexes, int *resultIndexes, int *allocationPointer, UnifiedSharedMemory *manager, int *tadOnlyShapeInfo) {
                     DISPATCH_BY_OPNUM(transform, PARAMS(dx, xShapeBuffer, y, yShapeBuffer, result, resultShapeBuffer, extraParams, indexes, yIndexes, resultIndexes, allocationPointer, manager, tadOnlyShapeInfo), PAIRWISE_TRANSFORM_OPS);
 			}
+			*/
 
 
+			/*
             template<typename T>
 			template<typename OpType>
 	        __device__ void PairWiseTransform<T>::transform(T *dx, int *xShapeBuffer, T *y, int *yShapeBuffer, T *result, int *resultShapeBuffer, T *extraParams, int *indexes, int *yIndexes, int *resultIndexes,  int *allocationPointer, UnifiedSharedMemory *manager, int *tadOnlyShapeInfo) {
@@ -632,6 +596,7 @@ namespace functions {
 			        result[resultIndexes[i]] = OpType::op(dx[indexes[i]],y[yIndexes[i]], extraParams);
 		        }
 	        }
+	        */
 
 	        /**
 	 *
@@ -723,9 +688,7 @@ namespace functions {
     	}
 
 
-               /**
-	 *
-	 */
+     /*
 	 template<typename T>
 	 __device__ void transform(
 			T *dx,
@@ -778,7 +741,7 @@ namespace functions {
 				yIndexes,
 				indexes, allocationPointer, manager, tadOnlyShapeInfo);
 	    }
-
+*/
 
 	    /**
 	 *
