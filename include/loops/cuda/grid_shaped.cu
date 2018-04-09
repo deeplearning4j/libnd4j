@@ -183,7 +183,7 @@ namespace functions {
             T z;
             switch(opType) {
                 case 0: {
-                    EXECUTE_NOE((x, extrs), OPS_A(SCALAR_OPS));
+                    EXECUTE_NOE((x, extras), OPS_A(SCALAR_OPS));
                 }
                 break;
                 default: {
