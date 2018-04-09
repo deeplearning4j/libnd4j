@@ -46,7 +46,7 @@ namespace functions {
         };
 
         template <typename T>
-        template<typename OpType>
+        template <typename OpType>
         __device__ void IndexReduce<T>::aggregatePartials(IndexValue<T> **sPartialsRef,int tid,int numElements,T *extraParams) {
             // start the shared memory loop on the next power of 2 less
             // than the block size.  If block size is not a power of 2,

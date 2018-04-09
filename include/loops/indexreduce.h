@@ -42,9 +42,7 @@ namespace functions {
 
 		static __device__ void transform(const int opNum, T *x, int *xShapeInfo, T *extraParams, T *result, int *resultShapeInfo, int *dimension,int dimensionLength, int postProcessOrNot, int *allocationBuffer, T *reductionBuffer, UnifiedSharedMemory *manager, int *tadShapeInfo, Nd4jIndex *tadOffset);
 
-		template<typename OpType>
-		static __device__ void aggregatePartials(IndexValue<T> **sPartialsRef,int tid,int numElements,T *extraParams);
-			/**
+	/**
 	 *
 	 * @param sPartialsRef
 	 * @param tid
