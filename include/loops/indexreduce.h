@@ -35,43 +35,6 @@
 namespace functions {
 	namespace indexreduce {
 
-#ifdef __CUDACC__
-		// This is the un-specialized struct.  Note that we prevent instantiation of this
-// struct by putting an undefined symbol in the function body so it won't compile.
-template<typename T>
-struct SharedIndexValue {
-	// Ensure that we won't compile any un-specialized types
-	__device__ T * getPointer() {
-		extern __device__ void error(void);
-		error();
-		return 0;
-	}
-};
-
-// Following are the specializations for the following types.
-// int, uint, char, uchar, short, ushort, long long, ulong long, bool, float, and double
-// One could also specialize it for user-defined types.
-
-template<>
-struct SharedIndexValue<float> {
-	__device__ IndexValue<float> * getPointer() {
-		extern __shared__ IndexValue<float> s_int2[];
-		return s_int2;
-	}
-};
-// Following are the specializations for the following types.
-// int, uint, char, uchar, short, ushort, long long, ulong long, bool, float, and double
-// One could also specialize it for user-defined types.
-
-template<>
-struct SharedIndexValue<double> {
-	__device__ IndexValue<double> * getPointer() {
-		extern __shared__ IndexValue<double> s_int6[];
-		return s_int6;
-	}
-};
-#endif
-
 		template<typename T>
 		class IndexReduce {
 		public:
@@ -125,6 +88,76 @@ struct SharedIndexValue<double> {
 
 
 #ifdef __CUDACC__
+
+
+__global__ void indexReduceDouble(
+        int op,
+        double *dx,
+        int *xShapeInfo, int xRank,
+        double *extraParams,
+        double *result,
+        int *resultShapeInfo, int zRank,
+        int *dimension,
+        int dimensionLength,
+        int postProcessOrNot, int *allocationBuffer, double *reductionBuffer, int *tadOnlyShapeInfo, Nd4jIndex *tadOffsets) {
+    indexReduceGeneric<double>(
+            op,
+            dx,
+            xShapeInfo, xRank,
+            extraParams,
+            result,
+            resultShapeInfo, zRank,
+            dimension,
+            dimensionLength,
+            postProcessOrNot, allocationBuffer, reductionBuffer, tadOnlyShapeInfo, tadOffsets);
+
+}
+
+__global__ void indexReduceFloat(
+        int op,
+        float *dx,
+        int *xShapeInfo, int xRank,
+        float *extraParams,
+        float *result,
+        int *resultShapeInfo, int zRank,
+        int *dimension,
+        int dimensionLength,
+        int postProcessOrNot,  int *allocationBuffer, float *reductionBuffer, int *tadOnlyShapeInfo, Nd4jIndex *tadOffsets) {
+    indexReduceGeneric<float>(
+            op,
+            dx,
+            xShapeInfo, xRank,
+            extraParams,
+            result,
+            resultShapeInfo, zRank,
+            dimension,
+            dimensionLength,
+            postProcessOrNot, allocationBuffer, reductionBuffer, tadOnlyShapeInfo, tadOffsets);
+
+}
+
+__global__ void indexReduceHalf(
+        int op,
+        float16 *dx,
+        int *xShapeInfo, int xRank,
+        float16 *extraParams,
+        float16 *result,
+        int *resultShapeInfo, int zRank,
+        int *dimension,
+        int dimensionLength,
+        int postProcessOrNot,  int *allocationBuffer, float16 *reductionBuffer, int *tadOnlyShapeInfo, Nd4jIndex *tadOffsets) {
+    indexReduceGeneric<float16>(
+            op,
+            dx,
+            xShapeInfo, xRank,
+            extraParams,
+            result,
+            resultShapeInfo, zRank,
+            dimension,
+            dimensionLength,
+            postProcessOrNot, allocationBuffer, reductionBuffer, tadOnlyShapeInfo, tadOffsets);
+
+}
 
 
 #endif
