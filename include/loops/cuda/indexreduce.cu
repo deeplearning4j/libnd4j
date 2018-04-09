@@ -45,6 +45,7 @@ namespace functions {
             }
         };
 
+        template <typename T>
         template<typename OpType>
         static inline __device__ void aggregatePartials(IndexValue<T> **sPartialsRef,int tid,int numElements,T *extraParams) {
             // start the shared memory loop on the next power of 2 less
