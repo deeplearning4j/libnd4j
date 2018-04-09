@@ -375,22 +375,7 @@ extern "C" __global__ void pairWiseTransformStridedDouble(
 			result,
 			incz, allocationPointer, tadOnlyShapeInfo);
 }
-/**
- * The api for the driver interface
- * @param opNum the op number
- * @param n the length of the problem
- * @param xOffset the offset for x
- * @param yOffset the offset for y
- * @param resultOffset the offset for result
- * @param dx the input
- * @param dy the pair wise array
- * @param incx the stride for x
- * @param incy the stride for y
- * @param params the parameters for the problem
- * @param result the result buffer
- * @param incz the result stride
- * @param blockSize the block size
- */
+
 extern "C" __global__ void pairWiseTransformStridedFloat(
 		int opNum,
 		Nd4jIndex n,
@@ -568,7 +553,6 @@ namespace functions {
             template<typename T>
             __device__ void PairWiseTransform<T>::transformCuda(const int opNum, Nd4jIndex n, T *dx, T *y, int incx, int incy, T *extraParams, T *result, int incz, int *allocationPointer, UnifiedSharedMemory *manager, int *tadOnlyShapeInfo) {
                     DISPATCH_BY_OPNUM(transformCuda, PARAMS(n, dx, y, incx, incy, extraParams, result, incz, allocationPointer, manager, tadOnlyShapeInfo), PAIRWISE_TRANSFORM_OPS);
-               // PairWiseTransform<T>::template transformCuda<simdOps::Add<T>>(n, dx, y, incx, incy, extraParams, result, incz, allocationPointer, manager, tadOnlyShapeInfo);
 			}
 
 
@@ -683,7 +667,6 @@ namespace functions {
 			    		result[resultOffset] = OpType::op(dx[xOffset], y[yOffset], extraParams);
     				}
     			}
-
     		}
     	}
 
