@@ -292,13 +292,13 @@ namespace simdOps {
 											sum = ptr_input[ky * strideIn[2] + kx * strideIn[3]];
 								}
 							} else if (poolingMode == 1) {
-#pragma omp simd reduction(sumT:sum)
+#pragma omp simd reduction(sumT:sum) collapse(2)
 								for (ky = hstart; ky < hend; ky += dH) {
 									for (kx = wstart; kx < wend; kx += dW)
 										sum += ptr_input[ky * strideIn[2] + kx * strideIn[3]];
 								}
 							} else if (poolingMode == 2) {
-#pragma omp simd reduction(sumT:sum)
+#pragma omp simd reduction(sumT:sum) collapse (2)
 								for (ky = hstart; ky < hend; ky += dH) {
 									for (kx = wstart; kx < wend; kx += dW)
 										sum += nd4j::math::nd4j_pow<T>(nd4j::math::nd4j_abs<T>(ptr_input[ky * strideIn[2] + kx * strideIn[3]]), extraParam0);
