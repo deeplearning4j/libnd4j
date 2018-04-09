@@ -153,8 +153,50 @@ namespace functions {
             return shape::rank(shape);
         }
 
+        /**
+         * This method is able to execute various ops that takes 2 operands (x, y) + extras
+         * @tparam T
+         */
         template <typename T>
-        __device__ T _invertedOpExecutor(int opTypeA, int opNumA, int opTypeB, int opNumB, T x, T y, T *extras) {
+        __device__ T _execute_2OE(const int opType, const int opNum, T x, T y, T *extras) {
+            T z;
+            switch(opType) {
+                case 2: {
+                    EXECUTE_2OE(opNum, x, y, extras, z, OPS_A(PAIRWISE_TRANSFORM_OPS));
+                };
+                break;
+                default: {
+                    PRINT_FIRST("Unknown opType provided: [%i]\n", opType);
+                }
+                break;
+            }
+            return z;
+        }
+
+
+        /**
+        * This method is able to execute various ops that takes 1 operand (x) + extras
+        * @tparam T
+        */
+        template <typename T>
+        __device__ T _execute_1OE(const int opType, const int opNum, T x, T *extras) {
+            T z;
+            switch(opType) {
+                case 0: {
+                    EXECUTE_1OE(opNum, x, extrs, z, OPS_A(SCALAR_OPS));
+                }
+                break;
+                default: {
+                    PRINT_FIRST("Unknown opType provided: [%i]\n", opType);
+                }
+                break;
+            }
+
+            return z;
+        }
+
+        template <typename T>
+        __device__ T _invertedOpExecutor(const int opTypeA, const int opNumA, const int opTypeB, const int opNumB, T x, T y, T *extras) {
             // this code is basically InvertedMetaOp, reorganized to suit per-type execution
 
             Nd4jPointer *wrap = reinterpret_cast<Nd4jPointer *> (extras);
@@ -163,29 +205,12 @@ namespace functions {
             T intermediate;
 
             // Executing first op, opA
-            switch(opTypeA) {
-                case 2: {
-                    EXECUTE_2OE(opNumA, x, y, paramsA, intermediate, OPS_A(PAIRWISE_TRANSFORM_OPS));
-                };
-                break;
-                default: {
-                    PRINT_FIRST("Unknown opTypeA provided: [%i]\n", opTypeA);
-                }
-                break;
-            }
+            intermediate = _execute_2OE<T>(opTypeA, opNumA, x, y, paramsA);
 
             // Executing second op, opB
-            switch(opTypeB) {
-                case 0: {
-                    EXECUTE_1OE(opNumB, intermediate, paramsB, intermediate, OPS_B(SCALAR_OPS));
-                }
-                break;
-                default: {
-                    PRINT_FIRST("Unknown opTypeB provided: [%i]\n", opTypeB);
-                }
-                break;
-            }
+            intermediate = _execute_1OE<T>(opTypeB, opNumB, intermediate, paramsB);
 
+            // just returning result now
             return intermediate;
         }
 
