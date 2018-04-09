@@ -86,6 +86,32 @@ __device__ static inline void invertedMetaPairwiseShapedGeneric(const int opType
     functions::grid::GRIDShaped<T>::template transformCuda<OpClass>(opTypeA, opNumA, opTypeB, opNumB, dx, xShapeInfo, dy, yShapeInfo, dz, zShapeInfo, paramsPtr, nullptr, nullptr, nullptr);
 };
 
+template<typename T>
+__device__ static inline void invertedMetaPairwiseShapedNumericGeneric(const int opTypeA, const int opNumA, const int opTypeB, const int opNumB, long N, T *dx, int *xShapeInfo, T *dy, int *yShapeInfo, T *dz, int *zShapeInfo, T *extraA, T *extraB, T scalarA, T scalarB) {
+    __shared__ Nd4jPointer params[2];
+    __shared__ T *paramsPtr;
+    if (threadIdx.x == 0) {
+        if (opTypeA == 0) {
+            params[0] = (Nd4jPointer *) &scalarA;
+        }
+        else params[0] = (Nd4jPointer *) extraA;
+
+        if (opTypeB == 0) {
+            params[1] = (Nd4jPointer *) &scalarB;
+        }
+        else params[1] = (Nd4jPointer *) extraB;
+
+        paramsPtr = (T *) params;
+    }
+    __syncthreads();
+
+    functions::grid::GRIDShaped<T>::transformCuda(opTypeA, opNumA, opTypeB, opNumB, dx, xShapeInfo, dy, yShapeInfo, dz, zShapeInfo, paramsPtr, nullptr, nullptr, nullptr);
+};
+
+
+extern "C" __global__ invertedMetaPairwiseShapedNumericFloat(const int opTypeA, const int opNumA, const int opTypeB, const int opNumB, long N, float *dx, int *xShapeInfo, float *dy, int *yShapeInfo, float *dz, int *zShapeInfo, float *extraA, float *extraB, float scalarA, float scalarB) {
+    invertedMetaPairwiseShapedNumericGeneric<float>(opTypeA, opNumA, opTypeB, opNumB, N, dx, xShapeInfo, dy, yShapeInfo, dz, zShapeInfo, extraA, extraB, scalarA, scalarB);
+}
 
 
 #ifndef __CLION_IDE__
@@ -286,13 +312,16 @@ namespace functions {
 
         template <>
         void GRIDShaped<float>::execMetaPredicateShaped(cudaStream_t * stream, Nd4jPointer *extras, const int opTypeA, const int opNumA, const int opTypeB, const int opNumB, long N, float *dx, int *xShapeInfo, float *dy, int *yShapeInfo, float *dz, int *zShapeInfo, float *extraA, float *extraB, float scalarA, float scalarB) {
+            invertedMetaPairwiseShapedNumericFloat<<<128, 1024, 1024, *stream>>>(opTypeA, opTypeB, N, dx, xShapeInfo, dy, yShapeInfo, dz, zShapeInfo, extraA, extraB, scalarA, scalarB);
+/*
             if (opTypeA == 2) {
                 if (opTypeB == 0) {
 #ifndef __CLION_IDE__
-//                    DISPATCH_METAOP(invertedMetaPairwiseShaped_Pairwise_Scalar, PARAMS(opTypeA, opTypeB, N, dx, xShapeInfo, dy, yShapeInfo, dz, zShapeInfo, extraA, extraB, scalarA, scalarB), float, OPS_A(PAIRWISE_TRANSFORM_OPS), OPS_B(SCALAR_OPS));
+                    DISPATCH_METAOP(invertedMetaPairwiseShaped_Pairwise_Scalar, PARAMS(opTypeA, opTypeB, N, dx, xShapeInfo, dy, yShapeInfo, dz, zShapeInfo, extraA, extraB, scalarA, scalarB), float, OPS_A(PAIRWISE_TRANSFORM_OPS), OPS_B(SCALAR_OPS));
 #endif
                 }
             }
+            */
         }
 
         template <>
