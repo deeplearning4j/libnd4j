@@ -162,7 +162,7 @@ namespace functions {
             T z;
             switch(opType) {
                 case 2: {
-                    EXECUTE_NOE((x, y, extras)), OPS_A(PAIRWISE_TRANSFORM_OPS));
+                    EXECUTE_NOE((x, y, extras), OPS_A(PAIRWISE_TRANSFORM_OPS));
                 };
                 break;
                 default: {
