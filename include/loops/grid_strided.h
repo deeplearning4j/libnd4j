@@ -15,6 +15,8 @@ namespace functions {
 
             template<typename OpType>
             static __device__ void transformCuda(Nd4jIndex n, T *dx, T *dy, int incx, int incy, T *params, T *result, int incz,int *allocationPointer, UnifiedSharedMemory *manager,int *tadOnlyShapeInfo);
+
+            static __device__ void transformCuda(const int opNumA, const int opTypeB, const int opNumB, Nd4jIndex n, T *dx, T *dy, int incx, int incy, T *params, T *result, int incz,int *allocationPointer, UnifiedSharedMemory *manager,int *tadOnlyShapeInfo);
         };
     }
 }
