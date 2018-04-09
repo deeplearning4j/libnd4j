@@ -70,8 +70,10 @@ namespace functions {
 	 *                          1 is the number of vectors
 	 */
     template<typename OpType>
-	static __device__ void transform(T *dx, int *xShapeInfo, T *extraParams, T *result, int *resultShapeInfo, int *dimension, int dimensionLength, int postProcessOrNot, int *allocationBuffer, T *reductionBuffer, UnifiedSharedMemory *manager, int *tadOnlyShapeInfo, sNd4jIndex *tadOffsets);
+	static __device__ void transform(T *dx, int *xShapeInfo, T *extraParams, T *result, int *resultShapeInfo, int *dimension, int dimensionLength, int postProcessOrNot, int *allocationBuffer, T *reductionBuffer, UnifiedSharedMemory *manager, int *tadOnlyShapeInfo, Nd4jIndex *tadOffsets);
 
+    template <typename T>
+    __device__ void indexReduceGeneric(const int op, T *dx, int *xShapeInfo, int xRank, T *extraParams, T *result, int *resultShapeInfo, int zRank, int *dimension, int dimensionLength, int postProcessOrNot, int *allocationBuffer, T *reductionBuffer, int *tadOnlyShapeInfo, Nd4jIndex *tadOffsets);
 #endif
 		static T execScalar(const int opNum, T *x, int *xShapeInfo, T *extraParams);
 
