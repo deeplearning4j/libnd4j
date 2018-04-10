@@ -4268,11 +4268,11 @@ void NativeOps::initializeDevicesAndFunctions() {
 
 	//void (*transformFloatPointer1)(int opNum, float *dy,int *shapeInfo, int xRank, float *params, float *result,int *resultShapeInfo, int zRank, int *allocationPointer, float *reductionPointer) = transformFloat;
 	// FIXME
-    cudaFuncGetAttributes(&funcAttributes[1], transformFloatIndexes);
+    //cudaFuncGetAttributes(&funcAttributes[1], transformFloatIndexes);
 
 	//void (*transformFloatPointer2)(int opNum, Nd4jIndex n, float *dy, int incy, float *params, float *result,int resultStride, int *allocationPointer, float *reductionPointer) = transformFloat;
 	// FIXME
-    cudaFuncGetAttributes(&funcAttributes[2], transformFloatIndexes);
+    //cudaFuncGetAttributes(&funcAttributes[2], transformFloatIndexes);
 
 	//cudaFuncGetAttributes(&funcAttributes[3], (void *)functions::summarystats::summaryStatsReduceFloat);
 
@@ -4315,11 +4315,11 @@ void NativeOps::initializeDevicesAndFunctions() {
 
 //	void (*transformDoublePointer1)(int opNum, double *dy, int *shapeInfo, int xRank, double *params, double *result,int *resultShapeInfo, int zRank, int *allocationPointer, double *reductionPointer) = transformDouble;
 	// FIXME
-    cudaFuncGetAttributes(&funcAttributes[15], transformDoubleIndexes);
+    //cudaFuncGetAttributes(&funcAttributes[15], transformDoubleIndexes);
 
 	//void (*transformDoublePointer2)(int opNum, Nd4jIndex n, double *dy, int incy, double *params, double *result,int resultStride, int *allocationPointer, double *reductionPointer) = transformDouble;
 	// FIXME
-    cudaFuncGetAttributes(&funcAttributes[16], transformDoubleIndexes);
+    //cudaFuncGetAttributes(&funcAttributes[16], transformDoubleIndexes);
 
 	//cudaFuncGetAttributes(&funcAttributes[17], functions::summarystats::summaryStatsReduceDouble);
 
