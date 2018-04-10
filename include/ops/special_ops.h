@@ -19,6 +19,107 @@ namespace functions {
 	namespace reduce {
 		template <typename T>
 		class ReduceFunction;
+
+
+		template <typename T>
+            template <typename OpType>
+			static inline __device__ void ReduceFunction<T>::execScalarCuda(
+				T *dx,
+				int *xShapeInfo,
+				T *extraParams,
+				T *result,
+				int *resultShapeInfo,
+				T *reductionBuffer,
+				UnifiedSharedMemory *manager,
+				int *tadOnlyShapeInfo) {
+				int elementWiseStride = shape::elementWiseStride(xShapeInfo);
+
+				int n = shape::length(xShapeInfo);
+
+				int tid = blockDim.x * blockIdx.x + threadIdx.x;
+
+				//shared memory space for storing intermediate results
+				T *sPartials = (T *)manager->getSharedReductionBuffer();
+
+				sPartials[threadIdx.x] = OpType::startingValue(dx);
+
+				if (elementWiseStride >= 1) {
+					for (int i = tid; i < n; i += (blockDim.x * gridDim.x)) {
+						sPartials[threadIdx.x] = OpType::update(sPartials[threadIdx.x], OpType::op(dx[i * elementWiseStride], extraParams), extraParams);
+					}
+				}
+				else {
+				    __shared__ int rank;
+				    __shared__ int *xShape;
+				    __shared__ int *xStride;
+				    if (threadIdx.x == 0) {
+                        rank = shape::rank(xShapeInfo);
+                        xShape = shape::shapeOf(xShapeInfo);
+                        xStride = shape::stride(xShapeInfo);
+				    }
+				    __syncthreads();
+
+					int ind2sub[MAX_RANK];
+
+					for (int i = tid; i < n; i += blockDim.x * gridDim.x) {
+						shape::ind2subC(rank, xShape, i, ind2sub);
+
+						Nd4jIndex offset = shape::getOffset(0, xShape, xStride, ind2sub, rank);
+						sPartials[threadIdx.x] = OpType::update(sPartials[threadIdx.x], OpType::op(dx[offset], extraParams), extraParams);
+					}
+				}
+
+				__syncthreads();
+				aggregatePartials<OpType>(sPartials, threadIdx.x, nd4j::math::nd4j_min<int>(blockDim.x, n), extraParams);
+
+
+				__syncthreads();
+
+				if (gridDim.x > 1) {
+					unsigned int *tc = (unsigned int *)reductionBuffer;
+					__shared__ bool amLast;
+					tid = threadIdx.x;
+					if (threadIdx.x == 0) {
+						reductionBuffer[blockIdx.x] = sPartials[0];//this->postProcess(sPartials[0],n,extraParams);
+					}
+					__threadfence();
+					__syncthreads();
+
+					if (threadIdx.x == 0) {
+						unsigned int ticket = atomicInc(&tc[16384], gridDim.x);
+						amLast = (ticket == gridDim.x - 1);
+					}
+
+					__syncthreads();
+
+					if (amLast) {
+						tc[16384] = 0;
+
+						sPartials[threadIdx.x] = OpType::startingValue(dx);
+
+						for (int i = threadIdx.x; i < gridDim.x; i += blockDim.x) {
+							sPartials[threadIdx.x] = OpType::update(sPartials[threadIdx.x], reductionBuffer[i], extraParams);
+						}
+						__syncthreads();
+
+
+
+						aggregatePartials<OpType>(sPartials, threadIdx.x, nd4j::math::nd4j_min<int>(gridDim.x, blockDim.x), extraParams);
+
+						__syncthreads();
+						if (threadIdx.x == 0) {
+							result[0] = OpType::postProcess(sPartials[0], n, extraParams);
+						}
+					}
+				}
+				else {
+					if (threadIdx.x == 0) {
+						unsigned int *tc = (unsigned *)reductionBuffer;
+						tc[16384] = 0;
+						result[0] = OpType::postProcess(sPartials[0], n, extraParams);
+					}
+				}
+			}
 	}
 }
 
