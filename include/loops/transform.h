@@ -108,9 +108,9 @@ static  __device__ void transformCuda(
 			T *reductionPointer,
 			UnifiedSharedMemory *manager);
 
-	static __CUDA_H void executeTransformStrided(dim3 launchDims, cudaStream_t *stream, int opNum, Nd4jIndex n, T *x, int xStride, T *extraParams, T *z, int zStride, int *allocationPointer, T *reductionPointer);
+	static _CUDA_H void executeTransformStrided(dim3 launchDims, cudaStream_t *stream, int opNum, Nd4jIndex n, T *x, int xStride, T *extraParams, T *z, int zStride, int *allocationPointer, T *reductionPointer);
 	
-	static __CUDA_H void executeTransformShaped(dim3 launchDims, cudaStream_t *stream, int opNum, T *x, int *xShape, int xRank, T *extraParams, T *z, int *zShape, int zRank, int *allocationPointer, T *reductionPointer,  int *tadShapeInfo, Nd4jIndex *tadOffsets);
+	static _CUDA_H void executeTransformShaped(dim3 launchDims, cudaStream_t *stream, int opNum, T *x, int *xShape, int xRank, T *extraParams, T *z, int *zShape, int zRank, int *allocationPointer, T *reductionPointer,  int *tadShapeInfo, Nd4jIndex *tadOffsets);
 #endif
 
 
