@@ -100,6 +100,9 @@ namespace functions {
             template<typename OpType>
 			static __device__ void aggregatePartials(T *sPartials, int tid, int numItems, T *extraParams);
 
+            static __host__ void execReduceScalar(dim3 launchDims, cudaStream_t *stream, int opNum, T *x, int *xShapeInfo, T *extraParams, T *z, int *zShapeInfo, int *dimension, int dimensionLength, T *reductionBuffer, int *tadOnlyShapeInfo);
+
+            static __host__ void execReduceXD(dim3 launchDims, cudaStream_t *stream, int opNum, int rank, T *x, int *xShape, T *extraParams, T *z, int *zShape, int *dimension, int dimensionLength, T *reductionPointer, int *tadShapeInfo, Nd4jIndex *tadOffsets);
 #endif
 
             /**

@@ -832,7 +832,9 @@ void   NativeOps::execReduceDouble(
 
 	// this macro builds bunch of IF/ELSE selectors for kernel launch
 
-    DISPATCH_SIMPLE(reduceScalarSimple, double, PARAMS(x, xShapeInfo, extraParams, result, resultShapeInfo, nullptr,1 , reductionPointer, deviceTADShapeInfo), OPS_A(REDUCE_OPS))
+	functions::reduce::ReduceFunction<double>::execReduceScalar(x, xShapeInfo, extraParams, result, resultShapeInfo, nullptr,1 , reductionPointer, deviceTADShapeInfo);
+
+    //DISPATCH_SIMPLE(reduceScalarSimple, double, PARAMS(x, xShapeInfo, extraParams, result, resultShapeInfo, nullptr,1 , reductionPointer, deviceTADShapeInfo), OPS_A(REDUCE_OPS))
 
 	checkCudaErrors(cudaStreamSynchronize(*stream));
 }
@@ -880,23 +882,17 @@ void   NativeOps::execReduceDouble(
 	if (dimensionLength == 1) {
         dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[32], dimensionLength, sizeof(double), 2);
 
-		// this macro builds bunch of IF/ELSE selectors for kernel launch
-        DISPATCH_SIMPLE(reduceSimpleGeneric1D, double, PARAMS(x, xShapeInfo, extraParams, result, resultShapeInfo, dimension, dimensionLength, reductionPointer, deviceTADShapeInfo, deviceTADOffsets), OPS_A(REDUCE_OPS))
-
+		functions::reduce::ReduceFunction<double>::execReduceXD(launchDims, stream, opNum, 1, x, xShapeInfo, extraParams, result, resultShapeInfo, dimension, dimensionLength, reductionPointer, deviceTADShapeInfo, deviceTADOffsets);
 	} else if (shape::rank(hostTADShapeInfo) <= 3) {
         dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[33], dimensionLength, sizeof(double), 2);
 
-		// this macro builds bunch of IF/ELSE selectors for kernel launch
-        DISPATCH_SIMPLE(reduceSimpleGeneric3D, double, PARAMS(x, xShapeInfo, extraParams, result, resultShapeInfo, dimension, dimensionLength, reductionPointer, deviceTADShapeInfo, deviceTADOffsets), OPS_A(REDUCE_OPS))
+		functions::reduce::ReduceFunction<double>::execReduceXD(launchDims, stream, opNum, shape::rank(hostTADShapeInfo), x, xShapeInfo, extraParams, result, resultShapeInfo, dimension, dimensionLength, reductionPointer, deviceTADShapeInfo, deviceTADOffsets);
 	} else {
         dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[22], dimensionLength, sizeof(double), 2);
 
-		// this macro builds bunch of IF/ELSE selectors for kernel launch
-        DISPATCH_SIMPLE(reduceSimpleGenericXD, double, PARAMS(x, xShapeInfo, extraParams, result, resultShapeInfo, dimension, dimensionLength, reductionPointer, deviceTADShapeInfo, deviceTADOffsets), OPS_A(REDUCE_OPS))
+		functions::reduce::ReduceFunction<double>::execReduceXD(launchDims, stream, opNum, shape::rank(hostTADShapeInfo), x, xShapeInfo, extraParams, result, resultShapeInfo, dimension, dimensionLength, reductionPointer, deviceTADShapeInfo, deviceTADOffsets);
 	}
 
-	if (nd4j::Environment::getInstance()->isDebug())
-		checkCudaErrors(cudaStreamSynchronize(*stream));
 }
 
 /**
@@ -2329,26 +2325,19 @@ void   NativeOps::execReduceFloat(
 		execReduceFloat(extraPointers, 3, x, xShapeInfo, extraParams, result, resultShapeInfo, dimension, dimensionLength);
 	}
 
-	// we call different kernels optimized for different number of dimensions in TAD
 	if (dimensionLength == 1) {
-        dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[32], dimensionLength, sizeof(float), 2);
+        dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[32], dimensionLength, sizeof(double), 2);
 
-		// this macro builds bunch of IF/ELSE selectors for kernel launch
-        DISPATCH_SIMPLE(reduceSimpleGeneric1D, float, PARAMS(x, xShapeInfo, extraParams, result, resultShapeInfo, dimension, dimensionLength, reductionPointer, deviceTADShapeInfo, deviceTADOffsets), OPS_A(REDUCE_OPS))
+		functions::reduce::ReduceFunction<float>::execReduceXD(launchDims, stream, opNum, 1, x, xShapeInfo, extraParams, result, resultShapeInfo, dimension, dimensionLength, reductionPointer, deviceTADShapeInfo, deviceTADOffsets);
 	} else if (shape::rank(hostTADShapeInfo) <= 3) {
-        dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[32], dimensionLength, sizeof(float), 2);
+        dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[33], dimensionLength, sizeof(double), 2);
 
-		// this macro builds bunch of IF/ELSE selectors for kernel launch
-        DISPATCH_SIMPLE(reduceSimpleGeneric3D, float, PARAMS(x, xShapeInfo, extraParams, result, resultShapeInfo, dimension, dimensionLength, reductionPointer, deviceTADShapeInfo, deviceTADOffsets), OPS_A(REDUCE_OPS))
+		functions::reduce::ReduceFunction<float>::execReduceXD(launchDims, stream, opNum, shape::rank(hostTADShapeInfo), x, xShapeInfo, extraParams, result, resultShapeInfo, dimension, dimensionLength, reductionPointer, deviceTADShapeInfo, deviceTADOffsets);
 	} else {
-        dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[32], dimensionLength, sizeof(float), 2);
+        dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[22], dimensionLength, sizeof(double), 2);
 
-		// this macro builds bunch of IF/ELSE selectors for kernel launch
-        DISPATCH_SIMPLE(reduceSimpleGenericXD, float, PARAMS(x, xShapeInfo, extraParams, result, resultShapeInfo, dimension, dimensionLength, reductionPointer, deviceTADShapeInfo, deviceTADOffsets), OPS_A(REDUCE_OPS))
+		functions::reduce::ReduceFunction<float>::execReduceXD(launchDims, stream, opNum, shape::rank(hostTADShapeInfo), x, xShapeInfo, extraParams, result, resultShapeInfo, dimension, dimensionLength, reductionPointer, deviceTADShapeInfo, deviceTADOffsets);
 	}
-
-	if (nd4j::Environment::getInstance()->isDebug())
-		checkCudaErrors(cudaStreamSynchronize(*stream));
 }
 
 void   NativeOps::execReduceHalf(
@@ -2382,23 +2371,19 @@ void   NativeOps::execReduceHalf(
 		execReduceHalf(extraPointers, 3, x, xShapeInfo, extraParams, result, resultShapeInfo, dimension, dimensionLength);
 	}
 
-	// calling different kernels, depending on number of dimensions in TAD
 	if (dimensionLength == 1) {
+        dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[32], dimensionLength, sizeof(double), 2);
 
-		// this macro builds bunch of IF/ELSE selectors for kernel launch
-        DISPATCH_SIMPLE(reduceSimpleGeneric1D, float16, PARAMS(x, xShapeInfo, extraParams, result, resultShapeInfo, dimension, dimensionLength, reductionPointer, deviceTADShapeInfo, deviceTADOffsets), OPS_A(REDUCE_OPS))
+		functions::reduce::ReduceFunction<float16>::execReduceXD(launchDims, stream, opNum, 1, x, xShapeInfo, extraParams, result, resultShapeInfo, dimension, dimensionLength, reductionPointer, deviceTADShapeInfo, deviceTADOffsets);
 	} else if (shape::rank(hostTADShapeInfo) <= 3) {
+        dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[33], dimensionLength, sizeof(double), 2);
 
-		// this macro builds bunch of IF/ELSE selectors for kernel launch
-        DISPATCH_SIMPLE(reduceSimpleGeneric3D, float16, PARAMS(x, xShapeInfo, extraParams, result, resultShapeInfo, dimension, dimensionLength, reductionPointer, deviceTADShapeInfo, deviceTADOffsets), OPS_A(REDUCE_OPS))
+		functions::reduce::ReduceFunction<float16>::execReduceXD(launchDims, stream, opNum, shape::rank(hostTADShapeInfo), x, xShapeInfo, extraParams, result, resultShapeInfo, dimension, dimensionLength, reductionPointer, deviceTADShapeInfo, deviceTADOffsets);
 	} else {
+        dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[22], dimensionLength, sizeof(double), 2);
 
-		// this macro builds bunch of IF/ELSE selectors for kernel launch
-        DISPATCH_SIMPLE(reduceSimpleGenericXD, float16, PARAMS(x, xShapeInfo, extraParams, result, resultShapeInfo, dimension, dimensionLength, reductionPointer, deviceTADShapeInfo, deviceTADOffsets), OPS_A(REDUCE_OPS))
+		functions::reduce::ReduceFunction<float16>::execReduceXD(launchDims, stream, opNum, shape::rank(hostTADShapeInfo), x, xShapeInfo, extraParams, result, resultShapeInfo, dimension, dimensionLength, reductionPointer, deviceTADShapeInfo, deviceTADOffsets);
 	}
-
-	if (nd4j::Environment::getInstance()->isDebug())
-		checkCudaErrors(cudaStreamSynchronize(*stream));
 }
 
 /**
