@@ -4264,7 +4264,7 @@ void NativeOps::initializeDevicesAndFunctions() {
 	if (supportedP2P && devCnt > 1)
     	enableP2P(allowedP2P);
 
-	cudaFuncGetAttributes(&funcAttributes[0], (void *)transformFloatIndexes);
+	//cudaFuncGetAttributes(&funcAttributes[0], (void *)transformFloatIndexes);
 
 	//void (*transformFloatPointer1)(int opNum, float *dy,int *shapeInfo, int xRank, float *params, float *result,int *resultShapeInfo, int zRank, int *allocationPointer, float *reductionPointer) = transformFloat;
 	// FIXME
@@ -4311,7 +4311,7 @@ void NativeOps::initializeDevicesAndFunctions() {
 
 	///////////////////////////////////////// Doubles are separate, just in case of...
 
-	cudaFuncGetAttributes(&funcAttributes[14], transformDoubleIndexes);
+	//cudaFuncGetAttributes(&funcAttributes[14], transformDoubleIndexes);
 
 //	void (*transformDoublePointer1)(int opNum, double *dy, int *shapeInfo, int xRank, double *params, double *result,int *resultShapeInfo, int zRank, int *allocationPointer, double *reductionPointer) = transformDouble;
 	// FIXME
