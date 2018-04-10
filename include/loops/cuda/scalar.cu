@@ -5,8 +5,6 @@
 #ifndef SCALAR_CU
 #define SCALAR_CU
 
-#ifdef __CUDACC__
-
 #include "../scalar.h"
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -506,5 +504,4 @@ namespace functions {
 
 
 
-#endif // CUDA_CC
 #endif // SCALAR_CU
