@@ -9,6 +9,142 @@
 #include <loops/legacy_ops.h>
 
 
+
+
+template <typename T>
+__device__ void transformGeneric(
+		int opNum,
+		Nd4jIndex n,
+		T *dy,
+		int incy,
+		T *params,
+		T *result,
+		int resultStride, int *allocationPointer, T *reductionPointer) {
+
+	__shared__ UnifiedSharedMemory *manager;
+
+	if(threadIdx.x == 0) {
+	    extern __shared__ unsigned char shmem[];
+        manager = new(shmem) UnifiedSharedMemory((int *) shmem);
+	    manager->init(sizeof(UnifiedSharedMemory), 0, sizeof(functions::transform::Transform<T>), sizeof(shape::TAD), 0);
+	}
+	__syncthreads();
+
+	functions::transform::Transform<T>::transformCuda(
+		opNum,
+		n,
+		dy,
+		incy,
+		params,
+		result,
+		resultStride,
+		allocationPointer,
+		reductionPointer,
+		manager);
+}
+
+template <typename T, typename OpClass>
+__device__ void transformSimpleGeneric(
+		Nd4jIndex n,
+		T *dy,
+		int incy,
+		T *params,
+		T *result,
+		int resultStride, int *allocationPointer, T *reductionPointer) {
+
+	__shared__ UnifiedSharedMemory *manager;
+
+	if(threadIdx.x == 0) {
+	    extern __shared__ unsigned char shmem[];
+        manager = new(shmem) UnifiedSharedMemory((int *) shmem);
+	    manager->init(sizeof(UnifiedSharedMemory), 0, sizeof(functions::transform::Transform<T>), sizeof(shape::TAD), 0);
+	}
+	__syncthreads();
+
+	functions::transform::Transform<T>::template transformCuda<OpClass>(
+		n,
+		dy,
+		incy,
+		params,
+		result,
+		resultStride,
+		allocationPointer,
+		reductionPointer,
+		manager);
+}
+
+
+
+template <typename T>
+__device__ void transformGeneric(
+		int opNum,
+		T *dy,
+		int *xShapeInfo, int xRank,
+		T *params,
+		T *result,int *resultShapeInfo, int zRank, int *allocationPointer, T *reductionPointer) {
+
+	__shared__ UnifiedSharedMemory *manager;
+
+    if (threadIdx.x == 0) {
+        extern __shared__ unsigned char shmem[];
+        manager = new(shmem) UnifiedSharedMemory((int *) shmem);
+	    manager->init(sizeof(UnifiedSharedMemory), 0, sizeof(functions::transform::Transform<T>), sizeof(shape::TAD), xRank);
+	}
+	__syncthreads();
+
+
+	functions::transform::Transform<T>::transformCuda(
+	    opNum,
+	    dy,
+	    xShapeInfo,
+	    params,
+	    result,
+	    resultShapeInfo,
+	    allocationPointer,
+	    reductionPointer,
+	    manager);
+}
+
+template <typename T, typename OpClass>
+__device__ void transformSimpleGeneric(
+		T *dy,
+		int *xShapeInfo, int xRank,
+		T *params,
+		T *result,int *resultShapeInfo, int zRank, int *allocationPointer, T *reductionPointer, int *tadShapeInfo, Nd4jIndex *tadOffsets) {
+
+	__shared__ UnifiedSharedMemory *manager;
+
+    if (threadIdx.x == 0) {
+        extern __shared__ unsigned char shmem[];
+        manager = new(shmem) UnifiedSharedMemory((int *) shmem);
+	    manager->init(sizeof(UnifiedSharedMemory), 0, sizeof(functions::transform::Transform<T>), sizeof(shape::TAD), xRank);
+	}
+	__syncthreads();
+
+
+	functions::transform::Transform<T>::template transformCuda<OpClass>(
+	    dy,
+	    xShapeInfo,
+	    params,
+	    result,
+	    resultShapeInfo,
+	    allocationPointer,
+	    reductionPointer,
+	    manager, tadShapeInfo, tadOffsets);
+}
+
+// transform strided
+DISPATCH_KERNEL_SIMPLE(transformStrided_, transformSimpleGeneric, float, INPUT(Nd4jIndex n, float *x, int xStride, float *extraParams, float *z, int zStride, int *allocationPointer, float *reductionPointer), PARAMS(n, x, xStride, extraParams, z, zStride, allocationPointer, reductionPointer), OPS_A(TRANSFORM_OPS))
+DISPATCH_KERNEL_SIMPLE(transformStrided_, transformSimpleGeneric, double, INPUT(Nd4jIndex n, double *x, int xStride, double *extraParams, double *z, int zStride, int *allocationPointer, double *reductionPointer), PARAMS(n, x, xStride, extraParams, z, zStride, allocationPointer, reductionPointer), OPS_A(TRANSFORM_OPS))
+DISPATCH_KERNEL_SIMPLE(transformStrided_, transformSimpleGeneric, float16, INPUT(Nd4jIndex n, float16 *x, int xStride, float16 *extraParams, float16 *z, int zStride, int *allocationPointer, float16 *reductionPointer), PARAMS(n, x, xStride, extraParams, z, zStride, allocationPointer, reductionPointer), OPS_A(TRANSFORM_OPS))
+
+// transform shaped
+DISPATCH_KERNEL_SIMPLE(transformShaped_, transformSimpleGeneric, float, INPUT(float *x, int *xShape, int xRank, float *extraParams, float *z, int *zShape, int zRank, int *allocationPointer, float *reductionPointer,  int *tadShapeInfo, Nd4jIndex *tadOffsets), PARAMS(x, xShape, xRank, extraParams, z, zShape, zRank, allocationPointer, reductionPointer, tadShapeInfo, tadOffsets), OPS_A(TRANSFORM_OPS))
+DISPATCH_KERNEL_SIMPLE(transformShaped_, transformSimpleGeneric, double, INPUT(double *x, int *xShape, int xRank, double *extraParams, double *z, int *zShape, int zRank, int *allocationPointer, double *reductionPointer, int *tadShapeInfo, Nd4jIndex *tadOffsets), PARAMS(x, xShape, xRank, extraParams, z, zShape, zRank, allocationPointer, reductionPointer, tadShapeInfo, tadOffsets), OPS_A(TRANSFORM_OPS))
+DISPATCH_KERNEL_SIMPLE(transformShaped_, transformSimpleGeneric, float16, INPUT(float16 *x, int *xShape, int xRank, float16 *extraParams, float16 *z, int *zShape, int zRank, int *allocationPointer, float16 *reductionPointer,  int *tadShapeInfo, Nd4jIndex *tadOffsets), PARAMS(x, xShape, xRank, extraParams, z, zShape, zRank, allocationPointer, reductionPointer, tadShapeInfo, tadOffsets), OPS_A(TRANSFORM_OPS))
+
+
+
 namespace functions {
     namespace transform {
 
@@ -179,13 +315,3 @@ namespace functions {
         template class ND4J_EXPORT Transform<double>;
     }
 }
-
-// transform strided
-DISPATCH_KERNEL_SIMPLE(transformStrided_, transformSimpleGeneric, float, INPUT(Nd4jIndex n, float *x, int xStride, float *extraParams, float *z, int zStride, int *allocationPointer, float *reductionPointer), PARAMS(n, x, xStride, extraParams, z, zStride, allocationPointer, reductionPointer), OPS_A(TRANSFORM_OPS))
-DISPATCH_KERNEL_SIMPLE(transformStrided_, transformSimpleGeneric, double, INPUT(Nd4jIndex n, double *x, int xStride, double *extraParams, double *z, int zStride, int *allocationPointer, double *reductionPointer), PARAMS(n, x, xStride, extraParams, z, zStride, allocationPointer, reductionPointer), OPS_A(TRANSFORM_OPS))
-DISPATCH_KERNEL_SIMPLE(transformStrided_, transformSimpleGeneric, float16, INPUT(Nd4jIndex n, float16 *x, int xStride, float16 *extraParams, float16 *z, int zStride, int *allocationPointer, float16 *reductionPointer), PARAMS(n, x, xStride, extraParams, z, zStride, allocationPointer, reductionPointer), OPS_A(TRANSFORM_OPS))
-
-// transform shaped
-DISPATCH_KERNEL_SIMPLE(transformShaped_, transformSimpleGeneric, float, INPUT(float *x, int *xShape, int xRank, float *extraParams, float *z, int *zShape, int zRank, int *allocationPointer, float *reductionPointer,  int *tadShapeInfo, Nd4jIndex *tadOffsets), PARAMS(x, xShape, xRank, extraParams, z, zShape, zRank, allocationPointer, reductionPointer, tadShapeInfo, tadOffsets), OPS_A(TRANSFORM_OPS))
-DISPATCH_KERNEL_SIMPLE(transformShaped_, transformSimpleGeneric, double, INPUT(double *x, int *xShape, int xRank, double *extraParams, double *z, int *zShape, int zRank, int *allocationPointer, double *reductionPointer, int *tadShapeInfo, Nd4jIndex *tadOffsets), PARAMS(x, xShape, xRank, extraParams, z, zShape, zRank, allocationPointer, reductionPointer, tadShapeInfo, tadOffsets), OPS_A(TRANSFORM_OPS))
-DISPATCH_KERNEL_SIMPLE(transformShaped_, transformSimpleGeneric, float16, INPUT(float16 *x, int *xShape, int xRank, float16 *extraParams, float16 *z, int *zShape, int zRank, int *allocationPointer, float16 *reductionPointer,  int *tadShapeInfo, Nd4jIndex *tadOffsets), PARAMS(x, xShape, xRank, extraParams, z, zShape, zRank, allocationPointer, reductionPointer, tadShapeInfo, tadOffsets), OPS_A(TRANSFORM_OPS))
