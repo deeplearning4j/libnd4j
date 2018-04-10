@@ -1396,11 +1396,7 @@ void   NativeOps::execTransformDouble(
 
 	dim3 launchDims = getFlatLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, nullptr, funcAttributes[16]);
 
-	// this macro builds bunch of IF/ELSE selectors for kernel launch
-    DISPATCH_SIMPLE(transformStrided, double, PARAMS(n, dx, xStride, extraParams, z, zStride, allocPointer, reductionPointer), OPS_A(TRANSFORM_OPS))
-
-	if (nd4j::Environment::getInstance()->isDebug())
-		checkCudaErrors(cudaStreamSynchronize(*stream));
+	functions::transform::Transform<double>::executeTransformStrided(launchDims, stream, n, dx, xStride, extraParams, z, zStride, allocPointer, reductionPointer);
 }
 
 /**
@@ -1467,9 +1463,8 @@ void   NativeOps::execTransformDouble(
             launchDims.x = 1;
             launchDims.y = block;
             launchDims.z += (block * sizeof(double) * 4);
-
-			// this macro builds bunch of IF/ELSE selectors for kernel launch
-            DISPATCH_SIMPLE(transformShaped, double, PARAMS(dx, xShapeInfo, shape::rank(hostXShapeInfo), extraParams, result, resultShapeInfo, shape::rank(hostZShapeInfo), allocPointer, reductionPointer, devTadShapeInfo, devTadOffsets), OPS_A(TRANSFORM_OPS))
+			
+			functions::transform::Transform<double>::executeTransformShaped(launchDims, stream, opNum, dx, xShapeInfo, shape::rank(hostXShapeInfo), extraParams, result, resultShapeInfo, shape::rank(hostZShapeInfo), allocPointer, reductionPointer, devTadShapeInfo, devTadOffsets);
 		} else {
 			// going for blockwise specials
 			// we'll do some pointers mangling here, and execute kernels one by one
@@ -1634,12 +1629,10 @@ void   NativeOps::execTransformDouble(
             launchDims.z += 512 * sizeof(double);
         }
 
-		// this macro builds bunch of IF/ELSE selectors for kernel launch
-        DISPATCH_SIMPLE(transformShaped, double, PARAMS(dx, xShapeInfo, shape::rank(hostXShapeInfo), extraParams, result, resultShapeInfo, shape::rank(hostZShapeInfo), maskedAllocPointer, reductionPointer, devTadShapeInfo, devTadOffsets), OPS_A(TRANSFORM_OPS))
-
+		functions::transform::Transform<float>::executeTransformShaped(launchDims, stream, opNum, dx, xShapeInfo, shape::rank(hostXShapeInfo), extraParams, result, resultShapeInfo, shape::rank(hostZShapeInfo), maskedAllocPointer, reductionPointer, devTadShapeInfo, devTadOffsets);
 
         // we need guaranteed sync here, due to temp memory release
-        if (nd4j::Environment::getInstance()->isDebug() || opNum == 48)
+        if (opNum == 48)
             checkCudaErrors(cudaStreamSynchronize(*stream));
 
 		// release Histogram memory
@@ -1671,6 +1664,7 @@ void   NativeOps::execTransformDouble(
 		double *extraParams,
 		int *xIndexes,
 		int *resultIndexes) {
+	/*
 	cudaStream_t *stream = reinterpret_cast<cudaStream_t *>(&extraPointers[1]);
 
 	int *hostXShapeInfo = reinterpret_cast<int *>(extraPointers[0]);
@@ -1694,7 +1688,7 @@ void   NativeOps::execTransformDouble(
 
 	if (nd4j::Environment::getInstance()->isDebug())
 		checkCudaErrors(cudaStreamSynchronize(*stream));
-
+	*/
 }
 
 /**
@@ -3294,11 +3288,7 @@ void   NativeOps::execTransformFloat(
 	if (nd4j::Environment::getInstance()->isVerbose() && launchDims.x == 1)
 		printf("AF19 opNum:[%i], xLength: [%i]\n", opNum, shape::length(hostXShapeInfo));
 
-	// this macro builds bunch of IF/ELSE selectors for kernel launch
-    DISPATCH_SIMPLE(transformStrided, float, PARAMS(n, dx, xStride, extraParams, z, zStride, allocPointer, reductionPointer), OPS_A(TRANSFORM_OPS))
-
-	if (nd4j::Environment::getInstance()->isDebug())
-		checkCudaErrors(cudaStreamSynchronize(*stream));
+	functions::transform::Transform<float>::executeTransformStrided(launchDims, stream, n, dx, xStride, extraParams, z, zStride, allocPointer, reductionPointer);
 }
 
 
@@ -3326,11 +3316,8 @@ void   NativeOps::execTransformHalf(
 	if (nd4j::Environment::getInstance()->isVerbose() && launchDims.x == 1)
 		printf("AH19 opNum:[%i], xLength: [%i]\n", opNum, shape::length(hostXShapeInfo));
 
-	// this macro builds bunch of IF/ELSE selectors for kernel launch
-    DISPATCH_SIMPLE(transformStrided, float16, PARAMS(n, dx, xStride, extraParams, z, zStride, allocPointer, reductionPointer), OPS_A(TRANSFORM_OPS))
 
-	if (nd4j::Environment::getInstance()->isDebug())
-		checkCudaErrors(cudaStreamSynchronize(*stream));
+	functions::transform::Transform<float16>::executeTransformStrided(launchDims, stream, n, dx, xStride, extraParams, z, zStride, allocPointer, reductionPointer);
 }
 
 /**
@@ -3391,8 +3378,7 @@ void   NativeOps::execTransformFloat(Nd4jPointer *extraPointers,int opNum,
             launchDims.y = block;
             launchDims.z += (block * sizeof(float) * 4);
 
-			// this macro builds bunch of IF/ELSE selectors for kernel launch
-            DISPATCH_SIMPLE(transformShaped, float, PARAMS(dx, xShapeInfo, shape::rank(hostXShapeInfo), extraParams, result, resultShapeInfo, shape::rank(hostZShapeInfo), allocPointer, reductionPointer, devTadShapeInfo, devTadOffsets), OPS_A(TRANSFORM_OPS))
+			functions::transform::Transform<float>::executeTransformShaped(launchDims, stream, opNum, dx, xShapeInfo, shape::rank(hostXShapeInfo), extraParams, result, resultShapeInfo, shape::rank(hostZShapeInfo), allocPointer, reductionPointer, devTadShapeInfo, devTadOffsets);
 
 		} else {
 			// going for blockwise specials
@@ -3576,14 +3562,16 @@ void   NativeOps::execTransformFloat(Nd4jPointer *extraPointers,int opNum,
 		if (opNum == 71) {
 			launchDims.z += 512 * sizeof(float);
 		}
-
+/*
 		DISPATCH_SIMPLE(transformShaped, float,
                         PARAMS(dx, xShapeInfo, shape::rank(hostXShapeInfo), extraParams, result, resultShapeInfo,
                                shape::rank(hostZShapeInfo), maskedAllocPointer, reductionPointer, devTadShapeInfo, devTadOffsets), OPS_A(TRANSFORM_OPS))
+*/
 
+		functions::transform::Transform<float>::executeTransformShaped(launchDims, stream, opNum, dx, xShapeInfo, shape::rank(hostXShapeInfo), extraParams, result, resultShapeInfo, shape::rank(hostZShapeInfo), maskedAllocPointer, reductionPointer, devTadShapeInfo, devTadOffsets);
 
         // we need guaranteed sync here, due to temp memory release
-        if (nd4j::Environment::getInstance()->isDebug() || opNum == 48)
+        if (opNum == 48)
             checkCudaErrors(cudaStreamSynchronize(*stream));
 
 		// release memory chunk
@@ -3642,9 +3630,7 @@ void   NativeOps::execTransformHalf(Nd4jPointer *extraPointers,int opNum,
             launchDims.y = block;
             launchDims.z += (block * sizeof(float16) * 4);
 
-			// this macro builds bunch of IF/ELSE selectors for kernel launch
-            DISPATCH_SIMPLE(transformShaped, float16, PARAMS(dx, xShapeInfo, shape::rank(hostXShapeInfo), extraParams, result, resultShapeInfo, shape::rank(hostZShapeInfo), allocPointer, reductionPointer, devTadShapeInfo, devTadOffsets), OPS_A(TRANSFORM_OPS))
-
+			functions::transform::Transform<float16>::executeTransformShaped(launchDims, stream, opNum, dx, xShapeInfo, shape::rank(hostXShapeInfo), extraParams, result, resultShapeInfo, shape::rank(hostZShapeInfo), allocPointer, reductionPointer, devTadShapeInfo, devTadOffsets);
 		} else {
 			// going for blockwise specials
 
@@ -3834,12 +3820,10 @@ void   NativeOps::execTransformHalf(Nd4jPointer *extraPointers,int opNum,
             launchDims.z += 512 * sizeof(float);
         }
 
-		// this macro builds bunch of IF/ELSE selectors for kernel launch
-        DISPATCH_SIMPLE(transformShaped, float16, PARAMS(dx, xShapeInfo, shape::rank(hostXShapeInfo), extraParams, result, resultShapeInfo, shape::rank(hostZShapeInfo), maskedAllocPointer, reductionPointer, devTadShapeInfo, devTadOffsets), OPS_A(TRANSFORM_OPS))
-
+		functions::transform::Transform<float>::executeTransformShaped(launchDims, stream, opNum, dx, xShapeInfo, shape::rank(hostXShapeInfo), extraParams, result, resultShapeInfo, shape::rank(hostZShapeInfo), maskedAllocPointer, reductionPointer, devTadShapeInfo, devTadOffsets);
 
         // we need guaranteed sync here, due to temp memory release
-        if (nd4j::Environment::getInstance()->isDebug() || opNum == 48)
+        if (opNum == 48)
             checkCudaErrors(cudaStreamSynchronize(*stream));
 
 		// release that histogram memory chunk
@@ -3873,6 +3857,7 @@ void   NativeOps::execTransformFloat(
 		float *extraParams,
 		int *xIndexes,
 		int *resultIndexes) {
+			/*
 	cudaStream_t *stream = reinterpret_cast<cudaStream_t *>(&extraPointers[1]);
 
 	int *hostXShapeInfo = reinterpret_cast<int *>(extraPointers[0]);
@@ -3899,7 +3884,7 @@ void   NativeOps::execTransformFloat(
 	if (nd4j::Environment::getInstance()->isDebug())
 		checkCudaErrors(cudaStreamSynchronize(*stream));
 
-
+*/
 }
 
 
@@ -3913,6 +3898,7 @@ void   NativeOps::execTransformHalf(
 		float16 *extraParams,
 		int *xIndexes,
 		int *resultIndexes) {
+	/*
 	cudaStream_t *stream = reinterpret_cast<cudaStream_t *>(&extraPointers[1]);
 
 	int *hostXShapeInfo = reinterpret_cast<int *>(extraPointers[0]);
@@ -3939,7 +3925,7 @@ void   NativeOps::execTransformHalf(
 	if (nd4j::Environment::getInstance()->isDebug())
 		checkCudaErrors(cudaStreamSynchronize(*stream));
 
-
+	*/
 }
 
 

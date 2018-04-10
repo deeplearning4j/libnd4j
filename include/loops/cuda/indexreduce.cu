@@ -186,7 +186,7 @@ namespace functions {
 			dimensionLength,
 			1, allocationBuffer, reductionBuffer, tadOnlyShapeInfo, tadOffsets);
 
-            if (nd4j::Environment::getInstance()->isDebugAndVerbose())
+            if (nd4j::Environment::getInstance()->isDebug())
                 checkCudaErrors(cudaStreamSynchronize(*stream));
         }
 
@@ -204,7 +204,7 @@ namespace functions {
 			dimensionLength,
 			1, allocationBuffer, reductionBuffer, tadOnlyShapeInfo, tadOffsets);
 
-            if (nd4j::Environment::getInstance()->isDebugAndVerbose())
+            if (nd4j::Environment::getInstance()->isDebug())
                 checkCudaErrors(cudaStreamSynchronize(*stream));
         }
 
@@ -222,7 +222,7 @@ namespace functions {
 			dimensionLength,
 			1, allocationBuffer, reductionBuffer, tadOnlyShapeInfo, tadOffsets);
 
-            if (nd4j::Environment::getInstance()->isDebugAndVerbose())
+            if (nd4j::Environment::getInstance()->isDebug())
                 checkCudaErrors(cudaStreamSynchronize(*stream));
         }
 
