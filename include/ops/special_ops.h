@@ -17,7 +17,7 @@ namespace functions {
 	}
 
 	namespace scalar {
-
+#ifdef __CUDACC__
 		template<typename T>
         template<typename OpType>
         __device__ void ScalarTransform<T>::transformCuda(
@@ -99,13 +99,15 @@ namespace functions {
     	        }
 	        }
     	}
+
+#endif
 	}
 
 	namespace reduce {
 		template <typename T>
 		class ReduceFunction;
 
-
+#ifdef __CUDACC__
 		template <typename T>
             template <typename OpType>
 			__device__ void ReduceFunction<T>::aggregatePartials(T *sPartials, int tid, int numItems, T *extraParams) {
@@ -233,6 +235,7 @@ namespace functions {
 					}
 				}
 			}
+#endif
 	}
 }
 
