@@ -1629,7 +1629,7 @@ void   NativeOps::execTransformDouble(
             launchDims.z += 512 * sizeof(double);
         }
 
-		functions::transform::Transform<float>::executeTransformShaped(launchDims, stream, opNum, dx, xShapeInfo, shape::rank(hostXShapeInfo), extraParams, result, resultShapeInfo, shape::rank(hostZShapeInfo), maskedAllocPointer, reductionPointer, devTadShapeInfo, devTadOffsets);
+		functions::transform::Transform<double>::executeTransformShaped(launchDims, stream, opNum, dx, xShapeInfo, shape::rank(hostXShapeInfo), extraParams, result, resultShapeInfo, shape::rank(hostZShapeInfo), maskedAllocPointer, reductionPointer, devTadShapeInfo, devTadOffsets);
 
         // we need guaranteed sync here, due to temp memory release
         if (opNum == 48)
@@ -3807,7 +3807,7 @@ void   NativeOps::execTransformHalf(Nd4jPointer *extraPointers,int opNum,
         } else if (opNum == 70) {
             // we'll be using shared memory to speed up reverse
 
-            launchDims.z += launchDims.y * sizeof(float);
+            launchDims.z += launchDims.y * sizeof(float16);
         }
 
 		// Histogram op requires additional memory chunk
@@ -3817,10 +3817,10 @@ void   NativeOps::execTransformHalf(Nd4jPointer *extraPointers,int opNum,
         }
 
         if (opNum == 71) {
-            launchDims.z += 512 * sizeof(float);
+            launchDims.z += 512 * sizeof(float16);
         }
 
-		functions::transform::Transform<float>::executeTransformShaped(launchDims, stream, opNum, dx, xShapeInfo, shape::rank(hostXShapeInfo), extraParams, result, resultShapeInfo, shape::rank(hostZShapeInfo), maskedAllocPointer, reductionPointer, devTadShapeInfo, devTadOffsets);
+		functions::transform::Transform<float16>::executeTransformShaped(launchDims, stream, opNum, dx, xShapeInfo, shape::rank(hostXShapeInfo), extraParams, result, resultShapeInfo, shape::rank(hostZShapeInfo), maskedAllocPointer, reductionPointer, devTadShapeInfo, devTadOffsets);
 
         // we need guaranteed sync here, due to temp memory release
         if (opNum == 48)
