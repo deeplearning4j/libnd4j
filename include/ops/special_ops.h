@@ -19,6 +19,35 @@ namespace functions {
 	namespace scalar {
 
 		template<typename T>
+        template<typename OpType>
+        __device__ void ScalarTransform<T>::transformCuda(
+            Nd4jIndex n,
+            T dx,
+            T *dy,
+            int incy,
+            T *params,
+            T *result,
+            int resultStride,
+            int *allocationBuffer,
+            UnifiedSharedMemory *manager) {
+
+        int totalThreads = gridDim.x * blockDim.x;
+        int tid = blockIdx.x * blockDim.x + threadIdx.x;
+
+        Nd4jIndex i = tid;
+        if(incy == 1 && resultStride == 1) {
+            for (; i < n; i += totalThreads) {
+                result[i] = OpType::op(dy[i],dx, params);
+            }
+        }
+        else {
+            for (; i < n; i += totalThreads) {
+                result[i * resultStride] = OpType::op(dy[i * incy],dx, params);
+            }
+        }
+    }
+
+		template<typename T>
      	template<typename OpType>
      	__device__ void ScalarTransform<T>::transformCuda(
             T scalar,
