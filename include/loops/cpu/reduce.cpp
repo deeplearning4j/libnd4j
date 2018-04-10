@@ -11,7 +11,7 @@ namespace functions {
 
         template <typename T>
         template <typename OpType>
-        _CUDA_H T Broadcast<T>::execScalar(T *x, int *xShapeInfo, T *extraParams) {
+            T _CUDA_H ReduceFunction<T>::execScalar(T *x, int *xShapeInfo, T *extraParams) {
                 const Nd4jIndex length = shape::length(xShapeInfo);
                 int xElementWiseStride = shape::elementWiseStride(xShapeInfo);
                 if (xElementWiseStride >= 1) {
@@ -59,12 +59,12 @@ namespace functions {
             }
 
         template <typename T>
-        T Broadcast<T>::execScalar(const int opNum, T *x, int *xShapeInfo, T *extraParams) {
+        T ReduceFunction<T>::execScalar(const int opNum, T *x, int *xShapeInfo, T *extraParams) {
                 RETURNING_DISPATCH_BY_OPNUM(execScalar, PARAMS(x, xShapeInfo, extraParams), REDUCE_OPS);
         }
 
         template <typename T>
-        void Broadcast<T>::exec(const int opNum,
+        void ReduceFunction<T>::exec(const int opNum,
                              T *x,
                              int *xShapeInfo,
                              T *extraParams,
@@ -88,7 +88,7 @@ namespace functions {
 
         template <typename T>
         template <typename OpType>
-        void _CUDA_H Broadcast<T>::exec(T *x,
+        void _CUDA_H ReduceFunction<T>::exec(T *x,
                              int *xShapeInfo,
                              T *extraParams,
                              T *result,
@@ -195,7 +195,7 @@ namespace functions {
 
         template <typename T>
         template<typename OpType>
-        void _CUDA_H Broadcast<T>::exec(T *x,
+        void _CUDA_H ReduceFunction<T>::exec(T *x,
                              int *xShapeInfo,
                              T *extraParams,
                              T *result,
@@ -205,7 +205,7 @@ namespace functions {
 
         template <typename T>
         template <typename OpType>
-        T _CUDA_H Broadcast<T>::execScalar(const T *x, int xElementWiseStride, Nd4jIndex length, T *extraParams) {
+        T _CUDA_H ReduceFunction<T>::execScalar(const T *x, int xElementWiseStride, Nd4jIndex length, T *extraParams) {
                 T startingVal = OpType::startingValue(x);
                 if (xElementWiseStride == 1) {
                     if (length < ELEMENT_THRESHOLD) {
@@ -321,5 +321,10 @@ namespace functions {
                 }
 
             }
+
+
+        template class ND4J_EXPORT ReduceFunction<float>;
+        template class ND4J_EXPORT ReduceFunction<float16>;
+        template class ND4J_EXPORT ReduceFunction<double>;
     }
 }

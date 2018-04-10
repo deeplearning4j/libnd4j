@@ -157,6 +157,8 @@ namespace functions {
                     delete tad;
         }
 
-
+        template class ND4J_EXPORT Broadcast<float>;
+        template class ND4J_EXPORT Broadcast<float16>;
+        template class ND4J_EXPORT Broadcast<double>;
     }
 }
