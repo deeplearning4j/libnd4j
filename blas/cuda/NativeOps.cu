@@ -67,6 +67,8 @@
 
 using namespace nd4j;
 
+#include <loops/special_kernels.h>
+
 cudaDeviceProp *deviceProperties;
 cudaFuncAttributes *funcAttributes = new cudaFuncAttributes[64];
 int blockLimit = 128;
