@@ -125,14 +125,14 @@ namespace functions {
 
             indexReduceFloat<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
 			opNum,
-			x,
+			dx,
 			xShapeInfo, shape::rank(hostXShapeInfo),
 			extraParams,
 			resultPointer,
 			nullptr, 0,
 			nullptr,
 			1,
-			1, allocationPointer, reductionPointer, deviceTADShapeInfo, deviceTADOffsets);
+			1, allocationBuffer, reductionBuffer, tadOnlyShapeInfo, tadOffsets);
 
             checkCudaErrors(cudaStreamSynchronize(*stream));
         }
@@ -142,14 +142,14 @@ namespace functions {
 
             indexReduceDouble<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
 			opNum,
-			x,
+			dx,
 			xShapeInfo, shape::rank(hostXShapeInfo),
 			extraParams,
 			resultPointer,
 			nullptr, 0,
 			nullptr,
 			1,
-			1, allocationPointer, reductionPointer, deviceTADShapeInfo, deviceTADOffsets);
+			1, allocationBuffer, reductionBuffer, tadOnlyShapeInfo, tadOffsets);
 
             checkCudaErrors(cudaStreamSynchronize(*stream));
         }
@@ -159,14 +159,14 @@ namespace functions {
             
             indexReduceHalf<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
 			opNum,
-			x,
+			dx,
 			xShapeInfo, shape::rank(hostXShapeInfo),
 			extraParams,
 			resultPointer,
 			nullptr, 0,
 			nullptr,
 			1,
-			1, allocationPointer, reductionPointer, deviceTADShapeInfo, deviceTADOffsets);
+			1, allocationBuffer, reductionBuffer, tadOnlyShapeInfo, tadOffsets);
 
             checkCudaErrors(cudaStreamSynchronize(*stream));
         }
@@ -177,14 +177,14 @@ namespace functions {
 
             indexReduceFloat<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
 			opNum,
-			x,
+			dx,
 			xShapeInfo, xRank,
 			extraParams,
 			resultPointer,
 			resultShapeInfo, zRank,
 			dimension,
 			dimensionLength,
-			1, allocationPointer, reductionPointer, deviceTADShapeInfo, deviceTADOffsets);
+			1, allocationBuffer, reductionBuffer, tadOnlyShapeInfo, tadOffsets);
 
             if (nd4j::Environment::getInstance()->isDebugAndVerbose())
                 checkCudaErrors(cudaStreamSynchronize(*stream));
@@ -195,14 +195,14 @@ namespace functions {
 
             indexReduceDouble<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
 			opNum,
-			x,
+			dx,
 			xShapeInfo, xRank,
 			extraParams,
 			resultPointer,
 			resultShapeInfo, zRank,
 			dimension,
 			dimensionLength,
-			1, allocationPointer, reductionPointer, deviceTADShapeInfo, deviceTADOffsets);
+			1, allocationBuffer, reductionBuffer, tadOnlyShapeInfo, tadOffsets);
 
             if (nd4j::Environment::getInstance()->isDebugAndVerbose())
                 checkCudaErrors(cudaStreamSynchronize(*stream));
@@ -213,14 +213,14 @@ namespace functions {
             
             indexReduceHalf<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
 			opNum,
-			x,
+			dx,
 			xShapeInfo, xRank,
 			extraParams,
 			resultPointer,
 			resultShapeInfo, zRank,
 			dimension,
 			dimensionLength,
-			1, allocationPointer, reductionPointer, deviceTADShapeInfo, deviceTADOffsets);
+			1, allocationBuffer, reductionBuffer, tadOnlyShapeInfo, tadOffsets);
 
             if (nd4j::Environment::getInstance()->isDebugAndVerbose())
                 checkCudaErrors(cudaStreamSynchronize(*stream));
