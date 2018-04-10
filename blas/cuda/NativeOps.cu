@@ -569,8 +569,7 @@ double   NativeOps::execIndexReduceScalarDouble(Nd4jPointer *extraPointers,int o
 
 	dim3 launchDims = getReduceLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, hostTADShapeInfo, funcAttributes[27], 1, sizeof(double), 3);
 
-	indexReduceDouble<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
-			opNum,
+	functions::indexreduce::IndexReduce<double>::executeIndexReduceScalar(launchDims, stream, opNum,
 			x,
 			xShapeInfo, shape::rank(hostXShapeInfo),
 			extraParams,
@@ -579,8 +578,6 @@ double   NativeOps::execIndexReduceScalarDouble(Nd4jPointer *extraPointers,int o
 			nullptr,
 			1,
 			1, allocationPointer, reductionPointer, deviceTADShapeInfo, deviceTADOffsets);
-
-	checkCudaErrors(cudaStreamSynchronize(*stream));
 
 	double result = resultPointer[0];
 	return result;
@@ -624,7 +621,7 @@ void   NativeOps::execIndexReduceDouble(
 	int *allocationPointer = reinterpret_cast<int *>(extraPointers[3]);
 	double *reductionPointer = reinterpret_cast<double *>(extraPointers[4]);
 
-	indexReduceDouble<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
+	functions::indexreduce::IndexReduce<double>::executeIndexReduceScalar(launchDims, stream,
 			opNum,
 			x,
 			xShapeInfo, shape::rank(hostXShapeInfo),
@@ -634,10 +631,6 @@ void   NativeOps::execIndexReduceDouble(
 			dimension,
 			dimensionLength,
 			1, allocationPointer, reductionPointer, deviceTADShapeInfo, deviceTADOffsets);
-
-	if (nd4j::Environment::getInstance()->isDebug())
-		checkCudaErrors(cudaStreamSynchronize(*stream));
-
 }
 /**
  *
@@ -1740,8 +1733,7 @@ float   NativeOps::execIndexReduceScalarFloat(
 	if (nd4j::Environment::getInstance()->isDebugAndVerbose() && launchDims.x == 1)
 		printf("AF1 opNum:[%i]\n", opNum);
 
-	indexReduceFloat<<<launchDims.x,launchDims.y, launchDims.z, *stream>>>(
-			opNum,
+	functions::indexreduce::IndexReduce<float>::executeIndexReduceScalar(launchDims, stream, opNum,
 			x,
 			xShapeInfo, shape::rank(hostXShapeInfo),
 			extraParams,
@@ -1751,8 +1743,6 @@ float   NativeOps::execIndexReduceScalarFloat(
 			1,
 			1, allocationPointer, reductionPointer, deviceTADShapeInfo, deviceTADOffsets);
 
-	// once again - since we return scalar value in this method, we should block this kernel launch
-	checkCudaErrors(cudaStreamSynchronize(*stream));
 
 	float result = resultPointer[0];
 	return result;
@@ -1786,19 +1776,16 @@ float   NativeOps::execIndexReduceScalarHalf(
 	if (nd4j::Environment::getInstance()->isDebugAndVerbose() && launchDims.x == 1)
 		printf("AH1 opNum:[%i]\n", opNum);
 
-	indexReduceHalf<<<launchDims.x,launchDims.y, launchDims.z, *stream>>>(
-			opNum,
-					x,
-					xShapeInfo, shape::rank(hostXShapeInfo),
-					extraParams,
-					resultPointer,
-					nullptr, 0,
-					nullptr,
-					1,
-					1, allocationPointer, reductionPointer, deviceTADShapeInfo, deviceTADOffsets);
+	functions::indexreduce::IndexReduce<float16>::executeIndexReduceScalar(launchDims, stream, opNum,
+			x,
+			xShapeInfo, shape::rank(hostXShapeInfo),
+			extraParams,
+			resultPointer,
+			nullptr, 0,
+			nullptr,
+			1,
+			1, allocationPointer, reductionPointer, deviceTADShapeInfo, deviceTADOffsets);
 
-	// blocking for scalar output
-	checkCudaErrors(cudaStreamSynchronize(*stream));
 
 	float result = (float) resultPointer[0];
 	return result;
@@ -1846,8 +1833,7 @@ void   NativeOps::execIndexReduceFloat(
 	if (nd4j::Environment::getInstance()->isVerbose() && launchDims.x == 1)
 		printf("AF2 opNum:[%i]\n", opNum);
 
-	indexReduceFloat<<<launchDims.x, launchDims.y,launchDims.z, *stream>>>(
-			opNum,
+	functions::indexreduce::IndexReduce<float>::executeIndexReduceScalar(launchDims, stream, opNum,
 			x,
 			xShapeInfo, shape::rank(hostXShapeInfo),
 			extraParams,
@@ -1856,10 +1842,6 @@ void   NativeOps::execIndexReduceFloat(
 			dimension,
 			dimensionLength,
 			1, allocationPointer, reductionPointer, deviceTADShapeInfo, deviceTADOffsets);
-
-	if (nd4j::Environment::getInstance()->isDebug())
-		checkCudaErrors(cudaStreamSynchronize(*stream));
-
 }
 
 void   NativeOps::execIndexReduceHalf(
@@ -1893,8 +1875,7 @@ void   NativeOps::execIndexReduceHalf(
 	if (nd4j::Environment::getInstance()->isVerbose() && launchDims.x == 1)
 		printf("AH2 opNum:[%i]\n", opNum);
 
-	indexReduceHalf<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
-			opNum,
+	functions::indexreduce::IndexReduce<double>::executeIndexReduceScalar(launchDims, stream, opNum,
 					x,
 					xShapeInfo, shape::rank(hostXShapeInfo),
 					extraParams,
@@ -1903,10 +1884,6 @@ void   NativeOps::execIndexReduceHalf(
 					dimension,
 					dimensionLength,
 					1, allocationPointer, reductionPointer, deviceTADShapeInfo, deviceTADOffsets);
-
-	if (nd4j::Environment::getInstance()->isDebug())
-		checkCudaErrors(cudaStreamSynchronize(*stream));
-
 }
 
 /**

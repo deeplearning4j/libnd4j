@@ -71,6 +71,14 @@ namespace functions {
 	 */
     template<typename OpType>
 	static __device__ void transform(T *dx, int *xShapeInfo, T *extraParams, T *result, int *resultShapeInfo, int *dimension, int dimensionLength, int postProcessOrNot, int *allocationBuffer, T *reductionBuffer, UnifiedSharedMemory *manager, int *tadOnlyShapeInfo, Nd4jIndex *tadOffsets);
+
+
+
+    template <typename T>
+    static _CUDA_H void executeIndexReduceScalar(dim3 launchDims, cudaStream_t *stream, const int op, T *dx, int *xShapeInfo, int xRank, T *extraParams, T *result, int *resultShapeInfo, int zRank, int *dimension, int dimensionLength, int postProcessOrNot, int *allocationBuffer, T *reductionBuffer, int *tadOnlyShapeInfo, Nd4jIndex *tadOffsets);
+
+    template <typename T>
+    static _CUDA_H void executeIndexReduce(dim3 launchDims, cudaStream_t *stream, const int op, T *dx, int *xShapeInfo, int xRank, T *extraParams, T *result, int *resultShapeInfo, int zRank, int *dimension, int dimensionLength, int postProcessOrNot, int *allocationBuffer, T *reductionBuffer, int *tadOnlyShapeInfo, Nd4jIndex *tadOffsets);
 #endif
 		static T execScalar(const int opNum, T *x, int *xShapeInfo, T *extraParams);
 
@@ -88,112 +96,6 @@ namespace functions {
 
 #ifdef __CUDACC__
 
-template <typename T>
-static __device__ void indexReduceGeneric(
-        const int op,
-        T *dx,
-        int *xShapeInfo, int xRank,
-        T *extraParams,
-        T *result,
-        int *resultShapeInfo, int zRank,
-        int *dimension,
-        int dimensionLength,
-        int postProcessOrNot, int *allocationBuffer, T *reductionBuffer, int *tadOnlyShapeInfo, Nd4jIndex *tadOffsets) {
-
-    __shared__ UnifiedSharedMemory *manager;
-
-    if (threadIdx.x == 0) {
-        extern __shared__ unsigned char shmem[];
-        manager = new(shmem) UnifiedSharedMemory((int *) shmem);
-        manager->init(sizeof(UnifiedSharedMemory), 0, sizeof(functions::indexreduce::IndexReduce<T>), sizeof(shape::TAD), xRank);
-    }
-    __syncthreads();
-
-    functions::indexreduce::IndexReduce<T>::transform(
-            op,
-            dx,
-            xShapeInfo,
-            extraParams,
-            result,
-            resultShapeInfo,
-            dimension,
-            dimensionLength,
-            postProcessOrNot,
-            allocationBuffer,
-            reductionBuffer,
-            manager,
-            tadOnlyShapeInfo,
-            tadOffsets);
-}
-
-__global__ void indexReduceDouble(
-        int op,
-        double *dx,
-        int *xShapeInfo, int xRank,
-        double *extraParams,
-        double *result,
-        int *resultShapeInfo, int zRank,
-        int *dimension,
-        int dimensionLength,
-        int postProcessOrNot, int *allocationBuffer, double *reductionBuffer, int *tadOnlyShapeInfo, Nd4jIndex *tadOffsets) {
-    indexReduceGeneric<double>(
-            op,
-            dx,
-            xShapeInfo, xRank,
-            extraParams,
-            result,
-            resultShapeInfo, zRank,
-            dimension,
-            dimensionLength,
-            postProcessOrNot, allocationBuffer, reductionBuffer, tadOnlyShapeInfo, tadOffsets);
-
-}
-
-__global__ void indexReduceFloat(
-        int op,
-        float *dx,
-        int *xShapeInfo, int xRank,
-        float *extraParams,
-        float *result,
-        int *resultShapeInfo, int zRank,
-        int *dimension,
-        int dimensionLength,
-        int postProcessOrNot,  int *allocationBuffer, float *reductionBuffer, int *tadOnlyShapeInfo, Nd4jIndex *tadOffsets) {
-    indexReduceGeneric<float>(
-            op,
-            dx,
-            xShapeInfo, xRank,
-            extraParams,
-            result,
-            resultShapeInfo, zRank,
-            dimension,
-            dimensionLength,
-            postProcessOrNot, allocationBuffer, reductionBuffer, tadOnlyShapeInfo, tadOffsets);
-
-}
-
-__global__ void indexReduceHalf(
-        int op,
-        float16 *dx,
-        int *xShapeInfo, int xRank,
-        float16 *extraParams,
-        float16 *result,
-        int *resultShapeInfo, int zRank,
-        int *dimension,
-        int dimensionLength,
-        int postProcessOrNot,  int *allocationBuffer, float16 *reductionBuffer, int *tadOnlyShapeInfo, Nd4jIndex *tadOffsets) {
-    indexReduceGeneric<float16>(
-            op,
-            dx,
-            xShapeInfo, xRank,
-            extraParams,
-            result,
-            resultShapeInfo, zRank,
-            dimension,
-            dimensionLength,
-            postProcessOrNot, allocationBuffer, reductionBuffer, tadOnlyShapeInfo, tadOffsets);
-
-}
 
 
 #endif

@@ -2,13 +2,230 @@
 // Created by raver on 4/9/2018.
 //
 
+#include <Environment.h>
 #include "../indexreduce.h"
 #include <op_boilerplate.h>
 
 #include "../legacy_ops.h"
 
+
+template <typename T>
+static __device__ void indexReduceGeneric(
+        const int op,
+        T *dx,
+        int *xShapeInfo, int xRank,
+        T *extraParams,
+        T *result,
+        int *resultShapeInfo, int zRank,
+        int *dimension,
+        int dimensionLength,
+        int postProcessOrNot, int *allocationBuffer, T *reductionBuffer, int *tadOnlyShapeInfo, Nd4jIndex *tadOffsets) {
+
+    __shared__ UnifiedSharedMemory *manager;
+
+    if (threadIdx.x == 0) {
+        extern __shared__ unsigned char shmem[];
+        manager = new(shmem) UnifiedSharedMemory((int *) shmem);
+        manager->init(sizeof(UnifiedSharedMemory), 0, sizeof(functions::indexreduce::IndexReduce<T>), sizeof(shape::TAD), xRank);
+    }
+    __syncthreads();
+
+    functions::indexreduce::IndexReduce<T>::transform(
+            op,
+            dx,
+            xShapeInfo,
+            extraParams,
+            result,
+            resultShapeInfo,
+            dimension,
+            dimensionLength,
+            postProcessOrNot,
+            allocationBuffer,
+            reductionBuffer,
+            manager,
+            tadOnlyShapeInfo,
+            tadOffsets);
+}
+
+__global__ void indexReduceDouble(
+        int op,
+        double *dx,
+        int *xShapeInfo, int xRank,
+        double *extraParams,
+        double *result,
+        int *resultShapeInfo, int zRank,
+        int *dimension,
+        int dimensionLength,
+        int postProcessOrNot, int *allocationBuffer, double *reductionBuffer, int *tadOnlyShapeInfo, Nd4jIndex *tadOffsets) {
+    indexReduceGeneric<double>(
+            op,
+            dx,
+            xShapeInfo, xRank,
+            extraParams,
+            result,
+            resultShapeInfo, zRank,
+            dimension,
+            dimensionLength,
+            postProcessOrNot, allocationBuffer, reductionBuffer, tadOnlyShapeInfo, tadOffsets);
+
+}
+
+__global__ void indexReduceFloat(
+        int op,
+        float *dx,
+        int *xShapeInfo, int xRank,
+        float *extraParams,
+        float *result,
+        int *resultShapeInfo, int zRank,
+        int *dimension,
+        int dimensionLength,
+        int postProcessOrNot,  int *allocationBuffer, float *reductionBuffer, int *tadOnlyShapeInfo, Nd4jIndex *tadOffsets) {
+    indexReduceGeneric<float>(
+            op,
+            dx,
+            xShapeInfo, xRank,
+            extraParams,
+            result,
+            resultShapeInfo, zRank,
+            dimension,
+            dimensionLength,
+            postProcessOrNot, allocationBuffer, reductionBuffer, tadOnlyShapeInfo, tadOffsets);
+
+}
+
+__global__ void indexReduceHalf(
+        int op,
+        float16 *dx,
+        int *xShapeInfo, int xRank,
+        float16 *extraParams,
+        float16 *result,
+        int *resultShapeInfo, int zRank,
+        int *dimension,
+        int dimensionLength,
+        int postProcessOrNot,  int *allocationBuffer, float16 *reductionBuffer, int *tadOnlyShapeInfo, Nd4jIndex *tadOffsets) {
+    indexReduceGeneric<float16>(
+            op,
+            dx,
+            xShapeInfo, xRank,
+            extraParams,
+            result,
+            resultShapeInfo, zRank,
+            dimension,
+            dimensionLength,
+            postProcessOrNot, allocationBuffer, reductionBuffer, tadOnlyShapeInfo, tadOffsets);
+
+}
+
+
 namespace functions {
     namespace indexreduce {
+
+        template <>
+        _CUDA_H void IndexReduce<float>::executeIndexReduceScalar(dim3 launchDims, cudaStream_t *stream, const int op, float *dx, int *xShapeInfo, int xRank, float *extraParams, float *result, int *resultShapeInfo, int zRank, int *dimension, int dimensionLength, int postProcessOrNot, int *allocationBuffer, float *reductionBuffer, int *tadOnlyShapeInfo, Nd4jIndex *tadOffsets) {
+
+            indexReduceFloat<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
+			opNum,
+			x,
+			xShapeInfo, shape::rank(hostXShapeInfo),
+			extraParams,
+			resultPointer,
+			nullptr, 0,
+			nullptr,
+			1,
+			1, allocationPointer, reductionPointer, deviceTADShapeInfo, deviceTADOffsets);
+
+            checkCudaErrors(cudaStreamSynchronize(*stream));
+        }
+
+        template <>
+        _CUDA_H void IndexReduce<double>::executeIndexReduceScalar(dim3 launchDims, cudaStream_t *stream, const int op, double *dx, int *xShapeInfo, int xRank, double *extraParams, double *result, int *resultShapeInfo, int zRank, int *dimension, int dimensionLength, int postProcessOrNot, int *allocationBuffer, double *reductionBuffer, int *tadOnlyShapeInfo, Nd4jIndex *tadOffsets) {
+
+            indexReduceDouble<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
+			opNum,
+			x,
+			xShapeInfo, shape::rank(hostXShapeInfo),
+			extraParams,
+			resultPointer,
+			nullptr, 0,
+			nullptr,
+			1,
+			1, allocationPointer, reductionPointer, deviceTADShapeInfo, deviceTADOffsets);
+
+            checkCudaErrors(cudaStreamSynchronize(*stream));
+        }
+
+        template <>
+        _CUDA_H void IndexReduce<float16>::executeIndexReduceScalar(dim3 launchDims, cudaStream_t *stream, const int op, double *dx, int *xShapeInfo, int xRank, float16 *extraParams, float16 *result, int *resultShapeInfo, int zRank, int *dimension, int dimensionLength, int postProcessOrNot, int *allocationBuffer, float16 *reductionBuffer, int *tadOnlyShapeInfo, Nd4jIndex *tadOffsets) {
+            
+            indexReduceHalf<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
+			opNum,
+			x,
+			xShapeInfo, shape::rank(hostXShapeInfo),
+			extraParams,
+			resultPointer,
+			nullptr, 0,
+			nullptr,
+			1,
+			1, allocationPointer, reductionPointer, deviceTADShapeInfo, deviceTADOffsets);
+
+            checkCudaErrors(cudaStreamSynchronize(*stream));
+        }
+
+
+        template <>
+        _CUDA_H void IndexReduce<float>::executeIndexReduce(dim3 launchDims, cudaStream_t *stream, const int op, float *dx, int *xShapeInfo, int xRank, float *extraParams, float *result, int *resultShapeInfo, int zRank, int *dimension, int dimensionLength, int postProcessOrNot, int *allocationBuffer, float *reductionBuffer, int *tadOnlyShapeInfo, Nd4jIndex *tadOffsets) {
+
+            indexReduceFloat<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
+			opNum,
+			x,
+			xShapeInfo, xRank,
+			extraParams,
+			resultPointer,
+			resultShapeInfo, zRank,
+			dimension,
+			dimensionLength,
+			1, allocationPointer, reductionPointer, deviceTADShapeInfo, deviceTADOffsets);
+
+            if (nd4j::Environment::getInstance()->isDebugAndVerbose())
+                checkCudaErrors(cudaStreamSynchronize(*stream));
+        }
+
+        template <>
+        _CUDA_H void IndexReduce<double>::executeIndexReduce(dim3 launchDims, cudaStream_t *stream, const int op, double *dx, int *xShapeInfo, int xRank, double *extraParams, double *result, int *resultShapeInfo, int zRank, int *dimension, int dimensionLength, int postProcessOrNot, int *allocationBuffer, double *reductionBuffer, int *tadOnlyShapeInfo, Nd4jIndex *tadOffsets) {
+
+            indexReduceDouble<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
+			opNum,
+			x,
+			xShapeInfo, xRank,
+			extraParams,
+			resultPointer,
+			resultShapeInfo, zRank,
+			dimension,
+			dimensionLength,
+			1, allocationPointer, reductionPointer, deviceTADShapeInfo, deviceTADOffsets);
+
+            if (nd4j::Environment::getInstance()->isDebugAndVerbose())
+                checkCudaErrors(cudaStreamSynchronize(*stream));
+        }
+
+        template <>
+        _CUDA_H void IndexReduce<float16>::executeIndexReduce(dim3 launchDims, cudaStream_t *stream, const int op, double *dx, int *xShapeInfo, int xRank, float16 *extraParams, float16 *result, int *resultShapeInfo, int zRank, int *dimension, int dimensionLength, int postProcessOrNot, int *allocationBuffer, float16 *reductionBuffer, int *tadOnlyShapeInfo, Nd4jIndex *tadOffsets) {
+            
+            indexReduceHalf<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
+			opNum,
+			x,
+			xShapeInfo, xRank,
+			extraParams,
+			resultPointer,
+			resultShapeInfo, zRank,
+			dimension,
+			dimensionLength,
+			1, allocationPointer, reductionPointer, deviceTADShapeInfo, deviceTADOffsets);
+
+            if (nd4j::Environment::getInstance()->isDebugAndVerbose())
+                checkCudaErrors(cudaStreamSynchronize(*stream));
+        }
+
 
         // This is the un-specialized struct.  Note that we prevent instantiation of this
 // struct by putting an undefined symbol in the function body so it won't compile.
