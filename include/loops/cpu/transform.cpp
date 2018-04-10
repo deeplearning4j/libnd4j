@@ -101,7 +101,7 @@ namespace functions {
         }
 
         template <typename T>
-        template<typename OpType>
+        template <typename OpType>
 		void _CUDA_H Transform<T>::exec(T *dx,
                              int xStride,
                              T *result,

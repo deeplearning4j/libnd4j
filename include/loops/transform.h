@@ -248,6 +248,14 @@ template<typename OpType>
 				T *extraParams,
 				int *indexes,
 				int *resultIndexes, int *tadShapeInfo, Nd4jIndex *tadOffsets);
+
+			template <typename OpType>
+			static void _CUDA_H exec(T *dx,
+                             int xStride,
+                             T *result,
+                             int resultStride,
+                             T *extraParams,
+                             const int n);
         };
     }
 }
