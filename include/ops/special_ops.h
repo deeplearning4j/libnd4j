@@ -1829,7 +1829,8 @@ namespace simdOps {
 			int *resultShapeBuffer,
 			T *extraParams,
 			int *allocationPointer, T *reductionPointer, UnifiedSharedMemory *manager) {
-
+// this code is safe to delete, it's never used
+/*
 			__shared__ int maxIdx;
 			__shared__ int length;
 			if (threadIdx.x == 0) {
@@ -1859,7 +1860,7 @@ namespace simdOps {
 			if (threadIdx.x == 0) {
 				result[maxIdx] = 1.0;
 			}
-
+			*/
 		}
 #endif
 
