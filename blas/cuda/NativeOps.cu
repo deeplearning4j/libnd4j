@@ -1396,7 +1396,7 @@ void   NativeOps::execTransformDouble(
 
 	dim3 launchDims = getFlatLaunchParams(getDeviceId(extraPointers[2]), hostXShapeInfo, nullptr, funcAttributes[16]);
 
-	functions::transform::Transform<double>::executeTransformStrided(launchDims, stream, n, dx, xStride, extraParams, z, zStride, allocPointer, reductionPointer);
+	functions::transform::Transform<double>::executeTransformStrided(launchDims, stream, opNum, n, dx, xStride, extraParams, z, zStride, allocPointer, reductionPointer);
 }
 
 /**
@@ -3288,7 +3288,7 @@ void   NativeOps::execTransformFloat(
 	if (nd4j::Environment::getInstance()->isVerbose() && launchDims.x == 1)
 		printf("AF19 opNum:[%i], xLength: [%i]\n", opNum, shape::length(hostXShapeInfo));
 
-	functions::transform::Transform<float>::executeTransformStrided(launchDims, stream, n, dx, xStride, extraParams, z, zStride, allocPointer, reductionPointer);
+	functions::transform::Transform<float>::executeTransformStrided(launchDims, stream, opNum, n, dx, xStride, extraParams, z, zStride, allocPointer, reductionPointer);
 }
 
 
@@ -3317,7 +3317,7 @@ void   NativeOps::execTransformHalf(
 		printf("AH19 opNum:[%i], xLength: [%i]\n", opNum, shape::length(hostXShapeInfo));
 
 
-	functions::transform::Transform<float16>::executeTransformStrided(launchDims, stream, n, dx, xStride, extraParams, z, zStride, allocPointer, reductionPointer);
+	functions::transform::Transform<float16>::executeTransformStrided(launchDims, stream, opNum, n, dx, xStride, extraParams, z, zStride, allocPointer, reductionPointer);
 }
 
 /**
