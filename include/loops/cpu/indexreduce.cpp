@@ -228,5 +228,10 @@ namespace functions {
 
             delete[] startingIndex;
         }
+
+
+        template class ND4J_EXPORT IndexReduce<float>;
+        template class ND4J_EXPORT IndexReduce<float16>;
+        template class ND4J_EXPORT IndexReduce<double>;
     };
 }

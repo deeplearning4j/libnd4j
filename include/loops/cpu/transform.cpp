@@ -4,6 +4,7 @@
 
 #include <op_boilerplate.h>
 #include <loops/transform.h>
+#include <loops/legacy_ops.h>
 
 namespace functions {
     namespace transform {
@@ -11,19 +12,6 @@ namespace functions {
         template <typename T>
         void Transform<T>::exec(int opNum, T *dx, int xStride, T *result, int resultStride, T *extraParams, const int n) {
             DISPATCH_BY_OPNUM(exec, PARAMS(dx, xStride, result, resultStride, extraParams, n), TRANSFORM_OPS);
-		}
-
-        template <typename T>
-        void Transform<T>::exec(
-				int opNum,
-				T *dx,
-				int *xShapeInfo,
-				T *result,
-				int *resultShapeInfo,
-				T *extraParams,
-				int *indexes,
-				int *resultIndexes, int *tadShapeInfo, Nd4jIndex *tadOffsets) {
-                    DISPATCH_BY_OPNUM(exec, PARAMS(dx, xShapeInfo, result, resultShapeInfo, extraParams, indexes, resultIndexes, tadShapeInfo, tadOffsets), TRANSFORM_OPS);
 		}
 
         template <typename T>
@@ -145,5 +133,9 @@ namespace functions {
                 }
             }
         }
+
+        template class ND4J_EXPORT Transform<float>;
+        template class ND4J_EXPORT Transform<float16>;
+        template class ND4J_EXPORT Transform<double>;
     }
 }

@@ -216,17 +216,6 @@ template<typename OpType>
 				int *xShapeInfo,
 				T *result,
 				int *resultShapeInfo,
-				T *extraParams,
-				int *indexes,
-				int *resultIndexes, int *tadShapeInfo, Nd4jIndex *tadOffsets);
-
-
-			static void exec(
-				int opNum,
-				T *dx,
-				int *xShapeInfo,
-				T *result,
-				int *resultShapeInfo,
 				T *extraParams, int *tadShapeInfo, Nd4jIndex *tadOffsets);
 
 
