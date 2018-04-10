@@ -1875,7 +1875,7 @@ void   NativeOps::execIndexReduceHalf(
 	if (nd4j::Environment::getInstance()->isVerbose() && launchDims.x == 1)
 		printf("AH2 opNum:[%i]\n", opNum);
 
-	functions::indexreduce::IndexReduce<double>::executeIndexReduceScalar(launchDims, stream, opNum,
+	functions::indexreduce::IndexReduce<float16>::executeIndexReduceScalar(launchDims, stream, opNum,
 					x,
 					xShapeInfo, shape::rank(hostXShapeInfo),
 					extraParams,
