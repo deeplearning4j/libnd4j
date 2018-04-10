@@ -4328,7 +4328,7 @@ void NativeOps::initializeDevicesAndFunctions() {
 
 	cudaFuncGetAttributes(&funcAttributes[12], broadcastSimple_0_float);
 
-	cudaFuncGetAttributes(&funcAttributes[13], indexReduceFloat);
+	cudaFuncGetAttributes(&funcAttributes[13], reduce3Float);
 
 	///////////////////////////////////////// Doubles are separate, just in case of...
 
@@ -4365,7 +4365,7 @@ void NativeOps::initializeDevicesAndFunctions() {
 
 	cudaFuncGetAttributes(&funcAttributes[26], broadcastSimple_0_double);
 
-	cudaFuncGetAttributes(&funcAttributes[27], indexReduceDouble);
+	cudaFuncGetAttributes(&funcAttributes[27], reduce3Double);
 
 	cudaFuncGetAttributes(&funcAttributes[32], reduceSimpleGeneric1D_0_double); // 1D
 
