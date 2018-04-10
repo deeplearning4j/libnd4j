@@ -4311,7 +4311,7 @@ void NativeOps::initializeDevicesAndFunctions() {
 
 //	cudaFuncGetAttributes(&funcAttributes[11], pairWiseTransformStridedFloat);
 
-	cudaFuncGetAttributes(&funcAttributes[12], broadcastSimple_0_float);
+	cudaFuncGetAttributes(&funcAttributes[12], reduce3Float);
 
 	cudaFuncGetAttributes(&funcAttributes[13], reduce3Float);
 
@@ -4348,7 +4348,7 @@ void NativeOps::initializeDevicesAndFunctions() {
 
 //	cudaFuncGetAttributes(&funcAttributes[25], pairWiseTransformStridedDouble);
 
-	cudaFuncGetAttributes(&funcAttributes[26], broadcastSimple_0_double);
+	cudaFuncGetAttributes(&funcAttributes[26], reduce3Double);
 
 	cudaFuncGetAttributes(&funcAttributes[27], reduce3Double);
 
