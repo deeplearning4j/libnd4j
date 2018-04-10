@@ -155,7 +155,7 @@ namespace functions {
         }
 
         template <>
-        _CUDA_H void IndexReduce<float16>::executeIndexReduceScalar(dim3 launchDims, cudaStream_t *stream, const int opNum, double *dx, int *xShapeInfo, int xRank, float16 *extraParams, float16 *result, int *resultShapeInfo, int zRank, int *dimension, int dimensionLength, int postProcessOrNot, int *allocationBuffer, float16 *reductionBuffer, int *tadOnlyShapeInfo, Nd4jIndex *tadOffsets) {
+        _CUDA_H void IndexReduce<float16>::executeIndexReduceScalar(dim3 launchDims, cudaStream_t *stream, const int opNum, float16 *dx, int *xShapeInfo, int xRank, float16 *extraParams, float16 *result, int *resultShapeInfo, int zRank, int *dimension, int dimensionLength, int postProcessOrNot, int *allocationBuffer, float16 *reductionBuffer, int *tadOnlyShapeInfo, Nd4jIndex *tadOffsets) {
             
             indexReduceHalf<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
 			opNum,
@@ -209,7 +209,7 @@ namespace functions {
         }
 
         template <>
-        _CUDA_H void IndexReduce<float16>::executeIndexReduce(dim3 launchDims, cudaStream_t *stream, const int opNum, double *dx, int *xShapeInfo, int xRank, float16 *extraParams, float16 *result, int *resultShapeInfo, int zRank, int *dimension, int dimensionLength, int postProcessOrNot, int *allocationBuffer, float16 *reductionBuffer, int *tadOnlyShapeInfo, Nd4jIndex *tadOffsets) {
+        _CUDA_H void IndexReduce<float16>::executeIndexReduce(dim3 launchDims, cudaStream_t *stream, const int opNum, float16 *dx, int *xShapeInfo, int xRank, float16 *extraParams, float16 *result, int *resultShapeInfo, int zRank, int *dimension, int dimensionLength, int postProcessOrNot, int *allocationBuffer, float16 *reductionBuffer, int *tadOnlyShapeInfo, Nd4jIndex *tadOffsets) {
             
             indexReduceHalf<<<launchDims.x,launchDims.y,launchDims.z, *stream>>>(
 			opNum,
