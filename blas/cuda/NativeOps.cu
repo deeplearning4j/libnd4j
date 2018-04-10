@@ -832,7 +832,7 @@ void   NativeOps::execReduceDouble(
 
 	// this macro builds bunch of IF/ELSE selectors for kernel launch
 
-	functions::reduce::ReduceFunction<double>::execReduceScalar(x, xShapeInfo, extraParams, result, resultShapeInfo, nullptr,1 , reductionPointer, deviceTADShapeInfo);
+	functions::reduce::ReduceFunction<double>::execReduceScalar(launchDims, stream, opNum, x, xShapeInfo, extraParams, result, resultShapeInfo, nullptr,1 , reductionPointer, deviceTADShapeInfo);
 
     //DISPATCH_SIMPLE(reduceScalarSimple, double, PARAMS(x, xShapeInfo, extraParams, result, resultShapeInfo, nullptr,1 , reductionPointer, deviceTADShapeInfo), OPS_A(REDUCE_OPS))
 
@@ -935,7 +935,7 @@ double NativeOps::execReduceScalarDouble(
 	// this macro builds bunch of IF/ELSE selectors for kernel launch
     //DISPATCH_SIMPLE(reduceScalarSimple, double, PARAMS(x, xShapeInfo, extraParams, resultPointer, nullptr, nullptr,1 , reductionPointer, deviceTADShapeInfo), OPS_A(REDUCE_OPS))
 
-	functions::reduce::ReduceFunction<double>::execReduceScalar(x, xShapeInfo, extraParams, resultPointer, nullptr, nullptr,1 , reductionPointer, deviceTADShapeInfo);
+	functions::reduce::ReduceFunction<double>::execReduceScalar(launchDims, stream, opNum, x, xShapeInfo, extraParams, resultPointer, nullptr, nullptr,1 , reductionPointer, deviceTADShapeInfo);
 
 	checkCudaErrors(cudaStreamSynchronize(*stream));
 
@@ -2251,7 +2251,7 @@ void   NativeOps::execReduceFloat(
 
 	// this macro builds bunch of IF/ELSE selectors for kernel launch
     //DISPATCH_SIMPLE(reduceScalarSimple, float, PARAMS(x, xShapeInfo, extraParams, result, resultShapeInfo, nullptr,1 , reductionPointer, deviceTADShapeInfo), OPS_A(REDUCE_OPS))
-	functions::reduce::ReduceFunction<float>::execReduceScalar(x, xShapeInfo, extraParams, resultPointer, nullptr, nullptr,1 , reductionPointer, deviceTADShapeInfo);
+	functions::reduce::ReduceFunction<float>::execReduceScalar(launchDims, stream, opNum, x, xShapeInfo, extraParams, resultPointer, nullptr, nullptr,1 , reductionPointer, deviceTADShapeInfo);
 
 	checkCudaErrors(cudaStreamSynchronize(*stream));
 }
@@ -2288,7 +2288,7 @@ void   NativeOps::execReduceHalf(
 	// this macro builds bunch of IF/ELSE selectors for kernel launch
     //DISPATCH_SIMPLE(reduceScalarSimple, float16, PARAMS(x, xShapeInfo, extraParams, result, resultShapeInfo, nullptr,1 , reductionPointer, deviceTADShapeInfo), OPS_A(REDUCE_OPS))
 	
-	functions::reduce::ReduceFunction<float16>::execReduceScalar(x, xShapeInfo, extraParams, result, resultShapeInfo, nullptr,1 , reductionPointer, deviceTADShapeInfo);
+	functions::reduce::ReduceFunction<float16>::execReduceScalar(launchDims, stream, opNum, x, xShapeInfo, extraParams, result, resultShapeInfo, nullptr,1 , reductionPointer, deviceTADShapeInfo);
 
 	checkCudaErrors(cudaStreamSynchronize(*stream));
 }
@@ -2430,7 +2430,7 @@ float NativeOps::execReduceScalarFloat(
 
 	// this macro builds bunch of IF/ELSE selectors for kernel launch
     //DISPATCH_SIMPLE(reduceScalarSimple, float, PARAMS(x, xShapeInfo, extraParams, resultPointer, nullptr, nullptr,1 , reductionPointer, deviceTADShapeInfo), OPS_A(REDUCE_OPS))
-	functions::reduce::ReduceFunction<float>::execReduceScalar(x, xShapeInfo, extraParams, resultPointer, nullptr, nullptr,1 , reductionPointer, deviceTADShapeInfo);
+	functions::reduce::ReduceFunction<float>::execReduceScalar(launchDims, stream, opNum, x, xShapeInfo, extraParams, resultPointer, nullptr, nullptr,1 , reductionPointer, deviceTADShapeInfo);
 
 	// blocking this one
 	checkCudaErrors(cudaStreamSynchronize(*stream));
@@ -2470,7 +2470,7 @@ float NativeOps::execReduceScalarHalf(
 
 	// this macro builds bunch of IF/ELSE selectors for kernel launch
     //DISPATCH_SIMPLE(reduceScalarSimple, float16, PARAMS(x, xShapeInfo, extraParams, resultPointer, nullptr, nullptr,1 , reductionPointer, deviceTADShapeInfo), OPS_A(REDUCE_OPS))
-	functions::reduce::ReduceFunction<float16>::execReduceScalar(x, xShapeInfo, extraParams, resultPointer, nullptr, nullptr,1 , reductionPointer, deviceTADShapeInfo);
+	functions::reduce::ReduceFunction<float16>::execReduceScalar(launchDims, stream, opNum, x, xShapeInfo, extraParams, resultPointer, nullptr, nullptr,1 , reductionPointer, deviceTADShapeInfo);
 
 	// blocking call
 	checkCudaErrors(cudaStreamSynchronize(*stream));

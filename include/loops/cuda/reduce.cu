@@ -528,7 +528,7 @@ namespace functions {
 
             template <typename T>
             template <typename OpType>
-			__device__ void aggregatePartials(T *sPartials, int tid, int numItems, T *extraParams) {
+			__device__ void ReduceFunction<T>::aggregatePartials(T *sPartials, int tid, int numItems, T *extraParams) {
 				// start the shared memory loop on the next power of 2 less
 				// than the block size.  If block size is not a power of 2,
 				// accumulate the intermediate sums in the remainder range.
