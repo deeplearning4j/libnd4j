@@ -16,10 +16,94 @@ namespace functions {
 		class Transform;
 	}
 
+	namespace scalar {
+
+		template<typename T>
+     	template<typename OpType>
+     	__device__ void ScalarTransform<T>::transformCuda(
+            T scalar,
+            T *dy,
+            int *shapeInfo,
+            T *params,
+            T *result,
+            int *resultShapeInfo,
+            int *allocationBuffer,
+            UnifiedSharedMemory *manager) {
+
+	        int *xShape = shape::shapeOf(shapeInfo);
+   		    int *xStride = shape::stride(shapeInfo);
+        	char xOrder = shape::order(shapeInfo);
+	        int xRank = shape::rank(shapeInfo);
+    	    int xOffset = shape::offset(shapeInfo);
+        	int xElementWiseStride = shape::elementWiseStride(shapeInfo);
+	        int resultElementWiseStride = shape::elementWiseStride(resultShapeInfo);
+   	 	    int *zShape = shape::shapeOf(resultShapeInfo);
+        	int *zStride = shape::stride(resultShapeInfo);
+        	int zRank = shape::rank(resultShapeInfo);
+
+	        int totalThreads = gridDim.x * blockDim.x;
+        	int tid = blockIdx.x * blockDim.x + threadIdx.x;
+
+        	__shared__ int length;
+        	if(threadIdx.x == 0)
+            	length = shape::length(shapeInfo);
+        	__syncthreads();
+
+
+        	if(xElementWiseStride >= 1 && resultElementWiseStride >= 1 && xOrder == shape::order(resultShapeInfo)) {
+            	transformCuda<OpType>(
+                    length,
+                    scalar,
+                    dy,
+                    xElementWiseStride,
+                    params,
+                    result,resultElementWiseStride, allocationBuffer, manager);
+        	}
+        	else {
+            	int xIdx[MAX_RANK];
+
+            	for (Nd4jIndex i = tid; i < length; i+= totalThreads) {
+                	shape::ind2sub(xRank, xShape, i,xIdx);
+               		int xOffset2 = shape::getOffset(0, xShape, xStride, xIdx, xRank);
+            	    int resultOffset = shape::getOffset(0, zShape, zStride, xIdx, zRank);
+        	        result[resultOffset] = OpType::op(dy[xOffset2],scalar, params);
+    	        }
+	        }
+    	}
+	}
+
 	namespace reduce {
 		template <typename T>
 		class ReduceFunction;
 
+
+		template <typename T>
+            template <typename OpType>
+			__device__ void ReduceFunction<T>::aggregatePartials(T *sPartials, int tid, int numItems, T *extraParams) {
+				// start the shared memory loop on the next power of 2 less
+				// than the block size.  If block size is not a power of 2,
+				// accumulate the intermediate sums in the remainder range.
+				int floorPow2 = numItems;
+
+				if (floorPow2 & (floorPow2 - 1)) {
+					while (floorPow2 & (floorPow2 - 1)) {
+						floorPow2 &= floorPow2 - 1;
+					}
+					if (tid >= floorPow2) {
+						sPartials[tid - floorPow2] = OpType::update(sPartials[tid - floorPow2], sPartials[tid], extraParams);
+					}
+
+					__syncthreads();
+				}
+
+
+				for (int activeThreads = floorPow2 >> 1; activeThreads; activeThreads >>= 1) {
+					if (tid < activeThreads && tid + activeThreads < numItems) {
+						sPartials[tid] = OpType::update(sPartials[tid], sPartials[tid + activeThreads], extraParams);
+					}
+                    __syncthreads();
+				}
+			}
 
 		template <typename T>
         template <typename OpType>
