@@ -2251,7 +2251,7 @@ void   NativeOps::execReduceFloat(
 
 	// this macro builds bunch of IF/ELSE selectors for kernel launch
     //DISPATCH_SIMPLE(reduceScalarSimple, float, PARAMS(x, xShapeInfo, extraParams, result, resultShapeInfo, nullptr,1 , reductionPointer, deviceTADShapeInfo), OPS_A(REDUCE_OPS))
-	functions::reduce::ReduceFunction<float>::execReduceScalar(launchDims, stream, opNum, x, xShapeInfo, extraParams, resultPointer, nullptr, nullptr,1 , reductionPointer, deviceTADShapeInfo);
+	functions::reduce::ReduceFunction<float>::execReduceScalar(launchDims, stream, opNum, x, xShapeInfo, extraParams, result, resyltShapeInfo, nullptr,1 , reductionPointer, deviceTADShapeInfo);
 
 	checkCudaErrors(cudaStreamSynchronize(*stream));
 }
@@ -4284,13 +4284,13 @@ void NativeOps::initializeDevicesAndFunctions() {
 
 	cudaFuncGetAttributes(&funcAttributes[7], reduce3Float);
 
-	cudaFuncGetAttributes(&funcAttributes[8], reduceSimpleGenericXD_0_float);
+	cudaFuncGetAttributes(&funcAttributes[8], reduce3Float);
 //	printf("reduceFloat regs: [%i], static shmem: [%i]\n", funcAttributes[8].numRegs, funcAttributes[8].sharedSizeBytes);
 
-	cudaFuncGetAttributes(&funcAttributes[28], reduceSimpleGeneric1D_0_float); // 1D
+	cudaFuncGetAttributes(&funcAttributes[28], reduce3Float); // 1D
 //	printf("reduceFloat1D regs: [%i], static shmem: [%i]\n", funcAttributes[28].numRegs, funcAttributes[28].sharedSizeBytes);
 
-	cudaFuncGetAttributes(&funcAttributes[29], reduceSimpleGeneric3D_0_float); // 6D
+	cudaFuncGetAttributes(&funcAttributes[29], reduce3Float); // 6D
 //	printf("reduceFloat6D regs: [%i], static shmem: [%i]\n", funcAttributes[29].numRegs, funcAttributes[29].sharedSizeBytes);
 
 	cudaFuncGetAttributes(&funcAttributes[30], flattenKernelFloat);
@@ -4332,7 +4332,7 @@ void NativeOps::initializeDevicesAndFunctions() {
 
 	cudaFuncGetAttributes(&funcAttributes[21], reduce3Double);
 
-	cudaFuncGetAttributes(&funcAttributes[22], reduceSimpleGenericXD_0_double);
+	cudaFuncGetAttributes(&funcAttributes[22], reduce3Float);
 
 //	cudaFuncGetAttributes(&funcAttributes[23], pairWiseTransformDouble);
 
@@ -4344,9 +4344,9 @@ void NativeOps::initializeDevicesAndFunctions() {
 
 	cudaFuncGetAttributes(&funcAttributes[27], reduce3Double);
 
-	cudaFuncGetAttributes(&funcAttributes[32], reduceSimpleGeneric1D_0_double); // 1D
+	cudaFuncGetAttributes(&funcAttributes[32], reduce3Float); // 1D
 
-	cudaFuncGetAttributes(&funcAttributes[33], reduceSimpleGeneric3D_0_double); // 6D
+	cudaFuncGetAttributes(&funcAttributes[33], reduce3Float); // 6D
 
 	cudaFuncGetAttributes(&funcAttributes[34], flattenKernelDouble);
 
