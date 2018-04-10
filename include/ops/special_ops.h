@@ -22,8 +22,8 @@ namespace functions {
 
 
 		template <typename T>
-            template <typename OpType>
-			static inline __device__ void ReduceFunction<T>::execScalarCuda(
+        template <typename OpType>
+		__device__ void ReduceFunction<T>::execScalarCuda(
 				T *dx,
 				int *xShapeInfo,
 				T *extraParams,
