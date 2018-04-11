@@ -160,5 +160,9 @@ namespace functions {
         template class ND4J_EXPORT Broadcast<float>;
         template class ND4J_EXPORT Broadcast<float16>;
         template class ND4J_EXPORT Broadcast<double>;
+
+        BUILD_CALL_1(template void Broadcast<float>::exec, float, (float*, int*, float*, int*, float*, int*, int*, int, int*, long long*, int*, Nd4jIndex*), BROADCAST_OPS)
+        BUILD_CALL_1(template void Broadcast<float16>::exec, float16, (float16*, int*, float16*, int*, float16*, int*, int*, int, int*, long long*, int*, Nd4jIndex*), BROADCAST_OPS)
+        BUILD_CALL_1(template void Broadcast<double>::exec, double, (double*, int*, double*, int*, double*, int*, int*, int, int*, long long*, int*, Nd4jIndex*), BROADCAST_OPS)
     }
 }

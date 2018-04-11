@@ -138,40 +138,13 @@ namespace functions {
         template class ND4J_EXPORT Transform<float16>;
         template class ND4J_EXPORT Transform<double>;
 
-        template void Transform<float>::exec<simdOps::Reverse<float>>(float*, int*, float*, int*, float*, int*, Nd4jIndex*);
-        template void Transform<double>::exec<simdOps::Reverse<double>>(double*, int*, double*, int*, double*, int*, Nd4jIndex*);
-        template void Transform<float16>::exec<simdOps::Reverse<float16>>(float16*, int*, float16*, int*, float16*, int*, Nd4jIndex*);
 
-        template void Transform<float>::exec<simdOps::Im2col<float>>(float*, int*, float*, int*, float*, int*, Nd4jIndex*);
-        template void Transform<double>::exec<simdOps::Im2col<double>>(double*, int*, double*, int*, double*, int*, Nd4jIndex*);
-        template void Transform<float16>::exec<simdOps::Im2col<float16>>(float16*, int*, float16*, int*, float16*, int*, Nd4jIndex*);
+        BUILD_CALL_1(template void Transform<float>::exec, float, (float*, int*, float*, int*, float*, int*, Nd4jIndex*), TRANSFORM_OPS)
+        BUILD_CALL_1(template void Transform<float16>::exec, float16, (float16*, int*, float16*, int*, float16*, int*, Nd4jIndex*), TRANSFORM_OPS)
+        BUILD_CALL_1(template void Transform<double>::exec, double, (double*, int*, double*, int*, double*, int*, Nd4jIndex*), TRANSFORM_OPS)
 
-        template void Transform<float>::exec<simdOps::Col2Im<float>>(float*, int*, float*, int*, float*, int*, Nd4jIndex*);
-        template void Transform<double>::exec<simdOps::Col2Im<double>>(double*, int*, double*, int*, double*, int*, Nd4jIndex*);
-        template void Transform<float16>::exec<simdOps::Col2Im<float16>>(float16*, int*, float16*, int*, float16*, int*, Nd4jIndex*);
-
-        template void Transform<float>::exec<simdOps::Pooling2D<float>>(float*, int*, float*, int*, float*, int*, Nd4jIndex*);
-        template void Transform<double>::exec<simdOps::Pooling2D<double>>(double*, int*, double*, int*, double*, int*, Nd4jIndex*);
-        template void Transform<float16>::exec<simdOps::Pooling2D<float16>>(float16*, int*, float16*, int*, float16*, int*, Nd4jIndex*);
-
-        template void Transform<float>::exec<simdOps::Histogram<float>>(float*, int*, float*, int*, float*, int*, Nd4jIndex*);
-        template void Transform<double>::exec<simdOps::Histogram<double>>(double*, int*, double*, int*, double*, int*, Nd4jIndex*);
-        template void Transform<float16>::exec<simdOps::Histogram<float16>>(float16*, int*, float16*, int*, float16*, int*, Nd4jIndex*);
-
-        template void Transform<float>::exec<simdOps::SoftMax<float>>(float*, int*, float*, int*, float*, int*, Nd4jIndex*);
-        template void Transform<double>::exec<simdOps::SoftMax<double>>(double*, int*, double*, int*, double*, int*, Nd4jIndex*);
-        template void Transform<float16>::exec<simdOps::SoftMax<float16>>(float16*, int*, float16*, int*, float16*, int*, Nd4jIndex*);
-
-        template void Transform<float>::exec<simdOps::LogSoftMax<float>>(float*, int*, float*, int*, float*, int*, Nd4jIndex*);
-        template void Transform<double>::exec<simdOps::LogSoftMax<double>>(double*, int*, double*, int*, double*, int*, Nd4jIndex*);
-        template void Transform<float16>::exec<simdOps::LogSoftMax<float16>>(float16*, int*, float16*, int*, float16*, int*, Nd4jIndex*);
-
-        template void Transform<float>::exec<simdOps::SoftMaxDerivative<float>>(float*, int*, float*, int*, float*, int*, Nd4jIndex*);
-        template void Transform<double>::exec<simdOps::SoftMaxDerivative<double>>(double*, int*, double*, int*, double*, int*, Nd4jIndex*);
-        template void Transform<float16>::exec<simdOps::SoftMaxDerivative<float16>>(float16*, int*, float16*, int*, float16*, int*, Nd4jIndex*);
-
-        template void Transform<float>::exec<simdOps::IsMax<float>>(float*, int*, float*, int*, float*, int*, Nd4jIndex*);
-        template void Transform<double>::exec<simdOps::IsMax<double>>(double*, int*, double*, int*, double*, int*, Nd4jIndex*);
-        template void Transform<float16>::exec<simdOps::IsMax<float16>>(float16*, int*, float16*, int*, float16*, int*, Nd4jIndex*);
+        BUILD_CALL_1(template void Transform<float>::exec, float, (float*, int, float*, int, float*, const int), TRANSFORM_OPS)
+        BUILD_CALL_1(template void Transform<float16>::exec, float16, (float16*, int, float16*, int, float16*, const int), TRANSFORM_OPS)
+        BUILD_CALL_1(template void Transform<double>::exec, double, (double*, int, double*, int, double*, const int), TRANSFORM_OPS)
     }
 }

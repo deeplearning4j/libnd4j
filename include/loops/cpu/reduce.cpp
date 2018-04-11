@@ -327,8 +327,16 @@ namespace functions {
         template class ND4J_EXPORT ReduceFunction<float16>;
         template class ND4J_EXPORT ReduceFunction<double>;
 
-        template void ReduceFunction<float16>::exec<simdOps::LogSumExp<float16>>(float16*, int*, float16*, float16*, int*, int*, int, int*, Nd4jIndex*);
-        template void ReduceFunction<float>::exec<simdOps::LogSumExp<float>>(float*, int*, float*, float*, int*, int*, int, int*, Nd4jIndex*);
-        template void ReduceFunction<double>::exec<simdOps::LogSumExp<double>>(double*, int*, double*, double*, int*, int*, int, int*, Nd4jIndex*);
+        //template void ReduceFunction<float16>::exec<simdOps::LogSumExp<float16>>(float16*, int*, float16*, float16*, int*, int*, int, int*, Nd4jIndex*);
+        //template void ReduceFunction<float>::exec<simdOps::LogSumExp<float>>(float*, int*, float*, float*, int*, int*, int, int*, Nd4jIndex*);
+        //template void ReduceFunction<double>::exec<simdOps::LogSumExp<double>>(double*, int*, double*, double*, int*, int*, int, int*, Nd4jIndex*);
+
+        BUILD_CALL_1(template void ReduceFunction<float>::exec, float, (float*, int*, float*, float*, int*, int*, int, int*, Nd4jIndex*), REDUCE_OPS)
+        BUILD_CALL_1(template void ReduceFunction<float16>::exec, float16, (float16*, int*, float16*, float16*, int*, int*, int, int*, Nd4jIndex*), REDUCE_OPS)
+        BUILD_CALL_1(template void ReduceFunction<double>::exec, double, (double*, int*, double*, double*, int*, int*, int, int*, Nd4jIndex*), REDUCE_OPS)
+
+        BUILD_CALL_1(template float ReduceFunction<float>::execScalar, float, (float *x, int *, float*), REDUCE_OPS)
+        BUILD_CALL_1(template float16 ReduceFunction<float16>::execScalar, float16, (float16 *x, int *, float16*), REDUCE_OPS)
+        BUILD_CALL_1(template double ReduceFunction<double>::execScalar, double, (double *x, int *, double*), REDUCE_OPS)
     }
 }
