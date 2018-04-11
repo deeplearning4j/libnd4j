@@ -562,5 +562,9 @@ namespace functions {
 		template void ReduceFunction<float>::execScalarCuda<simdOps::Max<float> >(float*, int*, float*, float*, int*, float*, UnifiedSharedMemory *, int*);
 		template void ReduceFunction<double>::execScalarCuda<simdOps::Max<double> >(double*, int*, double*, double*, int*, double*, UnifiedSharedMemory *, int*);
 		template void ReduceFunction<float16>::execScalarCuda<simdOps::Max<float16> >(float16*, int*, float16*, float16*, int*, float16*, UnifiedSharedMemory *, int*);
+
+		template void ReduceFunction<float>::execScalarCuda<simdOps::Sum<float> >(float*, int*, float*, float*, int*, float*, UnifiedSharedMemory *, int*);
+		template void ReduceFunction<double>::execScalarCuda<simdOps::Sum<double> >(double*, int*, double*, double*, int*, double*, UnifiedSharedMemory *, int*);
+		template void ReduceFunction<float16>::execScalarCuda<simdOps::Sum<float16> >(float16*, int*, float16*, float16*, int*, float16*, UnifiedSharedMemory *, int*);
     }
 }
