@@ -500,7 +500,7 @@ template<typename T>
 		template<>
         math_def inline float16 nd4j_ceil<float16>(float16 val) {
 #ifdef NATIVE_HALFS
-            return hceil(val.data)
+            return hceil(val.data);
 #else
 			return ceilf((float) val);
 #endif
