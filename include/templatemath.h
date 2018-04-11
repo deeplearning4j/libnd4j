@@ -297,7 +297,10 @@ template<typename T>
         template<>
         math_def inline float16 nd4j_abs<float16>(float16 value) {
 #ifdef NATIVE_HALFS
-            return value < (float16) 0.f ?  __hneg(value.data) : value;
+			if (value < (float16) 0.f) {
+				 return float16(__hneg(value.data));
+			} else 
+				return value;
 #else
 			return (float16) fabsf((float) value);
 #endif
