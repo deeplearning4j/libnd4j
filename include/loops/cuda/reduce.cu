@@ -553,5 +553,8 @@ namespace functions {
                     __syncthreads();
 				}
 			}
+
+
+		template void functions::reduce::ReduceFunction<float>::aggregatePartials<simdOps::Max<float> >(float*, int, int, float*);
     }
 }

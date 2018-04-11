@@ -17,10 +17,11 @@
 #endif
 #include <pairwise_util.h>
 #include <dll.h>
-#include <loops/reduce.h>
-#include <loops/scalar.h>
-#include <loops/indexreduce.h>
-#include <loops/broadcasting.h>
+
+//#include <loops/reduce.h>
+//#include <loops/scalar.h>
+//#include <loops/indexreduce.h>
+//#include <loops/broadcasting.h>
 
 #ifdef __CUDACC__
 #include <cuda.h>
@@ -97,41 +98,14 @@ namespace functions {
 
 			static void exec(int opNum, T *dx, int xStride, T *result, int resultStride, T *extraParams, const int n);
 
-			static void exec(
-				int opNum,
-				T *dx,
-				int *xShapeInfo,
-				T *result,
-				int *resultShapeInfo,
-				T *extraParams, int *tadShapeInfo, Nd4jIndex *tadOffsets);
+			static void exec(int opNum, T *dx, int *xShapeInfo, T *result, int *resultShapeInfo, T *extraParams, int *tadShapeInfo, Nd4jIndex *tadOffsets);
 
 
 			template<typename OpType>
-			static void _CUDA_H exec(
-                    T *dx,
-                    int *xShapeInfo,
-                    T *result,
-                    int *resultShapeInfo,
-                    T *extraParams, int *tadShapeInfo, Nd4jIndex *tadOffsets);
-
-
-			template<typename OpType>
-			static void exec(
-				T *dx,
-				int *xShapeInfo,
-				T *result,
-				int *resultShapeInfo,
-				T *extraParams,
-				int *indexes,
-				int *resultIndexes, int *tadShapeInfo, Nd4jIndex *tadOffsets);
+			static ND4J_EXPORT void exec(T *dx, int *xShapeInfo, T *result, int *resultShapeInfo, T *extraParams, int *tadShapeInfo, Nd4jIndex *tadOffsets);
 
 			template <typename OpType>
-			static void _CUDA_H exec(T *dx,
-                             int xStride,
-                             T *result,
-                             int resultStride,
-                             T *extraParams,
-                             const int n);
+			static ND4J_EXPORT void exec(T *dx, int xStride, T *result, int resultStride, T *extraParams, const int n);
         };
     }
 }
