@@ -326,5 +326,9 @@ namespace functions {
         template class ND4J_EXPORT ReduceFunction<float>;
         template class ND4J_EXPORT ReduceFunction<float16>;
         template class ND4J_EXPORT ReduceFunction<double>;
+
+        template void ReduceFunction<float16>::exec<simdOps::LogSumExp<float16>>(float16*, int*, float16*, float16*, int*, int*, int, int*, Nd4jIndex*);
+        template void ReduceFunction<float>::exec<simdOps::LogSumExp<float>>(float*, int*, float*, float*, int*, int*, int, int*, Nd4jIndex*);
+        template void ReduceFunction<double>::exec<simdOps::LogSumExp<double>>(double*, int*, double*, double*, int*, int*, int, int*, Nd4jIndex*);
     }
 }
