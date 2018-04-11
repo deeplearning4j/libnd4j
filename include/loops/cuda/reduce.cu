@@ -555,6 +555,12 @@ namespace functions {
 			}
 
 
-		template void functions::reduce::ReduceFunction<float>::aggregatePartials<simdOps::Max<float> >(float*, int, int, float*);
+		template void ReduceFunction<float>::aggregatePartials<simdOps::Max<float> >(float*, int, int, float*);
+		template void ReduceFunction<double>::aggregatePartials<simdOps::Max<double> >(double*, int, int, double*);
+		template void ReduceFunction<float16>::aggregatePartials<simdOps::Max<float16> >(float16*, int, int, float16*);
+
+		template void ReduceFunction<float>::execScalarCuda<simdOps::Max<float> >(float*, int*, float*, float*, int*, float*, UnifiedSharedMemory *, int*);
+		template void ReduceFunction<double>::execScalarCuda<simdOps::Max<double> >(double*, int*, double*, double*, int*, double*, UnifiedSharedMemory *, int*);
+		template void ReduceFunction<float16>::execScalarCuda<simdOps::Max<float16> >(float16*, int*, float16*, float16*, int*, float16*, UnifiedSharedMemory *, int*);
     }
 }
