@@ -272,8 +272,8 @@ namespace functions {
 	    }
 
 
-        template class ND4J_EXPORT Transform<float>;
-        template class ND4J_EXPORT Transform<float16>;
-        template class ND4J_EXPORT Transform<double>;
+        //template class ND4J_EXPORT Transform<float>;
+        //template class ND4J_EXPORT Transform<float16>;
+        //template class ND4J_EXPORT Transform<double>;
     }
 }
