@@ -275,5 +275,9 @@ namespace functions {
         //template class ND4J_EXPORT Transform<float>;
         //template class ND4J_EXPORT Transform<float16>;
         //template class ND4J_EXPORT Transform<double>;
+
+        BUILD_CALL_1(template __device__ void Transform<float>::transformCuda, float, (float*, int*, float*, float*,int*, int*,float*, UnifiedSharedMemory*, int*, Nd4jIndex*), TRANSFORM_OPS)
+        BUILD_CALL_1(template __device__ void Transform<float16>::transformCuda, float16, (float16*, int*, float16*, float16*,int*, int*, float16*, UnifiedSharedMemory*, int*, Nd4jIndex*), TRANSFORM_OPS)
+        BUILD_CALL_1(template __device__ void Transform<double>::transformCuda, double, (double*, int*, double*, double*,int*, int*, double*, UnifiedSharedMemory*, int*, Nd4jIndex*), TRANSFORM_OPS)
     }
 }

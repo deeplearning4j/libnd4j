@@ -554,17 +554,12 @@ namespace functions {
 				}
 			}
 
+        BUILD_CALL_1(template __device__ void ReduceFunction<float>::execScalarCuda, float, (float*, int*, float*, float*, int*, float*, UnifiedSharedMemory *, int*), REDUCE_OPS)
+        BUILD_CALL_1(template __device__ void ReduceFunction<float16>::execScalarCuda, float16, (float16*, int*, float16*, float16*, int*, float16*, UnifiedSharedMemory *, int*), REDUCE_OPS)
+        BUILD_CALL_1(template __device__ void ReduceFunction<double>::execScalarCuda, double, (double*, int*, double*, double*, int*, double*, UnifiedSharedMemory *, int*), REDUCE_OPS)
 
-		template void ReduceFunction<float>::aggregatePartials<simdOps::Max<float> >(float*, int, int, float*);
-		template void ReduceFunction<double>::aggregatePartials<simdOps::Max<double> >(double*, int, int, double*);
-		template void ReduceFunction<float16>::aggregatePartials<simdOps::Max<float16> >(float16*, int, int, float16*);
-
-		template void ReduceFunction<float>::execScalarCuda<simdOps::Max<float> >(float*, int*, float*, float*, int*, float*, UnifiedSharedMemory *, int*);
-		template void ReduceFunction<double>::execScalarCuda<simdOps::Max<double> >(double*, int*, double*, double*, int*, double*, UnifiedSharedMemory *, int*);
-		template void ReduceFunction<float16>::execScalarCuda<simdOps::Max<float16> >(float16*, int*, float16*, float16*, int*, float16*, UnifiedSharedMemory *, int*);
-
-		template void ReduceFunction<float>::execScalarCuda<simdOps::Sum<float> >(float*, int*, float*, float*, int*, float*, UnifiedSharedMemory *, int*);
-		template void ReduceFunction<double>::execScalarCuda<simdOps::Sum<double> >(double*, int*, double*, double*, int*, double*, UnifiedSharedMemory *, int*);
-		template void ReduceFunction<float16>::execScalarCuda<simdOps::Sum<float16> >(float16*, int*, float16*, float16*, int*, float16*, UnifiedSharedMemory *, int*);
+        BUILD_CALL_1(template __device__ void ReduceFunction<float>::aggregatePartials, float, (float*, int, int, float*), REDUCE_OPS)
+        BUILD_CALL_1(template __device__ void ReduceFunction<float16>::aggregatePartials, float16, (float16*, int, int, float16*), REDUCE_OPS)
+        BUILD_CALL_1(template __device__ void ReduceFunction<double>::aggregatePartials, double, (double*, int, int, double*), REDUCE_OPS)
     }
 }

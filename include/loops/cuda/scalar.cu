@@ -500,14 +500,9 @@ namespace functions {
         }
         */
 
-
-        template void ScalarTransform<float>::transformCuda<simdOps::Divide<float> >(float, float*, int *, float*, float*, int*, int*, UnifiedSharedMemory *);
-		template void ScalarTransform<double>::transformCuda<simdOps::Divide<double> >(double, double*, int *, double*, double*, int*, int*, UnifiedSharedMemory *);
-		template void ScalarTransform<float16>::transformCuda<simdOps::Divide<float16> >(float16, float16*, int *, float16*, float16*, int*, int*, UnifiedSharedMemory *);
-
-        template void ScalarTransform<float>::transformCuda<simdOps::Subtract<float> >(float, float*, int *, float*, float*, int*, int*, UnifiedSharedMemory *);
-		template void ScalarTransform<double>::transformCuda<simdOps::Subtract<double> >(double, double*, int *, double*, double*, int*, int*, UnifiedSharedMemory *);
-		template void ScalarTransform<float16>::transformCuda<simdOps::Subtract<float16> >(float16, float16*, int *, float16*, float16*, int*, int*, UnifiedSharedMemory *);
+        BUILD_CALL_1(template __device__ void ScalarTransform<float>::transformCuda, float, (float, float*, int *, float*, float*, int*, int*, UnifiedSharedMemory *), SCALAR_OPS)
+        BUILD_CALL_1(template __device__ void ScalarTransform<float16>::transformCuda, float16, (float16, float16*, int *, float16*, float16*, int*, int*, UnifiedSharedMemory *), SCALAR_OPS)
+        BUILD_CALL_1(template __device__ void ScalarTransform<double>::transformCuda, double, (double, double*, int *, double*, double*, int*, int*, UnifiedSharedMemory *), SCALAR_OPS)
     }
 }
 
