@@ -83,6 +83,15 @@ __device__ void transformSimpleGeneric(
 		int *xShapeInfo, int xRank,
 		T *params,
 		T *result,int *resultShapeInfo, int zRank, int *allocationPointer, T *reductionPointer, int *tadShapeInfo, Nd4jIndex *tadOffsets) {
+
+	__shared__ UnifiedSharedMemory *manager;
+
+	if (threadIdx.x == 0) {
+		extern __shared__ unsigned char shmem[];
+		manager = new(shmem) UnifiedSharedMemory((int *) shmem);
+		manager->init(sizeof(UnifiedSharedMemory), 0, sizeof(functions::transform::Transform<T>), sizeof(shape::TAD), xRank);
+	}
+	__syncthreads();
 	
     functions::transform::Transform<T>::template transformCuda<OpClass>(
 	    dy,
@@ -92,7 +101,7 @@ __device__ void transformSimpleGeneric(
 	    resultShapeInfo,
 	    allocationPointer,
 	    reductionPointer,
-	    nullptr, tadShapeInfo, tadOffsets);
+		manager, tadShapeInfo, tadOffsets);
 }
 
 // transform strided

@@ -1320,21 +1320,21 @@ namespace simdOps {
 
 			int length = shape::length(xShapeBuffer);
 
-			if (threadIdx.x == 0) {
-				maxResult = (T) 0.0;
-			}
-			__syncthreads();
-
 			int *stride = shape::stride(xShapeBuffer);
 			//compute the row wise maxes
 
-			int maxShape[2] = { shape[0], 1 };
+			__shared__ int maxShape[2];
 
 			// it's always 2d here
 			__shared__ int tempBuffer[8];
 
-			if (threadIdx.x == 0)
+			if (threadIdx.x == 0) {
+			    maxResult = (T) 0.0;
+			    maxShape[0] = shape[0];
+			    maxShape[1] = 1;
 				maxResultShapeBuffer = shape::shapeBuffer(2, maxShape, tempBuffer);
+			}
+			__syncthreads();
 
 			functions::reduce::ReduceFunction<T>::template execScalarCuda<simdOps::Max<T>>(dx, xShapeBuffer, extraParams, &maxResult, maxResultShapeBuffer, reductionPointer, manager, nullptr);
 			__syncthreads();
