@@ -623,7 +623,7 @@ void   NativeOps::execIndexReduceDouble(
 	int *allocationPointer = reinterpret_cast<int *>(extraPointers[3]);
 	double *reductionPointer = reinterpret_cast<double *>(extraPointers[4]);
 
-	functions::indexreduce::IndexReduce<double>::executeIndexReduceScalar(launchDims, stream,
+	functions::indexreduce::IndexReduce<double>::executeIndexReduce(launchDims, stream,
 			opNum,
 			x,
 			xShapeInfo, shape::rank(hostXShapeInfo),
@@ -1822,7 +1822,7 @@ void   NativeOps::execIndexReduceFloat(
 	if (nd4j::Environment::getInstance()->isVerbose() && launchDims.x == 1)
 		printf("AF2 opNum:[%i]\n", opNum);
 
-	functions::indexreduce::IndexReduce<float>::executeIndexReduceScalar(launchDims, stream, opNum,
+	functions::indexreduce::IndexReduce<float>::executeIndexReduce(launchDims, stream, opNum,
 			x,
 			xShapeInfo, shape::rank(hostXShapeInfo),
 			extraParams,
@@ -1864,7 +1864,7 @@ void   NativeOps::execIndexReduceHalf(
 	if (nd4j::Environment::getInstance()->isVerbose() && launchDims.x == 1)
 		printf("AH2 opNum:[%i]\n", opNum);
 
-	functions::indexreduce::IndexReduce<float16>::executeIndexReduceScalar(launchDims, stream, opNum,
+	functions::indexreduce::IndexReduce<float16>::executeIndexReduce(launchDims, stream, opNum,
 					x,
 					xShapeInfo, shape::rank(hostXShapeInfo),
 					extraParams,
