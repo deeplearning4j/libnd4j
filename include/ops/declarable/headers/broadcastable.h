@@ -232,7 +232,7 @@ namespace nd4j {
          *
          */
         #if NOT_EXCLUDED(OP_equals)
-        DECLARE_OP(equals, 2, 1, true);
+        DECLARE_CUSTOM_OP(equals, 2, 1, true, 0, 0);
         #endif
 
         /**
@@ -240,7 +240,7 @@ namespace nd4j {
          * Math is: _x != _y ? (T) 1.0f : (T) 0.0f;
          */
         #if NOT_EXCLUDED(OP_not_equals)
-        DECLARE_OP(not_equals, 2, 1, true);
+        DECLARE_CUSTOM_OP(not_equals, 2, 1, true, 0, 0);
         #endif
 
         /**
@@ -248,7 +248,7 @@ namespace nd4j {
          * Math is: _x <= _y ? (T) 1.0f : (T) 0.0f;
          */
         #if NOT_EXCLUDED(OP_less_equal)
-        DECLARE_OP(less_equal, 2, 1, true);
+        DECLARE_CUSTOM_OP(less_equal, 2, 1, true, 0, 0);
         #endif
 
         /**
@@ -256,7 +256,7 @@ namespace nd4j {
          * Math is: _x >= _y ? (T) 1.0f : (T) 0.0f;
          */
         #if NOT_EXCLUDED(OP_greater_equal)
-        DECLARE_OP(greater_equal, 2, 1, true);
+        DECLARE_CUSTOM_OP(greater_equal, 2, 1, true, 0, 0);
         #endif
 
         /**
@@ -264,7 +264,7 @@ namespace nd4j {
          * Math is: _x < _y ? (T) 1.0f : (T) 0.0f;
          */
         #if NOT_EXCLUDED(OP_less)
-        DECLARE_OP(less, 2, 1, true);
+        DECLARE_CUSTOM_OP(less, 2, 1, true, 0, 0);
         #endif
 
         /**
@@ -272,7 +272,7 @@ namespace nd4j {
          * Math is: _x > _y ? (T) 1.0f : (T) 0.0f;
          */
         #if NOT_EXCLUDED(OP_greater)
-        DECLARE_OP(greater, 2, 1, true);
+        DECLARE_CUSTOM_OP(greater, 2, 1, true, 0, 0);
         #endif
 
     }
