@@ -115,7 +115,7 @@ DECLARE_SHAPE_FN(conv2d) {
         outputShapeInfo[4] = oC;
     }
     
-    shape::updateStrides(outputShapeInfo, shape::shapeInfoLength(inputShapeInfo));
+    shape::updateStrides(outputShapeInfo, shape::order(inputShapeInfo));
     
     return SHAPELIST(outputShapeInfo);
 }
