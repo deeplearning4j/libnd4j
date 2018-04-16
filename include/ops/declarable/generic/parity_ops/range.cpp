@@ -29,7 +29,7 @@ namespace nd4j {
                 if (start > stop) {
                     while (e > (T) stop) {
                         output->putScalar(cnt++, e);
-                        e = (T) step > (T) 0.0 ? e - step : e + step;
+                        e = (T) step > (T) 0.0 ? e - (T)step : e + (T)step;
                     }
                 } else {
                     while (e < (T) stop) {
@@ -92,7 +92,6 @@ namespace nd4j {
                     memcpy(array->buffer(), data.data(), data.size() * sizeof(T));
 
                     //block.pushNDArrayToVariableSpace(block.nodeId(), 0, array);
-                    nd4j_debug("Range overwrite!\n","");
                     OVERWRITE_RESULT(array);
                 }
             } else {
@@ -114,7 +113,7 @@ namespace nd4j {
                 if (start > stop) {
                     while (e > (T) stop) {
                         cnt++;
-                        e = (T) step > (T) 0.0 ? e - step : e + step;
+                        e = (T) step > (T) 0.0 ? e - (T)step : e + (T)step;
                     }
                 } else {
                     while (e < (T) stop) {

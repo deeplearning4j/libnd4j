@@ -346,16 +346,16 @@ TEST_F(DeclarableOpsTests3, Test_CumSum_3) {
 }
 
 TEST_F(DeclarableOpsTests3, Test_ListDiff_1) {
-    NDArray<float> x('c', {1, 6}, {1, 2, 3, 4, 5, 6});
-    NDArray<float> y('c', {1, 3}, {1, 3, 5});
+    NDArray<float> x('c', {6}, {1, 2, 3, 4, 5, 6});
+    NDArray<float> y('c', {3}, {1, 3, 5});
 
-    NDArray<float> exp0('c', {1, 3}, {2, 4, 6});
-    NDArray<float> exp1('c', {1, 3}, {1, 3, 5});
+    NDArray<float> exp0('c', {3}, {2, 4, 6});
+    NDArray<float> exp1('c', {3}, {1, 3, 5});
 
     nd4j::ops::listdiff<float> op;
     auto result = op.execute({&x, &y}, {}, {});
 
-    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    ASSERT_EQ(Status::OK(), result->status());
 
     auto z0 = result->at(0);
     auto z1 = result->at(1);
@@ -881,7 +881,7 @@ TEST_F(DeclarableOpsTests3, sruCell_test1) {
     NDArray<double> xt  ('c', {batchSize, inSize});
     NDArray<double> ct_1('c', {batchSize, inSize});
     NDArray<double> w   ('c', {inSize, 3*inSize});
-    NDArray<double> b   ('c', {1, 2*inSize});
+    NDArray<double> b   ('c', {2*inSize});
 
     xt.assign(1.);
     ct_1.assign(2.);
@@ -917,7 +917,7 @@ TEST_F(DeclarableOpsTests3, sruCell_test2) {
     NDArray<double> xt  ('c', {batchSize, inSize});
     NDArray<double> ct_1('c', {batchSize, inSize});
     NDArray<double> w   ('c', {inSize, 3*inSize});
-    NDArray<double> b   ('c', {1, 2*inSize});
+    NDArray<double> b   ('c', {2*inSize});
 
     xt.assign(1.);
     ct_1.assign(2.);
@@ -952,7 +952,7 @@ TEST_F(DeclarableOpsTests3, sruCell_test3) {
     NDArray<double> xt  ('c', {batchSize, inSize});
     NDArray<double> ct_1('c', {batchSize, inSize});
     NDArray<double> w   ('c', {inSize, 3*inSize});
-    NDArray<double> b   ('c', {1, 2*inSize});
+    NDArray<double> b   ('c', {2*inSize});
 
     xt.assign(10.);
     ct_1.assign(1.);

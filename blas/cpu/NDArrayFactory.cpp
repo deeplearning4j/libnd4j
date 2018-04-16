@@ -218,71 +218,106 @@ namespace nd4j {
 #ifndef __JAVACPP_HACK__
 //////////////////////////////////////////////////////////////////////////
     template<typename T>
-    void nd4j::NDArrayFactory<T>::tensorDot(const nd4j::NDArray<T>* a, const nd4j::NDArray<T>* b, nd4j::NDArray<T>* c, const std::vector<std::vector<int>>& modifA, const std::vector<std::vector<int>>& modifB, const std::vector<std::vector<int>>& modifC) {
+    void nd4j::NDArrayFactory<T>::tensorDot(const NDArray<T>* a, const NDArray<T>* b, NDArray<T>* c, const std::vector<std::vector<int>>& modifA, const std::vector<std::vector<int>>& modifB, const std::vector<std::vector<int>>& modifC) {
 
-        NDArray<T> *aPR(const_cast<NDArray<T>*>(a)), *bPR(const_cast<NDArray<T>*>(b)), *cP(c), *cPR(c);
-                
-        // work with a input array 
-        if(!modifA.empty()) {
-            
-            if(!modifA[0].empty())                                  // if permutation of a is required
-                aPR = a->permute(modifA[0]);            
-            
-            if(!modifA[1].empty()) {                                // if reshaping of a is required
-                if(aPR == a)
-                    aPR = a->reshape(a->ordering(), modifA[1]);
-                else 
-                    aPR->reshapei(aPR->ordering(), modifA[1]);
-            }        
+        NDArray<T> *aPR(const_cast<NDArray<T>*>(a)), *bPR(const_cast<NDArray<T>*>(b));
+        std::string whatToDoWithA, whatToDoWithB, whatToDoWithC;         // "" - nothing; "p" - permutation; "r" - reshaping; "pr" - permutation+reshaping; "rp" - reshaping/permutation, and so on; if another string is produced - throw exception
+
+        for(const auto& arr : modifA) 
+            whatToDoWithA = (std::find(arr.begin(), arr.end(), 0) != arr.end()) ? whatToDoWithA + "p" : whatToDoWithA + "r";        // when 0 is present in arr then it is permutation array, otherwise - it is reshaping array            
+
+        for(const auto& arr : modifB) 
+            whatToDoWithB = (std::find(arr.begin(), arr.end(), 0) != arr.end()) ? whatToDoWithB + "p" : whatToDoWithB + "r";    
+
+        for(const auto& arr : modifC) 
+            whatToDoWithC = (std::find(arr.begin(), arr.end(), 0) != arr.end()) ? whatToDoWithC + "p" : whatToDoWithC + "r";    
+
+
+        // first step for a array
+        if(!whatToDoWithA.empty())
+            aPR = (whatToDoWithA[0] == 'p') ? a->permute(modifA[0]) : a->reshape(a->ordering(), modifA[0]);
+        // first step for b array
+        if(!whatToDoWithB.empty())
+            bPR = (whatToDoWithB[0] == 'p') ? b->permute(modifB[0]) : b->reshape(b->ordering(), modifB[0]);
+
+        // rest steps for a array
+        for(int i = 1; i < whatToDoWithA.size(); ++i)
+            if(whatToDoWithA[i] == 'p') aPR->permutei(modifA[i]); else aPR->reshapei(modifA[i]);
+        // rest steps for b array
+        for(int i = 1; i < whatToDoWithB.size(); ++i)
+            if(whatToDoWithB[i] == 'p') bPR->permutei(modifB[i]); else bPR->reshapei(modifB[i]);
+
+        // now work with c array
+        std::vector<NDArray<T>*> cArrs = {c}; 
+        if(!whatToDoWithC.empty()) {
+            cArrs = std::vector<NDArray<T>*>(whatToDoWithC.size()+1, c);
+            for(int i = 0; i < cArrs.size()-1; ++i)                               
+                cArrs[i+1] = (whatToDoWithC[i] == 'p') ? cArrs[i]->permute(modifC[i]) : cArrs[i]->reshape(c->ordering(), modifC[i]);  // since we ignore first element in cArrs (that is cArrs[0]) then it is always equal to c
         }
+        
+        nd4j::NDArrayFactory<T>::mmulHelper(aPR, bPR, cArrs[cArrs.size()-1], 1.0, 0.0);
 
-        // work with b input array 
-        if(!modifB.empty()) {
-            
-            if(!modifB[0].empty())                                  // if permutation of b is required
-                bPR = b->permute(modifB[0]);            
-
-            if(!modifB[1].empty()) {                                // if reshaping of b is required
-                if(bPR == b)
-                    bPR = b->reshape(b->ordering(), modifB[1]);
-                else 
-                    bPR->reshapei(bPR->ordering(), modifB[1]);
-            }        
+        // check whether new buffer allocation was happened for c array        
+        if(!whatToDoWithC.empty()) {
+            for(int i = cArrs.size()-1; i > 0; --i) {
+                if(cArrs[i]->getBuffer() != cArrs[i-1]->getBuffer())
+                    cArrs[i-1]->assign(cArrs[i]);
+                delete cArrs[i];
+            }
         }
         
-        // work with c output array 
-        if(!modifC.empty()) {
-            
-            if(!modifC[0].empty())                                 // if permutation of c is required
-                cP = c->permute(modifC[0]);            
-        
-            if(!modifC[1].empty())                                 // if reshaping of c is required
-                cPR = cP->reshape(cP->ordering(), modifC[1]);
-        }    
-                
-        nd4j::NDArrayFactory<T>::mmulHelper(aPR, bPR, cPR, 1.0, 0.0);
-
-        if(cPR->getBuffer() != cP->getBuffer())             // this means both permute and reshape have been performed on c, cP always points on c->getBuffer()
-            cP->assign(cPR);                        
-        
-        if(cPR != c)
-            delete cPR;
         if(aPR != a)
             delete aPR;
         if(bPR != b)
             delete bPR;
-        if(cP != c)
-            delete cP;
+
     }
 
+//////////////////////////////////////////////////////////////////////////
+    template<typename T>
+    NDArray<T>* nd4j::NDArrayFactory<T>::tensorDot(const nd4j::NDArray<T>* a, const nd4j::NDArray<T>* b, const std::vector<std::vector<int>>& modifA, const std::vector<std::vector<int>>& modifB) {
+
+        NDArray<T> *aPR(const_cast<NDArray<T>*>(a)), *bPR(const_cast<NDArray<T>*>(b));
+        std::string whatToDoWithA, whatToDoWithB;         // "" - nothing; "p" - permutation only; "r" - reshaping only; "pr" - permutation+reshaping; "rp" - reshaping/permutation; another string - throw exception
+
+        for(const auto& arr : modifA) 
+            whatToDoWithA = (std::find(arr.begin(), arr.end(), 0) != arr.end()) ? whatToDoWithA + "p" : whatToDoWithA + "r";        // when 0 is present in arr then it is permutation array, otherwise - it is reshaping array            
+
+        for(const auto& arr : modifB) 
+            whatToDoWithB = (std::find(arr.begin(), arr.end(), 0) != arr.end()) ? whatToDoWithB + "p" : whatToDoWithB + "r";    
+
+        // first step for a array
+        if(!whatToDoWithA.empty())
+            aPR = (whatToDoWithA[0] == 'p') ? a->permute(modifA[0]) : a->reshape(a->ordering(), modifA[0]);
+        // first step for b array
+        if(!whatToDoWithB.empty())
+            bPR = (whatToDoWithB[0] == 'p') ? b->permute(modifB[0]) : b->reshape(b->ordering(), modifB[0]);
+
+        // rest steps for a array
+        for(int i = 1; i < whatToDoWithA.size(); ++i)
+            if(whatToDoWithA[i] == 'p') aPR->permutei(modifA[i]); else aPR->reshapei(modifA[i]);
+        // rest steps for b array
+        for(int i = 1; i < whatToDoWithB.size(); ++i)
+            if(whatToDoWithB[i] == 'p') bPR->permutei(modifB[i]); else bPR->reshapei(modifB[i]);
+                
+        NDArray<T>* result = nd4j::NDArrayFactory<T>::mmulHelper(aPR, bPR, nullptr, 1.0, 0.0);
+        
+        if(aPR != a)
+            delete aPR;
+        if(bPR != b)
+            delete bPR;
+
+        return result;
+    }
 #endif
 
-    //////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
     template<typename T>
-    nd4j::NDArray<T>* NDArrayFactory<T>::mmulHelper(nd4j::NDArray<T>* A, nd4j::NDArray<T>* B, nd4j::NDArray<T>* C , T alpha, T beta) {
-        nd4j::NDArray<T>* result = C;
+    nd4j::NDArray<T>* NDArrayFactory<T>::mmulHelperNxN(nd4j::NDArray<T>* A, nd4j::NDArray<T>* B, nd4j::NDArray<T>* C , 
+        T alpha, T beta) {
 
-        if (A->rankOf() > 2 || B->rankOf() > 2) {
+           nd4j::NDArray<T>* result = C;
+
             // matmul
             if (A->rankOf() != B->rankOf()) {
                 // FIXME (r119): this is temporary fix for @shyrma, proper impl required here
@@ -320,10 +355,11 @@ namespace nd4j {
 
                     nd4j_debug("NumTads: %i\n", aL->size());
                     for (int e = 0; e < aL->size(); e++) {
-                        auto c_ = mmulHelper(aL->at(e), B);
-
-                        cL->at(e)->assign(c_);
-                        delete c_;
+                        auto c_ = mmulHelper(aL->at(e), B, cL->at(e));
+                        if (c_ != cL->at(e)) {
+                            cL->at(e)->assign(c_);
+                            delete c_;
+                        }
                     }
 
                     delete aL;
@@ -334,10 +370,12 @@ namespace nd4j {
 
                     nd4j_debug("NumTads: %i\n", bL->size());
                     for (int e = 0; e < bL->size(); e++) {
-                        auto c_ = mmulHelper(A, bL->at(e));
+                        auto c_ = mmulHelper(A, bL->at(e), cL->at(e));
 
-                        cL->at(e)->assign(c_);
-                        delete c_;
+                        if (cL->at(e) != c_) {
+                            cL->at(e)->assign(c_);
+                            delete c_;
+                        }
                     }
 
                     delete bL;
@@ -390,19 +428,166 @@ namespace nd4j {
                     auto aLt = aL->at(e);
                     auto bLt = bL->at(e);
                     auto cLt = cL->at(e);
-
-                    auto c_ = mmulHelper(aLt, bLt);
-
-                    cLt->assign(c_);
-
-                    delete c_;
+                    
+                    auto c_ = mmulHelper(aLt, bLt, cLt);
+                    if (c_ != cLt) {
+                        cLt->assign(c_);
+                        delete c_;
+                    }
                 }
 
                 delete aL;
                 delete bL;
                 delete cL;
             }
-        } else if ((A->isMatrix() && B->isRowVector()) || (A->isMatrix() && B->isColumnVector())) {
+
+        return result;
+    }
+
+//////////////////////////////////////////////////////////////////////////////
+    // static
+    template<typename T>
+    nd4j::NDArray<T>* NDArrayFactory<T>::mmulHelperMxM(nd4j::NDArray<T>* A, nd4j::NDArray<T>* B, nd4j::NDArray<T>* C , 
+        T alpha, T beta) {
+
+        nd4j::NDArray<T>* result = C;
+
+        bool needAllocA = false;
+        bool needAllocB = false;
+
+        if (A->isView()) {
+            needAllocA = true;
+        }
+        if (B->isView()) {
+            needAllocB = true;
+        }
+
+        if (result == nullptr) {
+            nd4j_verbose("mmulHelperMxM: Creating new array: [%i x %i]\n", A->rows(), B->columns());
+            result = new NDArray<T>('f', {A->rows(), B->columns()});
+        }
+            
+        int *aShape = A->shapeOf();
+        int *bShape = B->shapeOf();
+        int *cShape = result->shapeOf();
+
+        char rOrder;
+
+        int M, N, K, lda, ldb, ldc;
+        CBLAS_TRANSPOSE transA = CblasNoTrans, 
+                        transB = CblasNoTrans;
+
+        M = cShape[0]; // c.rows
+        N = cShape[1]; // c.columns
+        K = aShape[1]; // a.columns
+
+        rOrder = 'f'; //aOrder;
+
+
+        nd4j::NDArray<T>* pA = nullptr;
+        nd4j::NDArray<T>* pB = nullptr;
+        nd4j::NDArray<T>* pC = nullptr;;
+
+        nd4j::NDArray<T>* tA;
+        nd4j::NDArray<T>* tB;
+        nd4j::NDArray<T>* tC = result; 
+        
+        if (needAllocA) {
+            tA = new nd4j::NDArray<T>(A->getBuffer(), A->getShapeInfo(), A->getWorkspace());
+            nd4j_verbose("Matrix A was recreated from view.\n", "");
+        }
+        else 
+            tA = A; 
+
+        if (needAllocB) {
+            tB = new nd4j::NDArray<T>(B->getBuffer(), B->getShapeInfo(), B->getWorkspace());
+            nd4j_verbose("Matrix B was recreated from view.\n", "");
+        }
+        else 
+            tB = B; 
+
+        char aOrder = tA->ordering();
+        char bOrder = tB->ordering();
+        char cOrder = tC->ordering();
+
+        if (cOrder != rOrder) {
+            pC = tC->dup('f');
+        } else {
+            pC = tC;
+        }
+
+// the lines in gemm.cpp for reference
+//        bool transAFlag = TransA == CblasTrans;
+//        bool transBFlag = TransB == CblasTrans;
+
+        if (tB->ews() == -1) {
+            pB = tB->dup('f');
+            transB = CblasNoTrans;
+        }
+        else 
+            pB = tB; //->dup('f');
+        if (tA->ews() == -1) {
+            pA = tA->dup('c');
+            transA = CblasNoTrans;
+        }
+        else 
+            pA = tA; //->dup('c');
+        
+        lda = pA->ordering() == 'f' ? pA->rows() : pA->columns();
+        ldb = pB->ordering() == 'f' ? pB->rows() : pB->columns();
+        ldc = pC->rows();
+
+
+        transA = (pA->ordering() == 'c'? CblasTrans:CblasNoTrans);
+        transB = (pB->ordering() == 'c' ? CblasTrans:CblasNoTrans);
+
+        // we'll use platform-specific gemm here eventually. maybe tomorrow.
+        // TODO: put proper _gemm here
+        if (BlasHelper::getInstance()->template hasGEMM<T>()) {
+            nd4j_debug("Using provided GEMM pointer\n","");
+
+            if (sizeof(T) == 4)
+                BlasHelper::getInstance()->sgemm()(CblasColMajor, transA, transB, M, N, K, (float) alpha, (float *) pA->getBuffer(), lda, (float *) pB->getBuffer(), ldb, (float) beta, (float *) pC->getBuffer(), ldc);
+            else if (sizeof(T) == 8)
+                BlasHelper::getInstance()->dgemm()(CblasColMajor, transA, transB, M, N, K, (double) alpha, (double *) pA->getBuffer(), lda, (double *) pB->getBuffer(), ldb, (double) beta, (double *) pC->getBuffer(), ldc);
+            else
+                nd4j::blas::GEMM<T>::op(rOrder, transA, transB, M, N, K, alpha, pA->getBuffer(), lda, pB->getBuffer(), ldb, beta, pC->getBuffer(), ldc);
+        } else {
+            nd4j_debug("mmulHelperMxM: Using fallback GEMM impl\n","");
+           
+            nd4j::blas::GEMM<T>::op(rOrder, transA, transB, M, N, K, alpha, pA->getBuffer(), lda, pB->getBuffer(), ldb, beta, pC->getBuffer(), ldc);
+        }
+
+        if (tC != pC) {
+            tC->assign(pC);
+        }
+
+        if (tA != pA)
+            delete pA;
+
+        if (tB != pB)
+            delete pB;
+
+        if (tC != pC)
+            delete pC;
+
+        if (tA != A)
+            delete tA;
+
+        if (tB != B)
+            delete tB;
+
+        return result;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
+    // static
+    template<typename T>
+    nd4j::NDArray<T>* NDArrayFactory<T>::mmulHelperMxV(nd4j::NDArray<T>* A, nd4j::NDArray<T>* B, nd4j::NDArray<T>* C , 
+        T alpha, T beta) {
+        
+        nd4j::NDArray<T>* result = C;
+
             // gemv
             if (A->columns() != B->rows())
                 throw "A columns != B length";
@@ -427,6 +612,21 @@ namespace nd4j {
 
                 nd4j::blas::GEMV<T>::op(A->ordering() == 'f' ? CblasTrans : 0, A->rows(), A->columns(), alpha, A->getBuffer(), B->rows(), B->getBuffer(), 1, beta, result->getBuffer(), 1);
             }
+
+        return result;
+    }
+
+    //////////////////////////////////////////////////////////////////////////
+    template<typename T>
+    nd4j::NDArray<T>* NDArrayFactory<T>::mmulHelper(nd4j::NDArray<T>* A, nd4j::NDArray<T>* B, nd4j::NDArray<T>* C , 
+        T alpha, T beta) {
+
+        nd4j::NDArray<T>* result = C;
+
+        if (A->rankOf() > 2 || B->rankOf() > 2) {
+            return mmulHelperNxN(A, B, C, alpha, beta);
+        } else if ((A->isMatrix() && B->isRowVector()) || (A->isMatrix() && B->isColumnVector())) {
+            return mmulHelperMxV(A, B, C, alpha, beta);
         } else if ((A->isRowVector() && B->isRowVector()) || (A->isColumnVector() && B->isColumnVector())) {
             // dot
             if (A->lengthOf() != B->lengthOf())
@@ -436,136 +636,17 @@ namespace nd4j {
                 result = new NDArray<T>('c', {1, 1});
 
             result->putScalar(0, nd4j::math::nd4j_dot(A->getBuffer(), B->getBuffer(), A->lengthOf()));
+            return result;
         } else { //if ((A->isMatrix() && B->isMatrix()) || (A->isVector() && B->isMatrix()) || (A->isColumnVector() && B->isRowVector())) {
             // gemm
             // int[] shape = {rows(), other.columns()};
-            
-            if (result == nullptr) {
-                nd4j_verbose("Creating new array: [%i x %i]\n", A->rows(), B->columns());
-                result = new NDArray<T>('f', {A->rows(), B->columns()});
-            }
-
-
-            char aOrder = A->ordering();
-            char bOrder = B->ordering();
-            char cOrder = result->ordering();
-
-            int *aShape = A->shapeOf();
-            int *bShape = B->shapeOf();
-            int *cShape = result->shapeOf();
-
-            char rOrder;
-
-            int M, N, K, lda, ldb, ldc;
-            char transA, transB;
-
-            nd4j::NDArray<T>* pA = nullptr;
-            nd4j::NDArray<T>* pB = nullptr;
-            nd4j::NDArray<T>* pC = nullptr;;
-
-            //_C = new NDArray<T>(C, cShapeInfo);
-
-            auto tA = new nd4j::NDArray<T>(A->getBuffer(), A->getShapeInfo(), A->getWorkspace());
-            auto tB = new nd4j::NDArray<T>(B->getBuffer(), B->getShapeInfo(), B->getWorkspace());
-            auto tC = new nd4j::NDArray<T>(result->getBuffer(), result->getShapeInfo(), result->getWorkspace());
-
-            if (cOrder != 'f') {
-                pC = tC->dup('f');
-            } else {
-                pC = tC;
-            }
-
-            if (aOrder == bOrder) {
-                //printf("Going dRoute here\n");
-
-                if (aOrder == 'c') {
-                    // we might need to transpose matrices,
-                    // todo: we need dup(c/f) helper here
-                    pA = tA->dup('f');
-                    pB = tB->dup('f');
-                } else {
-                    pA = tA;
-                    pB = tB;
-                }
-
-                rOrder = 'f';
-
-                M = cShape[0];
-                N = cShape[1];
-                K = aShape[1];
-
-                lda = aShape[0];
-                ldb = bShape[0];
-                ldc = cShape[0];
-
-                transA = 'N';
-                transB = 'N';
-            } else {
-                //printf("Going tRoute here\n");
-                if (aOrder == 'c') {
-                    // dup(F) A here
-                    pA = tA->dup('f');
-                    pB = tB;
-                } else {
-                    // dup(F) B here
-                    pA = tA;
-                    pB = tB->dup('f');
-                }
-
-                // pC = tC->dup('f');
-
-                M = cShape[0];
-                N = cShape[1];
-                K = aShape[1];
-
-                rOrder = aOrder;
-
-                lda = aShape[0];
-                ldb = bShape[0];
-                ldc = cShape[0];
-
-                transA = 'N';
-                transB = 'N';
-            }
-
-
-            // we'll use platform-specific gemm here eventually. maybe tomorrow.
-            // TODO: put proper _gemm here
-            if (BlasHelper::getInstance()->template hasGEMM<T>()) {
-                nd4j_debug("Using provided GEMM pointer\n","");
-                if (sizeof(T) == 4)
-                    BlasHelper::getInstance()->sgemm()(CblasColMajor, CblasNoTrans, CblasNoTrans, M, N, K, (float) alpha, (float *) pA->getBuffer(), lda, (float *) pB->getBuffer(), ldb, (float) beta, (float *) pC->getBuffer(), ldc);
-                else if (sizeof(T) == 8)
-                    BlasHelper::getInstance()->dgemm()(CblasColMajor, CblasNoTrans, CblasNoTrans, M, N, K, (double) alpha, (double *) pA->getBuffer(), lda, (double *) pB->getBuffer(), ldb, (double) beta, (double *) pC->getBuffer(), ldc);
-                else
-                    nd4j::blas::GEMM<T>::op(rOrder, transA, transB, M, N, K, alpha, pA->getBuffer(), lda, pB->getBuffer(), ldb, beta, pC->getBuffer(), ldc);
-            } else {
-                nd4j_debug("Using fallback GEMM impl\n","");
-
-                nd4j::blas::GEMM<T>::op(rOrder, transA, transB, M, N, K, alpha, pA->getBuffer(), lda, pB->getBuffer(), ldb, beta, pC->getBuffer(), ldc);
-            }
-
-            if (cOrder != 'f') {
-                tC->assign(pC);
-            }
-
-            if (tA != pA)
-                delete pA;
-
-            if (tB != pB)
-                delete pB;
-
-            if (tC != pC)
-                delete pC;
-
-
-            delete tA;
-            delete tB;
-            delete tC;
+            return mmulHelperMxM(A, B, C, alpha, beta);
         }
 
         return result;
     }
+    //////////////////////////////////////////////////////////////////////////////
+
 
 
     template<typename T>
@@ -707,12 +788,13 @@ NDArray<T>* NDArrayFactory<T>::simpleMMul(const NDArray<T>* a, const NDArray<T>*
                 c->template applyScalar<simdOps::Multiply<T>>(beta);            
         }        
     }
-
-    for(int row = 0; row < a->shapeOf()[0]; ++row)
-        for(int col = 0; col < b->shapeOf()[1]; ++col)
-            for(int j = 0; j < a->shapeOf()[1]; ++j)
-                for(int i = 0; i < b->shapeOf()[0]; ++i)
-                    (*dot)(row,col) += (*a)(row,j)*(*b)(i,col);
+    int M = a->shapeOf()[0];
+    int N = b->shapeOf()[1];
+    int K = a->shapeOf()[1];
+    for(int row = 0; row < M; ++row)
+        for(int col = 0; col < N; ++col)
+            for(int j = 0; j < K; ++j)
+                    (*dot)(row,col) += (*a)(row,j)*(*b)(j,col);
 
     if(alpha != (T)1.)
         dot->template applyScalar<simdOps::Multiply<T>>(alpha);

@@ -34,11 +34,11 @@ namespace nd4j {
         #endif
 
         #if NOT_EXCLUDED(OP_repeat)
-        DECLARE_CUSTOM_OP(repeat, 1, 1, true, 0, -1); 
+        DECLARE_CUSTOM_OP(repeat, 1, 1, true, 0, -1);
         #endif
 
         #if NOT_EXCLUDED(OP_invert_permutation)
-        DECLARE_CONFIGURABLE_OP(invert_permutation, 1, 1, false, 0, 0);  
+        DECLARE_CONFIGURABLE_OP(invert_permutation, 1, 1, false, 0, 0);
         #endif
 
         DECLARE_CUSTOM_OP(concat, -1, 1, false, 0, -2);
@@ -57,11 +57,11 @@ namespace nd4j {
         #endif
 
         #if NOT_EXCLUDED(OP_mergeavg)
-        DECLARE_OP(mergeavg, -1, 1, false);   
+        DECLARE_OP(mergeavg, -1, 1, false);
         #endif
 
         #if NOT_EXCLUDED(OP_scatter_update)
-        DECLARE_CONFIGURABLE_OP(scatter_update, 2, 1, true, 0, -1); 
+        DECLARE_CONFIGURABLE_OP(scatter_update, 2, 1, true, 0, -1);
         #endif
 
         #if NOT_EXCLUDED(OP_Floor)
@@ -77,7 +77,7 @@ namespace nd4j {
         #endif
 
         #if NOT_EXCLUDED(OP_gather)
-        DECLARE_CUSTOM_OP(gather, 1, 1, false, 0, 1);
+        DECLARE_CUSTOM_OP(gather, 1, 1, false, 0, -2);
         #endif
 
         #if NOT_EXCLUDED(OP_pad)
@@ -131,6 +131,13 @@ namespace nd4j {
         #if NOT_EXCLUDED(OP_clip_by_global_norm)
         DECLARE_CUSTOM_OP(clip_by_global_norm, 1, 2, true, 1, 0);
         #endif
+
+        DECLARE_CUSTOM_OP(tri, -2, 1, false, 0, 1);
+
+        DECLARE_CUSTOM_OP(triu, 1, 1, false, 0, 0);
+
+        DECLARE_CUSTOM_OP(triu_bp, 2, 1, false, 0, 0);
+
     }
 }
 

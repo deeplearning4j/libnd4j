@@ -138,7 +138,7 @@ namespace nd4j {
          * PLEASE NOTE: Concatenation will double amount of features available in input
          */
         #if NOT_EXCLUDED(OP_crelu)
-        DECLARE_CUSTOM_OP(crelu, 1, 1, false, 0, 0);        
+        DECLARE_CUSTOM_OP(crelu, 1, 1, false, 0, 0);
         DECLARE_CUSTOM_OP(crelu_bp, 2, 1, false, 0, 0);
         #endif
 
@@ -149,6 +149,11 @@ namespace nd4j {
         DECLARE_CONFIGURABLE_OP(relu6, 1, 1, true, 1, 0);
         DECLARE_CONFIGURABLE_OP(relu6_bp, 2, 1, true, 0, 0);
         #endif
+
+        /**
+         * relu_layer = relu(x*w + b)
+         */
+        DECLARE_CUSTOM_OP(relu_layer, 3, 1, false, 0, 0);
     }
 }
 

@@ -372,6 +372,13 @@ bool ShapeUtils<T>::evalBroadcastShapeInfo(const NDArray<T> &max, const NDArray<
 
 template <typename T>
 bool ShapeUtils<T>::evalBroadcastShapeInfo(int *max, int*min, const bool evalMinMax, int*& resultShapeInfo, nd4j::memory::Workspace* workspace) {
+
+    if ((shape::rank(max) == 0 && shape::isScalar(min))) {
+        // X is the driver here
+        resultShapeInfo = ShapeUtils<T>::createScalarShapeInfo(workspace);
+        return true;
+    }
+
     // check whether broadcast operation is possible for input arrays
     if(!areShapesBroadcastable(max, min))
         return false;
@@ -392,6 +399,8 @@ bool ShapeUtils<T>::evalBroadcastShapeInfo(int *max, int*min, const bool evalMin
         throw "ShapeUtils::evalBroadcastShapeInfo method: the input pointer on shapeInfo must be empty (=nullptr) !" ;
     
     ALLOCATE(resultShapeInfo, workspace, shape::shapeInfoLength(maxRank), int);
+
+    // FIXME: get rid of memcpy here
     memcpy(resultShapeInfo, maxShapeInfo, shape::shapeInfoByteLength(maxRank));
     for (int i = 0; i < minRank; ++i)
         if(maxShapeInfo[maxRank-i] < minShapeInfo[minRank-i])
@@ -541,13 +550,13 @@ int* ShapeUtils<T>::evalTileShapeInfo(const NDArray<T>& arr, const std::vector<i
     }
 
     template<typename T>
-    std::string ShapeUtils<T>::shapeAsString(NDArray<T> &array) {
+    std::string ShapeUtils<T>::shapeAsString(const NDArray<T>* array) {
         std::string result;
 
         result.append("[");
-        for (int e = 0; e < array.rankOf(); e++) {
-            result += flatbuffers::NumToString(array.sizeAt(e));
-            if (e < array.rankOf() - 1)
+        for (int e = 0; e < array->rankOf(); e++) {
+            result += flatbuffers::NumToString(array->sizeAt(e));
+            if (e < array->rankOf() - 1)
                 result.append(", ");
         }
         result.append("]");
@@ -556,13 +565,32 @@ int* ShapeUtils<T>::evalTileShapeInfo(const NDArray<T>& arr, const std::vector<i
     }
 
     template<typename T>
-    std::string ShapeUtils<T>::shapeAsString(std::vector<int>& shape) {
+    std::string ShapeUtils<T>::shapeAsString(const std::vector<int>& shape) {
         std::string result;
 
         result.append("[");
         for (int e = 0; e < shape.size(); e++) {
             result += flatbuffers::NumToString(shape.at(e));
             if (e < shape.size() - 1)
+                result.append(", ");
+        }
+        result.append("]");
+
+        return result;
+    }
+
+    template<typename T>
+    std::string ShapeUtils<T>::shapeAsString(const int* shapeInfo) {
+        
+        if(!shapeInfo)
+            throw "ShapeUtils<T>::shapeAsString method: input shapeInfo must not be nullptr !";
+        
+        std::string result;
+
+        result.append("[");
+        for (int e = 0; e < shapeInfo[0]; e++) {
+            result += flatbuffers::NumToString(shapeInfo[e+1]);
+            if (e < shapeInfo[0] - 1)
                 result.append(", ");
         }
         result.append("]");
@@ -745,8 +773,8 @@ ShapeUtils<T>::matrixProductShape(int* theFirstShape, int* theSecondShape,
         int *newShape;
         ALLOCATE(newShape, workspace, shape::shapeInfoLength(1), int);
 
-        newShape[0] = length;
-        newShape[1] = 1;
+        newShape[0] = 1;
+        newShape[1] = length;
         newShape[2] = 1;
         newShape[3] = 0;
         newShape[4] = 1;
@@ -784,7 +812,28 @@ std::vector<int> ShapeUtils<T>::evalPermutFromTo(const std::vector<int>& shapeFr
 }
 
 
+////////////////////////////////////////////////////////////////////////////////
+template<typename T>
+std::vector<int> ShapeUtils<T>::composeShapeUsingDimsAndIdx(const std::vector<int>& dimsAndIdx) {
 
+    int size = dimsAndIdx.size();
+    if(size % 2 != 0)
+        throw "ShapeUtils::composeShapeUsingDimsAndIdx static method: the size of input vector must be even !";
+
+    size /= 2;
+
+    std::vector<int> shape(size);
+    int index;
+
+    for(int i = 0; i < size; ++i) {
+        index = dimsAndIdx[i + size];
+        if(index > size-1)
+            throw "ShapeUtils::composeShapeUsingDimsAndIdx static method: input index is too large !";
+        shape[index] = dimsAndIdx[i];
+    }
+
+    return shape;
+}
 
 
 

@@ -46,6 +46,11 @@ namespace nd4j {
                 } else {
                     // TAD
                     std::vector<int> dims(*block.getIArguments());
+
+                    for (int e = 0; e < dims.size(); e++)
+                        if (dims[e] < 0)
+                            dims[e] += x->rankOf();
+
                     std::sort(dims.begin(), dims.end());
 
                     REQUIRE_TRUE(dims.size() > 0, 0, "Some dimensions required for reduction!");
@@ -69,14 +74,20 @@ namespace nd4j {
                 for (int e = 0; e < indices->lengthOf(); e++) {
                     // lol otherwise we segfault on macOS
                     int f = (int) indices->getScalar(e);
-                    axis[e] = f;
+                    axis[e] = f >= 0 ? f : f += x->rankOf();
                 }
 
                 if ((block.getIArguments()->size() == 1 && INT_ARG(0) == MAX_INT) || allAxes) {
                     auto z = OUTPUT_VARIABLE(0);
 
+                    auto b = x->getBuffer();
+                    auto s = x->shapeInfo();
+                    auto e = block.numT() > 0 ? block.getTArguments()->data() : nullptr;
+
+                    x->printIndexedBuffer("x");
+
                     // scalar
-                    T res = NativeOpExcutioner<T>::execReduceScalar(opNum, x->getBuffer(), x->getShapeInfo(), block.getTArguments()->data());
+                    T res = NativeOpExcutioner<T>::execReduceScalar(opNum, b, s, e);
                     z->putScalar(0, res);
                 } else {
                     // TAD

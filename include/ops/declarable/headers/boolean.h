@@ -71,55 +71,6 @@ namespace nd4j {
         #endif
 
         /**
-         * This op takes 2 equally shaped arrays as input, and provides binary matrix as output.
-         * Math is: _x == _y ? (T) 1.0f : (T) 0.0f;
-         * 
-         */
-        #if NOT_EXCLUDED(OP_equals)
-        DECLARE_OP(equals, 2, 1, true);
-        #endif
-
-        /**
-         * This op takes 2 equally shaped arrays as input, and provides binary matrix as output.
-         * Math is: _x != _y ? (T) 1.0f : (T) 0.0f;
-         */
-        #if NOT_EXCLUDED(OP_not_equals)
-        DECLARE_OP(not_equals, 2, 1, true);
-        #endif
-
-        /**
-         * This op takes 2 equally shaped arrays as input, and provides binary matrix as output.
-         * Math is: _x <= _y ? (T) 1.0f : (T) 0.0f;
-         */
-        #if NOT_EXCLUDED(OP_less_equal)
-        DECLARE_OP(less_equal, 2, 1, true);
-        #endif
-
-        /**
-         * This op takes 2 equally shaped arrays as input, and provides binary matrix as output.
-         * Math is: _x >= _y ? (T) 1.0f : (T) 0.0f;
-         */
-        #if NOT_EXCLUDED(OP_greater_equal)
-        DECLARE_OP(greater_equal, 2, 1, true);
-        #endif
-
-        /**
-         * This op takes 2 equally shaped arrays as input, and provides binary matrix as output.
-         * Math is: _x < _y ? (T) 1.0f : (T) 0.0f;
-         */
-        #if NOT_EXCLUDED(OP_less)
-        DECLARE_OP(less, 2, 1, true);
-        #endif
-
-        /**
-         * This op takes 2 equally shaped arrays as input, and provides binary matrix as output.
-         * Math is: _x > _y ? (T) 1.0f : (T) 0.0f;
-         */
-        #if NOT_EXCLUDED(OP_greater)
-        DECLARE_OP(greater, 2, 1, true);
-        #endif
-
-        /**
          * This op takes 2 n-dimensional arrays as input, and return 
          * array of the same shape, with elements, either from x or y, depending on the condition.
          */

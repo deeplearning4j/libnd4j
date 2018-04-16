@@ -6,6 +6,7 @@
 #define LIBND4J_HEADERS_BROADCASTABLE_H
 
 #include <ops/declarable/headers/common.h>
+#include <ops/declarable/generic/helpers/BroadcastHelper.h>
 
 namespace nd4j {
     namespace ops {
@@ -94,7 +95,7 @@ namespace nd4j {
         DECLARE_CUSTOM_OP(reversemod, 2, 1, true, 0, 0);
         DECLARE_CUSTOM_OP(reversemod_bp, 3, 2, true, 0, 0);
         #endif
-        
+
 
         /**
          * This is one of auto-broadcastable operations. It accepts 2 operands, and operation is applied based on their shapes:
@@ -199,6 +200,14 @@ namespace nd4j {
         DECLARE_CUSTOM_OP(realdiv_bp, 3, 2, false, 0, 0);
         #endif
 
+
+        /**
+         *
+         *
+         * @tparam T
+         */
+        DECLARE_CUSTOM_OP(truncatediv, 2, 1, true, 0, 0);
+
         /**
          * This is one of auto-broadcastable operations. It accepts 2 operands, and operation is applied based on their shapes:
          * 1) if shapes are equal that's pairwise operation, result will have the same shape.
@@ -216,6 +225,56 @@ namespace nd4j {
         #if NOT_EXCLUDED(OP_meshgrid)
         DECLARE_CUSTOM_OP(meshgrid, -1, -1, false, 0, 0);
         #endif
+
+         /**
+         * This op takes 2 equally shaped arrays as input, and provides binary matrix as output.
+         * Math is: _x == _y ? (T) 1.0f : (T) 0.0f;
+         *
+         */
+        #if NOT_EXCLUDED(OP_equals)
+        DECLARE_OP(equals, 2, 1, true);
+        #endif
+
+        /**
+         * This op takes 2 equally shaped arrays as input, and provides binary matrix as output.
+         * Math is: _x != _y ? (T) 1.0f : (T) 0.0f;
+         */
+        #if NOT_EXCLUDED(OP_not_equals)
+        DECLARE_OP(not_equals, 2, 1, true);
+        #endif
+
+        /**
+         * This op takes 2 equally shaped arrays as input, and provides binary matrix as output.
+         * Math is: _x <= _y ? (T) 1.0f : (T) 0.0f;
+         */
+        #if NOT_EXCLUDED(OP_less_equal)
+        DECLARE_OP(less_equal, 2, 1, true);
+        #endif
+
+        /**
+         * This op takes 2 equally shaped arrays as input, and provides binary matrix as output.
+         * Math is: _x >= _y ? (T) 1.0f : (T) 0.0f;
+         */
+        #if NOT_EXCLUDED(OP_greater_equal)
+        DECLARE_OP(greater_equal, 2, 1, true);
+        #endif
+
+        /**
+         * This op takes 2 equally shaped arrays as input, and provides binary matrix as output.
+         * Math is: _x < _y ? (T) 1.0f : (T) 0.0f;
+         */
+        #if NOT_EXCLUDED(OP_less)
+        DECLARE_OP(less, 2, 1, true);
+        #endif
+
+        /**
+         * This op takes 2 equally shaped arrays as input, and provides binary matrix as output.
+         * Math is: _x > _y ? (T) 1.0f : (T) 0.0f;
+         */
+        #if NOT_EXCLUDED(OP_greater)
+        DECLARE_OP(greater, 2, 1, true);
+        #endif
+
     }
 }
 

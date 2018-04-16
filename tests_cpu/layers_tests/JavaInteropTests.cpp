@@ -31,7 +31,6 @@ TEST_F(JavaInteropTests, TestShapeExposure1) {
     std::vector<float> tArgs({});
     std::vector<int> iArgs({2, 2, 1, 1, 0, 0, 1, 1, 1});
 
-
     Nd4jPointer ptrs[] = {(Nd4jPointer) input.getShapeInfo(), (Nd4jPointer) weights.getShapeInfo()};
 
     auto shapeList = nativeOps.calculateOutputShapesFloat(nullptr, op.getOpHash(), ptrs, 2, tArgs.data(), tArgs.size(), iArgs.data(), iArgs.size());
@@ -641,4 +640,32 @@ TEST_F(JavaInteropTests, Test_Inplace_Outputs_3) {
     ASSERT_TRUE(e.isSameShape(output));
     ASSERT_TRUE(e.equalsTo(output));
     ASSERT_FALSE(e.ordering() == output.ordering());
+}
+
+TEST_F(JavaInteropTests, Test_Reduce3_EdgeCase) {
+    NDArray<double> x('c', {3, 4, 5});
+    NDArray<double> y('c', {3, 4, 5});
+    NDArray<double> z('c', {5});
+
+    std::vector<int> dims = {0, 1};
+
+    NativeOps nativeOps;
+    nativeOps.execReduce3Double(nullptr, 2, x.buffer(), x.shapeInfo(), nullptr, y.buffer(), y.shapeInfo(), z.buffer(), z.shapeInfo(), dims.data(), (int) dims.size());
+}
+
+TEST_F(JavaInteropTests, Test_SimpleIf_Output) {
+    Environment::getInstance()->setDebug(true);
+    Environment::getInstance()->setVerbose(true);
+
+    NativeOps ops;
+
+    auto pl = nd4j::graph::readFlatBuffers("./resources/simpleif_0_java.fb");
+    auto ptr = ops.executeFlatGraphFloat(nullptr, pl);
+
+    Environment::getInstance()->setDebug(false);
+    Environment::getInstance()->setVerbose(false);
+
+    char *re = reinterpret_cast<char *>(ptr);
+    delete[] pl;
+    delete[] re;
 }
