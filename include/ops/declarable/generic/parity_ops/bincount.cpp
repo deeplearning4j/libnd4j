@@ -7,6 +7,7 @@
 
 //#include <ops/declarable/headers/parity_ops.h>
 #include <ops/declarable/CustomOperations.h>
+#include <ops/declarable/helpers/weights.h>
 
 namespace nd4j {
     namespace ops {
@@ -14,7 +15,7 @@ namespace nd4j {
 
             NDArray<T>* values = INPUT_VARIABLE(0);
             
-            NDArray<T>* weights;
+            NDArray<T>* weights = nullptr;
             if (block.width() > 1) {
                 weights = INPUT_VARIABLE(1);
                 REQUIRE_TRUE(values->isSameShape(weights), 0, "bincount: the input and weights shapes should be equals");
@@ -32,17 +33,9 @@ namespace nd4j {
 
             NDArray<T>* result = OUTPUT_VARIABLE(0);
             result->assign((T)0.0);
+             
+            helpers::adjustWeights(values, weights, result, minLength, maxLength);
 
-            for (int e = 0; e < values->lengthOf(); e++) {
-                int val = (*values)(e);
-                if (val < maxLength) {
-                    if (block.width() > 1)
-                        (*result)(val) += (*weights)(e);
-                    else
-                        (*result)(val)++;
-
-                }
-            }
             return ND4J_STATUS_OK;
         }
 

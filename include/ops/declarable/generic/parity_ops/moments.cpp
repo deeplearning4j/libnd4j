@@ -6,6 +6,7 @@
 #if NOT_EXCLUDED(OP_moments)
 
 #include <ops/declarable/CustomOperations.h>
+#include <ops/declarable/helpers/axis.h>
 
 namespace nd4j {
     namespace ops {
@@ -19,14 +20,15 @@ namespace nd4j {
             // axis might be dynamic (i.e. tf mode)
             if (block.width() > 1 && axis.size() == 0) {
                 auto axisVector = INPUT_VARIABLE(1);
-
-                for (int e = 0; e < axisVector->lengthOf(); e++) {
-                    int ca = (int) axisVector->getScalar(e);
-                    if (ca < 0)
-                        ca += input->rankOf();
-
-                    axis.emplace_back(ca);
-                }
+                axis.resize(axisVector->lengthOf());
+                helpers::adjustAxis(input, axisVector, axis);
+//                for (int e = 0; e < axisVector->lengthOf(); e++) {
+//                    int ca = (int) axisVector->getScalar(e);
+//                    if (ca < 0)
+//                        ca += input->rankOf();
+//
+//                    axis.emplace_back(ca);
+//                }
 
             }
 

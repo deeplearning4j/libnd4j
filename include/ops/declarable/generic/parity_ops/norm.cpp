@@ -6,6 +6,7 @@
 #if NOT_EXCLUDED(OP_norm)
 
 #include <ops/declarable/CustomOperations.h>
+#include <ops/declarable/helpers/axis.h>
 
 namespace nd4j {
     namespace ops {
@@ -20,15 +21,16 @@ namespace nd4j {
             if (block.width() == 1) {
                 output = OUTPUT_VARIABLE(0);
             } else {
-                auto vector = INPUT_VARIABLE(1);
-
-                for (int e = 0; e < vector->lengthOf(); e++) {
-                    int ca = (int) vector->getScalar(e);
-                    if (ca < 0)
-                        ca += input->rankOf();
-
-                    dims.emplace_back(ca);
-                }
+                auto axisVector = INPUT_VARIABLE(1);
+                dims.resize(axisVector->lengthOf());
+                helpers::adjustAxis(input, axisVector, dims);
+//                for (int e = 0; e < vector->lengthOf(); e++) {
+//                    int ca = (int) vector->getScalar(e);
+//                    if (ca < 0)
+//                        ca += input->rankOf();
+//
+//                    dims.emplace_back(ca);
+//                }
 
                 int* shape = ShapeUtils<T>::evalReduceShapeInfo(input->ordering(), dims, *input, false, true);
                 output = new NDArray<T>(shape, false, block.getWorkspace());
