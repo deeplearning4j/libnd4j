@@ -244,10 +244,9 @@ int* ShapeUtils<T>::evalReduceShapeInfo(const char order, std::vector<int>& dime
     // copy arr _shapeInfo into new array       
     memcpy(shapeInfoNew, arr.getShapeInfo(), shapeInfoLength*sizeof(int));  
     // perform buffer permutation   
-    shape::doPermuteShapeBuffer(rank, shapeInfoNew, const_cast<int*>(dimensions));      
+    shape::doPermuteShapeInfo(shapeInfoNew, dimensions);      
 
     return shapeInfoNew;
-
 }
 
 //////////////////////////////////////////////////////////////////////////
