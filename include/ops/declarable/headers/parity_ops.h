@@ -554,9 +554,25 @@ namespace nd4j {
          */
         DECLARE_CUSTOM_OP(l2_loss, 1, 1, false, 0, 0);
 
+        /**
+        * Stacks a list of rank-R tensors into one rank-(R+1) tensor.
+        * input params:
+        *       - Tensors of same shape
+        * output value:
+        *       - A stacked tensor with rank 1 more than inputs
+        */
         DECLARE_CUSTOM_OP(parallel_stack, -1, 1, false, 0, 0);
 
-	/**
+        /**
+        * Stacks a list of rank-R tensors with first dimension 1 into one rank-R tensor.
+        * input params:
+        *       - Tensors of same shape with first dimension 1.
+        * output value:
+        *       - A stacked tensor with same rank as inputs.
+        */
+        DECLARE_CUSTOM_OP(parallel_concat, -1, 1, false, 0, 0);
+
+	    /**
          * This op calculates logarithmic loss of poison distributed input
          * Input arguments
          *  0 - target
