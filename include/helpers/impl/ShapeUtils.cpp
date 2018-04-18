@@ -109,7 +109,7 @@ int* ShapeUtils<T>::evalReduceShapeInfo(const char order, std::vector<int>& dime
 }
 
 //////////////////////////////////////////////////////////////////////////
-// evaluate resulting shape after reduce operation
+// evaluate shape resulting from reduce operation
 template<typename T>
 int* ShapeUtils<T>::evalReduceShapeInfo(const char order, std::vector<int>& dimensions, const int *shapeInfo, const bool keepDims, const bool supportOldShapes, nd4j::memory::Workspace* workspace) {
     int* newShapeInfo = nullptr;
