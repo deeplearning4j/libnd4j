@@ -19,8 +19,8 @@ CUSTOM_OP_IMPL(lstmCell, 8, 2, false, 3, 2) {
     NDArray<T>* Wx   = INPUT_VARIABLE(3);                   // input-to-hidden  weights, [inSize  x 4*numUnits] 
     NDArray<T>* Wh   = INPUT_VARIABLE(4);                   // hidden-to-hidden weights, [numProj x 4*numUnits] 
     NDArray<T>* Wc   = INPUT_VARIABLE(5);                   // diagonal weights for peephole connections [3*numUnits] 
-    NDArray<T>* WpShapeInfo   = INPUT_VARIABLE(6);                   // projection weights [numUnits x numProj] 
-    NDArray<T>* bShapeInfo    = INPUT_VARIABLE(7);                   // biases, [4*numUnits] 
+    NDArray<T>* Wp   = INPUT_VARIABLE(6);                   // projection weights [numUnits x numProj] 
+    NDArray<T>* b    = INPUT_VARIABLE(7);                   // biases, [4*numUnits] 
     
     NDArray<T>* ht   =  OUTPUT_VARIABLE(0);                 // current cell output [bS x numProj], that is at current time step t
     NDArray<T>* ct   =  OUTPUT_VARIABLE(1);                 // current cell state  [bS x numUnits], that is at current time step t
@@ -48,9 +48,9 @@ CUSTOM_OP_IMPL(lstmCell, 8, 2, false, 3, 2) {
     const std::string correctWhShape   = ShapeUtils<T>::shapeAsString({numProj, 4*numUnits});
     const std::string WcShape          = ShapeUtils<T>::shapeAsString(Wc); 
     const std::string correctWcShape   = ShapeUtils<T>::shapeAsString({3*numUnits});
-    const std::string WpShape          = ShapeUtils<T>::shapeAsString(WpShapeInfo); 
+    const std::string WpShape          = ShapeUtils<T>::shapeAsString(Wp);
     const std::string correctWpShape   = ShapeUtils<T>::shapeAsString({numUnits, numProj});
-    const std::string bShape           = ShapeUtils<T>::shapeAsString(bShapeInfo); 
+    const std::string bShape           = ShapeUtils<T>::shapeAsString(b); 
     const std::string correctBShape    = ShapeUtils<T>::shapeAsString({4*numUnits});
 
     REQUIRE_TRUE(correctHt_1Shape == ht_1Shape, 0, "LSTMCELL operation: wrong shape of initial cell output, expected is %s, but got %s instead !", correctHt_1Shape.c_str(), ht_1Shape.c_str()); 
@@ -63,7 +63,7 @@ CUSTOM_OP_IMPL(lstmCell, 8, 2, false, 3, 2) {
     REQUIRE_TRUE(!(!projection && numUnits != numProj), 0, "LSTMCELL operation: projection option is switched of, and in this case output dimensionality for the projection matrices (numProj) must be equal to number of units in lstmCell !");
     
     // calculations
-    helpers::lstmCell<T>({xt,ht_1,ct_1, Wx,Wh,Wc,WpShapeInfo, bShapeInfo},   {ht,ct},   {(T)peephole, (T)projection, clippingCellValue, clippingProjValue, forgetBias});
+    helpers::lstmCell<T>({xt,ht_1,ct_1, Wx,Wh,Wc,Wp, b},   {ht,ct},   {(T)peephole, (T)projection, clippingCellValue, clippingProjValue, forgetBias});
     
     return Status::OK();
 }

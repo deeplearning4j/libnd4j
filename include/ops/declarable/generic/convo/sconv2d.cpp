@@ -200,8 +200,8 @@ CUSTOM_OP_IMPL(sconv2d_bp, 3, 2, false, 0, 9) {
         REQUIRE_TRUE(gradWP->rankOf() == 4, 0, " SCONV2D_BP OP: rank of weightsPoint gradients array must be equal to 4, but got %i instead !", gradWP->rankOf());
     }
     if(bias) {
-        REQUIRE_TRUE(bias->rankOf() == 1  || bias->rankOf()  == 2, 0, " SCONV2D_BP OP: rank of biases array must be equal to 1 or 2, but got %i instead !", bias->rankOf());;           
-        REQUIRE_TRUE(gradB->rankOf() == 1 || gradB->rankOf() == 2, 0, " SCONV2D_BP OP: rank of biases gradients array must be equal to 1 or 2, but got %i instead !", gradB->rankOf());;           
+        REQUIRE_TRUE(bias->rankOf() == 1  || bias->rankOf()  == 2, 0, " SCONV2D_BP OP: rank of biases array must be equal to 1 or 2, but got %i instead !", bias->rankOf());
+        REQUIRE_TRUE(gradB->rankOf() == 1 || gradB->rankOf() == 2, 0, " SCONV2D_BP OP: rank of biases gradients array must be equal to 1 or 2, but got %i instead !", gradB->rankOf());
     }
 
     int kH = INT_ARG(0);                                                        // filter(kernel) height
@@ -229,7 +229,7 @@ CUSTOM_OP_IMPL(sconv2d_bp, 3, 2, false, 0, 9) {
         REQUIRE_TRUE(expectedWeightsPShape == ShapeUtils<T>::shapeAsString(gradWP),       0, " SCONV2D_BP OP: wrong shape of gradWP array, expected is %s, but got %s instead !", expectedWeightsPShape.c_str(), ShapeUtils<T>::shapeAsString(gradWP).c_str());
     }
     if (bias) {
-        REQUIRE_TRUE(oC == bias->lengthOf(),  0, " SCONV2D_BP OP: length of bias array must be equal to outChannels, but got %i instead", bias->lengthOf());        
+        REQUIRE_TRUE(oC == bias->lengthOf(),  0, " SCONV2D_BP OP: length of bias array must be equal to outChannels, but got %i instead", bias->lengthOf());
         REQUIRE_TRUE(oC == gradB->lengthOf(), 0, " SCONV2D_BP OP: length of biases gradients array must be equal to outChannels, but got %i instead", gradB->lengthOf());
     }
   

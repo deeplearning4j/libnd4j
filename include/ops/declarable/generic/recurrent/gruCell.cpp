@@ -13,9 +13,9 @@ namespace ops  {
 CUSTOM_OP_IMPL(gruCell, 5, 1, false, 0, 0) {
 
     NDArray<T>* x  = INPUT_VARIABLE(0);                     // input [bS x inSize]
-    NDArray<T>* h0ShapeInfo = INPUT_VARIABLE(1);                     // previous cell output [bS x numUnits],  that is at previous time step t-1
+    NDArray<T>* h0 = INPUT_VARIABLE(1);                     // previous cell output [bS x numUnits],  that is at previous time step t-1
 
-    NDArray<T>* WxShapeInfo   = INPUT_VARIABLE(2);                   // input-to-hidden weights, [inSize   x 3*numUnits] 
+    NDArray<T>* Wx   = INPUT_VARIABLE(2);                   // input-to-hidden weights, [inSize   x 3*numUnits] 
     NDArray<T>* Wh   = INPUT_VARIABLE(3);                   // hidden-to-hidden weights, [numUnits x 3*numUnits]     
     NDArray<T>* b    = INPUT_VARIABLE(4);                   // biases, [3*numUnits] 
     
@@ -24,11 +24,11 @@ CUSTOM_OP_IMPL(gruCell, 5, 1, false, 0, 0) {
     const int rank     = x->rankOf();              // = 2    
     const int bS       = x->sizeAt(0);
     const int inSize   = x->sizeAt(1);
-    const int numUnits = h0ShapeInfo->sizeAt(1);    
+    const int numUnits = h0->sizeAt(1);    
 
-    const std::string h0Shape        = ShapeUtils<T>::shapeAsString(h0ShapeInfo); 
+    const std::string h0Shape        = ShapeUtils<T>::shapeAsString(h0); 
     const std::string h0CorrectShape = ShapeUtils<T>::shapeAsString({bS, numUnits});
-    const std::string wxShape        = ShapeUtils<T>::shapeAsString(WxShapeInfo); 
+    const std::string wxShape        = ShapeUtils<T>::shapeAsString(Wx); 
     const std::string wxCorrectShape = ShapeUtils<T>::shapeAsString({inSize, 3*numUnits}); 
     const std::string whShape        = ShapeUtils<T>::shapeAsString(Wh); 
     const std::string whCorrectShape = ShapeUtils<T>::shapeAsString({numUnits, 3*numUnits}); 
@@ -41,7 +41,7 @@ CUSTOM_OP_IMPL(gruCell, 5, 1, false, 0, 0) {
     REQUIRE_TRUE(bShape  == bCorrectShape,  0, "GRUCELL operation: wrong shape of biases  array, expected is %s, but got %s instead !", bCorrectShape.c_str(), bShape.c_str());     
 
     
-    helpers::gruCell({x, h0ShapeInfo, WxShapeInfo, Wh, b}, h);
+    helpers::gruCell({x, h0, Wx, Wh, b}, h);
 
     return Status::OK();
 }
