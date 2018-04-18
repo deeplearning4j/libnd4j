@@ -2672,8 +2672,10 @@ __host__ __device__
 
         // check whether rearrange contains correct indexes
         for(int i = 0; i < rank; ++i)
-            if(rearrange[i] >= rank || rearrange[i] < 0)
-                throw "shape::doPermuteShapeInfo function: rearrange indexes are incorrect !";
+            if(rearrange[i] >= rank || rearrange[i] < 0) {
+                printf("shape::doPermuteShapeInfo function failed: rearrange indexes are incorrect !\n");
+                return;
+            }
 
         // if everything is ok then perform permute 
         int* temp = new int[shape::shapeInfoLength(rank)];
