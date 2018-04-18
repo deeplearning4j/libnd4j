@@ -1764,29 +1764,6 @@ template <typename T>
         ALLOCATE(newBuffer, _workspace, this->lengthOf(), T);
 
         functions::pairwise_transforms::PairWiseTransform<T>::template exec<simdOps::Copy<T>>(newBuffer, shapeInfoNew, this->_buffer, this->_shapeInfo, newBuffer, shapeInfoNew, nullptr);
-        // int  ews   = shape::elementWiseStride(_shapeInfo);   
-//         if(ews == 1 && order == 'c')
-//             memcpy(newBuffer, _buffer, arrLength * sizeOfT());
-//         else if(ews > 1 && order == 'c')
-// // #pragma omp parallel for if(arrLength > Environment::getInstance()->elementwiseThreshold()) schedule(guided)             
-//             for (int i = 0; i < arrLength; i++)
-//                 newBuffer[i] = _buffer[i*ews];
-//         else {
-//             int idx[MAX_RANK];
-// // #pragma omp parallel for private(idx) if(arrLength > Environment::getInstance()->elementwiseThreshold()) schedule(guided)             
-//             for (int i = 0; i < arrLength; ++i) {
-//                 // printf("i = %i\n", i);
-//                 shape::ind2subC(rankOf(), shapeOf(), i, idx);            
-//                    // for (int i = 0; i < rankOf(); ++i)
-//                    //  printf("%i ", idx[i]);
-//                 // printf("\n"); 
-//                 Nd4jIndex offset = shape::getOffset(0, shapeOf(), stridesOf(), idx, rankOf());            
-//                 // printf(" offset = %i \n", (int)offset);
-//                 newBuffer[i]  = _buffer[offset];
-//                 // printf(" end \n");
-//             }
-//         }    
-
 
         if (_isBuffAlloc)
             RELEASE(_buffer, _workspace);
