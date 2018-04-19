@@ -1,5 +1,5 @@
 //
-// @author Yurii Shyrma, created on 16.04.2017
+// @author Yurii Shyrma (iuriish@yahoo.com), created on 16.04.2018
 //
 
 // function nnCell implements an Elman RNN cell: output = activation(Wx*x + bx  +  Wh*ht  + bh)

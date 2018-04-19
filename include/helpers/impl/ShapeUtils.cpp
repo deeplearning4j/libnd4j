@@ -601,25 +601,27 @@ int* ShapeUtils<T>::evalTileShapeInfo(const NDArray<T>& arr, const std::vector<i
 //////////////////////////////////////////////////////////////////////////
 // evaluate shapeInfo for diagonal array which is made using input arr elements as diagonal
 template<typename T>
-int* ShapeUtils<T>::evalDiagShapeInfo(const NDArray<T>& arr, nd4j::memory::Workspace* workspace){
+int* ShapeUtils<T>::evalDiagShapeInfo(const int* shapeInfoConst, nd4j::memory::Workspace* workspace){
 
-    const int rank = arr.rankOf();
+    int* shapeInfo = const_cast<int*>(shapeInfoConst);
+    
+    const int rank = shapeInfo[0];
 
     int* outputShapeInfo = nullptr;
 
-    if(arr.isVector() || arr.isScalar()) {
+    if(shape::isVector(shapeInfo) || shape::isScalar(shapeInfo)) {
         ALLOCATE(outputShapeInfo, workspace, shape::shapeInfoLength(rank), int);
         outputShapeInfo[0] = rank;
-        outputShapeInfo[1] = outputShapeInfo[2] = arr.lengthOf();
+        outputShapeInfo[1] = outputShapeInfo[2] = shape::length(shapeInfo);
     }
     else {
         ALLOCATE(outputShapeInfo, workspace, shape::shapeInfoLength(2*rank), int);
         outputShapeInfo[0] = 2*rank;
-        for(int i = 0; i < rank; ++i)
-            outputShapeInfo[i + 1] = outputShapeInfo[i + 1 + rank] = arr.sizeAt(i);
+        for(int i = 1; i <= rank; ++i)
+            outputShapeInfo[i] = outputShapeInfo[i + rank] = shapeInfo[i];
     }
         
-    shape::updateStrides(outputShapeInfo, arr.ordering());
+    shape::updateStrides(outputShapeInfo, shape::order(shapeInfo));
 
     return outputShapeInfo;
 }
