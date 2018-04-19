@@ -550,13 +550,13 @@ int* ShapeUtils<T>::evalTileShapeInfo(const NDArray<T>& arr, const std::vector<i
     }
 
     template<typename T>
-    std::string ShapeUtils<T>::shapeAsString(const NDArray<T> &array) {
+    std::string ShapeUtils<T>::shapeAsString(const NDArray<T>* array) {
         std::string result;
 
         result.append("[");
-        for (int e = 0; e < array.rankOf(); e++) {
-            result += flatbuffers::NumToString(array.sizeAt(e));
-            if (e < array.rankOf() - 1)
+        for (int e = 0; e < array->rankOf(); e++) {
+            result += flatbuffers::NumToString(array->sizeAt(e));
+            if (e < array->rankOf() - 1)
                 result.append(", ");
         }
         result.append("]");
@@ -572,6 +572,25 @@ int* ShapeUtils<T>::evalTileShapeInfo(const NDArray<T>& arr, const std::vector<i
         for (int e = 0; e < shape.size(); e++) {
             result += flatbuffers::NumToString(shape.at(e));
             if (e < shape.size() - 1)
+                result.append(", ");
+        }
+        result.append("]");
+
+        return result;
+    }
+
+    template<typename T>
+    std::string ShapeUtils<T>::shapeAsString(const int* shapeInfo) {
+        
+        if(!shapeInfo)
+            throw "ShapeUtils<T>::shapeAsString method: input shapeInfo must not be nullptr !";
+        
+        std::string result;
+
+        result.append("[");
+        for (int e = 0; e < shapeInfo[0]; e++) {
+            result += flatbuffers::NumToString(shapeInfo[e+1]);
+            if (e < shapeInfo[0] - 1)
                 result.append(", ");
         }
         result.append("]");

@@ -443,7 +443,7 @@ Nd4jStatus GraphExecutioner<T>::execute(Graph<T> *graph, VariableSpace<T>* varia
                 if (nd4j::Environment::getInstance()->isDebugAndVerbose()) {
                     auto array = __variableSpace->getVariable(node->id())->getNDArray();
                     auto list = __variableSpace->getVariable(node->id())->hasNDArrayList() ? __variableSpace->getVariable(node->id())->getNDArrayList() : nullptr;
-                    auto shape = ShapeUtils<T>::shapeAsString(*array);
+                    auto shape = ShapeUtils<T>::shapeAsString(array);
 
                     if (array != nullptr) {
                         auto values = array->asIndexedString(16);
@@ -499,6 +499,10 @@ Nd4jPointer GraphExecutioner<T>::executeFlatBuffer(Nd4jPointer pointer) {
     // converting FlatGraph to internal representation
     auto nativeGraph = new Graph<T>(restoredGraph);
 
+    if (Environment::getInstance()->isDebugAndVerbose()) {
+        nativeGraph->printOut();
+    }
+
     FlowPath flowPath;
     nativeGraph->getVariableSpace()->setFlowPath(&flowPath);
 
@@ -541,6 +545,12 @@ Nd4jPointer GraphExecutioner<T>::executeFlatBuffer(Nd4jPointer pointer) {
     std::vector<flatbuffers::Offset<FlatVariable>> variables_vector;
     for (int e = 0; e < (int) outputs->size(); e++) {
         auto var = outputs->at(e);
+
+        // FIXME: we want to export multi-output nodes as well
+        // FIXME: we want to export NDArrayList and skip nodes without outputs
+        if (!var->hasNDArray())
+            continue;
+
 
         NDArray<T>* array = var->getNDArray();
         auto byteVector = array->asByteVector();

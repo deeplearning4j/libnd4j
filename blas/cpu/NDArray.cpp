@@ -513,8 +513,8 @@ NDArray<T>::NDArray(const NDArray<T> *other, const bool copyStrides, nd4j::memor
 ////////////////////////////////////////////////////////////////////////
 // copy constructor
 template <typename T>
-    NDArray<T>::NDArray(const NDArray<T>& other)
-{
+NDArray<T>::NDArray(const NDArray<T>& other) {
+
     int arrLength = shape::length(other._shapeInfo);
     int shapeLength = shape::shapeInfoByteLength(other._shapeInfo);
 
@@ -534,6 +534,25 @@ template <typename T>
     _isBuffAlloc = true; 
     _isShapeAlloc = true;
     this->assign(&other);
+}
+
+////////////////////////////////////////////////////////////////////////
+// move constructor
+template <typename T>
+NDArray<T>::NDArray(NDArray<T>&& other) noexcept {
+
+    _isView       = other._isView;
+    _buffer       = other._buffer; 
+    _shapeInfo    = other._shapeInfo;
+    _workspace    = other._workspace;
+    _bufferD      = other._bufferD;
+    _shapeInfoD   = other._shapeInfoD;
+    _isShapeAlloc = other._isShapeAlloc;
+    _isBuffAlloc  = other._isBuffAlloc;
+    _dataType     = other._dataType;
+
+    other._buffer = other._bufferD = nullptr;
+    other._shapeInfo = other._shapeInfoD = nullptr;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -593,7 +612,7 @@ template<typename T>
 	if (this == &other) return *this;
 
     if (_shapeInfo != nullptr && _buffer != nullptr && shape::equalsSoft(_shapeInfo, other._shapeInfo))
-        this->assign(&other);
+        this->assign(&other);        
         // memcpy(_buffer, other._buffer, arrLength*sizeOfT());               // copy elements of other current array
     else {
         if(_isBuffAlloc && _workspace == nullptr)
@@ -615,6 +634,35 @@ template<typename T>
         _isShapeAlloc = true;
         this->assign(&other);
     }
+
+    return *this;
+}
+
+////////////////////////////////////////////////////////////////////////
+// move assignment operator
+template <typename T>
+NDArray<T>& NDArray<T>::operator=(NDArray<T>&& other) noexcept {
+
+    if (this == &other) 
+        return *this;
+
+    if(_isBuffAlloc && _workspace == nullptr)
+        delete []_buffer;
+    if(_isShapeAlloc && _workspace == nullptr)
+        delete []_shapeInfo;
+
+    _isView       = other._isView;
+    _buffer       = other._buffer; 
+    _shapeInfo    = other._shapeInfo;
+    _workspace    = other._workspace;
+    _bufferD      = other._bufferD;
+    _shapeInfoD   = other._shapeInfoD;
+    _isShapeAlloc = other._isShapeAlloc;
+    _isBuffAlloc  = other._isBuffAlloc;
+    _dataType     = other._dataType;
+
+    other._buffer = other._bufferD = nullptr;
+    other._shapeInfo = other._shapeInfoD = nullptr;
 
     return *this;
 }
@@ -786,8 +834,8 @@ void NDArray<T>::replacePointers(T *buffer, int *shapeInfo, const bool releaseEx
         }
 
         if (other->lengthOf() != lengthOf()) {
-            auto shapeThis = ShapeUtils<T>::shapeAsString(*this);
-            auto shapeThat = ShapeUtils<T>::shapeAsString(*const_cast<NDArray<T>*>(other));
+            auto shapeThis = ShapeUtils<T>::shapeAsString(this);
+            auto shapeThat = ShapeUtils<T>::shapeAsString(other);
             nd4j_printf("Can't assign new value to the array: this shape %s; other shape: %s\n", shapeThis.c_str(), shapeThat.c_str());
             throw "Lengths of arrays are mismatched";
         }
@@ -815,8 +863,8 @@ void NDArray<T>::replacePointers(T *buffer, int *shapeInfo, const bool releaseEx
         if (this == &other) 
             return;
         if (other.lengthOf() != lengthOf()) {
-            auto shapeThis = ShapeUtils<T>::shapeAsString(*this);
-            auto shapeThat = ShapeUtils<T>::shapeAsString(const_cast<NDArray<T>&>(other));
+            auto shapeThis = ShapeUtils<T>::shapeAsString(this);
+            auto shapeThat = ShapeUtils<T>::shapeAsString(&other);
             nd4j_printf("Can't assign new value to the array: this shape %s; other shape: %s\n", shapeThis.c_str(), shapeThat.c_str());
             throw "Lengths of arrays are mismatched";
         }
@@ -1598,7 +1646,7 @@ bool NDArray<T>::reshapei(const std::vector<int>& shape) {
             prod *= dimensions[e];
 
         if (prod != this->lengthOf()) {
-            std::string current = ShapeUtils<T>::shapeAsString(*this);
+            std::string current = ShapeUtils<T>::shapeAsString(this);
             std::string enforced = ShapeUtils<T>::shapeAsString(dimensions);
             nd4j_printf("Can't enforce new shape, lengths mismatch. Original shape: %s; Requested shape: %s\n", current.c_str(), enforced.c_str());
             throw "Incompatible shape";
@@ -2596,7 +2644,7 @@ bool NDArray<T>::isUnitary() {
         
             functions::reduce3::Reduce3<T>::template exec<OpName>(_buffer, _shapeInfo, const_cast<T*>(extraParams),
                                                                  other->_buffer, other->_shapeInfo, result->_buffer,result->_shapeInfo,
-                                                                 copy.data(), copy.size(), tadX.tadOnlyShapeInfo, tadX.tadOffsets, tadY.tadOnlyShapeInfo, tadY.tadOffsets);
+                                                                 copy.data(), copy.size(), tadX.tadOnlyShapeInfo, tadX.tadOffsets);
         }
         
         delete []extraParamsVals;
@@ -2657,10 +2705,10 @@ bool NDArray<T>::isUnitary() {
     ////////////////////////////////////////////////////////////////////////
     // operator returns sub-array with buffer pointing at this->_buffer + certain offset
     template<typename T>
-    NDArray<T> NDArray<T>::operator()(const Intervals& idx)  const {
+    NDArray<T> NDArray<T>::operator()(const Intervals& idx, bool keepUnitiesInShape)  const {
 
         if (idx.size() != this->rankOf())
-            throw "NDArray::operator(Intervals): number of indices should match with rank of array!";
+            throw "NDArray::operator(Intervals): number of indices should match the rank of array!";
 
         int *newShape;
         ALLOCATE(newShape, _workspace, shape::shapeInfoLength(this->rankOf()), int);
@@ -2685,12 +2733,25 @@ bool NDArray<T>::isUnitary() {
                 offset += first * stridesOf[d];
             }
         }
+
         NDArray<T> result(this->_buffer + offset, newShape, this->_workspace);
         result._isShapeAlloc = true;
 
+        if(!keepUnitiesInShape) {
+            // check whether units are present in newShape, if yes then remove them by applying corresponding reshape
+            // for example if result has shape {1,a,1,b} then after reshaping it acquire new shape {a,b}
+            std::vector<int> nonUnitDims;
+            for(int i = 0; i < result.rankOf(); ++i)
+                if(newShape[i+1] != 1)
+                    nonUnitDims.push_back(newShape[i+1]);
+
+            if(nonUnitDims.size() != result.rankOf())
+                result.reshapei(nonUnitDims);
+        }
+
         return result;
     }
-    
+        
 ////////////////////////////////////////////////////////////////////////
 // addition operator array + array
 template<typename T>
@@ -3053,48 +3114,43 @@ NDArray<T> NDArray<T>::operator+(const NDArray<T>& other) const {
         return result;
     }
 
-    ////////////////////////////////////////////////////////////////////////
-    template<typename T>
-    void NDArray<T>::setZeros(const char* block) {
+////////////////////////////////////////////////////////////////////////
+template<typename T>
+void NDArray<T>::setValueIn2DMatrix(const T& value, const int diag, const char direction) {
 
-        if(rankOf() != 2)
-            throw "NDArray::setZeros method: input array must have rank = 2 !";
+    if(rankOf() != 2)
+       throw std::string("NDArray::setValueIn2DMatrix method: array must have rank = 2, but got " + toStringValue(rankOf()) + " instead !");
 
-        const int rows = sizeAt(0);
-        const int cols = sizeAt(1);
+    const int rows = sizeAt(0);
+    const int cols = sizeAt(1);
         
-        if(!strcmp(block, "trianUp")) {
+    switch(direction) {
             
-            for(int i = 0; i < rows; ++i)
-                for(int j = i+1; j < cols; ++j)                                      
-                    (*this)(i, j) = 0.;
-        }
-        else if(!strcmp(block, "trianUpD")) {
+        case 'u':                           // fill upper triangular block
+#pragma omp parallel for if(rows > Environment::getInstance()->elementwiseThreshold()) schedule(guided)             
+            for(int i = 0; i < rows; ++i) 
+                for(int j = 0; j < cols; ++j)                                      
+                    if (i + diag <= j)
+                        (*this)(i, j) = value;    
+                break;
 
-            for(int i = 0; i < rows; ++i)
-                for(int j = i; j < cols; ++j)                                      
-                    (*this)(i, j) = 0.;
-        }
-        else if(!strcmp(block, "trianLow")) {
+        case 'l':                           // fill lower triangular block
+#pragma omp parallel for if(rows > Environment::getInstance()->elementwiseThreshold()) schedule(guided)                         
+            for(int i = 0; i < rows; ++i) 
+                for(int j = 0; j < cols; ++j)                                      
+                    if (i + diag >= j)
+                        (*this)(i, j) = value;    
+            break;
 
-            for(int i = 0; i < rows; ++i)
-                for(int j = 0; j < i; ++j)                                      
-                    (*this)(i, j) = 0.;
-        }
-        else if(!strcmp(block, "trianLowD")) {
-
-            for(int i = 0; i < rows; ++i)
-                for(int j = 0; j <= i; ++j)                                      
-                    (*this)(i, j) = 0.;
-        }
-        else 
-            throw "NDArray::setZeros method: wrong argument !";            
-    }
+        default:
+            throw std::string("NDArray::setValueIn2DMatrix method: wrong value of direction argument, expected is 'u' or 'l', but got " + std::string(1,direction) + " instead !");
+    }  
+}
 
     ////////////////////////////////////////////////////////////////////////
     // default destructor
     template<typename T>
-    NDArray<T>::~NDArray() {
+    NDArray<T>::~NDArray() noexcept {
         if (_isBuffAlloc && _workspace == nullptr && _buffer != nullptr)
             delete[] _buffer;
 
