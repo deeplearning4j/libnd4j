@@ -7,7 +7,7 @@
 #include <op_boilerplate.h>
 
 #include <loops/legacy_ops.h>
-#include <DebugHelper.h>
+#include <helpers/DebugHelper.h>
 
 
 
@@ -124,24 +124,21 @@ namespace functions {
         _CUDA_H void Transform<float>::executeTransformStrided(dim3 launchDims, cudaStream_t *stream, int opNum, Nd4jIndex n, float *x, int xStride, float *extraParams, float *z, int zStride, int *allocationPointer, float *reductionPointer) {
             DISPATCH_SIMPLE(transformStrided, float, PARAMS(n, x, xStride, extraParams, z, zStride, allocationPointer, reductionPointer), OPS_A(TRANSFORM_OPS))
 
-	        if (nd4j::Environment::getInstance()->isDebug())
-		        checkCudaErrors(cudaStreamSynchronize(*stream));
+            DEBUG_KERNEL(stream, opNum);
         };
 
         template <>
         _CUDA_H void Transform<double>::executeTransformStrided(dim3 launchDims, cudaStream_t *stream, int opNum, Nd4jIndex n, double *x, int xStride, double *extraParams, double *z, int zStride, int *allocationPointer, double *reductionPointer) {
             DISPATCH_SIMPLE(transformStrided, double, PARAMS(n, x, xStride, extraParams, z, zStride, allocationPointer, reductionPointer), OPS_A(TRANSFORM_OPS))
 
-	        if (nd4j::Environment::getInstance()->isDebug())
-		        checkCudaErrors(cudaStreamSynchronize(*stream));
+            DEBUG_KERNEL(stream, opNum);
         };
 
         template <>
         _CUDA_H void Transform<float16>::executeTransformStrided(dim3 launchDims, cudaStream_t *stream, int opNum, Nd4jIndex n, float16 *x, int xStride, float16 *extraParams, float16 *z, int zStride, int *allocationPointer, float16 *reductionPointer) {
             DISPATCH_SIMPLE(transformStrided, float16, PARAMS(n, x, xStride, extraParams, z, zStride, allocationPointer, reductionPointer), OPS_A(TRANSFORM_OPS))
 
-	        if (nd4j::Environment::getInstance()->isDebug())
-		        checkCudaErrors(cudaStreamSynchronize(*stream));
+            DEBUG_KERNEL(stream, opNum);
         };
 
         template <>
@@ -150,17 +147,7 @@ namespace functions {
             DISPATCH_SIMPLE(transformShaped, float, PARAMS(x, xShape, xRank, extraParams, z, zShape, zRank, allocationPointer, reductionPointer, tadShapeInfo, tadOffsets), OPS_A(TRANSFORM_OPS))
 
 
-            nd4j::DebugHelper::checkErrorCode(stream, opNum);
-/*
-            if (nd4j::Environment::getInstance()->isDebug()) {
-            	cudaError_t res = cudaStreamSynchronize(*stream);
-				checkCudaErrors(res);
-
-				if (res != 0) {
-					PRINT_FIRST("Failed kernel: [%i]\n", opNum);
-				}
-			}
-*/
+            DEBUG_KERNEL(stream, opNum);
         }
 
         template <>
@@ -176,9 +163,8 @@ namespace functions {
         _CUDA_H void Transform<double>::executeTransformShaped(dim3 launchDims, cudaStream_t *stream, int opNum, double *x, int *xShape, int xRank, double *extraParams, double *z, int *zShape, int zRank, int *allocationPointer, double *reductionPointer,  int *tadShapeInfo, Nd4jIndex *tadOffsets) {
             
             DISPATCH_SIMPLE(transformShaped, double, PARAMS(x, xShape, xRank, extraParams, z, zShape, zRank, allocationPointer, reductionPointer, tadShapeInfo, tadOffsets), OPS_A(TRANSFORM_OPS))
-            
-            if (nd4j::Environment::getInstance()->isDebug())
-		        checkCudaErrors(cudaStreamSynchronize(*stream));
+
+            DEBUG_KERNEL(stream, opNum);
         }
 
         template <typename T>

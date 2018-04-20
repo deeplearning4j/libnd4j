@@ -7,6 +7,7 @@
 
 #include <pointercast.h>
 #include <op_boilerplate.h>
+#include <string>
 #include <sstream>
 
 namespace nd4j {
