@@ -3,7 +3,8 @@
 //
 
 #include <ops/declarable/CustomOperations.h>
-//#include <ops/declarable/helpers/lup.h>
+#include <ops/declarable/helpers/extract_patches.h>
+
 namespace nd4j {
     namespace ops {
         CUSTOM_OP_IMPL(extract_image_patches, 1, 1, false, 0, 7) {
@@ -21,9 +22,8 @@ namespace nd4j {
             //
             if (output->isSameShape(input))
                 output->assign(input);
-            else
-            for (int e = 0; e < output->lengthOf(); e++) {
-                (*output)(e) = (*input)(e);
+            else {
+                helpers::extractPatches(input, output, ksizeRows, ksizeCols, kstrideRows, kstrideCols, krateRows, krateCols, isSame);
             }
             return ND4J_STATUS_OK;
         }
@@ -40,7 +40,7 @@ namespace nd4j {
             int batchSizeDim = shape::sizeAt(in, 0);
             int inputRowsDim = shape::sizeAt(in, 1);
             int inputColsDim = shape::sizeAt(in, 2);
-            int outputDepthDim = shape::sizeAt(in, 3) * INT_ARG(0) * INT_ARG(1);
+            int outputDepthDim = shape::sizeAt(in, 3) * INT_ARG(0) * INT_ARG(1); // last dim * ksizeRows * ksizeCols
 
             int inputRowSize = inputRowsDim; //shape::sizeAt(in, inputRowsDim);
             int inputColSize = inputColsDim; //shape::sizeAt(in, inputColsDim);
@@ -50,18 +50,10 @@ namespace nd4j {
                 // Padding is "VALID":
                 outRowSize = (inputRowSize - ksizeRowsEffective + INT_ARG(2)) / INT_ARG(2);
                 outColSize = (inputColSize - ksizeColsEffective + INT_ARG(3)) / INT_ARG(3);
-//                *padding_before = *padding_after = 0;
             } else {
                 // Padding is "SAME":
                 outRowSize = (inputRowSize + INT_ARG(2) - 1) / INT_ARG(2);
                 outColSize = (inputColSize + INT_ARG(3) - 1) / INT_ARG(3);
-//                const int64 padding_needed =
-  //                  std::max(0LL, (*output_size - 1) * stride + effective_filter_size -
-    //                              input_size);
-      //          // For odd values of total padding, add more padding at the 'right'
-        //        // side of the given dimension.
-          //      *padding_before = padding_needed / 2;
-            //    *padding_after = padding_needed - *padding_before;
             }
 
 
