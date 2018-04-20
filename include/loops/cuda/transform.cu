@@ -7,6 +7,7 @@
 #include <op_boilerplate.h>
 
 #include <loops/legacy_ops.h>
+#include <DebugHelper.h>
 
 
 
@@ -147,9 +148,19 @@ namespace functions {
         _CUDA_H void Transform<float>::executeTransformShaped(dim3 launchDims, cudaStream_t *stream, int opNum, float *x, int *xShape, int xRank, float *extraParams, float *z, int *zShape, int zRank, int *allocationPointer, float *reductionPointer,  int *tadShapeInfo, Nd4jIndex *tadOffsets) {
             
             DISPATCH_SIMPLE(transformShaped, float, PARAMS(x, xShape, xRank, extraParams, z, zShape, zRank, allocationPointer, reductionPointer, tadShapeInfo, tadOffsets), OPS_A(TRANSFORM_OPS))
-            
-            if (nd4j::Environment::getInstance()->isDebug())
-		        checkCudaErrors(cudaStreamSynchronize(*stream));
+
+
+            nd4j::DebugHelper::checkErrorCode(stream, opNum);
+/*
+            if (nd4j::Environment::getInstance()->isDebug()) {
+            	cudaError_t res = cudaStreamSynchronize(*stream);
+				checkCudaErrors(res);
+
+				if (res != 0) {
+					PRINT_FIRST("Failed kernel: [%i]\n", opNum);
+				}
+			}
+*/
         }
 
         template <>
