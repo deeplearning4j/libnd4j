@@ -11,6 +11,10 @@
 #include <mutex>
 #include <ops/declarable/DeclarableOp.h>
 
+// handlers part
+#include <cstdlib>
+#include <csignal>
+
 namespace nd4j {
     namespace ops {
         /**
@@ -25,8 +29,15 @@ namespace nd4j {
             static OpRegistrator* _INSTANCE;
             OpRegistrator() {
                 nd4j_debug("OpRegistrator started\n","");
+
+                std::signal(SIGSEGV, &OpRegistrator::sigSegVHandler);
+                std::signal(SIGINT, &OpRegistrator::sigIntHandler);
+                std::signal(SIGABRT, &OpRegistrator::sigIntHandler);
+                std::signal(SIGFPE, &OpRegistrator::sigIntHandler);
+                std::signal(SIGILL, &OpRegistrator::sigIntHandler);
+                std::signal(SIGTERM, &OpRegistrator::sigIntHandler);
+                atexit(&OpRegistrator::exitHandler);
             };
-            ~OpRegistrator();
 
             std::map<Nd4jIndex, std::string> _msvc;
 
@@ -39,12 +50,21 @@ namespace nd4j {
             std::map<Nd4jIndex, nd4j::ops::DeclarableOp<float16> *> _declarablesLH;
             std::map<std::string, nd4j::ops::DeclarableOp<float16> *> _declarablesH;
 
+            std::vector<nd4j::ops::DeclarableOp<float> *> _uniqueF;
+            std::vector<nd4j::ops::DeclarableOp<double> *> _uniqueD;
+            std::vector<nd4j::ops::DeclarableOp<float16> *> _uniqueH;
+
             std::mutex _locker;
             std::string _opsList;
             bool isInit = false;
         public:
+            ~OpRegistrator();
 
             static OpRegistrator* getInstance();
+
+            static void exitHandler();
+            static void sigIntHandler(int sig);
+            static void sigSegVHandler(int sig);
 
             void updateMSVC(Nd4jIndex newHash, std::string& oldName);
 

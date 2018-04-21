@@ -109,17 +109,29 @@ namespace nd4j {
             return os.str() ;
         }
 
+        void OpRegistrator::sigIntHandler(int sig) {
+            delete OpRegistrator::getInstance();
+        }
+
+        void OpRegistrator::exitHandler() {
+            delete OpRegistrator::getInstance();
+        }
+
+        void OpRegistrator::sigSegVHandler(int sig) {
+            delete OpRegistrator::getInstance();
+        }
+
         OpRegistrator::~OpRegistrator() {
             _msvc.clear();
 
-            for (auto const& x : _declarablesD)
-                delete x.second;
+            for (auto x : _uniqueD)
+                delete x;
 
-            for (auto const& x : _declarablesF)
-                delete x.second;
+            for (auto x : _uniqueF)
+                delete x;
 
-            for (auto const& x : _declarablesH)
-                delete x.second;
+            for (auto x : _uniqueH)
+                delete x;
 
             _declarablesF.clear();
             _declarablesD.clear();
@@ -152,15 +164,6 @@ namespace nd4j {
             _locker.unlock();
 
             return _opsList.c_str();
-        }
-
-        /**
-         * This method registers operation
-         *
-         * @param op
-         */
-        bool OpRegistrator::registerOperationFloat(nd4j::ops::DeclarableOp<float>* op) {
-            return registerOperationFloat(op->getOpName()->c_str(), op);
         }
 
         bool OpRegistrator::registerOperationFloat(const char* name, nd4j::ops::DeclarableOp<float>* op) {
@@ -198,11 +201,23 @@ namespace nd4j {
             return true;
         }
 
+        /**
+         * This method registers operation
+         *
+         * @param op
+         */
+        bool OpRegistrator::registerOperationFloat(nd4j::ops::DeclarableOp<float>* op) {
+            _uniqueF.emplace_back(op);
+            return registerOperationFloat(op->getOpName()->c_str(), op);
+        }
+
         bool OpRegistrator::registerOperationHalf(nd4j::ops::DeclarableOp<float16> *op) {
+            _uniqueH.emplace_back(op);
             return registerOperationHalf(op->getOpName()->c_str(), op);
         }
 
         bool OpRegistrator::registerOperationDouble(nd4j::ops::DeclarableOp<double> *op) {
+            _uniqueD.emplace_back(op);
             return registerOperationDouble(op->getOpName()->c_str(), op);
         }
 
