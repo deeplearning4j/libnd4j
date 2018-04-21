@@ -12,21 +12,21 @@
 #include <string>
 
 
-#ifdef __CUDACC__
+//#ifdef __CUDACC__
 
 #include <cuda.h>
 #include <driver_types.h>
 #include <cuda_runtime_api.h>
 #include <helper_cuda.h>
 
-#endif
+//#endif
 
 namespace nd4j {
     class DebugHelper {
     public:
 
     // cuda-specific debug functions
-#ifdef __CUDACC__
+//#ifdef __CUDACC__
         static FORCEINLINE void checkErrorCode(cudaStream_t *stream, int opNum = 0) {
             if (Environment::getInstance()->isDebug()) {
                 cudaError_t res = cudaStreamSynchronize(*stream);
@@ -42,7 +42,20 @@ namespace nd4j {
                 }
             }
         }
-#endif
+
+        static FORCEINLINE void checkErrorCode(cudaStream_t *stream, const char *failMessage = nullptr) {
+            cudaError_t res = cudaStreamSynchronize(*stream);
+            if (res != 0) {
+                if (failMessage == nullptr) {
+                    std::string op = "CUDA call ended with error code [" + StringUtils::valueToString<int>(res) + std::string("]");
+
+                } else {
+                    std::string op = std::string(failMessage) + std::string("Error code [") + StringUtils::valueToString<int>(res) + std::string("]");
+                    throw std::runtime_error(op);
+                }
+            }
+        }
+//#endif
     };
 }
 
