@@ -76,6 +76,8 @@ __device__ void transformGeneric(
 	    allocationPointer,
 	    reductionPointer,
 	    nullptr);
+
+
 }
 
 template <typename T, typename OpClass>
