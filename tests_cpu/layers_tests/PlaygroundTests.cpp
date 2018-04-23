@@ -314,7 +314,7 @@ TEST_F(PlaygroundTests, Test_Im2Col_1) {
 
     nd4j::ops::im2col<float> op;
 
-    int iterations = 50;
+    int iterations = 200;
 
     auto timeStart = std::chrono::system_clock::now();
 
@@ -361,14 +361,14 @@ TEST_F(PlaygroundTests, Test_Im2Col_1) {
 
     NativeOps nativeOps;
 
-    auto javaStart = std::chrono::system_clock::now();
-
     int iArgs[] = {11, 11, 4, 4, 2, 2, 1, 1, 0};
     Nd4jPointer inputBuffers[] = {input.buffer()};
     Nd4jPointer inputShapes[] = {input.shapeInfo()};
 
     Nd4jPointer outputBuffers[] = {output.buffer()};
     Nd4jPointer outputShapes[] = {output.shapeInfo()};
+
+    auto javaStart = std::chrono::system_clock::now();
 
     for (int e = 0; e < iterations; e++) {
         nativeOps.execCustomOpFloat(nullptr, op.getOpHash(), inputBuffers, inputShapes, 1, outputBuffers, outputShapes, 1, nullptr, 0, iArgs, 9, false);
@@ -377,9 +377,24 @@ TEST_F(PlaygroundTests, Test_Im2Col_1) {
     auto javaEnd = std::chrono::system_clock::now();
     auto javaTime = std::chrono::duration_cast<std::chrono::microseconds> (javaEnd - javaStart).count();
 
+
+    Nd4jPointer outputPermBuffers[] = {outputPermuted.buffer()};
+    Nd4jPointer outputPermShapes[] = {outputPermuted.shapeInfo()};
+
+    auto javaPermStart = std::chrono::system_clock::now();
+
+
+    for (int e = 0; e < iterations; e++) {
+        nativeOps.execCustomOpFloat(nullptr, op.getOpHash(), inputBuffers, inputShapes, 1, outputPermBuffers, outputPermShapes, 1, nullptr, 0, iArgs, 9, false);
+    }
+
+    auto javaPermEnd = std::chrono::system_clock::now();
+    auto javaPermTime = std::chrono::duration_cast<std::chrono::microseconds> (javaPermEnd - javaPermStart).count();
+
     nd4j_printf("New time: %lld us;\n", outerTime / iterations);
     nd4j_printf("Permuted time: %lld us;\n", permTime / iterations);
     nd4j_printf("Legacy time: %lld us;\n", legacyTime / iterations);
     nd4j_printf("Legacy Permuted time: %lld us;\n", legacyPermTime / iterations);
     nd4j_printf("Java time: %lld us;\n", javaTime / iterations);
+    nd4j_printf("Java Permuted time: %lld us;\n", javaPermTime / iterations);
 }
