@@ -12,34 +12,41 @@ namespace helpers {
     template <typename T>
     void extractPatches(NDArray<T>* images, NDArray<T>* output, 
         int sizeRow, int sizeCol, int stradeRow, int stradeCol, int rateRow, int rateCol, bool theSame){
-//        std::vector<int> restDims({3});
-//        std::unique_ptr<ResultSet<T>> listOfTensors(NDArrayFactory<T>::allTensorsAlongDimension(images, restDims));
-        int row = 0;
+        std::vector<int> restDims({1, 2, 3}); // the first and the last dims
+        std::unique_ptr<ResultSet<T>> listOfMatricies(NDArrayFactory<T>::allTensorsAlongDimension(images, restDims));
+        std::unique_ptr<ResultSet<T>> listOfOutputs(NDArrayFactory<T>::allTensorsAlongDimension(output, restDims));
+        // 3D matricies - 2D matricies of vectors (if last dim is greater than 1)
         int e = 0;
         int ksizeRowsEffective = sizeRow + (sizeRow - 1) * (rateRow - 1);
-        int ksizeColsEffective = sizeCol + (sizeCol - 1) * (rateRow - 1);
+        int ksizeColsEffective = sizeCol + (sizeCol - 1) * (rateCol - 1);
         int ksize = ksizeRowsEffective * ksizeColsEffective;
-        int count = images->lengthOf() / ksize;
-        int outputCount = output->lengthOf() / ksize;
-        nd4j_printf("Input count %i, output count %i.\n", count, outputCount);
-        for (int i = 0; i < images->lengthOf(); ) {
-                for (int j = 0; j < output->sizeAt(3); ++j) 
-                    (*output)(e++) = (*images)(i + j);
-            if (e >= output->lengthOf()) break;
-            i += ksize * images->sizeAt(3);
-        }
-/*
-        int e = 0;
-        for (int i = 0; i < output->sizeAt(0); i++) {
-            for(int j = 0; j < output->sizeAt(1); j++) {
-                for(int k = 0; k < output->sizeAt(2); ++k) {
-                    for (int l = 0; l < output->sizeAt(3); ++l) {
-                        (*output)(i,j,k,l) = (*listOfTensors->at(i))(j, k, l);
-                    }
+        int batchCount = listOfMatricies->size(); //lengthOf() / ksize;
+        int lastDim = images->sizeAt(3);
+        int rowDim = images->sizeAt(1);
+        int colDim = images->sizeAt(2);
+        nd4j_printf("Window size is %ix%i. Total patches %i.\n", sizeRow, sizeCol, batchCount);
+     
+        for (int e = 0; e < batchCount; ++e) {
+            NDArray<T>* patch = listOfMatricies->at(e);
+            NDArray<T>* outMatrix = listOfOutputs->at(e);
+            patch->printShapeInfo("Shape of the processed");
+            outMatrix->printShapeInfo("Shape of the output");
+            int startRow = 0;
+            int startCol = 0;
+            int pos = 0;
+            for (int i = 0; i < rowDim; i += stradeRow) 
+            for (int j = 0; j < colDim; j += stradeCol) 
+                for (int l = 0; l < sizeRow && l + i < rowDim; l++)
+                for (int m = 0; m < sizeCol && m + j < colDim; m++) {
+            for (int k = 0; k < lastDim; ++k) {
+                nd4j_printf("images(%i, %i, %i, %i)\n", e, i + l, j + m, k);
+                (*outMatrix)(pos++) = (*patch)(i + l, j + m, k);
+                if (pos >= outMatrix->lengthOf()) { k = lastDim; m = sizeCol; l = sizeRow; j = colDim; i = rowDim; }
                 }
             }
         }
-*/
+//        int outputCount = output->lengthOf() / ksize;
+//        nd4j_printf("Input count %i, output count %i.\n", count, outputCount);
     }
 
     template void extractPatches(NDArray<float>* input, NDArray<float>* output, int sizeRow, int sizeCol, int stradeRow, int stradeCol, int rateRow, int rateCol, bool theSame);

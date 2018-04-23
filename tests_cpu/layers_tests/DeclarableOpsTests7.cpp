@@ -1981,6 +1981,46 @@ NDArray<double> exp('c', {3, 1, 1, 18}, {
     delete result;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests7, TestExtractImagePatches_6) {
+    NDArray<double> x('c', {2, 2, 4, 2}, {
+    11.11, 11.12, 11.21, 11.22, 11.31, 11.32, 11.41, 11.42,
+    12.11, 12.12, 12.21, 12.22, 12.31, 12.32, 12.41, 12.42,
+    21.11, 21.12, 21.21, 21.22, 21.31, 21.32, 21.41, 21.42,
+    22.11, 22.12, 22.21, 22.22, 22.31, 22.32, 22.41, 22.42
+});
+
+//Images shape is  (3, 3, 4, 3)
+//[1, 1, 1, 1]
+//[1, 3, 2, 1]
+NDArray<double> exp('c', {2, 1, 4, 4}, {
+    11.11, 11.12, 12.11, 12.12,
+    11.21, 11.22, 12.21, 12.22,
+    11.31, 11.32, 12.31, 12.32,
+    11.41, 11.42, 12.41, 12.42,
+
+    21.11, 21.12, 22.11, 22.12,
+    21.21, 21.22, 22.21, 22.22,
+    21.31, 21.32, 22.31, 22.32,
+    21.41, 21.42, 22.41, 22.42
+ });
+// ----------------------------------------------------------------
+    nd4j::ops::extract_image_patches<double> op;
+
+    auto result = op.execute({&x}, {}, {2,1, 1,1, 1,1,0});
+    ASSERT_EQ(result->status(), Status::OK());
+    
+    x.printIndexedBuffer("images");
+    nd4j_printf("input params: ksize = [1, 2, 1, 1], strides = [1, 1, 1, 1], rates = [1, 1, 1, 1]\n", "");
+    result->at(0)->printIndexedBuffer("Output");
+    //result->at(0)->printShapeInfo("Out Shape");
+    exp.printIndexedBuffer("Expect");
+    //exp.printShapeInfo("Exp Shape");
+    ASSERT_TRUE(exp.isSameShape(result->at(0)));
+    ASSERT_TRUE(exp.equalsTo(result->at(0)));
+
+    delete result;
+}
 
 
 
