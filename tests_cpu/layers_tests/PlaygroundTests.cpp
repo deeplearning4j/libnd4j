@@ -304,3 +304,62 @@ TEST_F(PlaygroundTests, Test_Profile_2) {
     delete graph;
     delete profile;
 }
+
+TEST_F(PlaygroundTests, Test_Im2Col_1) {
+    NDArray<float> input('c', {16, 3, 224, 224});
+    NDArray<float> output('c', {16, 3, 11, 11, 55, 55});
+
+    NDArray<float> outputPermuted('c', {16, 55, 55, 3, 11, 11});
+    outputPermuted.permutei({0, 3, 4, 5, 1, 2});
+
+    nd4j::ops::im2col<float> op;
+
+    int iterations = 50;
+
+    auto timeStart = std::chrono::system_clock::now();
+
+    for (int e = 0; e < iterations; e++) {
+        auto result = op.execute({&input}, {&output}, {}, {11, 11, 4, 4, 2, 2, 1, 1, 0});
+        ASSERT_EQ(Status::OK(), result);
+    }
+
+    auto timeEnd = std::chrono::system_clock::now();
+    auto outerTime = std::chrono::duration_cast<std::chrono::microseconds> (timeEnd - timeStart).count();
+
+
+    auto permStart = std::chrono::system_clock::now();
+
+    for (int e = 0; e < iterations; e++) {
+        auto result = op.execute({&input}, {&outputPermuted}, {}, {11, 11, 4, 4, 2, 2, 1, 1, 0});
+        ASSERT_EQ(Status::OK(), result);
+    }
+
+    auto permEnd = std::chrono::system_clock::now();
+    auto permTime = std::chrono::duration_cast<std::chrono::microseconds> (permEnd - permStart).count();
+
+
+    auto legacyStart = std::chrono::system_clock::now();
+
+    float extra[] = {11, 11, 4, 4, 2, 2, 1, 1, 0};
+    for (int e = 0; e < iterations; e++) {
+        input.template applyTransform<simdOps::Im2col<float>>(&output, extra);
+    }
+
+    auto legacyEnd = std::chrono::system_clock::now();
+    auto legacyTime = std::chrono::duration_cast<std::chrono::microseconds> (legacyEnd - legacyStart).count();
+
+
+    auto legacyPermStart = std::chrono::system_clock::now();
+
+    for (int e = 0; e < iterations; e++) {
+        input.template applyTransform<simdOps::Im2col<float>>(&outputPermuted, extra);
+    }
+
+    auto legacyPermEnd = std::chrono::system_clock::now();
+    auto legacyPermTime = std::chrono::duration_cast<std::chrono::microseconds> (legacyPermEnd - legacyPermStart).count();
+
+    nd4j_printf("New time: %lld us;\n", outerTime / iterations);
+    nd4j_printf("Permuted time: %lld us;\n", permTime / iterations);
+    nd4j_printf("Legacy time: %lld us;\n", legacyTime / iterations);
+    nd4j_printf("Legacy Permuted time: %lld us;\n", legacyPermTime / iterations);
+}
