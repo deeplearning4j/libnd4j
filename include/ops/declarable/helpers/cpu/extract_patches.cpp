@@ -24,13 +24,10 @@ namespace helpers {
         int lastDim = images->sizeAt(3);
         int rowDim = images->sizeAt(1);
         int colDim = images->sizeAt(2);
-        nd4j_printf("Window size is %ix%i. Total patches %i.\n", sizeRow, sizeCol, batchCount);
      
         for (int e = 0; e < batchCount; ++e) {
             NDArray<T>* patch = listOfMatricies->at(e);
             NDArray<T>* outMatrix = listOfOutputs->at(e);
-            patch->printShapeInfo("Shape of the processed");
-            outMatrix->printShapeInfo("Shape of the output");
             int startRow = 0;
             int startCol = 0;
             int pos = 0;
@@ -39,8 +36,7 @@ namespace helpers {
                 for (int l = 0; l < sizeRow && l + i < rowDim; l++)
                 for (int m = 0; m < sizeCol && m + j < colDim; m++) {
             for (int k = 0; k < lastDim; ++k) {
-                nd4j_printf("images(%i, %i, %i, %i)\n", e, i + l, j + m, k);
-                (*outMatrix)(pos++) = (*patch)(i + l, j + m, k);
+                (*outMatrix)(pos++) = (*patch)(i + rateRow*l, j + m*rateCol, k);
                 if (pos >= outMatrix->lengthOf()) { k = lastDim; m = sizeCol; l = sizeRow; j = colDim; i = rowDim; }
                 }
             }
