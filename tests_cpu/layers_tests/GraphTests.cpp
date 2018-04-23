@@ -369,7 +369,7 @@ TEST_F(GraphTests, ReductionsTest1) {
         }
     }
 
-    auto z = new NDArray<float>('c', {1, 5});
+    auto z = new NDArray<float>('c', {5});
 
     graph->getVariableSpace()->putVariable(-1, x);
     graph->getVariableSpace()->putVariable(-2, z);
@@ -402,7 +402,7 @@ TEST_F(GraphTests, IndexReductionsTest1) {
         }
     }
 
-    auto z = new NDArray<float>('c', {1, 5});
+    auto z = new NDArray<float>('c', {5, 1});
 
     graph->getVariableSpace()->putVariable(-1, x);
     graph->getVariableSpace()->putVariable(-2, z);

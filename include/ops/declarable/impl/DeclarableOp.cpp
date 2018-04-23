@@ -5,6 +5,7 @@
 #include <ops/declarable/DeclarableOp.h>
 #include <helpers/ProviderRNG.h>
 #include <Status.h>
+#include <helpers/ShapeUtils.h>
 
 namespace nd4j {
     namespace ops {
@@ -178,7 +179,17 @@ namespace nd4j {
 
                         ctx.pushNDArrayToVariableSpace(pair, outArr);
                     } else {
-                        // TODO: validate/compare shapes here. existent vs provided in outSha
+                        // validate/compare shapes here. existent vs provided in outSha
+                        auto var = ctx.variable(pair);
+                        auto shape = var->getNDArray()->shapeInfo();
+
+                        if (!shape::equalsSoft(out, shape)) {
+                            auto eShape = ShapeUtils<T>::shapeAsString(out);
+                            auto aShape = ShapeUtils<T>::shapeAsString(shape);
+
+                            nd4j_printf("Provided shapes mismatch: %s vs %s\n", eShape.c_str(), aShape.c_str());
+                            throw std::runtime_error("Expected vs provided shapes mismatch");
+                        }
                     }
                 }
 
