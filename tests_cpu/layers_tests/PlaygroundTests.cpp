@@ -398,3 +398,24 @@ TEST_F(PlaygroundTests, Test_Im2Col_1) {
     nd4j_printf("Java time: %lld us;\n", javaTime / iterations);
     nd4j_printf("Java Permuted time: %lld us;\n", javaPermTime / iterations);
 }
+
+TEST_F(PlaygroundTests, Test_Im2Col_2) {
+    NDArray<float> input('c', {16, 3, 224, 224});
+    NDArray<float> output('c', {16, 3, 11, 11, 55, 55});
+
+    NDArray<float> outputPermuted('c', {16, 55, 55, 3, 11, 11});
+    outputPermuted.permutei({0, 3, 4, 5, 1, 2});
+
+    nd4j::ops::im2col<float> op;
+
+    int iArgs[] = {11, 11, 4, 4, 2, 2, 1, 1, 0};
+    Nd4jPointer inputBuffers[] = {input.buffer()};
+    Nd4jPointer inputShapes[] = {input.shapeInfo()};
+
+    Nd4jPointer outputPermBuffers[] = {outputPermuted.buffer()};
+    Nd4jPointer outputPermShapes[] = {outputPermuted.shapeInfo()};
+
+    NativeOps nativeOps;
+
+    nativeOps.execCustomOpFloat(nullptr, op.getOpHash(), inputBuffers, inputShapes, 1, outputPermBuffers, outputPermShapes, 1, nullptr, 0, iArgs, 9, false);
+}

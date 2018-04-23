@@ -3256,7 +3256,7 @@ Nd4jStatus realExec(nd4j::ops::DeclarableOp<T>* op, Nd4jPointer* extraPointers, 
 
     if (!isInplace)
         for (int e = 0; e < numOutputs; e++) {
-            if (outputs[e]->ordering() != shape::order((int *) outputShapes[e]));
+            if (outputs[e]->ordering() != shape::order((int *) outputShapes[e]))
                 outputs[e]->streamline(shape::order((int *) outputShapes[e]));
         }
 
