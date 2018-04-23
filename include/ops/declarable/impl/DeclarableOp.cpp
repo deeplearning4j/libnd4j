@@ -187,6 +187,9 @@ namespace nd4j {
                             auto eShape = ShapeUtils<T>::shapeAsString(out);
                             auto aShape = ShapeUtils<T>::shapeAsString(shape);
 
+                            outSha->destroy();
+                            delete outSha;
+
                             nd4j_printf("Provided shapes mismatch: %s vs %s\n", eShape.c_str(), aShape.c_str());
                             throw std::runtime_error("Expected vs provided shapes mismatch");
                         }

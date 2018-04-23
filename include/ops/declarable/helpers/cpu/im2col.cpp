@@ -13,7 +13,7 @@ namespace nd4j {
             }
 
             template <typename T>
-            void _im2col(nd4j::graph::LaunchContext& context, T *result, T *dx, int *zShape, int *xShape, int kY, int kX, int sY, int sX, int pY, int pX, int dY, int dX, bool isSameMode, T zeroPadVal) {
+            void _im2col(nd4j::graph::LaunchContext& context, T *dz, T *dx, int *zShape, int *xShape, int kY, int kX, int sY, int sX, int pY, int pX, int dY, int dX, bool isSameMode, T zeroPadVal) {
                 int kSize = kY * kX;
 
                 int *outShape = shape::shapeOf(zShape);
@@ -39,27 +39,35 @@ namespace nd4j {
 
                 int n = samples * depth * height_col * width_col;
 
-                for (int channel = depth; channel--; dx += stridech) {
-                    for (int kernel_row = 0; kernel_row < kY; kernel_row++) {
-                        for (int kernel_col = 0; kernel_col < kX; kernel_col++) {
-                            int input_row = -pY + kernel_row * dY;
-                            for (int output_rows = height_col; output_rows; output_rows--) {
-                                if (!is_a_ge_zero_and_a_lt_b(input_row, height)) {
-                                    for (int output_cols = width_col; output_cols; output_cols--) {
-                                        *(result++) = zeroPadVal;
-                                    }
-                                } else {
-                                    int input_col = -pX + kernel_col * dX;
-                                    for (int output_col = width_col; output_col; output_col--) {
-                                        if (is_a_ge_zero_and_a_lt_b(input_col, width)) {
-                                            *(result++) = dx[input_row * width + input_col];
-                                        } else {
+                int hw = height * width;
+
+#pragma omp parallel for schedule(guided)
+                for (int b = 0; b < samples; b++) {
+                    T *input = dx + (b * strideex);
+                    T *result = dz + (b * outStride[0]);
+
+                    for (int channel = depth; channel--; input += stridech) {
+                        for (int kernel_row = 0; kernel_row < kY; kernel_row++) {
+                            for (int kernel_col = 0; kernel_col < kX; kernel_col++) {
+                                int input_row = -pY + kernel_row * dY;
+                                for (int output_rows = height_col; output_rows; output_rows--) {
+                                    if (!is_a_ge_zero_and_a_lt_b(input_row, height)) {
+                                        for (int output_cols = width_col; output_cols; output_cols--) {
                                             *(result++) = zeroPadVal;
                                         }
-                                        input_col += sX;
+                                    } else {
+                                        int input_col = -pX + kernel_col * dX;
+                                        for (int output_col = width_col; output_col; output_col--) {
+                                            if (is_a_ge_zero_and_a_lt_b(input_col, width)) {
+                                                *(result++) = input[input_row * width + input_col];
+                                            } else {
+                                                *(result++) = zeroPadVal;
+                                            }
+                                            input_col += sX;
+                                        }
                                     }
+                                    input_row += sY;
                                 }
-                                input_row += sY;
                             }
                         }
                     }

@@ -1552,7 +1552,7 @@ TEST_F(GraphTests, Test_Inplace_Outputs_2) {
     bool failed = false;
     nd4j::ops::test_output_reshape<float> op;
     try {
-        auto result = op.execute({&x}, {&z}, {}, {});
+        op.execute({&x}, {&z}, {}, {});
 
     } catch (const std::runtime_error& e) {
         failed = true;
@@ -1560,4 +1560,5 @@ TEST_F(GraphTests, Test_Inplace_Outputs_2) {
     
     
     ASSERT_TRUE(failed);
+
 }
