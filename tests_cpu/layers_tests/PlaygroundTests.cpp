@@ -358,8 +358,28 @@ TEST_F(PlaygroundTests, Test_Im2Col_1) {
     auto legacyPermEnd = std::chrono::system_clock::now();
     auto legacyPermTime = std::chrono::duration_cast<std::chrono::microseconds> (legacyPermEnd - legacyPermStart).count();
 
+
+    NativeOps nativeOps;
+
+    auto javaStart = std::chrono::system_clock::now();
+
+    int iArgs[] = {11, 11, 4, 4, 2, 2, 1, 1, 0};
+    Nd4jPointer inputBuffers[] = {input.buffer()};
+    Nd4jPointer inputShapes[] = {input.shapeInfo()};
+
+    Nd4jPointer outputBuffers[] = {output.buffer()};
+    Nd4jPointer outputShapes[] = {output.shapeInfo()};
+
+    for (int e = 0; e < iterations; e++) {
+        nativeOps.execCustomOpFloat(nullptr, op.getOpHash(), inputBuffers, inputShapes, 1, outputBuffers, outputShapes, 1, nullptr, 0, iArgs, 9, false);
+    }
+
+    auto javaEnd = std::chrono::system_clock::now();
+    auto javaTime = std::chrono::duration_cast<std::chrono::microseconds> (javaEnd - javaStart).count();
+
     nd4j_printf("New time: %lld us;\n", outerTime / iterations);
     nd4j_printf("Permuted time: %lld us;\n", permTime / iterations);
     nd4j_printf("Legacy time: %lld us;\n", legacyTime / iterations);
     nd4j_printf("Legacy Permuted time: %lld us;\n", legacyPermTime / iterations);
+    nd4j_printf("Java time: %lld us;\n", javaTime / iterations);
 }
