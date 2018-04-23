@@ -37,6 +37,8 @@ namespace helpers {
 	template<typename T>
 	void gather(NDArray<T>* input, const NDArray<T>* indices, NDArray<T>* output, const std::vector<int>& intArgs);
 
+	template<typename T>
+	void eye(NDArray<T>& output);
 }
 }
 }

@@ -450,6 +450,21 @@ void gather(NDArray<T>* input, const NDArray<T>* indices, NDArray<T>* output, co
     }    
 }
 
+//////////////////////////////////////////////////////////////////////////
+template <typename T>
+void eye(NDArray<T>& output) {
+
+    const int rank = output.rankOf();
+    ResultSet<T>* arrs = NDArrayFactory<T>::allTensorsAlongDimension(&output, {rank-2, rank-1});
+
+#pragma omp parallel for if(arrs->size() > Environment::getInstance()->elementwiseThreshold()) schedule(guided)         
+    for(int i = 0; i < arrs->size(); ++i)
+        arrs->at(i)->setIdentity();
+    
+    delete arrs;    
+    
+}
+
 
 template void triu<float>(const NDArray<float>& input, NDArray<float>& output, const int diagonal);
 template void triu<float16>(const NDArray<float16>& input, NDArray<float16>& output, const int diagonal);
@@ -482,6 +497,10 @@ template void gatherND<double>(NDArray<double>& input, NDArray<double>& indices,
 template void gather<float>(NDArray<float>* input, const NDArray<float>* indices, NDArray<float>* output, const std::vector<int>& intArgs);
 template void gather<float16>(NDArray<float16>* input, const NDArray<float16>* indices, NDArray<float16>* output, const std::vector<int>& intArgs);
 template void gather<double>(NDArray<double>* input, const NDArray<double>* indices, NDArray<double>* output, const std::vector<int>& intArgs);
+
+template void eye<float>(NDArray<float>& output);
+template void eye<float16>(NDArray<float16>& output);
+template void eye<double>(NDArray<double>& output);
 
 
 }
