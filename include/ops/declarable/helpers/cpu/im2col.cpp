@@ -8,7 +8,7 @@ namespace nd4j {
     namespace ops {
         namespace helpers {
             template <typename T>
-            void _im2col(nd4j::graph::LaunchContext& context, T *result, T *dx, int *zShape, int *xShape, int kY, int kX, int sY, int sX, int pY, int pX, int dY, int dX, bool isSameMode, double zeroPadVal) {
+            void _im2col(nd4j::graph::LaunchContext& context, T *result, T *dx, int *zShape, int *xShape, int kY, int kX, int sY, int sX, int pY, int pX, int dY, int dX, bool isSameMode, T zeroPadVal) {
                 int kSize = kY * kX;
 
                 int *outShape = shape::shapeOf(zShape);
@@ -34,7 +34,7 @@ namespace nd4j {
 
                 int n = samples * depth * height_col * width_col;
 
-#pragma omp parallel for schedule(guided) proc_bind(close)
+#pragma omp parallel for simd schedule(guided) proc_bind(close)
                 for (int index = 0; index < n; index++) {
                     int h_index = index / width_col;
                     int h_col = h_index % height_col;
@@ -80,8 +80,8 @@ namespace nd4j {
             }
 
 
-            template void _im2col<float>(nd4j::graph::LaunchContext& context, float *result, float *dx, int *zShape, int *xShape, int kY, int kX, int sY, int sX, int pY, int pX, int dY, int dX, bool isSameMode, double zeroPadVal);
-            template void _im2col<float16>(nd4j::graph::LaunchContext& context, float16 *result, float16 *dx, int *zShape, int *xShape, int kY, int kX, int sY, int sX, int pY, int pX, int dY, int dX, bool isSameMode, double zeroPadVal);
+            template void _im2col<float>(nd4j::graph::LaunchContext& context, float *result, float *dx, int *zShape, int *xShape, int kY, int kX, int sY, int sX, int pY, int pX, int dY, int dX, bool isSameMode, float zeroPadVal);
+            template void _im2col<float16>(nd4j::graph::LaunchContext& context, float16 *result, float16 *dx, int *zShape, int *xShape, int kY, int kX, int sY, int sX, int pY, int pX, int dY, int dX, bool isSameMode, float16 zeroPadVal);
             template void _im2col<double>(nd4j::graph::LaunchContext& context, double *result, double *dx, int *zShape, int *xShape, int kY, int kX, int sY, int sX, int pY, int pX, int dY, int dX, bool isSameMode, double zeroPadVal);
         }
     }

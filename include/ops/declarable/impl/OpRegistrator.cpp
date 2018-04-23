@@ -110,18 +110,25 @@ namespace nd4j {
         }
 
         void OpRegistrator::sigIntHandler(int sig) {
+#ifndef _RELEASE
             delete OpRegistrator::getInstance();
+#endif
         }
 
         void OpRegistrator::exitHandler() {
+#ifndef _RELEASE
             delete OpRegistrator::getInstance();
+#endif
         }
 
         void OpRegistrator::sigSegVHandler(int sig) {
+#ifndef _RELEASE
             delete OpRegistrator::getInstance();
+#endif
         }
 
         OpRegistrator::~OpRegistrator() {
+#ifndef _RELEASE
             _msvc.clear();
 
             for (auto x : _uniqueD)
@@ -140,6 +147,7 @@ namespace nd4j {
             _declarablesLD.clear();
             _declarablesLF.clear();
             _declarablesLH.clear();
+#endif
         }
 
         const char * OpRegistrator::getAllCustomOperations() {
