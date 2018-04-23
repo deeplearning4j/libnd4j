@@ -140,6 +140,10 @@ namespace nd4j {
             for (auto x : _uniqueH)
                 delete x;
 
+            _uniqueH.clear();
+            _uniqueF.clear();
+            _uniqueD.clear();
+
             _declarablesF.clear();
             _declarablesD.clear();
             _declarablesH.clear();
