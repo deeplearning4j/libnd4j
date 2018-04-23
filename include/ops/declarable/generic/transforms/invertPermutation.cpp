@@ -2,6 +2,9 @@
 // @author, Yurii Shyrma (iuriish@yahoo.com), created on 06.12.2017
 //
 
+#include <op_boilerplate.h>
+#if NOT_EXCLUDED(OP_invert_permutation)
+
 #include <ops/declarable/CustomOperations.h>
 #include<ops/declarable/helpers/transforms.h>
 
@@ -26,3 +29,5 @@ DECLARE_SYN(InvertPermutation, invert_permutation);
 
 }
 }
+
+#endif

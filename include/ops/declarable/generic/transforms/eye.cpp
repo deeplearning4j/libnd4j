@@ -1,6 +1,8 @@
 //
 // @author Yurii Shyrma (iuriish@yahoo.com), created on 22.01.2018
 //
+#include <op_boilerplate.h>
+#if NOT_EXCLUDED(OP_eye)
 
 #include <ops/declarable/CustomOperations.h>
 #include<ops/declarable/helpers/transforms.h>
@@ -9,7 +11,7 @@ namespace nd4j {
 namespace ops {
 
 CUSTOM_OP_IMPL(eye, 1, 1, false, 0, 2) {
-            
+
     helpers::eye(*OUTPUT_VARIABLE(0));
 
     return Status::OK();
@@ -58,3 +60,5 @@ DECLARE_SHAPE_FN(eye) {
 
 }
 }
+
+#endif

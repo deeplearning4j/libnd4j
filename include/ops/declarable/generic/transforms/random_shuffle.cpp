@@ -2,6 +2,9 @@
 // @author Yurii Shyrma (iuriish@yahoo.com), created on 26.01.2018
 //
 
+#include <op_boilerplate.h>
+#if NOT_EXCLUDED(OP_random_shuffle)
+
 #include <ops/declarable/CustomOperations.h>
 #include<ops/declarable/helpers/transforms.h>
 
@@ -26,3 +29,5 @@ OP_IMPL(random_shuffle, 1, 1, true) {
 
 }
 }
+
+#endif

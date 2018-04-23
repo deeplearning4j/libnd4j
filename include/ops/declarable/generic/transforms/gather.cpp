@@ -2,6 +2,9 @@
 // @author Shyrma Yurii (iuriish@yahoo.com), created on 16.11.2017
 //
 
+#include <op_boilerplate.h>
+#if NOT_EXCLUDED(OP_gather)
+
 #include <ops/declarable/CustomOperations.h>
 #include<ops/declarable/helpers/transforms.h>
 
@@ -106,12 +109,11 @@ DECLARE_SHAPE_FN(gather) {
 
 
     return SHAPELIST(outputShapeInfo);
-    
+
 }
-
-
-
-
 
 }
 }
+
+
+#endif
