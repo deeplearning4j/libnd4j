@@ -314,7 +314,7 @@ TEST_F(PlaygroundTests, Test_Im2Col_1) {
 
     nd4j::ops::im2col<float> op;
 
-    int iterations = 200;
+    int iterations = 10;
 
     auto timeStart = std::chrono::system_clock::now();
 

@@ -3227,7 +3227,7 @@ Nd4jStatus realExec(nd4j::ops::DeclarableOp<T>* op, Nd4jPointer* extraPointers, 
     }
 
     // if not inplace - transferring output arrays
-
+/*
     if (!isInplace)
         for (int e = 0; e < numOutputs; e++) {
             auto buffer = (T *) outputBuffers[e];
@@ -3241,7 +3241,7 @@ Nd4jStatus realExec(nd4j::ops::DeclarableOp<T>* op, Nd4jPointer* extraPointers, 
             // and we want to release shape copy once we're done
             array->triggerAllocationFlag(false, true);
         }
-
+*/
     for (int e = 0; e < numIArgs; e++)
         iiArgs[e] = iArgs[e];
 
@@ -3251,16 +3251,17 @@ Nd4jStatus realExec(nd4j::ops::DeclarableOp<T>* op, Nd4jPointer* extraPointers, 
 
 
     // hypothetically at this point we have everything filled
-    auto result = op->execute(inputs, outputs, ttArgs, iiArgs, isInplace);
+    //auto result = op->execute(inputs, outputs, ttArgs, iiArgs, isInplace);
+    auto result = op->execute(inputs, ttArgs, iiArgs, isInplace);
 
-
+/*
     if (!isInplace)
         for (int e = 0; e < numOutputs; e++) {
             if (outputs[e]->ordering() != shape::order((int *) outputShapes[e]))
                 outputs[e]->streamline(shape::order((int *) outputShapes[e]));
         }
+*/
 
-/*
     if (!isInplace) {
         if (result->size() != numOutputs) {
             return ND4J_STATUS_BAD_OUTPUT;
@@ -3285,7 +3286,7 @@ Nd4jStatus realExec(nd4j::ops::DeclarableOp<T>* op, Nd4jPointer* extraPointers, 
 
 
     delete result;
-*/
+
 
 
     for (auto v: inputs)
