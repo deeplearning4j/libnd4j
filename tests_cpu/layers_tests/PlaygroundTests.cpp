@@ -314,7 +314,7 @@ TEST_F(PlaygroundTests, Test_Im2Col_1) {
 
     nd4j::ops::im2col<float> op;
 
-    int iterations = 10;
+    int iterations = 100;
 
     auto timeStart = std::chrono::system_clock::now();
 
@@ -326,6 +326,8 @@ TEST_F(PlaygroundTests, Test_Im2Col_1) {
     auto timeEnd = std::chrono::system_clock::now();
     auto outerTime = std::chrono::duration_cast<std::chrono::microseconds> (timeEnd - timeStart).count();
 
+
+    outputPermuted.printShapeInfo("permuted shape");
 
     auto permStart = std::chrono::system_clock::now();
 

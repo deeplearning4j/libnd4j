@@ -39,13 +39,9 @@ namespace nd4j {
 
                 int n = samples * depth * height_col * width_col;
 
-                int hw = height * width;
+                if (shape::order(xShape) == 'c' &&  shape::order(zShape) == 'c' && shape::strideDescendingCAscendingF(xShape) && shape::strideDescendingCAscendingF(zShape)) {
 
-                int _width = width * stridew;
-
-                //if (shape::order(xShape) == 'c' &&  shape::order(zShape) == 'c' && shape::strideDescendingCAscendingF(xShape) && shape::strideDescendingCAscendingF(zShape)) {
-
-#pragma omp parallel for schedule(guided)
+#pragma omp parallel for schedule(static) proc_bind(close)
                     for (int b = 0; b < samples; b++) {
                         T *input = dx + (b * strideex);
                         T *result = dz + (b * outStride[0]);
@@ -61,9 +57,11 @@ namespace nd4j {
                                             }
                                         } else {
                                             int input_col = -pX + kernel_col * dX;
+                                            Nd4jIndex _h = input_row * strideh;
+
                                             for (int output_col = width_col; output_col; output_col--) {
                                                 if (is_a_ge_zero_and_a_lt_b(input_col, width)) {
-                                                    *(result++) = input[input_row * strideh + input_col * stridew];
+                                                    *(result++) = input[_h + input_col * stridew];
                                                 } else {
                                                     *(result++) = zeroPadVal;
                                                 }
@@ -77,8 +75,8 @@ namespace nd4j {
                         }
                     }
 
-                /*} else {
-#pragma omp parallel for schedule(guided) proc_bind(close)
+                } else {
+#pragma omp parallel for schedule(static) proc_bind(close)
                     for (int index = 0; index < n; index++) {
                         int h_index = index / width_col;
                         int h_col = h_index % height_col;
@@ -107,6 +105,7 @@ namespace nd4j {
                                 int w_im = w_offset + j * dX;
                                 int i_f = 0;
                                 int i_c_temp = i_c;
+
                                 for (int dim = 5; dim >= 0; dim--) {
                                     i_f += (i_c_temp % outShape[dim])  * outStride[dim];
                                     i_c_temp = i_c_temp / outShape[dim];
@@ -122,7 +121,6 @@ namespace nd4j {
                         }
                     }
                 }
-                */
             }
 
 
