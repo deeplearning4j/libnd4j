@@ -24,7 +24,8 @@ namespace helpers {
         int lastDim = images->sizeAt(3);
         int rowDim = images->sizeAt(1);
         int colDim = images->sizeAt(2);
-     
+
+#pragma omp parallel for        
         for (int e = 0; e < batchCount; ++e) {
             NDArray<T>* patch = listOfMatricies->at(e);
             NDArray<T>* outMatrix = listOfOutputs->at(e);
