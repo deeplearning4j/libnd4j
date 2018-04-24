@@ -32,15 +32,10 @@ namespace helpers {
             int startRow = 0;
             int startCol = 0;
             int pos = 0;
-#pragma omp parallel for  if(rowDim > Environment::getInstance()->elementwiseThreshold()) schedule(static)       
             for (int i = 0; i < rowDim; i += stradeRow) 
-#pragma omp parallel for if(colDim > Environment::getInstance()->elementwiseThreshold()) schedule(static)       
             for (int j = 0; j < colDim; j += stradeCol) 
-//#pragma omp parallel for        
                 for (int l = 0; l < sizeRow && l + i < rowDim; l++)
-//#pragma omp parallel for        
                 for (int m = 0; m < sizeCol && m + j < colDim; m++) {
-#pragma omp parallel for if(lastDim > Environment::getInstance()->elementwiseThreshold()) schedule(static)       
                 for (int k = 0; k < lastDim; ++k) {
                     (*outMatrix)(pos++) = (*patch)(i + rateRow * l, j + m * rateCol, k);
                     if (pos >= outMatrix->lengthOf()) { k = lastDim; m = sizeCol; l = sizeRow; j = colDim; i = rowDim; }
