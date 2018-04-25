@@ -457,7 +457,7 @@ void eye(NDArray<T>& output) {
     const int rank = output.rankOf();
     ResultSet<T>* arrs = NDArrayFactory<T>::allTensorsAlongDimension(&output, {rank-2, rank-1});
 
-#pragma omp parallel for if(arrs->size() > Environment::getInstance()->elementwiseThreshold()) schedule(guided)         
+#pragma omp parallel for if(arrs->size() > Environment::getInstance()->elementwiseThreshold()) schedule(guided)
     for(int i = 0; i < arrs->size(); ++i)
         arrs->at(i)->setIdentity();
     
@@ -465,6 +465,91 @@ void eye(NDArray<T>& output) {
     
 }
 
+//////////////////////////////////////////////////////////////////////////
+template<typename T>
+void scatterUpdate(NDArray<T>& operand, NDArray<T>& updates, const std::vector<int>* intArgs) {
+
+    int opCode = (*intArgs)[0];
+    int dimSize = (*intArgs)[1];    
+    unsigned long e;
+    unsigned long limg = 2 + dimSize;
+    std::vector<int> tadDimension(limg-2);
+    for (e = 2; e < limg; e++)
+        tadDimension[e-2] = (*intArgs)[e];
+
+    // increasing counter to skip numIndices
+    e++;
+    std::vector<int> indices;
+    std::vector<int> indicesU;
+    int cnt = 0;
+    for (; e < intArgs->size(); e++) {
+        indices.push_back((*intArgs)[e]);
+        indicesU.push_back(cnt++);
+    }
+
+    std::unique_ptr<ResultSet<T>> tadsOperand(nd4j::NDArrayFactory<T>::multipleTensorsAlongDimension(&operand, indices, tadDimension));
+    std::unique_ptr<ResultSet<T>> tadsUpdate(nd4j::NDArrayFactory<T>::multipleTensorsAlongDimension(&updates, indicesU, tadDimension));
+
+#pragma omp parallel for if(indices.size() > Environment::getInstance()->elementwiseThreshold()) schedule(guided) proc_bind(close) shared(tadsOperand, tadsUpdate)
+    for (unsigned long x = 0; x < indices.size(); x++) {
+                
+        NDArray<T> *tad = tadsOperand->at(x);
+        NDArray<T> *tadUpdates = tadsUpdate->at(x);
+
+        if (tad->lengthOf() != tadUpdates->lengthOf())
+            continue;
+
+        switch (opCode) {
+            case 0:
+                tad->template applyPairwiseTransform<simdOps::Add<T>>(tadUpdates, tad, nullptr);
+                break;
+            case 1:
+                tad->template applyPairwiseTransform<simdOps::Subtract<T>>(tadUpdates, tad, nullptr);
+                break;
+            case 2:
+                tad->template applyPairwiseTransform<simdOps::Multiply<T>>(tadUpdates, tad, nullptr);
+                break;
+            case 3:
+                tad->template applyPairwiseTransform<simdOps::Divide<T>>(tadUpdates, tad, nullptr);
+                break;
+            case 4:
+                tad->template applyPairwiseTransform<simdOps::ReverseSubtract<T>>(tadUpdates, tad, nullptr);
+                break;
+            case 5:
+                tad->template applyPairwiseTransform<simdOps::ReverseDivide<T>>(tadUpdates, tad, nullptr);
+                break;
+            case 6:
+                tad->template applyPairwiseTransform<simdOps::Copy<T>>(tadUpdates, tad, nullptr);
+                break;
+            default:
+                continue;                 
+        }
+    }
+}
+
+//////////////////////////////////////////////////////////////////////////
+template<typename T>
+void mergeMaxIndex(const std::vector<NDArray<T>*>& inArrs, NDArray<T>& output) {
+
+    Nd4jIndex numArgs = inArrs.size();
+    NDArray<T>* x = inArrs[0];    
+
+#pragma omp parallel for if(x->lengthOf() > Environment::getInstance()->elementwiseThreshold()) schedule(guided)
+    for (Nd4jIndex e = 0; e < x->lengthOf(); e++) {
+        T max = -MAX_FLOAT;
+        Nd4jIndex idx = 0;
+            
+        for (int i = 0; i < numArgs; i++){
+            
+            T v = (*inArrs[i])(e);
+            if (v > max) {
+                max = v;
+                idx = i;
+            }
+        }
+        output(e) = idx;
+    }
+}
 
 template void triu<float>(const NDArray<float>& input, NDArray<float>& output, const int diagonal);
 template void triu<float16>(const NDArray<float16>& input, NDArray<float16>& output, const int diagonal);
@@ -502,8 +587,14 @@ template void eye<float>(NDArray<float>& output);
 template void eye<float16>(NDArray<float16>& output);
 template void eye<double>(NDArray<double>& output);
 
+template void scatterUpdate<float>(NDArray<float>& operand, NDArray<float>& updates, const std::vector<int>* intArgs);
+template void scatterUpdate<float16>(NDArray<float16>& operand, NDArray<float16>& updates, const std::vector<int>* intArgs);
+template void scatterUpdate<double>(NDArray<double>& operand, NDArray<double>& updates, const std::vector<int>* intArgs);
+
+template void mergeMaxIndex<float>(const std::vector<NDArray<float>*>& inArrs, NDArray<float>& output);
+template void mergeMaxIndex<float16>(const std::vector<NDArray<float16>*>& inArrs, NDArray<float16>& output);
+template void mergeMaxIndex<double>(const std::vector<NDArray<double>*>& inArrs, NDArray<double>& output);
 
 }
 }
 }
-

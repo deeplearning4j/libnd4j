@@ -39,6 +39,13 @@ namespace helpers {
 
 	template<typename T>
 	void eye(NDArray<T>& output);
+
+	template<typename T>
+	void scatterUpdate(NDArray<T>& operand, NDArray<T>& updates, const std::vector<int>* intArgs);
+
+	template<typename T>
+	void mergeMaxIndex(const std::vector<NDArray<T>*>& inArrs, NDArray<T>& output);
+
 }
 }
 }
