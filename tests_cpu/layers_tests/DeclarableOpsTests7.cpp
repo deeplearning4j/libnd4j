@@ -8,6 +8,7 @@
 #include <helpers/helper_hash.h>
 #include <NDArray.h>
 #include <array/NDArrayList.h>
+#include <ops/declarable/generic/helpers/convolutions.h>
 
 
 using namespace nd4j;
@@ -1608,3 +1609,147 @@ TEST_F(DeclarableOpsTests7, TestSegmentProd_4) {
     delete result;
 }
 
+TEST_F(DeclarableOpsTests7, Col2ImTest_1) {
+
+    int kY = 5;
+    int kX = 5;
+    int sY = 1;
+    int sX = 1;
+    int pY = 0;
+    int pX = 0;
+    int dY = 1;
+    int dX = 1;
+    int inY = 28;
+    int inX = 28;
+    int channels = 3;
+
+    bool isSameMode = true;
+
+    NDArray<float> x('f', {2, channels, inY, inX});
+    NDArrayFactory<float>::linspace(1, x);
+
+    int oY, oX;
+
+    nd4j::ops::ConvolutionUtils<float>::calcOutSizePool2D(oY, oX, kY, kX, sY, sX, pY, pX, dY, dX, inY, inX, isSameMode);
+
+    if (isSameMode)
+        nd4j::ops::ConvolutionUtils<float>::_calcPadding2D(pY, pX, oY, oX, inY, inX, kY, kX, sY, sX, dY, dX);
+
+    NDArray<float> inpMatrix('f', {2, channels, kY, kX, oY, oX});
+
+    std::vector<float> args2col({(float) kY, (float) kX, (float) sY, (float) sX, (float) pY, (float) pX, (float) dY, (float) dX, isSameMode ? (float) 1 : (float) 0, (float)0.0, (float) 0.});
+    x.template applyTransform<simdOps::Im2col<float>>(&inpMatrix, args2col.data());
+
+    nd4j::ops::im2col<float> sourceOp;
+    auto result2col = sourceOp.execute({&x}, {}, {kY, kX, sY, sX, pY, pX, dY, dX, isSameMode ? 1 : 0});
+    auto im2col1 = result2col->at(0);
+
+    std::vector<float> args2im({ (float) sY, (float) sX, (float) pY, (float) pX, (float) inY, (float) inX, (float) dY, (float) dX, isSameMode ? (float) 1 : (float) 0});
+    NDArray<float> col2im0('f', {2, channels, inY, inX});
+    inpMatrix.template applyTransform<simdOps::Col2Im<float>>(&col2im0, args2im.data());
+
+    nd4j::ops::col2im<float> op2im;
+    auto result2im = op2im.execute({im2col1}, {}, {sY, sX, pY, pX, inY, inX, dY, dX, isSameMode ? 1 : 0});
+    auto col2im1 = result2im->at(0);
+    auto output = col2im1->dup();
+    auto outputPermuted = output->dup();
+    im2col1->printShapeInfo("Input matrix shape info (col2im op)");
+    col2im1->printShapeInfo("Ouput matrix shape info (col2im op)");
+    NDArray<float>* input = im2col1; //('c', {16, 3, 224, 224});
+//    NDArray<float> output('f', {16, 3, 11, 11, 55, 55});
+    
+//    NDArray<float> outputPermuted('f', {2, channels, kY, kX, oY, oX});
+//    outPermuted->permutei({0, 2, 1, 3});
+//    auto outputPermuted = outPermuted->dup('f');
+    int iterations = 100;
+    nd4j::ops::col2im<float> op;
+    input->printShapeInfo("Input matrix shape info (col2im op)");
+    output->printShapeInfo("Ouput matrix shape info (col2im op)");
+
+    auto timeStart = std::chrono::system_clock::now();
+
+    for (int e = 0; e < iterations; e++) {
+        auto result = op.execute({input}, {output}, {}, {sY, sX, pY, pX, inY, inX, dY, dX, isSameMode ? 1 : 0});
+        ASSERT_EQ(Status::OK(), result);
+    }
+    
+    auto timeEnd = std::chrono::system_clock::now();
+    auto outerTime = std::chrono::duration_cast<std::chrono::microseconds> (timeEnd - timeStart).count();
+    
+    outputPermuted->printShapeInfo("permuted shape");
+    nd4j_printf("Working with permuted tensor...\n", ""); //outputPermuted.printShapeInfo("permuted shape");
+
+    auto permStart = std::chrono::system_clock::now();
+
+    for (int e = 0; e < iterations; e++) {
+        auto result = op.execute({im2col1}, {outputPermuted}, {}, {sY, sX, pY, pX, inY, inX, dY, dX, isSameMode ? 1 : 0});
+        ASSERT_EQ(Status::OK(), result);
+    }
+
+    auto permEnd = std::chrono::system_clock::now();
+    auto permTime = std::chrono::duration_cast<std::chrono::microseconds> (permEnd - permStart).count();
+    nd4j_printf("Done.\nTo be continued...\n", ""); //outputPermuted.printShapeInfo("permuted shape");
+
+
+    auto legacyStart = std::chrono::system_clock::now();
+
+    float extra[] = {sY, sX, pY, pX, inY, inX, dY, dX, 0};
+    for (int e = 0; e < iterations; e++) {
+        im2col1->template applyTransform<simdOps::Col2Im<float>>(output, extra);
+    }
+
+    auto legacyEnd = std::chrono::system_clock::now();
+    auto legacyTime = std::chrono::duration_cast<std::chrono::microseconds> (legacyEnd - legacyStart).count();
+    nd4j_printf("Done legacy output.\nTo be continued...\n", ""); //outputPermuted.printShapeInfo("permuted shape");
+      
+
+    auto legacyPermStart = std::chrono::system_clock::now();
+
+    for (int e = 0; e < iterations; e++) {
+        im2col1->template applyTransform<simdOps::Col2Im<float>>(outputPermuted, extra);
+    }
+    nd4j_printf("Done legacy permutted.\nTo be continued...\n", ""); //outputPermuted.printShapeInfo("permuted shape");
+
+    auto legacyPermEnd = std::chrono::system_clock::now();
+    auto legacyPermTime = std::chrono::duration_cast<std::chrono::microseconds> (legacyPermEnd - legacyPermStart).count();
+
+
+    NativeOps nativeOps;
+
+    int iArgs[] = {sY, sX, pY, pX, inY, inX, dY, dX, 0}; //{11, 11, 4, 4, 2, 2, 1, 1, 0};
+    Nd4jPointer inputBuffers[] = {inpMatrix.buffer()};
+    Nd4jPointer inputShapes[] = {inpMatrix.shapeInfo()};
+
+    Nd4jPointer outputBuffers[] = {output->buffer()};
+    Nd4jPointer outputShapes[] = {output->shapeInfo()};
+
+    auto javaStart = std::chrono::system_clock::now();
+
+    for (int e = 0; e < iterations; e++) {
+        nativeOps.execCustomOpFloat(nullptr, op.getOpHash(), inputBuffers, inputShapes, 1, outputBuffers, outputShapes, 1, nullptr, 0, iArgs, 9, false);
+    }
+
+    auto javaEnd = std::chrono::system_clock::now();
+    auto javaTime = std::chrono::duration_cast<std::chrono::microseconds> (javaEnd - javaStart).count();
+
+
+    Nd4jPointer outputPermBuffers[] = {outputPermuted->buffer()};
+    Nd4jPointer outputPermShapes[] = {outputPermuted->shapeInfo()};
+
+    auto javaPermStart = std::chrono::system_clock::now();
+
+
+    for (int e = 0; e < iterations; e++) {
+        nativeOps.execCustomOpFloat(nullptr, op.getOpHash(), inputBuffers, inputShapes, 1, outputPermBuffers, outputPermShapes, 1, nullptr, 0, iArgs, 9, false);
+    }
+    delete output;
+    auto javaPermEnd = std::chrono::system_clock::now();
+    auto javaPermTime = std::chrono::duration_cast<std::chrono::microseconds> (javaPermEnd - javaPermStart).count();
+
+    nd4j_printf("New time: %lld us;\n", outerTime / iterations);
+    nd4j_printf("Permuted time: %lld us;\n", permTime / iterations);
+    nd4j_printf("Legacy time: %lld us;\n", legacyTime / iterations);
+    nd4j_printf("Legacy Permuted time: %lld us;\n", legacyPermTime / iterations);
+    nd4j_printf("Java time: %lld us;\n", javaTime / iterations);
+    nd4j_printf("Java Permuted time: %lld us;\n", javaPermTime / iterations)
+}

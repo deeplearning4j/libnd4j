@@ -81,7 +81,7 @@ namespace nd4j {
                         }
                     }
                 } else {
-#pragma omp parallel for schedule(guided) proc_bind(close)
+#pragma omp parallel for schedule(guided)// proc_bind(close)
                     for (int i = 0; i < n; i++) {
                         T val = 0;
                         int w_im = i % imgX + pX;
