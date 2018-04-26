@@ -306,33 +306,35 @@ TEST_F(PlaygroundTests, Test_Profile_2) {
 }
 
 TEST_F(PlaygroundTests, Test_Im2Col_1) {
-    NDArray<float> input('c', {16, 3, 224, 224});
-    NDArray<float> output('c', {16, 3, 11, 11, 55, 55});
+    
+    int bS=16, iH=224,iW=224,  iC=3,oC=3,  kH=11,kW=11,  sH=4,sW=4,  pH=2,pW=2,  dH=1,dW=1;    
+    int        oH=55, oW=55;
+    int iterations = 100;
 
-    NDArray<float> outputPermuted('c', {16, 55, 55, 3, 11, 11});
+    NDArray<float> input('c', {bS, iC, iH, iW});
+    NDArray<float> output('c', {bS, iC, kH, kW, oH, oW});
+
+    NDArray<float> outputPermuted('c', {bS, oH, oW, iC, kH, kW});
     outputPermuted.permutei({0, 3, 4, 5, 1, 2});
 
-    nd4j::ops::im2col<float> op;
-
-    int iterations = 100;
+    nd4j::ops::im2col<float> op;    
 
     auto timeStart = std::chrono::system_clock::now();
 
     for (int e = 0; e < iterations; e++) {
-        auto result = op.execute({&input}, {&output}, {}, {11, 11, 4, 4, 2, 2, 1, 1, 0});
+        auto result = op.execute({&input}, {&output}, {}, {kH, kW, sH, sW, pH, pW, dH, dW, 0});
         ASSERT_EQ(Status::OK(), result);
     }
 
     auto timeEnd = std::chrono::system_clock::now();
     auto outerTime = std::chrono::duration_cast<std::chrono::microseconds> (timeEnd - timeStart).count();
 
-
     outputPermuted.printShapeInfo("permuted shape");
 
     auto permStart = std::chrono::system_clock::now();
 
     for (int e = 0; e < iterations; e++) {
-        auto result = op.execute({&input}, {&outputPermuted}, {}, {11, 11, 4, 4, 2, 2, 1, 1, 0});
+        auto result = op.execute({&input}, {&outputPermuted}, {}, {kH, kW, sH, sW, pH, pW, dH, dW, 0});
         ASSERT_EQ(Status::OK(), result);
     }
 
@@ -342,7 +344,7 @@ TEST_F(PlaygroundTests, Test_Im2Col_1) {
 
     auto legacyStart = std::chrono::system_clock::now();
 
-    float extra[] = {11, 11, 4, 4, 2, 2, 1, 1, 0};
+    float extra[] = {(float)kH, (float)kW, (float)sH, (float)sW, (float)pH, (float)pW, (float)dH, (float)dW, 0.};
     for (int e = 0; e < iterations; e++) {
         input.template applyTransform<simdOps::Im2col<float>>(&output, extra);
     }
@@ -363,7 +365,7 @@ TEST_F(PlaygroundTests, Test_Im2Col_1) {
 
     NativeOps nativeOps;
 
-    int iArgs[] = {11, 11, 4, 4, 2, 2, 1, 1, 0};
+    int iArgs[] = {kH, kW, sH, sW, pH, pW, dH, dW, 0};
     Nd4jPointer inputBuffers[] = {input.buffer()};
     Nd4jPointer inputShapes[] = {input.shapeInfo()};
 
