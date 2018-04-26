@@ -1693,7 +1693,7 @@ TEST_F(DeclarableOpsTests7, Col2ImTest_1) {
 
     auto legacyStart = std::chrono::system_clock::now();
 
-    float extra[] = {sY, sX, pY, pX, inY, inX, dY, dX, 0};
+    float extra[] = {(float)sY, (float)sX, (float)pY, (float)pX, (float)inY,(float) inX, (float)dY, (float)dX, 0.};    
     for (int e = 0; e < iterations; e++) {
         im2col1->template applyTransform<simdOps::Col2Im<float>>(output, extra);
     }
@@ -1842,8 +1842,8 @@ TEST_F(DeclarableOpsTests7, Col2ImTest_2) {
 
 
     auto legacyStart = std::chrono::system_clock::now();
-
-    float extra[] = {sY, sX, pY, pX, inY, inX, dY, dX, 0};
+    
+    float extra[] = {(float)sY, (float)sX, (float)pY, (float)pX, (float)inY,(float) inX, (float)dY, (float)dX, 0.};    
     for (int e = 0; e < iterations; e++) {
         im2col1->template applyTransform<simdOps::Col2Im<float>>(output, extra);
     }
