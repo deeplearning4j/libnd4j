@@ -258,15 +258,15 @@ DECLARE_SHAPE_FN(conv3dnew_bp) {
     int dH = INT_ARG(10);                                                       // dilations height
     int dW = INT_ARG(11);                                                       // dilations width
     int isSameMode = INT_ARG(12);                                               // 1-SAME,  0-VALID
-    int isNCDHW  = block.getIArguments()->size() > 13 ? !INT_ARG(13) : 1;       // 1-NDHWC, 0-NCDHW    
+    int isNDHWC  = block.getIArguments()->size() > 13 ? !INT_ARG(13) : 1;       // 1-NDHWC, 0-NCDHW
 
     const int rank = 5;
     REQUIRE_TRUE(inputShapeInfo[0]   == rank, 0, "CUSTOM CONV3D_BP OP: rank of input array must be equal to %i, but got %i instead !", rank, inputShapeInfo);
     REQUIRE_TRUE(weightsShapeInfo[0] == rank, 0, "CUSTOM CONV3D_BP OP: rank of weights array must be equal to %i, but got %i instead !", rank, weightsShapeInfo);
     REQUIRE_TRUE(gradOShapeInfo[0]   == rank, 0, "CUSTOM CONV3D_BP OP: rank of output gradients (next epsilon) array must be equal to %i, but got %i instead !", rank, gradOShapeInfo);
 
-    int indIOioC, indIiD, indWkD, indWoC, indWiC, indIOioD;
-    if(!isNCDHW) {
+    int indIOioC, indIiD, indWkD, indWoC, indWiC;
+    if(!isNDHWC) {
         indIOioC = 4; indIiD = 1; indWkD = 0; indWoC = 4; indWiC = 3; 
     }
     else {        
