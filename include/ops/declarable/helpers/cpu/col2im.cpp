@@ -24,8 +24,8 @@ namespace nd4j {
                 int striderow = inStride[4];
                 int stridecol = inStride[5];
 
-                shape::printShapeInfoLinear("input shape", xShape);
-                shape::printShapeInfoLinear("output shape", zShape);
+                // shape::printShapeInfoLinear("input shape", xShape);
+                // shape::printShapeInfoLinear("output shape", zShape);
 
                 int kY = inShape[2];
                 int kX = inShape[3];

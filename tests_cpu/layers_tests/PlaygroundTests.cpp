@@ -423,3 +423,49 @@ TEST_F(PlaygroundTests, Test_Im2Col_2) {
 
     nativeOps.execCustomOpFloat(nullptr, op.getOpHash(), inputBuffers, inputShapes, 1, outputPermBuffers, outputPermShapes, 1, nullptr, 0, iArgs, 9, false);
 }
+
+TEST_F(PlaygroundTests, Test_Col2Im_1) {
+    
+    int bS=16, iH=224,iW=224,  iC=3,oC=3,  kH=11,kW=11,  sH=4,sW=4,  pH=2,pW=2,  dH=1,dW=1;    
+    int        oH=55, oW=55;
+    int iterations = 100;
+
+    NDArray<float> input('c', {bS, iC, kH, kW, oH, oW});
+    NDArray<float> output('c', {bS, iC, iH, iW});
+    
+    NDArray<float> inputPermuted('c', {bS, oH, oW, iC, kH, kW});
+    inputPermuted.permutei({0, 3, 4, 5, 1, 2});
+    NDArray<float> outputPermuted('c', {bS, iH, iW, iC});
+    outputPermuted.permutei({0, 3, 1, 2});
+
+    input = 1.;
+    output = 2.;
+
+    inputPermuted = 1.;
+    outputPermuted = 2.;
+
+    nd4j::ops::col2im<float> op;    
+
+    auto timeStart = std::chrono::system_clock::now();
+
+    for (int e = 0; e < iterations; e++) {
+        auto result = op.execute({&input}, {&output}, {}, {sH, sW, pH, pW, iH, iW, dH, dW, 0});
+        ASSERT_EQ(Status::OK(), result);
+    }
+
+    auto timeEnd = std::chrono::system_clock::now();
+    auto outerTime = std::chrono::duration_cast<std::chrono::microseconds> (timeEnd - timeStart).count();
+
+    auto permStart = std::chrono::system_clock::now();
+
+    for (int e = 0; e < iterations; e++) {
+        auto result = op.execute({&inputPermuted}, {&outputPermuted}, {}, {sH, sW, pH, pW, iH, iW, dH, dW, 0});
+        ASSERT_EQ(Status::OK(), result);
+    }
+
+    auto permEnd = std::chrono::system_clock::now();
+    auto permTime = std::chrono::duration_cast<std::chrono::microseconds> (permEnd - permStart).count();
+
+    nd4j_printf("C-order  time: %lld us;\n", outerTime / iterations);
+    nd4j_printf("Permuted time: %lld us;\n", permTime / iterations);    
+}
