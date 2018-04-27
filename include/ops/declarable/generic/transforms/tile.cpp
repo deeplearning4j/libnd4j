@@ -21,7 +21,7 @@ namespace nd4j {
                 output = OUTPUT_VARIABLE(0);
             } else if (block.width() > 1) {
                 auto reps_vector = INPUT_VARIABLE(1);
-                REQUIRE_TRUE(reps_vector->lengthOf() == input->rankOf(), 0, "Tile: repeats vector length should be equal to input rank, but got %i and %i correspondingly !", reps_vector->lengthOf(), input->rankOf());
+                REQUIRE_TRUE(reps_vector->lengthOf() == input->rankOf(), 0, "TILE op: repeats vector length should be equal to input rank, but got %i and %i correspondingly !", reps_vector->lengthOf(), input->rankOf());
 
                 for (int e = 0; e < input->rankOf(); e++)
                     reps[e] = (int) (*reps_vector)(e);
@@ -45,6 +45,11 @@ namespace nd4j {
         DECLARE_SHAPE_FN(tile) {
             auto shapeList = SHAPELIST();
             auto inShape = inputShape->at(0);
+
+            if (block.width() > 1) {
+                int* repsVectorShape = inputShape->at(1);
+                REQUIRE_TRUE(shape::length(repsVectorShape) == shape::rank(inShape), 0, "TILE op: repeats vector length should be equal to input rank, but got %i and %i correspondingly !", shape::length(repsVectorShape), shape::rank(inShape));
+            }
 
             int *newShape;
             ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(inShape), int);

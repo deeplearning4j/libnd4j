@@ -19,7 +19,7 @@ OP_IMPL(mergemaxindex, -1, 1, false) {
     std::vector<NDArray<T>*> inArrs(block.width());
     
     for(int i = 0; i < block.width(); ++i)
-        inArrs[0] = INPUT_VARIABLE(0);
+        inArrs[i] = INPUT_VARIABLE(i);
 
     helpers::mergeMaxIndex(inArrs, *output);
 

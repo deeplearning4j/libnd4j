@@ -531,7 +531,7 @@ void scatterUpdate(NDArray<T>& operand, NDArray<T>& updates, const std::vector<i
 template<typename T>
 void mergeMaxIndex(const std::vector<NDArray<T>*>& inArrs, NDArray<T>& output) {
 
-    Nd4jIndex numArgs = inArrs.size();
+    const Nd4jIndex numArgs = inArrs.size();
     NDArray<T>* x = inArrs[0];    
 
 #pragma omp parallel for if(x->lengthOf() > Environment::getInstance()->elementwiseThreshold()) schedule(guided)
@@ -548,6 +548,137 @@ void mergeMaxIndex(const std::vector<NDArray<T>*>& inArrs, NDArray<T>& output) {
             }
         }
         output(e) = idx;
+    }
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+template<typename T>
+void mergeMax(const std::vector<NDArray<T>*>& inArrs, NDArray<T>& output) {
+    
+    const Nd4jIndex numArgs = inArrs.size();
+    NDArray<T> *x = inArrs[0];    
+
+#pragma omp parallel for if(x->lengthOf() > Environment::getInstance()->elementwiseThreshold()) schedule(guided) proc_bind(close)
+     for (Nd4jIndex e = 0; e < x->lengthOf(); e++) {
+        T max = -MAX_FLOAT;
+        for (int i = 0; i < numArgs; i++) { 
+            T v = (*inArrs[i])(e);
+            if (v > max)
+                max = v;
+        }
+        output(e) = max;
+    }
+}
+
+//////////////////////////////////////////////////////////////////////////
+template<typename T>
+void mergeAvg(const std::vector<NDArray<T>*>& inArrs, NDArray<T>& output) {
+    
+    const Nd4jIndex numArgs = inArrs.size();
+    const T factor = 1. / numArgs;
+    NDArray<T> *x = inArrs[0];    
+        
+#pragma omp parallel for if(x->lengthOf() > Environment::getInstance()->elementwiseThreshold()) schedule(guided) proc_bind(close)
+    for (Nd4jIndex e = 0; e < x->lengthOf(); e++) {
+        T sum = 0.;
+        for (int i = 0; i < numArgs; i++) { 
+            T v = (*inArrs[i])(e);
+            sum += v;
+        }
+        output(e) = sum * factor;
+    }
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+template<typename T>
+void mergeAdd(const std::vector<NDArray<T>*>& inArrs, NDArray<T>& output) {
+    
+    const Nd4jIndex numArgs = inArrs.size();
+    NDArray<T> *x = inArrs[0];    
+        
+#pragma omp parallel for if(x->lengthOf() > Environment::getInstance()->elementwiseThreshold()) schedule(guided) proc_bind(close)
+    for (Nd4jIndex e = 0; e < x->lengthOf(); e++) {
+        
+        T sum = 0.;
+        
+        for (int i = 0; i < numArgs; i++) 
+            sum += (*inArrs[i])(e);;        
+
+        output(e) = sum;
+    }
+}
+
+//////////////////////////////////////////////////////////////////////////
+template<typename T>
+void clipByNorm(NDArray<T>& input, NDArray<T>& output, const std::vector<int>& dimensions, const T clipNorm, const bool isInplace) {
+    
+    if (dimensions.size() == 0) {
+        // all-reduce
+        const T n2 = input.template reduceNumber<simdOps::Norm2<T>>();        
+        if (n2 <= clipNorm) {
+            if (!isInplace)
+                output.assign(input);
+        } 
+        else {
+            const T factor = clipNorm / n2;
+            auto lambda = LAMBDA_T(_x, factor) { return _x * factor; };
+            input.applyLambda(lambda, &output);
+        }
+    }
+    else {
+        // along dimension
+        NDArray<T> norm2 = input.template reduceAlongDims<simdOps::Norm2<T>>(dimensions, false);
+        if (!isInplace)
+            output.assign(input);
+        ResultSet<T>* tads = NDArrayFactory<T>::allTensorsAlongDimension(&output, dimensions);
+        // TODO: make this CUDA-compliant somehow
+        for (int e = 0; e < tads->size(); e++) {
+            T n2 = norm2(e);
+            T factor = clipNorm / n2;
+            if (n2 > clipNorm) {
+                auto lambda = LAMBDA_T(_x, factor) { return _x * factor; };
+                tads->at(e)->applyLambda(lambda, &output);
+            }
+        }
+        delete tads;
+    }
+}
+
+//////////////////////////////////////////////////////////////////////////
+template<typename T>
+void clipByAveraged(NDArray<T>& input, NDArray<T>& output, const std::vector<int>& dimensions, const T clipNorm, const bool isInplace) {
+    
+    if (dimensions.size() == 0) {
+        // all-reduce
+        T n2 = input.template reduceNumber<simdOps::Norm2<T>>() / input.lengthOf();        
+        if (n2 <= clipNorm) {
+            if (!isInplace)
+                output.assign(input);
+        } 
+        else {
+            const T factor = clipNorm / n2;
+            auto lambda = LAMBDA_T(_x, factor) { return _x * factor; };
+            input.applyLambda(lambda, &output);
+        }
+    } 
+    else {
+        // along dimension
+        auto norm2 = input.template reduceAlongDims<simdOps::Norm2<T>>(dimensions, false);
+        if (!isInplace)
+                output.assign(input);
+        auto tads = NDArrayFactory<T>::allTensorsAlongDimension(&output, dimensions);
+        // TODO: make this CUDA-compliant somehow
+        for (int e = 0; e < tads->size(); e++) {
+            T n2 = norm2.getScalar(e) / tads->at(e)->lengthOf();
+            const T factor = clipNorm / n2;
+            if (n2 > clipNorm) {
+                auto lambda = LAMBDA_T(_x, factor) {return _x * factor;};
+                tads->at(e)->applyLambda(lambda, &output);
+            }
+        }
+        delete tads;
     }
 }
 
@@ -594,6 +725,26 @@ template void scatterUpdate<double>(NDArray<double>& operand, NDArray<double>& u
 template void mergeMaxIndex<float>(const std::vector<NDArray<float>*>& inArrs, NDArray<float>& output);
 template void mergeMaxIndex<float16>(const std::vector<NDArray<float16>*>& inArrs, NDArray<float16>& output);
 template void mergeMaxIndex<double>(const std::vector<NDArray<double>*>& inArrs, NDArray<double>& output);
+
+template void mergeMax<float>(const std::vector<NDArray<float>*>& inArrs, NDArray<float>& output);
+template void mergeMax<float16>(const std::vector<NDArray<float16>*>& inArrs, NDArray<float16>& output);
+template void mergeMax<double>(const std::vector<NDArray<double>*>& inArrs, NDArray<double>& output);
+
+template void mergeAvg<float>(const std::vector<NDArray<float>*>& inArrs, NDArray<float>& output);
+template void mergeAvg<float16>(const std::vector<NDArray<float16>*>& inArrs, NDArray<float16>& output);
+template void mergeAvg<double>(const std::vector<NDArray<double>*>& inArrs, NDArray<double>& output);
+
+template void mergeAdd<float>(const std::vector<NDArray<float>*>& inArrs, NDArray<float>& output);
+template void mergeAdd<float16>(const std::vector<NDArray<float16>*>& inArrs, NDArray<float16>& output);
+template void mergeAdd<double>(const std::vector<NDArray<double>*>& inArrs, NDArray<double>& output);
+
+template void clipByNorm<float>(NDArray<float>& input, NDArray<float>& output, const std::vector<int>& dimensions, const float clipNorm, const bool isInplace);
+template void clipByNorm<float16>(NDArray<float16>& input, NDArray<float16>& output, const std::vector<int>& dimensions, const float16 clipNorm, const bool isInplace);
+template void clipByNorm<double>(NDArray<double>& input, NDArray<double>& output, const std::vector<int>& dimensions, const double clipNorm, const bool isInplace);
+
+template void clipByAveraged<float>(NDArray<float>& input, NDArray<float>& output, const std::vector<int>& dimensions, const float clipNorm, const bool isInplace);
+template void clipByAveraged<float16>(NDArray<float16>& input, NDArray<float16>& output, const std::vector<int>& dimensions, const float16 clipNorm, const bool isInplace);
+template void clipByAveraged<double>(NDArray<double>& input, NDArray<double>& output, const std::vector<int>& dimensions, const double clipNorm, const bool isInplace);
 
 }
 }
