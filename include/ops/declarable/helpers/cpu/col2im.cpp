@@ -31,12 +31,6 @@ namespace nd4j {
                 int oH = inShape[4];                            // (iH + 2 * pH- kH) / sH + 1;
                 int oW = inShape[5];                            // (iW + 2 * pW- kW) / sW + 1;
 
-                int outLength = bS * iC * iH * iW;
-
-                //Effective kernel size, accounting for dilation
-                int kEffectiveW = kW + (kW - 1) * (dW - 1);
-                int kEffectiveH = kH + (kH - 1) * (dH - 1);
-
                 const int inStepOW = oW * inStride[5];
 
                 if (shape::order(inShapeInfo) == 'c' &&  shape::order(outShapeInfo) == 'c' && shape::strideDescendingCAscendingF(inShapeInfo) && shape::strideDescendingCAscendingF(outShapeInfo)) {
