@@ -618,7 +618,7 @@ TEST_F(ConvolutionTests, Test_im2col_col2im_1) {
 
     bool isSameMode = true;
 
-    NDArray<double> x('c', {2, channels, inY, inX});
+    NDArray<double> x('c', {2, channels, inY, inX});    
     NDArrayFactory<double>::linspace(1, x);
 
     int oY, oX;

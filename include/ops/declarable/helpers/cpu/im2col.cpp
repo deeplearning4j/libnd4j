@@ -13,31 +13,7 @@ namespace nd4j {
                 return static_cast<unsigned>(a) < static_cast<unsigned>(b);
             }
 
-
-            FORCEINLINE int zindex(int &outIndex, int lenOut, int *outShape, int *outStride) {
-                int denom = lenOut;
-                int offset = 0;
-                int idx = outIndex;
-
-#pragma unroll
-                for(int i = 0; i < 6; i++) {
-                    int v = 0;
-                    denom /= outShape[i];
-                    if (denom > 0) {
-                        v = idx / denom;
-                        idx %= denom;
-                    }
-
-                    if (outShape[i] > 1) {
-                        offset += v * outStride[i];
-                    }
-                }
-
-                ++outIndex;
-
-                return offset;
-            }
-
+            // input [bS, iC, iH, iW] is convoluted to output [bS, iC, kH, kW, oH, oW]
             template <typename T>
             void _im2col(nd4j::graph::LaunchContext& context, T *out, T *in, int *zShape, int *xShape, int kH, int kW, int sH, int sW, int pH, int pW, int dH, int dW, bool isSameMode, T zeroPadVal) {
                 int kSize = kH * kW;
@@ -54,55 +30,17 @@ namespace nd4j {
                 int iH = inShape[2];
                 int iW = inShape[3];
 
-
-                int strideBS = inStride[0];
-                int strideIC = inStride[1];
-                int strideH = inStride[2];
-                int strideW = inStride[3];
-
                 int oH = outShape[4];
                 int oW = outShape[5];
 
                 if (shape::order(xShape) == 'c' &&  shape::order(zShape) == 'c' && shape::strideDescendingCAscendingF(xShape) && shape::strideDescendingCAscendingF(zShape)) {
 
 #pragma omp parallel for schedule(static) proc_bind(close)
-                    // for (int b = 0; b < bS; b++) {
-                    //     T *input = in + (b * strideBS);
-                    //     T *result = out + (b * outStride[0]);
-
-                    //     for (int channel = iC; channel--; input += strideIC) {
-                    //         for (int kRow = 0; kRow < kH; kRow++) {
-                    //             for (int kCol = 0; kCol < kW; kCol++) {
-                    //                 int inRow = -pH + kRow * dH;
-                    //                 for (int outRow = oH; outRow; outRow--) {
-                    //                     if (!is_a_ge_zero_and_a_lt_b(inRow, iH)) {
-                    //                         for (int outCol = oW; outCol; outCol--) {
-                    //                             *(result++) = zeroPadVal;
-                    //                         }
-                    //                     } else {
-                    //                         int inCol = -pW + kCol * dW;
-                    //                         Nd4jIndex h = inRow * strideH;
-
-                    //                         for (int outCol = oW; outCol; outCol--) {
-                    //                             if (is_a_ge_zero_and_a_lt_b(inCol, iW)) {
-                    //                                 *(result++) = input[h + inCol * strideW];
-                    //                             } else {
-                    //                                 *(result++) = zeroPadVal;
-                    //                             }
-                    //                             inCol += sW;
-                    //                         }
-                    //                     }
-                    //                     inRow += sH;
-                    //                 }
-                    //             }
-                    //         }
-                    //     }
-                    // }
                     for (int b = 0; b < bS; b++) {
-                        T *input = in + (b * strideBS);
-                        T *result = out + (b * outStride[0]);                        
+                        T *input = in + (b * inStride[0]);
+                        T *output = out + (b * outStride[0]);                        
 
-                        for (int channel = 0; channel < iC; ++channel, input += strideIC) { 
+                        for (int channel = 0; channel < iC; ++channel, input += inStride[1]) { 
 
                             for (int kRow = 0; kRow < kH; kRow++) {
                                 int inRowStart = -pH + kRow * dH; 
@@ -114,18 +52,18 @@ namespace nd4j {
                                     for (int outRow = 0; outRow < oH; ++outRow, inRow += sH) {                                        
 
                                         if (!is_a_ge_zero_and_a_lt_b(inRow, iH)) 
-                                            for (int outCol = 0; outCol < oW; ++outCol) {
-                                                *(result++) = zeroPadVal;
+                                            for (int outCol = 0; outCol < oW; ++outCol, ++output) {
+                                                *output = zeroPadVal;
                                         } 
                                         else {
                                             int inCol = inColStart;
-                                            Nd4jIndex h = inRow * strideH;
+                                            Nd4jIndex h = inRow * inStride[2];
 
-                                            for (int outCol = 0; outCol < oW; ++outCol, inCol += sW) {
+                                            for (int outCol = 0; outCol < oW; ++outCol, inCol += sW, ++output) {
                                                 if (is_a_ge_zero_and_a_lt_b(inCol, iW)) 
-                                                    *(result++) = input[h + inCol * strideW];
+                                                    *output = input[h + inCol * inStride[3]];
                                                 else 
-                                                    *(result++) = zeroPadVal;
+                                                    *output = zeroPadVal;
                                             }
                                         }                                        
                                     }
@@ -135,18 +73,17 @@ namespace nd4j {
                     }
                 } 
                 else {
-
-                    
+                                    
 #pragma omp parallel for schedule(static) proc_bind(close)
                     for (int b = 0; b < bS; b++) {
-                        T *input = in + (b * strideBS);
+                        T *input = in + (b * inStride[0]);
                         int outIndex0 = b * outStride[0];
 
-                        for (int channel = 0; channel < iC; ++channel, input += strideIC, outIndex0+=outStride[1]) {
+                        for (int channel = 0; channel < iC; ++channel, input += inStride[1], outIndex0+=outStride[1]) {
                             int outIndex1 = outIndex0;
 
                             for (int kRow = 0; kRow < kH; kRow++, outIndex1 += outStride[2]) {
-                                int outIndex2 = outIndex1;                                
+                                int outIndex2 = outIndex1;
                                 int inRowStart = -pH + kRow * dH; 
 
                                 for (int kCol = 0; kCol < kW; kCol++, outIndex2 += outStride[3]) {
@@ -163,11 +100,11 @@ namespace nd4j {
                                         } 
                                         else {
                                             int inCol = inColStart;
-                                            Nd4jIndex h = inRow * strideH;
+                                            Nd4jIndex h = inRow * inStride[2];
 
                                             for (int outCol = 0; outCol < oW; ++outCol, inCol += sW, outIndex4 += outStride[5]) {
                                                 if (is_a_ge_zero_and_a_lt_b(inCol, iW)) 
-                                                    out[outIndex4] = input[h + inCol * strideW];
+                                                    out[outIndex4] = input[h + inCol * inStride[3]];
                                                 else 
                                                     out[outIndex4] = zeroPadVal;
                                             }
@@ -181,9 +118,9 @@ namespace nd4j {
                 }
             }
 
-            template void _im2col<float>(nd4j::graph::LaunchContext& context, float *result, float *in, int *zShape, int *xShape, int kH, int kW, int sH, int sW, int pH, int pW, int dH, int dW, bool isSameMode, float zeroPadVal);
-            template void _im2col<float16>(nd4j::graph::LaunchContext& context, float16 *result, float16 *in, int *zShape, int *xShape, int kH, int kW, int sH, int sW, int pH, int pW, int dH, int dW, bool isSameMode, float16 zeroPadVal);
-            template void _im2col<double>(nd4j::graph::LaunchContext& context, double *result, double *in, int *zShape, int *xShape, int kH, int kW, int sH, int sW, int pH, int pW, int dH, int dW, bool isSameMode, double zeroPadVal);
+            template void _im2col<float>(nd4j::graph::LaunchContext& context, float *output, float *in, int *zShape, int *xShape, int kH, int kW, int sH, int sW, int pH, int pW, int dH, int dW, bool isSameMode, float zeroPadVal);
+            template void _im2col<float16>(nd4j::graph::LaunchContext& context, float16 *output, float16 *in, int *zShape, int *xShape, int kH, int kW, int sH, int sW, int pH, int pW, int dH, int dW, bool isSameMode, float16 zeroPadVal);
+            template void _im2col<double>(nd4j::graph::LaunchContext& context, double *output, double *in, int *zShape, int *xShape, int kH, int kW, int sH, int sW, int pH, int pW, int dH, int dW, bool isSameMode, double zeroPadVal);
         }
     }
 }

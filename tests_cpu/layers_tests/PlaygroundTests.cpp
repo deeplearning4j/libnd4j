@@ -438,10 +438,10 @@ TEST_F(PlaygroundTests, Test_Col2Im_1) {
     NDArray<float> outputPermuted('c', {bS, iH, iW, iC});
     outputPermuted.permutei({0, 3, 1, 2});
 
-    input = 1.;
+    input = 10.;
     output = 2.;
 
-    inputPermuted = 1.;
+    inputPermuted = 10.;
     outputPermuted = 2.;
 
     nd4j::ops::col2im<float> op;    
