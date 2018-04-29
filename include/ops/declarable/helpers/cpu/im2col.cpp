@@ -18,36 +18,47 @@ namespace nd4j {
             void _im2col(nd4j::graph::LaunchContext& context, T *out, T *in, int *zShape, int *xShape, int kH, int kW, int sH, int sW, int pH, int pW, int dH, int dW, bool isSameMode, T zeroPadVal) {
                 int kSize = kH * kW;
 
-                int *outShape  = shape::shapeOf(zShape);
-                char outOrder  = shape::order(zShape);
-                int *outStride = shape::stride(zShape);
+                const int *outShape  = shape::shapeOf(zShape);
+                const char outOrder  = shape::order(zShape);
+                const int *outStride = shape::stride(zShape);
+                const int *inShape = shape::shapeOf(xShape);
+                const int *inStride = shape::stride(xShape);
 
-                int *inShape = shape::shapeOf(xShape);
-                int *inStride = shape::stride(xShape);
-
-                int bS = inShape[0];
-                int iC = inShape[1];
-                int iH = inShape[2];
-                int iW = inShape[3];
-
-                int oH = outShape[4];
-                int oW = outShape[5];
+                const int bS = inShape[0];
+                const int iC = inShape[1];
+                const int iH = inShape[2];
+                const int iW = inShape[3];
+                const int oH = outShape[4];
+                const int oW = outShape[5];
+                const int outStride0  = outStride[0];
+                const int outStride1  = outStride[1];
+                const int outStride2  = outStride[2];
+                const int outStride3  = outStride[3];
+                const int outStride4  = outStride[4];
+                const int outStride5  = outStride[5];
+                const int inStride0   = inStride[0];
+                const int inStride1   = inStride[1];
+                const int inStride2   = inStride[2];
+                const int inStride3   = inStride[3];
+                
+                int inRowStart, inColStart, inRow, inCol;
+                T *in0, *in1;
 
                 if (shape::order(xShape) == 'c' &&  shape::order(zShape) == 'c' && shape::strideDescendingCAscendingF(xShape) && shape::strideDescendingCAscendingF(zShape)) {
 
-#pragma omp parallel for schedule(static) proc_bind(close)
+#pragma omp parallel for schedule(static) proc_bind(close) private(in0, in1, inRowStart, inColStart, inRow, inCol)
                     for (int b = 0; b < bS; b++) {
-                        T *input = in + (b * inStride[0]);
-                        T *output = out + (b * outStride[0]);                        
+                        in0 = in + (b * inStride0);
+                        T *output = out + (b * outStride0);                        
 
-                        for (int channel = 0; channel < iC; ++channel, input += inStride[1]) { 
+                        for (int channel = 0; channel < iC; ++channel, in0 += inStride1) { 
 
                             for (int kRow = 0; kRow < kH; kRow++) {
-                                int inRowStart = -pH + kRow * dH; 
+                                inRowStart = -pH + kRow * dH; 
 
                                 for (int kCol = 0; kCol < kW; kCol++) {                                    
-                                    int inRow = inRowStart;                                    
-                                    int inColStart = -pW + kCol * dW;
+                                    inRow = inRowStart;                                    
+                                    inColStart = -pW + kCol * dW;
 
                                     for (int outRow = 0; outRow < oH; ++outRow, inRow += sH) {                                        
 
@@ -56,16 +67,15 @@ namespace nd4j {
                                                 *output = zeroPadVal;
                                         } 
                                         else {
-                                            int inCol = inColStart;
-                                            Nd4jIndex h = inRow * inStride[2];
+                                            inCol = inColStart;
+                                            in1 = in0 + inRow * inStride2;
 
-                                            for (int outCol = 0; outCol < oW; ++outCol, inCol += sW, ++output) {
+                                            for (int outCol = 0; outCol < oW; ++outCol, inCol += sW, ++output) 
                                                 if (is_a_ge_zero_and_a_lt_b(inCol, iW)) 
-                                                    *output = input[h + inCol * inStride[3]];
+                                                    *output = *(in1 + inCol * inStride3);                                                
                                                 else 
-                                                    *output = zeroPadVal;
-                                            }
-                                        }                                        
+                                                    *output = zeroPadVal;                                            
+                                        }        
                                     }
                                 }
                             }
@@ -73,38 +83,39 @@ namespace nd4j {
                     }
                 } 
                 else {
-                                    
-#pragma omp parallel for schedule(static) proc_bind(close)
+                    
+                    T *out0, *out1, *out2, *out3, *out4;
+#pragma omp parallel for schedule(static) proc_bind(close) private(in0, in1, out0, out1, out2, out3, out4, inRowStart, inColStart, inRow, inCol)
                     for (int b = 0; b < bS; b++) {
-                        T *input = in + (b * inStride[0]);
-                        T* out0  = out + b * outStride[0];
+                        in0 = in + (b * inStride0);
+                        out0  = out + b * outStride0;
 
-                        for (int channel = 0; channel < iC; ++channel, input += inStride[1], out0+=outStride[1]) {
-                            T* out1 = out0;
+                        for (int channel = 0; channel < iC; ++channel, in0 += inStride1, out0+=outStride1) {
+                            out1 = out0;
 
-                            for (int kRow = 0; kRow < kH; kRow++, out1 += outStride[2]) {
-                                T* out2 = out1;
-                                int inRowStart = -pH + kRow * dH; 
+                            for (int kRow = 0; kRow < kH; kRow++, out1 += outStride2) {
+                                out2 = out1;
+                                inRowStart = -pH + kRow * dH; 
 
-                                for (int kCol = 0; kCol < kW; kCol++, out2 += outStride[3]) {
-                                    T* out3 = out2;
-                                    int inRow = inRowStart;                                    
-                                    int inColStart = -pW + kCol * dW;
+                                for (int kCol = 0; kCol < kW; kCol++, out2 += outStride3) {
+                                    out3 = out2;
+                                    inRow = inRowStart;                                    
+                                    inColStart = -pW + kCol * dW;
 
-                                    for (int outRow = 0; outRow < oH; ++outRow, inRow += sH, out3 += outStride[4]) {
-                                        T* out4 = out3;
+                                    for (int outRow = 0; outRow < oH; ++outRow, inRow += sH, out3 += outStride4) {
+                                        out4 = out3;
 
                                         if (!is_a_ge_zero_and_a_lt_b(inRow, iH)) 
-                                            for (int outCol = 0; outCol < oW; ++outCol, out4 += outStride[5]) {
+                                            for (int outCol = 0; outCol < oW; ++outCol, out4 += outStride5) {
                                                 *out4 = zeroPadVal;
                                         } 
                                         else {
-                                            int inCol = inColStart;
-                                            Nd4jIndex h = inRow * inStride[2];
+                                            inCol = inColStart;
+                                            in1 = in0 +  inRow * inStride2;
 
-                                            for (int outCol = 0; outCol < oW; ++outCol, inCol += sW, out4 += outStride[5]) {
+                                            for (int outCol = 0; outCol < oW; ++outCol, inCol += sW, out4 += outStride5) {
                                                 if (is_a_ge_zero_and_a_lt_b(inCol, iW)) 
-                                                    *out4 = input[h + inCol * inStride[3]];
+                                                    *out4 = *(in1 + inCol * inStride3);
                                                 else 
                                                     *out4 = zeroPadVal;
                                             }

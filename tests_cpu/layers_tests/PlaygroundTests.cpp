@@ -428,7 +428,7 @@ TEST_F(PlaygroundTests, Test_Col2Im_1) {
     
     int bS=16, iH=224,iW=224,  iC=3,oC=3,  kH=11,kW=11,  sH=4,sW=4,  pH=2,pW=2,  dH=1,dW=1;    
     int        oH=55, oW=55;
-    int iterations = 5;
+    int iterations = 500;
 
     NDArray<float> input('c', {bS, iC, kH, kW, oH, oW});
     NDArray<float> output('c', {bS, iC, iH, iW});
@@ -474,7 +474,7 @@ TEST_F(PlaygroundTests, Test_Im2Col_3) {
     
     int bS=16, iH=224,iW=224,  iC=3,oC=3,  kH=11,kW=11,  sH=4,sW=4,  pH=2,pW=2,  dH=1,dW=1;    
     int        oH=55, oW=55;
-    int iterations = 100;
+    int iterations = 500;
 
     NDArray<float> output('c', {bS, iC, kH, kW, oH, oW});
     NDArray<float> input('c', {bS, iC, iH, iW});
