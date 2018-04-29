@@ -80,9 +80,16 @@ namespace simdOps {
             __shared__ int strideY;
             __shared__ int strideX;
 
+			__shared__ int strideOB;
+            __shared__ int strideOC;
+            __shared__ int strideOY;
+            __shared__ int strideOX;
+
             __shared__ int length;
             __shared__ int kHEff;
             __shared__ int kWEff;
+			__shared__ bool fOrder;
+		
 
 			if (threadIdx.x == 0) {
 				kH = (int)extraParams[0];
@@ -108,11 +115,18 @@ namespace simdOps {
             	strideY = shape::stride(xShapeBuffer)[2];
             	strideX = shape::stride(xShapeBuffer)[3];
 
+				strideOB = shape::stride(resultShapeBuffer)[0];
+            	strideOC = shape::stride(resultShapeBuffer)[1];
+            	strideOY = shape::stride(resultShapeBuffer)[2];
+            	strideOX = shape::stride(resultShapeBuffer)[3];
+
             	length = shape::length(resultShapeBuffer);
 
 				//Replace kernel H/W with *effective* kernel H/W accounting for dilatyon
 				kHEff = kH + (kH-1)*(dH-1);
 				kWEff = kW + (kW-1)*(dW-1);
+
+				fOrder = shape::order(resultShapeBuffer) == 'f';
 /*
 				if (blockIdx.x == 0) {
 					printf("kH: %i; kW: %i; sH: %i; sW: %i; pH: %i; pW: %i; dH: %i; dW: %i; poolingMode: %i; extraParam0: %f;\n", kH, kW, sH, sW, pH, pW, dH, dW, poolingMode, (float) extraParam0);
@@ -180,17 +194,26 @@ namespace simdOps {
     			    }
     			}
 
+				T res;
+
     			if (poolingMode == 0) {
-                    result[index] = sum;
+                    res = sum;
     			} else if (poolingMode == 1) {
     			    int divide_factor = pool_size;  //Case 0: exclude padding
     			    if ((int) extraParam0 == 1)     //Case 1: include padding
 					    divide_factor = kH * kW;
 
-    			    result[index] = sum / divide_factor;
+    			    res = sum / divide_factor;
     			} else if (poolingMode == 2) {
-                    result[index] = nd4j::math::nd4j_pow<T>(sum, (T) 1.0f / extraParam0);
+                    res = nd4j::math::nd4j_pow<T>(sum, (T) 1.0f / extraParam0);
     			}
+
+
+				if (!fOrder) {
+					result[index] = res;
+                } else {
+					result[n * strideOB + c * strideOC + pw * strideOX + ph * strideOY] = res;
+                }
 /*
                 if (index >= 0 && index < 400000) {
     			    printf("index: %i; hstart: %i; hend: %i; wstart: %i; wend: %i; ph: %i; pw: %i; hstart_orig: %i; hend_orig: %i;\n", index, hstart, hend, wstart, wend, ph, pw, hSO, hEO);
@@ -220,28 +243,36 @@ namespace simdOps {
 			int poolingMode = (int)extraParams[9];
 			T extraParam0 = extraParams[10];
 
-			int kHEff = kH + (kH-1)*(dH-1);
-			int kWEff = kW + (kW-1)*(dW-1);
+            const int kHEff = kH + (kH-1)*(dH-1);
+            const int kWEff = kW + (kW-1)*(dW-1);
 
-			int batchSize = shape::sizeAt(xShapeBuffer, 0);
-			int inChannels = shape::sizeAt(xShapeBuffer, 1);
-			int outH = shape::sizeAt(resultShapeBuffer, 2);
-			int outW = shape::sizeAt(resultShapeBuffer, 3);
-			int inH = shape::sizeAt(xShapeBuffer, 2);
-			int inW = shape::sizeAt(xShapeBuffer, 3);
+			const int batchSize = shape::sizeAt(xShapeBuffer, 0);
+            const int inChannels = shape::sizeAt(xShapeBuffer, 1);
+            const int outH = shape::sizeAt(resultShapeBuffer, 2);
+            const int outW = shape::sizeAt(resultShapeBuffer, 3);
+            const int inH = shape::sizeAt(xShapeBuffer, 2);
+            const int inW = shape::sizeAt(xShapeBuffer, 3);
 
             int *strideIn = shape::stride(xShapeBuffer);
             int *strideOut = shape::stride(resultShapeBuffer);
 
+            const bool fOrder = shape::order(resultShapeBuffer) == 'f';
+            const Nd4jIndex zLength = shape::length(resultShapeBuffer);
+            const int zRank = shape::rank(resultShapeBuffer);
+
+            int indices[6];
+
             int idx = 0;
-#pragma omp parallel for collapse(2) schedule(guided)
+//#pragma omp parallel for collapse(2) schedule(guided) shared(indices)
 			for(int k = 0; k < inChannels; k++)
 			{
 				for(int p = 0; p < batchSize; p++)
 				{
 					int xx, yy;
 					/* For all output pixels... */
-					T *ptr_output = result + p * strideOut[0] + k * strideOut[1];
+					const int _b = p * strideOut[0];
+					const int _k = k * strideOut[1];
+					T *ptr_output = result + _b + _k;
 					T *ptr_input = dx + p * strideIn[0] + k * strideIn[1];
 
 					for(yy = 0; yy < outH; yy++)
@@ -315,7 +346,12 @@ namespace simdOps {
                             } else if (poolingMode == 2)
 								res = nd4j::math::nd4j_pow<T>(res, (T) 1.0f / extraParam0);
 
-							*ptr_output++ = res;
+
+                            if (!fOrder) {
+                                *ptr_output++ = res;
+                            } else {
+								result[_b + _k + yy * strideOut[2] + xx * strideOut[3]] = res;
+                            }
 
 /*
                             nd4j_printf("index: %i; hstart: %i; hend: %i; wstart: %i; wend: %i; ph: %i; pw: %i; hstart_orig: %i; hend_orig: %i;\n", idx, hstart, hend, wstart, wend, yy, xx, hSO, hEO);
