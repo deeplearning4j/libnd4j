@@ -77,36 +77,36 @@ namespace nd4j {
 #pragma omp parallel for schedule(static) proc_bind(close)
                     for (int b = 0; b < bS; b++) {
                         T *input = in + (b * inStride[0]);
-                        int outIndex0 = b * outStride[0];
+                        T* out0  = out + b * outStride[0];
 
-                        for (int channel = 0; channel < iC; ++channel, input += inStride[1], outIndex0+=outStride[1]) {
-                            int outIndex1 = outIndex0;
+                        for (int channel = 0; channel < iC; ++channel, input += inStride[1], out0+=outStride[1]) {
+                            T* out1 = out0;
 
-                            for (int kRow = 0; kRow < kH; kRow++, outIndex1 += outStride[2]) {
-                                int outIndex2 = outIndex1;
+                            for (int kRow = 0; kRow < kH; kRow++, out1 += outStride[2]) {
+                                T* out2 = out1;
                                 int inRowStart = -pH + kRow * dH; 
 
-                                for (int kCol = 0; kCol < kW; kCol++, outIndex2 += outStride[3]) {
-                                    int outIndex3 = outIndex2;
+                                for (int kCol = 0; kCol < kW; kCol++, out2 += outStride[3]) {
+                                    T* out3 = out2;
                                     int inRow = inRowStart;                                    
                                     int inColStart = -pW + kCol * dW;
 
-                                    for (int outRow = 0; outRow < oH; ++outRow, inRow += sH, outIndex3 += outStride[4]) {
-                                        int outIndex4 = outIndex3;
+                                    for (int outRow = 0; outRow < oH; ++outRow, inRow += sH, out3 += outStride[4]) {
+                                        T* out4 = out3;
 
                                         if (!is_a_ge_zero_and_a_lt_b(inRow, iH)) 
-                                            for (int outCol = 0; outCol < oW; ++outCol, outIndex4 += outStride[5]) {
-                                                out[outIndex4] = zeroPadVal;
+                                            for (int outCol = 0; outCol < oW; ++outCol, out4 += outStride[5]) {
+                                                *out4 = zeroPadVal;
                                         } 
                                         else {
                                             int inCol = inColStart;
                                             Nd4jIndex h = inRow * inStride[2];
 
-                                            for (int outCol = 0; outCol < oW; ++outCol, inCol += sW, outIndex4 += outStride[5]) {
+                                            for (int outCol = 0; outCol < oW; ++outCol, inCol += sW, out4 += outStride[5]) {
                                                 if (is_a_ge_zero_and_a_lt_b(inCol, iW)) 
-                                                    out[outIndex4] = input[h + inCol * inStride[3]];
+                                                    *out4 = input[h + inCol * inStride[3]];
                                                 else 
-                                                    out[outIndex4] = zeroPadVal;
+                                                    *out4 = zeroPadVal;
                                             }
                                         }                                        
                                     }

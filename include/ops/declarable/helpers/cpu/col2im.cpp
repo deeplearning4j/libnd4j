@@ -40,6 +40,7 @@ namespace nd4j {
                         T *input = in + (b * inStride[0]);
                         T *output = out + (b * outStride[0]);
 
+
                         for (int channel = 0; channel < iC; ++channel, output += outStride[1]) {
 
                             for (int kRow = 0; kRow < kH; ++kRow) {                                
@@ -62,8 +63,10 @@ namespace nd4j {
                                                 // output[h + inCol * outStride[3]] = (T) 0.0f;
 
                                             for (int outCol = 0; outCol < oW; ++outCol, inCol += sW, input += inStride[5]) {
-                                                if (is_a_ge_zero_and_a_lt_b(inCol, iW)) 
-                                                    output[h + inCol * outStride[3]] += *input;                                                                                                
+                                                if (is_a_ge_zero_and_a_lt_b(inCol, iW)) {
+                                                    T& result = output[h + inCol * outStride[3]];
+                                                    result += *input;
+                                                }
                                             }
                                         }
                                     }
@@ -73,39 +76,41 @@ namespace nd4j {
                     }
                 } 
                 else {
-#pragma omp parallel for schedule(guided)// proc_bind(close)
+#pragma omp parallel for schedule(guided) 
                     for (int b = 0; b < bS; b++) {                        
-                        T *output = out + (b * outStride[0]);
-                        int inIndex0 = b * inStride[0];
+                        T* output = out + (b * outStride[0]);
+                        T* in0 = in + b * inStride[0];
 
-                        for (int channel = 0; channel < iC; ++channel, output+=outStride[1], inIndex0+=inStride[1]) {
-                            int inIndex1 = inIndex0;
+                        for (int channel = 0; channel < iC; ++channel, output+=outStride[1], in0+=inStride[1]) {
+                            T* in1 = in0;
 
-                            for (int kRow = 0; kRow < kH; ++kRow, inIndex1+=inStride[2]) {  
-                                int inIndex2 = inIndex1;
+                            for (int kRow = 0; kRow < kH; ++kRow, in1+=inStride[2]) {  
+                                T* in2 = in1;
                                 int inRowStart = -pH + kRow * dH;
                                 
-                                for (int kCol = 0; kCol < kW; ++kCol, inIndex2+=inStride[3]) {
-                                    int inIndex3 = inIndex2;
+                                for (int kCol = 0; kCol < kW; ++kCol, in2+=inStride[3]) {
+                                    T* in3 = in2;
                                     int inRow = inRowStart;
                                     int inColStart = -pW + kCol * dW;
 
-                                    for (int outRow = 0; outRow < oH; ++outRow, inRow+=sH, inIndex3+=inStride[4]) {                                        
-                                        int inIndex4 = inIndex3;
+                                    for (int outRow = 0; outRow < oH; ++outRow, inRow+=sH, in3+=inStride[4]) {                                        
+                                        T* in4 = in3;
 
                                         if (!is_a_ge_zero_and_a_lt_b(inRow, iH)) {
-                                            inIndex4 += inStepOW;
+                                            in4 += inStepOW;
                                         } 
                                         else {
                                             int inCol = inColStart;
-                                            Nd4jIndex h = inRow * outStride[2];
+                                            Nd4jIndex h = inRow * outStride[2];                                             
 
                                             // if (is_a_ge_zero_and_a_lt_b(inCol, iW))
                                                 // output[h + inCol * outStride[3]] = (T) 0.0f;
 
-                                            for (int outCol = 0; outCol < oW; ++outCol, inCol+=sW, inIndex4+=inStride[5]) {
-                                                if (is_a_ge_zero_and_a_lt_b(inCol, iW)) 
-                                                    output[h + inCol * outStride[3]] += in[inIndex4];
+                                            for (int outCol = 0; outCol < oW; ++outCol, inCol+=sW, in4+=inStride[5]) {
+                                                if (is_a_ge_zero_and_a_lt_b(inCol, iW)) {
+                                                    T& result = output[h + inCol * outStride[3]];
+                                                    result += *in4;
+                                                }
                                             }
                                         }
                                     }
