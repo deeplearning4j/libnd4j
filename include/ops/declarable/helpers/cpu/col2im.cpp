@@ -59,8 +59,8 @@ namespace nd4j {
                                             int inCol = inColStart;
                                             Nd4jIndex h = inRow * outStride[2];
 
-                                            // if (is_a_ge_zero_and_a_lt_b(inCol, iW))
-                                                // output[h + inCol * outStride[3]] = (T) 0.0f;
+                                            if (channel == iC && is_a_ge_zero_and_a_lt_b(inCol, iW))
+                                                output[h + inCol * outStride[3]] = (T) 0.0f;
 
                                             for (int outCol = 0; outCol < oW; ++outCol, inCol += sW, input += inStride[5]) {
                                                 if (is_a_ge_zero_and_a_lt_b(inCol, iW)) {
@@ -103,8 +103,8 @@ namespace nd4j {
                                             int inCol = inColStart;
                                             Nd4jIndex h = inRow * outStride[2];                                             
 
-                                            // if (is_a_ge_zero_and_a_lt_b(inCol, iW))
-                                                // output[h + inCol * outStride[3]] = (T) 0.0f;
+                                            if (channel == iC && is_a_ge_zero_and_a_lt_b(inCol, iW))
+                                                output[h + inCol * outStride[3]] = (T) 0.0f;
 
                                             for (int outCol = 0; outCol < oW; ++outCol, inCol+=sW, in4+=inStride[5]) {
                                                 if (is_a_ge_zero_and_a_lt_b(inCol, iW)) {
