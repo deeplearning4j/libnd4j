@@ -24,11 +24,7 @@ endif()
 # -fsanitize=address
 # -fsanitize=leak
 if (APPLE)
-    if ("${_RELEASE}")
-        set(CMAKE_CXX_FLAGS  " -O3  -march=native -mtune=native -fPIC -std=c++11 -fassociative-math -funsafe-math-optimizations -fmax-errors=2")
-    else()
-        set(CMAKE_CXX_FLAGS  " -O0 -g -fPIC -std=c++11 -fassociative-math -funsafe-math-optimizations -fmax-errors=2")
-    endif()
+    set(CMAKE_CXX_FLAGS  " -O0 -g -fPIC -std=c++11 -fassociative-math -funsafe-math-optimizations -fmax-errors=2")
 elseif(WIN32)    
     set(CMAKE_CXX_FLAGS  " -g -fPIC -std=c++11 -fassociative-math -funsafe-math-optimizations -fmax-errors=2")
 else()
