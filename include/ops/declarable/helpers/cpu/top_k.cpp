@@ -31,11 +31,8 @@ namespace helpers {
                     (*values)(e) = (*lastDimList->at(e))(maxPos);
                 }
             }
-            else { // if (k > 1) {
-
-//                int width = input->sizeAt(-1);
+            else { 
                 int nextPos = 0;
-//#pragma omp parallel for 
 
 //#pragma omp parallel for if(lastDimList->size() > Environment::getInstance()->elementwiseThreshold()) schedule(static)
                 for (int e = 0; e < lastDimList->size(); ++e) {
