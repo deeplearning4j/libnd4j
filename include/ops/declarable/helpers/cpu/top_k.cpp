@@ -13,6 +13,15 @@ namespace helpers {
     int topKFunctor(NDArray<T>* input, NDArray<T>* values, NDArray<T>* indeces, int k, bool needSort) {
         int width = input->sizeAt(-1);
         std::unique_ptr<ResultSet<T>> lastDimList(NDArrayFactory<T>::allTensorsAlongDimension(input, {input->rankOf() - 1}));
+
+// ----------------------------------------------------------------------------------------------- //
+// this assumption is right:
+//        if (values->lengthOf() != k * lastDimList->size()) {
+//            nd4j_printf("top_k: something is wrong. %i expected, but %i given.\n",
+//                values->lengthOf(), k * lastDimList->size());
+//        }
+// ----------------------------------------------------------------------------------------------- //
+
             if (k == 1) {
                 int pos = 0;
 #pragma omp parallel for if(lastDimList->size() > Environment::getInstance()->elementwiseThreshold()) schedule(static)
@@ -27,52 +36,52 @@ namespace helpers {
 //                int width = input->sizeAt(-1);
                 int nextPos = 0;
 //#pragma omp parallel for 
-                for (int e = 0; e < input->lengthOf(); e += width)
-                {
-                    std::vector<int> topIndeces(k);
-                    std::vector<T>   topValues(k);
+
+//#pragma omp parallel for if(lastDimList->size() > Environment::getInstance()->elementwiseThreshold()) schedule(static)
+                for (int e = 0; e < lastDimList->size(); ++e) {
+                    NDArray<T>* trial = lastDimList->at(e); // a vector to be search
+
+                    std::vector<int> topIndices(k);
+                    std::vector<T> topValues(k);
+
+                    // fill up the first k elements
                     for (int pos = 0; pos < k; ++pos) {
-                        topIndeces[pos] = pos;
-                        topValues[pos] = (*input)(pos + e);
+                        topIndices[pos] = pos;
+                        topValues[pos] = (*trial)(pos);
                     }
                     std::vector<T> sortedVals(topValues);
                     std::sort(sortedVals.begin(), sortedVals.end()); // sorted in ascending order
-
-//#pragma omp parallel for 
-                    for (int j = k; j < width; j++) {
-                        T val = (*input)(j + e);
-                        if (sortedVals[0] < val) { // value can be inserted to top k
+                    
+                    for (int i = k; i < width; ++i) {
+                        T val = (*trial)(i);
+                        if (sortedVals[0] < val) { // value should be inserted to top k
+                            // only if it is not contained in 
                             if (sortedVals.end() == std::find(sortedVals.begin(), sortedVals.end(), val)) {    
-                                // exchangePos - a distance between begin and minimum to be suppressed by val
+                                // exchangePos - a distance between begin and minimal existed to be suppressed by val
                                 auto exchangePos = std::distance(topValues.begin(), std::find(topValues.begin(), topValues.end(), sortedVals[0]));
-//                                if ((exchangePos < 0 || exchangePos >= k), 1, "top_k: invalid index")
-//                                    return ; 
-                                // set up sorted sequence for continue
                                 topValues[exchangePos] = val;
-                                sortedVals[0] = val;
+                                sortedVals[0] = val; // suppress in sorted
                                 std::sort(sortedVals.begin(), sortedVals.end()); // sorted in ascending order
                             }
                         }
                     }
 
                     if (needSort) {
-                        std::sort(topValues.begin(), topValues.end(), [](int a, int b) {
+                        std::sort(topValues.begin(), topValues.end(), [](T a, T b) {
                             return a > b;   
                         });
                     }
 
-//#pragma omp parallel for 
                     for (int j = 0; j < width; j++)
                         for (int pos = 0; pos < k; ++pos)
-                            if (topValues[pos] == (*input)(j + e))
-                                topIndeces[pos] = j;
+                            if (topValues[pos] == (*trial)(j))
+                                topIndices[pos] = j;
 
-                    for (int pos = 0; pos < k; ++pos, ++nextPos)
-                    {
+                    for (int pos = 0; pos < k; ++pos, ++nextPos) {
                         if (values != nullptr)
                             (*values)(nextPos)  =  topValues[pos];
 
-                        (*indeces)(nextPos) = topIndeces[pos];
+                        (*indeces)(nextPos) = topIndices[pos];
                     }
                 }
         }
