@@ -122,8 +122,8 @@ namespace helpers {
                 }
                 if (found)
                     (*result)(e) = (T)1.f;
-                else
-                    (*result)(e) = (T)0.f;
+//                else
+///                    (*result)(e) = (T)0.f;
             }
 //            delete topKIndices; // free memory from called operation
             return ND4J_STATUS_OK;
