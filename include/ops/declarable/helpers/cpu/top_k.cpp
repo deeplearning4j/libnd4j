@@ -11,37 +11,20 @@ namespace helpers {
 
     template <typename T>
     int topKFunctor(NDArray<T>* input, NDArray<T>* values, NDArray<T>* indeces, int k, bool needSort) {
+        int width = input->sizeAt(-1);
+        std::unique_ptr<ResultSet<T>> lastDimList(NDArrayFactory<T>::allTensorsAlongDimension(input, {input->rankOf() - 1}));
             if (k == 1) {
-                // using arg_max for it
-                //nd4j::ops::argmax<T> op;
-                //auto res = op.execute({x}, {}, {x->sizeAt(-1)});
-
-                //REQUIRE_TRUE(res->status() == ND4J_STATUS_OK, 0, "Argmax for top_k failed");
-                int width = input->sizeAt(-1);
                 int pos = 0;
-
-//#pragma omp parallel for 
-                for (int e = 0; e < input->lengthOf(); e += width )
-                {
-                    T topVal = 0;
-                    int topIndex = 0;
-//#pragma omp parallel for 
-                    for (int j = 0; j < width; j++) {
-                        if (topVal < (*input)(j + e))
-                        {
-                            topVal = (*input)(j + e);
-                            topIndex = j;
-                        }
-                    }
-                    if (values != nullptr)
-                        (*values)(pos) = topVal;
-                    (*indeces)(pos) = topIndex;
-                    ++pos;
+#pragma omp parallel for if(lastDimList->size() > Environment::getInstance()->elementwiseThreshold()) schedule(static)
+                for (int e = 0; e < lastDimList->size(); ++e) {
+                    int maxPos = lastDimList->at(e)->argMax();
+                    (*indeces)(e) = maxPos; //topIndex;
+                    (*values)(e) = (*lastDimList->at(e))(maxPos);
                 }
             }
             else { // if (k > 1) {
 
-                int width = input->sizeAt(-1);
+//                int width = input->sizeAt(-1);
                 int nextPos = 0;
 //#pragma omp parallel for 
                 for (int e = 0; e < input->lengthOf(); e += width)
@@ -80,12 +63,10 @@ namespace helpers {
 
 //#pragma omp parallel for 
                     for (int j = 0; j < width; j++)
-//#pragma omp parallel for 
                         for (int pos = 0; pos < k; ++pos)
                             if (topValues[pos] == (*input)(j + e))
                                 topIndeces[pos] = j;
 
-//#pragma omp parallel for 
                     for (int pos = 0; pos < k; ++pos, ++nextPos)
                     {
                         if (values != nullptr)
@@ -97,6 +78,7 @@ namespace helpers {
         }
         return ND4J_STATUS_OK;
     }
+// ----------------------------------------------------------------------------------------------- //
 
     template <typename T>
     int inTopKFunctor(NDArray<T>* input, NDArray<T>* target, NDArray<T>* result, int k) {
