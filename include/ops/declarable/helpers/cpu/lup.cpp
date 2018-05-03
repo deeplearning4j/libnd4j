@@ -25,15 +25,17 @@ namespace helpers {
     void invertLowerMatrix(NDArray<T>* inputMatrix, NDArray<T>* invertedMatrix) {
         int n = inputMatrix->rows();
         invertedMatrix->assign(T(0.0));
-
+#pragma omp parallel for if(n > Environment::getInstance()->elementwiseThreshold()) schedule(static)
         for (int i = 0; i < n; i++)
             (*invertedMatrix)(i, i) = T(1.0);
 
         if (inputMatrix->isIdentityMatrix()) return;
 
+#pragma omp parallel for if(n > Environment::getInstance()->elementwiseThreshold()) schedule(static)
         for (int i = 1; i < n; i++)
             (*invertedMatrix)(i, i - 1) = -(*inputMatrix)(i, i - 1);
 
+#pragma omp parallel for if(n > Environment::getInstance()->elementwiseThreshold()) schedule(static)
         for (int i = 2; i < n; i++) {
             for (int j = i - 2; j > -1; --j) 
                 for (int k = 0; k < i; k++) 
@@ -54,11 +56,15 @@ namespace helpers {
             return;
         }
 
+#pragma omp parallel for if(n > Environment::getInstance()->elementwiseThreshold()) schedule(static)
         for (int i = 0; i < n; i++)
             (*invertedMatrix)(i, i)  /= (*inputMatrix)(i, i);
 
+#pragma omp parallel for if(n > Environment::getInstance()->elementwiseThreshold()) schedule(static)
         for (int i = 0; i < n - 1; i++)
             (*invertedMatrix)(i, i + 1) -= (*inputMatrix)(i, i + 1) * (*invertedMatrix)(i + 1, i + 1) / (*inputMatrix)(i, i);
+
+#pragma omp parallel for if(n > Environment::getInstance()->elementwiseThreshold()) schedule(static)
         for (int i = n - 2; i > - 1; i--) {
             for (int j = i + 2; j < n; j++) 
                 for (int k = i; k < n; k++) 
