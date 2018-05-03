@@ -1551,8 +1551,8 @@ void ConvolutionUtils<T>::sconv2d(const std::vector<NDArray<T>*>& inArrs, NDArra
 
     NDArray<T> *input        = inArrs[0];                                           // [bS, iH, iW, iC]  (NHWC) or [bS, iC, iH, iW]  (NCHW)
     NDArray<T> *weightsDepth = inArrs[1];                                           // [kH, kW, iC, mC]  (NHWC) or [mC, iC, kH, kW]  (NCHW)
-    NDArray<T> *weightsPoint = inArrs[2];                                                     // [1, 1, iC*mC, oC] (NHWC) or [oC, iC*mC, 1, 1] (NCHW)
-    NDArray<T> *bias         = inArrs[3];                                                     // [oC], oC = iC*mC if weightsPoint=nullptr
+    NDArray<T> *weightsPoint = inArrs[2];                                           // [1, 1, iC*mC, oC] (NHWC) or [oC, iC*mC, 1, 1] (NCHW)
+    NDArray<T> *bias         = inArrs[3];                                           // [oC], oC = iC*mC if weightsPoint=nullptr
     
     // output is [bS, oH, oW, oC]  (NHWC) or [bS, oC, oH, oW]  (NCHW)
 
@@ -1585,6 +1585,36 @@ void ConvolutionUtils<T>::sconv2d(const std::vector<NDArray<T>*>& inArrs, NDArra
         delete outputDepth;
     }
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+template <typename T>
+void ConvolutionUtils<T>::upsampling2d(const NDArray<T>& input, NDArray<T>& output, const int factorH, const int factorW, const bool isNCHW) {
+    // input  has shape [bS, iC, iH, iW] (NCHW) or [bS, iH, iW, iC] (NHWC) 
+    // output has shape [bS, iC, factorH*iH, factorW*iW ] (NCHW) or [bS, factorH*iH, factorW*iW, iC] (NHWC)
+    int dimH = isNCHW ? 2 : 1;
+
+    // upsample rows
+#pragma omp parallel for schedule(guided) collapse(2)
+    for(int ih = 0; ih < input.sizeAt(dimH); ++ih)
+        for(int factor = 0; factor < factorH; ++factor)
+            if(isNCHW)
+                output({{},{},{ih+factor, ih+factor+1},{}}) = input({{},{},{ih, ih+1},{}});
+            else 
+                output({{},{ih+factor, ih+factor+1},{},{}}) = input({{},{ih, ih+1},{},{}});
+
+
+    // upsample columns
+#pragma omp parallel for schedule(guided) collapse(2)
+    for(int iw = 0; iw < input.sizeAt(dimH+1); ++iw)
+        for(int factor = 0; factor < factorW; ++factor)
+            if(isNCHW)
+                output({{},{},{},{iw+factor, iw+factor+1}}) = input({{},{},{},{iw, iw+1}});
+            else 
+                output({{},{},{iw+factor, iw+factor+1},{}}) = input({{},{},{iw, iw+1},{}});
+    
+}
+
 
 template class ND4J_EXPORT ConvolutionUtils<float>;
 template class ND4J_EXPORT ConvolutionUtils<float16>;

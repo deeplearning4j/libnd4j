@@ -211,8 +211,20 @@ namespace nd4j {
          * IArgs map:
          * IArgs[0] - scale factor
          */
+        /**
+         * 
+         * Expected input: 4D array
+         * 
+         * weight: 4D Array
+         * bias: optional vector, length of outputChannels
+         * 
+         * IntArgs:
+         * 0: scale factor for rows (height)
+         * 1: scale factor for columns (width)
+         * 9: data format: 0 NHWC (default), 1 NCHW
+         */
         #if NOT_EXCLUDED(OP_upsampling2d)
-        DECLARE_CUSTOM_OP(upsampling2d, 1, 1, false, 0, 1);
+        DECLARE_CUSTOM_OP(upsampling2d, 1, 1, false, 0, 2);
         DECLARE_CUSTOM_OP(upsampling2d_bp, 2, 1, false, 0, 1);
         #endif
 
