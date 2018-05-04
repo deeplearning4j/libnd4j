@@ -15,6 +15,8 @@ namespace nd4j {
                 if (input->rankOf() != indices->rankOf()) {
                     std::vector<int> sourceDims(input->rankOf() - indices->rankOf());
 
+#pragma omp parallel for
+// if(sourceDims.size() > Environment::getInstance()->elementwiseThreshold()) schedule(static)
                     for (int i = sourceDims.size(); i > 0; i--)
                         sourceDims[sourceDims.size() - i] = input->rankOf() - i;
 
