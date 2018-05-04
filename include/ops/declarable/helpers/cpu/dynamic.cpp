@@ -26,11 +26,13 @@ namespace nd4j {
                     for (unsigned int i = 0; i < outputList.size(); i++) {
                         outputs[i].first = outputList[i];
                         std::vector<int> outDims(outputs[i].first->rankOf() - 1);
+#pragma omp parallel for if(outputs[i].first->rankOf() > Environment::getInstance()->elementwiseThreshold()) schedule(static)
                         for (int k = 1; k < outputs[i].first->rankOf(); k++)
                             outDims[k - 1] = k;
                         std::unique_ptr<ResultSet<T>> listOutForCurrent(
                                 NDArrayFactory<T>::allTensorsAlongDimension(outputs[i].first, outDims));
                         outputs[i].second = 0;
+#pragma omp parallel for if(indices->lengthOf() > Environment::getInstance()->elementwiseThreshold()) schedule(static)
                         for (int e = 0; e < indices->lengthOf(); ++e)
                             if ((*indices)(e) == T(i))
                                 listOutForCurrent->at(outputs[i].second++)->assign(listOfTensors->at(e));
