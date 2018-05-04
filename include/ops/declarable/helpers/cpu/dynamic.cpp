@@ -15,13 +15,14 @@ namespace nd4j {
                 if (input->rankOf() != indices->rankOf()) {
                     std::vector<int> sourceDims(input->rankOf() - indices->rankOf());
 
-#pragma omp parallel for
-// if(sourceDims.size() > Environment::getInstance()->elementwiseThreshold()) schedule(static)
+#pragma omp parallel for if(sourceDims.size() > Environment::getInstance()->elementwiseThreshold()) schedule(static)
                     for (int i = sourceDims.size(); i > 0; i--)
                         sourceDims[sourceDims.size() - i] = input->rankOf() - i;
 
                     std::unique_ptr<ResultSet<T>> listOfTensors(
                             NDArrayFactory<T>::allTensorsAlongDimension(input, sourceDims));
+
+#pragma omp parallel for if(outputList.size() > Environment::getInstance()->elementwiseThreshold()) schedule(static)
                     for (unsigned int i = 0; i < outputList.size(); i++) {
                         outputs[i].first = outputList[i];
                         std::vector<int> outDims(outputs[i].first->rankOf() - 1);
@@ -36,6 +37,7 @@ namespace nd4j {
                     }
 
                 } else
+#pragma omp parallel for if(outputList.size() > Environment::getInstance()->elementwiseThreshold()) schedule(static)
                     for (unsigned int i = 0; i < outputList.size(); i++) {
                         outputs[i].first = outputList[i];
                         outputs[i].second = 0;
@@ -48,6 +50,7 @@ namespace nd4j {
             int dynamicStitchFunctor(std::vector<NDArray<T>*>& inputs, std::vector<NDArray<T>*>& indices, NDArray<T>* output){
 
                 int numOfData = inputs.size();
+
                 if (output->isVector()) {
                     for (int e = 0; e < numOfData; e++) {
                         NDArray<T>* data = inputs[e];
@@ -97,9 +100,7 @@ namespace nd4j {
 
                             listOfOutTensors->at(pos)->assign(listOfTensors->at(i));
                         }
-//                        delete listOfTensors;
                     }
-//                    delete listOfOutTensors;
                 }
                 return ND4J_STATUS_OK;
             }
