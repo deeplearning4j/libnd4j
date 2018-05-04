@@ -47,13 +47,19 @@ DECLARE_SHAPE_FN(upsampling2d) {
     int* outputShapeInfo = nullptr;
     ALLOCATE(outputShapeInfo, block.getWorkspace(), shape::shapeInfoLength(inputShapeInfo[0]), int);
 
-    int dimIH = isNCHW ? 2 : 1;
-    int dimIC = isNCHW ? 1 : 3;
+    outputShapeInfo[0] = inputShapeInfo[0];
+    outputShapeInfo[1] = inputShapeInfo[1];
 
-    outputShapeInfo[0]      = inputShapeInfo[0];
-    outputShapeInfo[dimIC]  = inputShapeInfo[dimIC];;
-    outputShapeInfo[dimIH]   = inputShapeInfo[dimIH];
-    outputShapeInfo[dimIH+1] = inputShapeInfo[dimIH+1];
+    if(isNCHW) {
+        outputShapeInfo[2] = inputShapeInfo[2];
+        outputShapeInfo[3] = inputShapeInfo[3] * factorH;
+        outputShapeInfo[4] = inputShapeInfo[4] * factorW;
+    }
+    else {        
+        outputShapeInfo[2] = inputShapeInfo[2] * factorH;
+        outputShapeInfo[3] = inputShapeInfo[3] * factorW;
+        outputShapeInfo[4] = inputShapeInfo[4];
+    }
 
     shape::updateStrides(outputShapeInfo, shape::order(inputShapeInfo));
 

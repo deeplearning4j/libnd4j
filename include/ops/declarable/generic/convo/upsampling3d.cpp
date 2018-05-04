@@ -46,14 +46,21 @@ DECLARE_SHAPE_FN(upsampling3d) {
     int* outputShapeInfo = nullptr;
     ALLOCATE(outputShapeInfo, block.getWorkspace(), shape::shapeInfoLength(inputShapeInfo[0]), int);
 
-    int dimID = isNCDHW ? 2 : 1;
-    int dimIC = isNCDHW ? 1 : 4;
-
-    outputShapeInfo[0]       = inputShapeInfo[0];
-    outputShapeInfo[dimIC]   = inputShapeInfo[dimIC];;
-    outputShapeInfo[dimID]   = inputShapeInfo[dimID];
-    outputShapeInfo[dimID+1] = inputShapeInfo[dimID+1];
-    outputShapeInfo[dimID+2] = inputShapeInfo[dimID+2];
+    outputShapeInfo[0] = inputShapeInfo[0];
+    outputShapeInfo[1] = inputShapeInfo[1];
+    
+    if(isNCDHW) {
+        outputShapeInfo[2] = inputShapeInfo[2];
+        outputShapeInfo[3] = inputShapeInfo[3] * factorD;
+        outputShapeInfo[4] = inputShapeInfo[4] * factorH;
+        outputShapeInfo[5] = inputShapeInfo[5] * factorW;
+    }
+    else {        
+        outputShapeInfo[2] = inputShapeInfo[2] * factorD;
+        outputShapeInfo[3] = inputShapeInfo[3] * factorH;
+        outputShapeInfo[4] = inputShapeInfo[4] * factorW;
+        outputShapeInfo[5] = inputShapeInfo[5];
+    }
 
     shape::updateStrides(outputShapeInfo, shape::order(inputShapeInfo));
 

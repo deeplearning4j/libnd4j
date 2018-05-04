@@ -1594,25 +1594,15 @@ void ConvolutionUtils<T>::upsampling2d(const NDArray<T>& input, NDArray<T>& outp
     // output has shape [bS, iC, factorH*iH, factorW*iW ] (NCHW) or [bS, factorH*iH, factorW*iW, iC] (NHWC)
     int dimIH = isNCHW ? 2 : 1;
 
-    // upsample rows
-#pragma omp parallel for schedule(guided) collapse(2)
+#pragma omp parallel for schedule(guided) collapse(4)
     for(int ih = 0; ih < input.sizeAt(dimIH); ++ih)
-        for(int factor = 0; factor < factorH; ++factor)
-            if(isNCHW)
-                output({{},{},{ih+factor, ih+factor+1},{}}).assign( input({{},{},{ih, ih+1},{}}) );
-            else 
-                output({{},{ih+factor, ih+factor+1},{},{}}).assign( input({{},{ih, ih+1},{},{}}) );
-
-
-    // upsample columns
-#pragma omp parallel for schedule(guided) collapse(2)
-    for(int iw = 0; iw < input.sizeAt(dimIH+1); ++iw)
-        for(int factor = 0; factor < factorW; ++factor)
-            if(isNCHW)
-                output({{},{},{},{iw+factor, iw+factor+1}}).assign( input({{},{},{},{iw, iw+1}}) );
-            else 
-                output({{},{},{iw+factor, iw+factor+1},{}}).assign( input({{},{},{iw, iw+1},{}}) );
-    
+        for(int fh = 0; fh < factorH; ++fh)
+            for(int iw = 0; iw < input.sizeAt(dimIH+1); ++iw)
+                for(int fw = 0; fw < factorW; ++fw)
+                    if(isNCHW)
+                        output({{}, {}, {ih*factorH+fh, ih*factorH+fh+1}, {iw*factorW+fw, iw*factorW+fw+1}}).assign( input({{}, {}, {ih, ih+1}, {iw, iw+1}}) );
+                    else
+                        output({{}, {ih*factorH+fh, ih*factorH+fh+1}, {iw*factorW+fw, iw*factorW+fw+1}, {}}).assign( input({{}, {ih, ih+1}, {iw, iw+1}, {}}) );
 }
 
 
@@ -1623,35 +1613,17 @@ void ConvolutionUtils<T>::upsampling3d(const NDArray<T>& input, NDArray<T>& outp
     // output has shape [bS, iC, factorD*iD, factorH*iH, factorW*iW ] (NCDHW) or [bS, factorD*iD, factorH*iH, factorW*iW, iC] (NDHWC)
     int dimID = isNCDHW ? 2 : 1;
 
-    // upsample depth
-#pragma omp parallel for schedule(guided) collapse(2)
+#pragma omp parallel for schedule(guided) collapse(6)
     for(int id = 0; id < input.sizeAt(dimID); ++id)
-        for(int factor = 0; factor < factorD; ++factor)
-            if(isNCDHW)
-                output({{},{},{id+factor, id+factor+1},{},{}}).assign( input({{},{},{id, id+1},{},{}}) );
-            else 
-                output({{},{id+factor, id+factor+1},{},{},{}}).assign( input({{},{id, id+1},{},{},{}}) );
-
-
-
-    // upsample rows
-#pragma omp parallel for schedule(guided) collapse(2)
-    for(int ih = 0; ih < input.sizeAt(dimID+1); ++ih)
-        for(int factor = 0; factor < factorH; ++factor)
-            if(isNCDHW)
-                output({{},{},{},{ih+factor, ih+factor+1},{}}).assign( input({{},{},{},{ih, ih+1},{}}) );
-            else 
-                output({{},{ih+factor, ih+factor+1},{},{},{}}).assign( input({{},{ih, ih+1},{},{},{}}) );
-
-
-    // upsample columns
-#pragma omp parallel for schedule(guided) collapse(2)
-    for(int iw = 0; iw < input.sizeAt(dimID+2); ++iw)
-        for(int factor = 0; factor < factorW; ++factor)
-            if(isNCDHW)
-                output({{},{},{},{},{iw+factor, iw+factor+1}}).assign( input({{},{},{},{},{iw, iw+1}}) );
-            else 
-                output({{},{},{},{iw+factor, iw+factor+1},{}}).assign( input({{},{},{},{iw, iw+1},{}}) );
+        for(int fd = 0; fd < factorD; ++fd)
+            for(int ih = 0; ih < input.sizeAt(dimID+1); ++ih)
+                for(int fh = 0; fh < factorH; ++fh)
+                    for(int iw = 0; iw < input.sizeAt(dimID+2); ++iw)
+                        for(int fw = 0; fw < factorW; ++fw)
+                            if(isNCDHW)
+                                output({{},{},{id*factorD+fd, id*factorD+fd+1},{ih*factorH+fh, ih*factorH+fh+1},{iw*factorW+fw, iw*factorW+fw+1}}).assign( input({{},{},{id, id+1},{ih, ih+1},{iw, iw+1}}) );
+                            else
+                                output({{},{id*factorD+fd, id*factorD+fd+1},{ih*factorH+fh, ih*factorH+fh+1},{iw*factorW+fw, iw*factorW+fw+1},{}}).assign( input({{},{id, id+1},{ih, ih+1},{iw, iw+1},{}}) );
     
 }
 
