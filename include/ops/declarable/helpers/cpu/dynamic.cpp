@@ -12,26 +12,30 @@ namespace nd4j {
             template <typename T>
             void dynamicPartitionFunctor(NDArray<T>* input, NDArray<T>* indices, std::vector<NDArray<T>*>& outputList) {
                 std::vector<std::pair<NDArray<T> *, int>> outputs(outputList.size());
-                if (input->rankOf() != indices->rankOf()) {
-                    std::vector<int> sourceDims(input->rankOf() - indices->rankOf());
+                int sourceDimsLen = input->rankOf() - indices->rankOf();
+                if (sourceDimsLen) {
+                    std::vector<int> sourceDims(sourceDimsLen);
 
 #pragma omp parallel for if(sourceDims.size() > Environment::getInstance()->elementwiseThreshold()) schedule(static)
-                    for (int i = sourceDims.size(); i > 0; i--)
-                        sourceDims[sourceDims.size() - i] = input->rankOf() - i;
+                    for (int i = sourceDimsLen; i > 0; i--)
+                        sourceDims[sourceDimsLen - i] = input->rankOf() - i;
 
-                    std::unique_ptr<ResultSet<T>> listOfTensors(
-                            NDArrayFactory<T>::allTensorsAlongDimension(input, sourceDims));
+                    std::unique_ptr<ResultSet<T>> listOfTensors(NDArrayFactory<T>::allTensorsAlongDimension(input, sourceDims));
 
 #pragma omp parallel for if(outputList.size() > Environment::getInstance()->elementwiseThreshold()) schedule(static)
                     for (unsigned int i = 0; i < outputList.size(); i++) {
                         outputs[i].first = outputList[i];
                         std::vector<int> outDims(outputs[i].first->rankOf() - 1);
+
 #pragma omp parallel for if(outputs[i].first->rankOf() > Environment::getInstance()->elementwiseThreshold()) schedule(static)
                         for (int k = 1; k < outputs[i].first->rankOf(); k++)
                             outDims[k - 1] = k;
+
                         std::unique_ptr<ResultSet<T>> listOutForCurrent(
                                 NDArrayFactory<T>::allTensorsAlongDimension(outputs[i].first, outDims));
+
                         outputs[i].second = 0;
+
 #pragma omp parallel for if(indices->lengthOf() > Environment::getInstance()->elementwiseThreshold()) schedule(static)
                         for (int e = 0; e < indices->lengthOf(); ++e)
                             if ((*indices)(e) == T(i))
