@@ -35,7 +35,7 @@ DECLARE_SYN(upsampling, upsampling2d);
 
         
 DECLARE_SHAPE_FN(upsampling2d) {
-            
+    
     int* inputShapeInfo = inputShape->at(0);
     
     REQUIRE_TRUE(inputShapeInfo[0] == 4, 0, "UPSAMPLING2D op: input should be 4D, but got %i instead!", inputShapeInfo[0]);
@@ -47,13 +47,13 @@ DECLARE_SHAPE_FN(upsampling2d) {
     int* outputShapeInfo = nullptr;
     ALLOCATE(outputShapeInfo, block.getWorkspace(), shape::shapeInfoLength(inputShapeInfo[0]), int);
 
-    int dimH  = isNCHW ? 2 : 1;
+    int dimIH = isNCHW ? 2 : 1;
     int dimIC = isNCHW ? 1 : 3;
 
     outputShapeInfo[0]      = inputShapeInfo[0];
     outputShapeInfo[dimIC]  = inputShapeInfo[dimIC];;
-    outputShapeInfo[dimH]   = inputShapeInfo[dimH];
-    outputShapeInfo[dimH+1] = inputShapeInfo[dimH+1];
+    outputShapeInfo[dimIH]   = inputShapeInfo[dimIH];
+    outputShapeInfo[dimIH+1] = inputShapeInfo[dimIH+1];
 
     shape::updateStrides(outputShapeInfo, shape::order(inputShapeInfo));
 

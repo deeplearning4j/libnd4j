@@ -2034,4 +2034,35 @@ TEST_F(ConvolutionTests, conv3d_test12) {
     delete results;
 }
 
+TEST_F(ConvolutionTests, upsampling2d_test1) {
+
+    const int bS=3,  iH=2,iW=2,  iC=3;
+    const int factorH=2, factorW=3; 
+    const int isNCHW = 0;                    // data format, default is NHWC
+
+    NDArray<float> input ('c', {bS, iH, iW, iC});    
+    NDArrayFactory<float>::linspace(1, input);
+
+    NDArray<float> expOutput('c', {bS, iH*factorH, iW*factorW, iC}, {1.,  2.,  3., 1.,  2.,  3., 1.,  2.,  3., 4.,  5.,  6., 4.,  5.,  6., 4.,  5.,  6., 1.,  2.,  3., 1.,  2.,  3., 1.,  2.,  3., 4.,  5.,  6., 4.,  5.,  6., 4.,  5.,  6.,
+                                         7.,  8.,  9., 7.,  8.,  9., 7.,  8.,  9.,10., 11., 12.,10., 11., 12.,10., 11., 12., 7.,  8.,  9., 7.,  8.,  9., 7.,  8.,  9.,10., 11., 12.,10., 11., 12.,10., 11., 12.,
+                                        13., 14., 15.,13., 14., 15.,13., 14., 15.,16., 17., 18.,16., 17., 18.,16., 17., 18.,13., 14., 15.,13., 14., 15.,13., 14., 15.,16., 17., 18.,16., 17., 18.,16., 17., 18.,
+                                        19., 20., 21.,19., 20., 21.,19., 20., 21.,22., 23., 24.,22., 23., 24.,22., 23., 24.,19., 20., 21.,19., 20., 21.,19., 20., 21.,22., 23., 24.,22., 23., 24.,22., 23., 24.,
+                                        25., 26., 27.,25., 26., 27.,25., 26., 27.,28., 29., 30.,28., 29., 30.,28., 29., 30.,25., 26., 27.,25., 26., 27.,25., 26., 27.,28., 29., 30.,28., 29., 30.,28., 29., 30.,
+                                        31., 32., 33.,31., 32., 33.,31., 32., 33.,34., 35., 36.,34., 35., 36.,34., 35., 36.,31., 32., 33.,31., 32., 33.,31., 32., 33.,34., 35., 36.,34., 35., 36.,34., 35., 36.});
+    // printf("!!!!!!\n");    
+    nd4j::ops::upsampling2d<float> op;
+    ResultSet<float>* results = op.execute({&input}, {}, {factorH, factorW, isNCHW});
+    NDArray<float>* output = results->at(0);    
+
+    ASSERT_EQ(Status::OK(), results->status());
+
+    ASSERT_TRUE(expOutput.isSameShape(output));
+    ASSERT_TRUE(expOutput.equalsTo(output));    
+    
+    delete results;
+}
+
+
 #endif //LIBND4J_CONVOLUTIONTESTS_H
+
+ 

@@ -1592,26 +1592,66 @@ template <typename T>
 void ConvolutionUtils<T>::upsampling2d(const NDArray<T>& input, NDArray<T>& output, const int factorH, const int factorW, const bool isNCHW) {
     // input  has shape [bS, iC, iH, iW] (NCHW) or [bS, iH, iW, iC] (NHWC) 
     // output has shape [bS, iC, factorH*iH, factorW*iW ] (NCHW) or [bS, factorH*iH, factorW*iW, iC] (NHWC)
-    int dimH = isNCHW ? 2 : 1;
+    int dimIH = isNCHW ? 2 : 1;
 
     // upsample rows
 #pragma omp parallel for schedule(guided) collapse(2)
-    for(int ih = 0; ih < input.sizeAt(dimH); ++ih)
+    for(int ih = 0; ih < input.sizeAt(dimIH); ++ih)
         for(int factor = 0; factor < factorH; ++factor)
             if(isNCHW)
-                output({{},{},{ih+factor, ih+factor+1},{}}) = input({{},{},{ih, ih+1},{}});
+                output({{},{},{ih+factor, ih+factor+1},{}}).assign( input({{},{},{ih, ih+1},{}}) );
             else 
-                output({{},{ih+factor, ih+factor+1},{},{}}) = input({{},{ih, ih+1},{},{}});
+                output({{},{ih+factor, ih+factor+1},{},{}}).assign( input({{},{ih, ih+1},{},{}}) );
 
 
     // upsample columns
 #pragma omp parallel for schedule(guided) collapse(2)
-    for(int iw = 0; iw < input.sizeAt(dimH+1); ++iw)
+    for(int iw = 0; iw < input.sizeAt(dimIH+1); ++iw)
         for(int factor = 0; factor < factorW; ++factor)
             if(isNCHW)
-                output({{},{},{},{iw+factor, iw+factor+1}}) = input({{},{},{},{iw, iw+1}});
+                output({{},{},{},{iw+factor, iw+factor+1}}).assign( input({{},{},{},{iw, iw+1}}) );
             else 
-                output({{},{},{iw+factor, iw+factor+1},{}}) = input({{},{},{iw, iw+1},{}});
+                output({{},{},{iw+factor, iw+factor+1},{}}).assign( input({{},{},{iw, iw+1},{}}) );
+    
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+template <typename T>
+void ConvolutionUtils<T>::upsampling3d(const NDArray<T>& input, NDArray<T>& output, const int factorD, const int factorH, const int factorW, const bool isNCDHW) {
+    // input  has shape [bS, iC, iD, iH, iW] (NCDHW) or [bS, iD, iH, iW, iC] (NDHWC) 
+    // output has shape [bS, iC, factorD*iD, factorH*iH, factorW*iW ] (NCDHW) or [bS, factorD*iD, factorH*iH, factorW*iW, iC] (NDHWC)
+    int dimID = isNCDHW ? 2 : 1;
+
+    // upsample depth
+#pragma omp parallel for schedule(guided) collapse(2)
+    for(int id = 0; id < input.sizeAt(dimID); ++id)
+        for(int factor = 0; factor < factorD; ++factor)
+            if(isNCDHW)
+                output({{},{},{id+factor, id+factor+1},{},{}}).assign( input({{},{},{id, id+1},{},{}}) );
+            else 
+                output({{},{id+factor, id+factor+1},{},{},{}}).assign( input({{},{id, id+1},{},{},{}}) );
+
+
+
+    // upsample rows
+#pragma omp parallel for schedule(guided) collapse(2)
+    for(int ih = 0; ih < input.sizeAt(dimID+1); ++ih)
+        for(int factor = 0; factor < factorH; ++factor)
+            if(isNCDHW)
+                output({{},{},{},{ih+factor, ih+factor+1},{}}).assign( input({{},{},{},{ih, ih+1},{}}) );
+            else 
+                output({{},{ih+factor, ih+factor+1},{},{},{}}).assign( input({{},{ih, ih+1},{},{},{}}) );
+
+
+    // upsample columns
+#pragma omp parallel for schedule(guided) collapse(2)
+    for(int iw = 0; iw < input.sizeAt(dimID+2); ++iw)
+        for(int factor = 0; factor < factorW; ++factor)
+            if(isNCDHW)
+                output({{},{},{},{},{iw+factor, iw+factor+1}}).assign( input({{},{},{},{},{iw, iw+1}}) );
+            else 
+                output({{},{},{},{iw+factor, iw+factor+1},{}}).assign( input({{},{},{},{iw, iw+1},{}}) );
     
 }
 
