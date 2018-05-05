@@ -93,6 +93,8 @@ namespace nd4j {
             static void upsampling2d(const NDArray<T>& input, NDArray<T>& output, const int factorH, const int factorW, const bool isNCHW);
 
             static void upsampling3d(const NDArray<T>& input, NDArray<T>& output, const int factorD, const int factorH, const int factorW, const bool isNCHW);
+
+            static void upsampling2dBP(const NDArray<T>& gradO, NDArray<T>& gradI, const int factorH, const int factorW, const bool isNCHW);
     };
 
 }

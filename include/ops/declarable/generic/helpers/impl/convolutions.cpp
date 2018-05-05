@@ -1628,6 +1628,34 @@ void ConvolutionUtils<T>::upsampling3d(const NDArray<T>& input, NDArray<T>& outp
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+template <typename T>
+void ConvolutionUtils<T>::upsampling2dBP(const NDArray<T>& gradO, NDArray<T>& gradI, const int factorH, const int factorW, const bool isNCHW) {
+    // gradO has shape [bS, iC, factorH*iH, factorW*iW ] (NCHW) or [bS, factorH*iH, factorW*iW, iC] (NHWC)
+    // gradI has shape [bS, iC, iH, iW] (NCHW) or [bS, iH, iW, iC] (NHWC)     
+    int dimIH = isNCHW ? 2 : 1;
+
+#pragma omp parallel for schedule(guided) collapse(4)
+    for(int ih = 0; ih < gradI.sizeAt(dimIH); ++ih)
+        for(int fh = 0; fh < factorH; ++fh)
+            for(int iw = 0; iw < gradI.sizeAt(dimIH+1); ++iw)
+                for(int fw = 0; fw < factorW; ++fw)
+                    if(isNCHW) {
+                        if(!fw)                           
+                            gradI({{}, {}, {ih, ih+1}, {iw, iw+1}}).assign( gradO({{}, {}, {ih*factorH+fh, ih*factorH+fh+1}, {iw*factorW, iw*factorW+1}}) );       // first step                                   
+                        else
+                            // gradI({{}, {}, {ih, ih+1}, {iw, iw+1}}).assign( gradO({{}, {}, {ih*factorH+fh, ih*factorH+fh+1}, {iw*factorW+fw, iw*factorW+fw+1}}) + gradI({{}, {}, {ih, ih+1}, {iw, iw+1}}));
+                            gradI({{}, {}, {ih, ih+1}, {iw, iw+1}}) += gradO({{}, {}, {ih*factorH+fh, ih*factorH+fh+1}, {iw*factorW+fw, iw*factorW+fw+1}});
+                    }
+                    else {
+                        if(!fw)
+                            gradI({{}, {ih, ih+1}, {iw, iw+1}, {}}).assign( gradO({{}, {ih*factorH+fh, ih*factorH+fh+1}, {iw*factorW, iw*factorW+1}, {}}) );      // first step
+                        else
+                            // gradI({{}, {ih, ih+1}, {iw, iw+1}, {}}).assign( gradI({{}, {ih, ih+1}, {iw, iw+1}, {}}) + gradO({{}, {ih*factorH+fh, ih*factorH+fh+1}, {iw*factorW+fw, iw*factorW+fw+1}, {}}) );
+                            gradI({{}, {ih, ih+1}, {iw, iw+1}, {}}) +=  gradO({{}, {ih*factorH+fh, ih*factorH+fh+1}, {iw*factorW+fw, iw*factorW+fw+1}, {}});
+                    }
+}
+
 template class ND4J_EXPORT ConvolutionUtils<float>;
 template class ND4J_EXPORT ConvolutionUtils<float16>;
 template class ND4J_EXPORT ConvolutionUtils<double>;

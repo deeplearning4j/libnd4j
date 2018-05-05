@@ -215,7 +215,7 @@ namespace nd4j {
          */
         #if NOT_EXCLUDED(OP_upsampling2d)
         DECLARE_CUSTOM_OP(upsampling2d, 1, 1, false, 0, 2);
-        DECLARE_CUSTOM_OP(upsampling2d_bp, 2, 1, false, 0, 1);
+        DECLARE_CUSTOM_OP(upsampling2d_bp, 1, 1, false, 0, 2);
         #endif
 
         /**

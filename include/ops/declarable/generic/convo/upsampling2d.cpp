@@ -67,6 +67,57 @@ DECLARE_SHAPE_FN(upsampling2d) {
 }
 
 
+//////////////////////////////////////////////////////////////////////
+CUSTOM_OP_IMPL(upsampling2d_bp, 1, 1, false, 0, 2) {
+    
+    NDArray<T>* gradO = INPUT_VARIABLE(0);             // [bS, iC, factorH*iH, factorW*iW ] (NCHW) or [bS, factorH*iH, factorW*iW, iC] (NHWC)
+    NDArray<T>* gradI = OUTPUT_VARIABLE(0);            // [bS, iC, iH, iW] (NCHW) or [bS, iH, iW, iC] (NHWC) 
+            
+    const int factorH = INT_ARG(0);
+    const int factorW = INT_ARG(1);
+    const int isNCHW  = block.getIArguments()->size() > 2 ? INT_ARG(2) : 0;       // 1-NCHW,  0-NHWC
+
+    REQUIRE_TRUE(gradO->rankOf() == 4, 0, "UPSAMPLING2D_BP op: output's gradient array must be 4D, but got %i instead!", gradO->rankOf());
+    REQUIRE_TRUE(gradI->rankOf() == 4, 0, "UPSAMPLING2D_BP op: input's gradient array must be 4D, but got %i instead!", gradI->rankOf());
+
+    ConvolutionUtils<T>::upsampling2dBP(*gradO, *gradI, factorH, factorW, (bool)isNCHW);
+
+    return Status::OK();
+}
+
+        
+DECLARE_SHAPE_FN(upsampling2d_bp) {
+    
+    int* gradOShapeInfo = inputShape->at(0);
+    
+    REQUIRE_TRUE(gradOShapeInfo[0] == 4, 0, "UPSAMPLING2D op: output's gradient array must be 4D, but got %i instead!", gradOShapeInfo[0]);
+
+    const int factorH = INT_ARG(0);
+    const int factorW = INT_ARG(1);
+    const int isNCHW  = block.getIArguments()->size() > 2 ? INT_ARG(2) : 0;       // 1-NCHW,  0-NHWC
+
+    int* gradIShapeInfo = nullptr;
+    ALLOCATE(gradIShapeInfo, block.getWorkspace(), shape::shapeInfoLength(gradOShapeInfo[0]), int);
+
+    gradIShapeInfo[0] = gradOShapeInfo[0];
+    gradIShapeInfo[1] = gradOShapeInfo[1];
+
+    if(isNCHW) {
+        gradIShapeInfo[2] = gradOShapeInfo[2];
+        gradIShapeInfo[3] = gradOShapeInfo[3] / factorH;
+        gradIShapeInfo[4] = gradOShapeInfo[4] / factorW;
+    }
+    else {        
+        gradIShapeInfo[2] = gradOShapeInfo[2] / factorH;
+        gradIShapeInfo[3] = gradOShapeInfo[3] / factorW;
+        gradIShapeInfo[4] = gradOShapeInfo[4];
+    }
+
+    shape::updateStrides(gradIShapeInfo, shape::order(gradOShapeInfo));
+
+    return SHAPELIST(gradIShapeInfo);
+}
+
         // //////////////////////////////////////////////////////////////////////////
         // /**
         //  * Upsampling backprop implementation, based on pytorch
@@ -79,15 +130,14 @@ DECLARE_SHAPE_FN(upsampling2d) {
         //  * IArgs map:
         //  * IArgs[0] - scale factor
         //  */
-        // CUSTOM_OP_IMPL(upsampling2d_bp, 2, 1, false, 0, 1) {
+        // CUSTOM_OP_IMPL(upsampling2d_bp, 1, 1, false, 0, 2) {
         //     //NDArray<T>* input = block.getVariables().at(0)->getNDArray();
-        //     NDArray<T>* gradientNext = INPUT_VARIABLE(1);
-        //     NDArray<T>* output = this->getZ(block);
-        //     int scale_factor = INT_ARG(0);
+        //     NDArray<T>* gradientNext = INPUT_VARIABLE(0);
+        //     NDArray<T>* output = OUTPUT_VARIABLE(0);;
+        //     int dW = INT_ARG(0);
+        //     int dH = INT_ARG(1);
 
 
-        //     int dW = scale_factor;
-        //     int dH = scale_factor;
         //     int xDim = output->rankOf() - 2;
         //     int yDim = output->rankOf() - 1;
 
@@ -151,11 +201,12 @@ DECLARE_SHAPE_FN(upsampling2d) {
         // DECLARE_SHAPE_FN(upsampling2d_bp) {
         //     auto inShape = inputShape->at(0);
 
-        //     int scale = INT_ARG(0);
+        //     int scale0 = INT_ARG(0);
+        //     int scale1 = INT_ARG(1);
 
         //     int* newShape;
         //     ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(4), int);
-        //     int shape[] = {shape::shapeOf(inShape)[0], shape::shapeOf(inShape)[1], shape::shapeOf(inShape)[2] / scale, shape::shapeOf(inShape)[3] / scale};
+        //     int shape[] = {shape::shapeOf(inShape)[0], shape::shapeOf(inShape)[1], shape::shapeOf(inShape)[2] / scale0, shape::shapeOf(inShape)[3] / scale1};
         //     shape::shapeBuffer(4, shape, newShape);
 
         //     return SHAPELIST(newShape);

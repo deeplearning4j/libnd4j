@@ -2162,8 +2162,60 @@ TEST_F(ConvolutionTests, upsampling3d_test2) {
     
     delete results;
 }
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(ConvolutionTests, upsampling2d_bp_test1) {
+
+    const int bS=3,  iH=2,iW=2,  iC=3;
+    const int factorH=2, factorW=3; 
+    const int isNCHW = 1;                    // data format, default is NHWC
+
+    NDArray<float> gradO ('c', {bS, iC, iH*factorH, iW*factorW});
+    NDArrayFactory<float>::linspace(0.5, gradO, 0.5);
+
+    NDArray<float> expGradI('c', {bS, iC, iH, iW}, {15., 24., 51., 60., 87., 96., 123., 132., 159., 168., 195., 204., 231., 240., 267., 276., 303., 312., 339., 348., 
+                                                    375., 384.,  411., 420., 447., 456., 483., 492., 519., 528., 555., 564., 591., 600., 627., 636.});
+
+    nd4j::ops::upsampling2d_bp<float> op;
+    ResultSet<float>* results = op.execute({&gradO}, {}, {factorH, factorW, isNCHW});
+    NDArray<float>* gradI = results->at(0);    
+    gradI->printIndexedBuffer();
+   
+    ASSERT_EQ(Status::OK(), results->status());
+    ASSERT_TRUE(expGradI.isSameShape(gradI));
+    // ASSERT_TRUE(expGradI.equalsTo(gradI));    
+    
+    delete results;
+}
+
 #endif //LIBND4J_CONVOLUTIONTESTS_H
 
  
  
  
+//////////////////////////////////////////////////////////////////////
+// TEST_F(ConvolutionTests, upsampling2d_bp_test1) {
+
+//     const int bS=3,  iH=2,iW=2,  iC=3;
+//     const int factorH=2, factorW=3; 
+//     const int isNCHW = 0;                    // data format, default is NHWC
+
+//     NDArray<float> gradO ('c', {bS, iC, iH*factorH, iW*factorW});
+//     NDArrayFactory<float>::linspace(0.5, gradO, 0.5);
+
+//     // NDArray<float> expGradI('c', {bS, iC, iH, iW}, {15., 24., 51., 60., 87., 96., 123., 132., 159., 168., 195., 204., 231., 240., 267., 276., 303., 312., 339., 348., 
+//     //                                                 375., 384.,  411., 420., 447., 456., 483., 492., 519., 528., 555., 564., 591., 600., 627., 636.});
+
+//     nd4j::ops::upsampling2d_bp<float> op;
+//     ResultSet<float>* results = op.execute({&gradO}, {}, {factorH, factorW});
+//     NDArray<float>* output = results->at(0);    
+//     output->printIndexedBuffer();
+//     printf("\n \n");
+//     output->printShapeInfo();
+
+//     ASSERT_EQ(Status::OK(), results->status());
+//     // ASSERT_TRUE(expOutput.isSameShape(output));
+//     // ASSERT_TRUE(expOutput.equalsTo(output));    
+    
+//     delete results;
+// }
