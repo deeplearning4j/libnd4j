@@ -490,6 +490,8 @@ TEST_F(RNGTests, Test_Reproducibility_1) {
 
     for (auto v: expList)
             delete v;
+
+    ops.destroyRandom(reinterpret_cast<Nd4jPointer>(rng));
 }
 
 TEST_F(RNGTests, Test_Reproducibility_2) {
@@ -515,6 +517,18 @@ TEST_F(RNGTests, Test_Reproducibility_2) {
             auto t = arrayE->equalsTo(arrayT);
             if (!t) {
                 nd4j_printf("Failed at iteration [%i] for array [%i]\n", e, a);
+
+                for (Nd4jIndex f = 0; f < arrayE->lengthOf(); f++) {
+                    double x = arrayE->getIndexedScalar(f);
+                    double y = arrayT->getIndexedScalar(f);
+
+                    if (nd4j::math::nd4j_re(x, y) > 0.1) {
+                        nd4j_printf("E[%lld]%f != T[%lld]%f at %lld\n", (long long) f, (float) x, (long long) f, (float) y);
+                        throw "boom";
+                    }
+
+                }
+
                 ASSERT_TRUE(false);
             }
 
@@ -524,4 +538,6 @@ TEST_F(RNGTests, Test_Reproducibility_2) {
 
     for (auto v: expList)
             delete v;
+
+    ops.destroyRandom(reinterpret_cast<Nd4jPointer>(rng));
 }
