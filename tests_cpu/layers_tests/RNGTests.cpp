@@ -458,6 +458,78 @@ namespace nd4j {
     }
 }
 
+TEST_F(RNGTests, Test_Reproducibility_9) { 
+    NativeOps ops;
+    Nd4jIndex seed = 123;
+
+    std::vector<int> shape = {32, 3, 28, 28};
+    const int bufferSize = 10000;
+    int64_t buffer[bufferSize];
+
+    auto rng = (nd4j::random::RandomBuffer *) ops.initRandom(nullptr, seed, bufferSize, buffer);
+
+    const int length = 4000000;
+    int *arrayE = new int[length];
+    int *arrayT = new int[length];
+
+    for (int e = 0; e < length; e++)
+        arrayE[e] = rng->relativeInt(e);
+
+    rng->rewindH(static_cast<Nd4jIndex>(length));
+
+    ops.refreshBuffer(nullptr, seed, reinterpret_cast<Nd4jPointer>(rng));
+
+    for (int e = 0; e < length; e++)
+        arrayT[e] = rng->relativeInt(e);
+
+    rng->rewindH(static_cast<Nd4jIndex>(length));
+    
+    for (int e = 0; e < length; e++)
+        if (arrayE[e] != arrayT[e]) {
+            nd4j_printf("Failed at index[%i]\n", e);
+            ASSERT_TRUE(false);
+        }
+
+    delete[] arrayE;
+    delete[] arrayT;
+}
+
+TEST_F(RNGTests, Test_Reproducibility_8) { 
+    NativeOps ops;
+    Nd4jIndex seed = 123;
+
+    std::vector<int> shape = {32, 3, 28, 28};
+    const int bufferSize = 10000;
+    int64_t buffer[bufferSize];
+
+    auto rng = (nd4j::random::RandomBuffer *) ops.initRandom(nullptr, seed, bufferSize, buffer);
+
+    const int length = 4000000;
+    int *arrayE = new int[length];
+    int *arrayT = new int[length];
+
+    for (int e = 0; e < length; e++)
+        arrayE[e] = static_cast<int>(rng->relativeT<float>(e));
+
+    rng->rewindH(static_cast<Nd4jIndex>(length));
+
+    ops.refreshBuffer(nullptr, seed, reinterpret_cast<Nd4jPointer>(rng));
+
+    for (int e = 0; e < length; e++)
+        arrayT[e] = static_cast<int>(rng->relativeT<float>(e));
+
+    rng->rewindH(static_cast<Nd4jIndex>(length));
+    
+    for (int e = 0; e < length; e++)
+        if (arrayE[e] != arrayT[e]) {
+            nd4j_printf("Failed at index[%i]\n", e);
+            ASSERT_TRUE(false);
+        }
+
+    delete[] arrayE;
+    delete[] arrayT;
+}
+
 TEST_F(RNGTests, Test_Reproducibility_1) {
     NativeOps ops;
     Nd4jIndex seed = 123;

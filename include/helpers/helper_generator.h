@@ -163,6 +163,7 @@ namespace nd4j {
             void _CUDA_HD setSeed(Nd4jIndex seed) {
                 this->seed = seed;
                 this->amplifier = seed;
+                this->generation = 1;
             }
 
             Nd4jIndex _CUDA_HD getAllocatedSize() {
