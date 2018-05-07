@@ -215,7 +215,7 @@ namespace nd4j {
          */
         #if NOT_EXCLUDED(OP_upsampling2d)
         DECLARE_CUSTOM_OP(upsampling2d, 1, 1, false, 0, 2);
-        DECLARE_CUSTOM_OP(upsampling2d_bp, 1, 1, false, 0, 2);
+        DECLARE_CUSTOM_OP(upsampling2d_bp, 2, 1, false, 0, 0);
         #endif
 
         /**
@@ -228,7 +228,8 @@ namespace nd4j {
          * 3: data format: 0 NDHWC (default), 1 NCDHW
          */
         #if NOT_EXCLUDED(OP_upsampling3d)
-        DECLARE_CUSTOM_OP(upsampling3d, 1, 1, false, 0, 3);        
+        DECLARE_CUSTOM_OP(upsampling3d, 1, 1, false, 0, 3);
+        DECLARE_CUSTOM_OP(upsampling3d_bp, 2, 1, false, 0, 0);    
         #endif
 
         /**

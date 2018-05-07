@@ -2096,7 +2096,7 @@ TEST_F(ConvolutionTests, upsampling3d_test1) {
 
     const int bS=3,  iD=2,iH=2,iW=2,  iC=3;
     const int factorD=2,factorH=3,factorW=2; 
-    const int isNCHW = 0;                    // data format, default is NHWC
+    const int isNCDHW = 0;                    // data format, default is NHWC
 
     NDArray<float> input ('c', {bS, iD, iH, iW, iC});    
     NDArrayFactory<float>::linspace(1, input);
@@ -2118,7 +2118,7 @@ TEST_F(ConvolutionTests, upsampling3d_test1) {
             67., 68., 69.,67., 68., 69.,70., 71., 72.,70., 71., 72.,67., 68., 69.,67., 68., 69.,70., 71., 72.,70., 71., 72.});
     
     nd4j::ops::upsampling3d<float> op;
-    ResultSet<float>* results = op.execute({&input}, {}, {factorD, factorH, factorW, isNCHW});
+    ResultSet<float>* results = op.execute({&input}, {}, {factorD, factorH, factorW, isNCDHW});
     NDArray<float>* output = results->at(0);    
 
     ASSERT_EQ(Status::OK(), results->status());
@@ -2133,7 +2133,7 @@ TEST_F(ConvolutionTests, upsampling3d_test2) {
 
     const int bS=3,  iD=2,iH=2,iW=2,  iC=3;
     const int factorD=2,factorH=3,factorW=2;
-    const int isNCHW = 1;                    // data format, default is NHWC
+    const int isNCDHW = 1;                    // data format, default is NHWC
 
     NDArray<float> input ('c', {bS, iC, iD, iH, iW});    
     NDArrayFactory<float>::linspace(1, input);
@@ -2152,7 +2152,7 @@ TEST_F(ConvolutionTests, upsampling3d_test2) {
             65., 65., 66., 66.,65., 65., 66., 66.,65., 65., 66., 66.,67., 67., 68., 68.,67., 67., 68., 68.,67., 67., 68., 68.,69., 69., 70., 70.,69., 69., 70., 70.,69., 69., 70., 70.,71., 71., 72., 72.,71., 71., 72., 72.,71., 71., 72., 72.,69., 69., 70., 70.,69., 69., 70., 70.,69., 69., 70., 70.,71., 71., 72., 72.,71., 71., 72., 72.,71., 71., 72., 72.});
 
     nd4j::ops::upsampling3d<float> op;
-    ResultSet<float>* results = op.execute({&input}, {}, {factorD, factorH, factorW, isNCHW});
+    ResultSet<float>* results = op.execute({&input}, {}, {factorD, factorH, factorW, isNCDHW});
     NDArray<float>* output = results->at(0);    
 
     ASSERT_EQ(Status::OK(), results->status());
@@ -2166,56 +2166,77 @@ TEST_F(ConvolutionTests, upsampling3d_test2) {
 //////////////////////////////////////////////////////////////////////
 TEST_F(ConvolutionTests, upsampling2d_bp_test1) {
 
-    const int bS=3,  iH=2,iW=2,  iC=3;
-    const int factorH=2, factorW=3; 
+    const int bS=1,  iH=2,iW=2,  iC=1;
+    const int factorH=2, factorW=2; 
     const int isNCHW = 1;                    // data format, default is NHWC
 
+    NDArray<float> input ('c', {bS, iC, iH, iW});
     NDArray<float> gradO ('c', {bS, iC, iH*factorH, iW*factorW});
-    NDArrayFactory<float>::linspace(0.5, gradO, 0.5);
+    gradO = 1.;
 
-    NDArray<float> expGradI('c', {bS, iC, iH, iW}, {15., 24., 51., 60., 87., 96., 123., 132., 159., 168., 195., 204., 231., 240., 267., 276., 303., 312., 339., 348., 
-                                                    375., 384.,  411., 420., 447., 456., 483., 492., 519., 528., 555., 564., 591., 600., 627., 636.});
+    NDArray<float> expGradI('c', {bS, iC, iH, iW});
+    expGradI = 4.;
 
     nd4j::ops::upsampling2d_bp<float> op;
-    ResultSet<float>* results = op.execute({&gradO}, {}, {factorH, factorW, isNCHW});
+    ResultSet<float>* results = op.execute({&input, &gradO}, {}, {isNCHW});
     NDArray<float>* gradI = results->at(0);    
-    gradI->printIndexedBuffer();
-   
+
     ASSERT_EQ(Status::OK(), results->status());
     ASSERT_TRUE(expGradI.isSameShape(gradI));
-    // ASSERT_TRUE(expGradI.equalsTo(gradI));    
+    ASSERT_TRUE(expGradI.equalsTo(gradI));    
     
     delete results;
 }
 
-#endif //LIBND4J_CONVOLUTIONTESTS_H
-
- 
- 
- 
 //////////////////////////////////////////////////////////////////////
-// TEST_F(ConvolutionTests, upsampling2d_bp_test1) {
+TEST_F(ConvolutionTests, upsampling2d_bp_test2) {
 
-//     const int bS=3,  iH=2,iW=2,  iC=3;
-//     const int factorH=2, factorW=3; 
-//     const int isNCHW = 0;                    // data format, default is NHWC
+    const int bS=1,  iH=2,iW=2,  iC=1;
+    const int factorH=2, factorW=2; 
+    const int isNCHW = 0;                    // data format, default is NHWC
 
-//     NDArray<float> gradO ('c', {bS, iC, iH*factorH, iW*factorW});
-//     NDArrayFactory<float>::linspace(0.5, gradO, 0.5);
+    NDArray<float> input ('c', {bS, iH, iW, iC});
+    NDArray<float> gradO ('c', {bS, iH*factorH, iW*factorW, iC});
+    gradO = 1.;
 
-//     // NDArray<float> expGradI('c', {bS, iC, iH, iW}, {15., 24., 51., 60., 87., 96., 123., 132., 159., 168., 195., 204., 231., 240., 267., 276., 303., 312., 339., 348., 
-//     //                                                 375., 384.,  411., 420., 447., 456., 483., 492., 519., 528., 555., 564., 591., 600., 627., 636.});
+    NDArray<float> expGradI('c', {bS, iH, iW, iC});
+    expGradI = 4.;
 
-//     nd4j::ops::upsampling2d_bp<float> op;
-//     ResultSet<float>* results = op.execute({&gradO}, {}, {factorH, factorW});
-//     NDArray<float>* output = results->at(0);    
-//     output->printIndexedBuffer();
-//     printf("\n \n");
-//     output->printShapeInfo();
+    nd4j::ops::upsampling2d_bp<float> op;
+    ResultSet<float>* results = op.execute({&input, &gradO}, {}, {isNCHW});
+    NDArray<float>* gradI = results->at(0);    
 
-//     ASSERT_EQ(Status::OK(), results->status());
-//     // ASSERT_TRUE(expOutput.isSameShape(output));
-//     // ASSERT_TRUE(expOutput.equalsTo(output));    
+    ASSERT_EQ(Status::OK(), results->status());
+    ASSERT_TRUE(expGradI.isSameShape(gradI));
+    ASSERT_TRUE(expGradI.equalsTo(gradI));    
     
-//     delete results;
-// }
+    delete results;
+}
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(ConvolutionTests, upsampling3d_bp_test1) {
+
+    const int bS=1,  iD=2,iH=2,iW=2,  iC=1;
+    const int factorD=2, factorH=2, factorW=2; 
+    const int isNCDHW = 1;                    // data format, default is NHWC
+
+    NDArray<float> input ('c', {bS, iC, iD, iH, iW});
+    NDArray<float> gradO ('c', {bS, iC, iD*factorD, iH*factorH, iW*factorW});
+    gradO = 1.;
+
+    NDArray<float> expGradI('c', {bS, iC, iD, iH, iW});
+    expGradI = 8.;
+
+    nd4j::ops::upsampling3d_bp<float> op;
+    ResultSet<float>* results = op.execute({&input, &gradO}, {}, {isNCDHW});
+    NDArray<float>* gradI = results->at(0);    
+
+    ASSERT_EQ(Status::OK(), results->status());
+    ASSERT_TRUE(expGradI.isSameShape(gradI));
+    ASSERT_TRUE(expGradI.equalsTo(gradI));    
+    
+    delete results;
+}
+
+
+#endif //LIBND4J_CONVOLUTIONTESTS_H

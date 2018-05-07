@@ -67,6 +67,36 @@ DECLARE_SHAPE_FN(upsampling3d) {
     return SHAPELIST(outputShapeInfo);
 }
 
+//////////////////////////////////////////////////////////////////////
+CUSTOM_OP_IMPL(upsampling3d_bp, 2, 1, false, 0, 0) {
+    
+    // NDArray<T>* input = INPUT_VARIABLE(0);             // [bS, iC, iD, iH, iW] (NCDHW) or [bS, iD, iH, iW, iC] (NDHWC) 
+    NDArray<T>* gradO = INPUT_VARIABLE(1);             // [bS, iC, factorD*iD, factorH*iH, factorW*iW ] (NCDHW) or [bS, factorD*iD, factorH*iH, factorW*iW, iC] (NDHWC)
+    NDArray<T>* gradI = OUTPUT_VARIABLE(0);            // [bS, iC, iD, iH, iW] (NCDHW) or [bS, iD, iH, iW, iC] (NDHWC) 
+                
+    const int isNCDHW  = block.getIArguments()->size() > 0 ? INT_ARG(0) : 0;       // 1-NCDHW,  0-NDHWC
+
+    // REQUIRE_TRUE(input->rankOf() == 5, 0, "UPSAMPLING3D_BP op: input array must be 4D, but got %i instead!", input->rankOf());
+    REQUIRE_TRUE(gradO->rankOf() == 5, 0, "UPSAMPLING3D_BP op: output's gradient array must be 4D, but got %i instead!", gradO->rankOf());
+    REQUIRE_TRUE(gradI->rankOf() == 5, 0, "UPSAMPLING3D_BP op: input's gradient array must be 4D, but got %i instead!", gradI->rankOf());
+
+    ConvolutionUtils<T>::upsampling3dBP(*gradO, *gradI, (bool)isNCDHW);
+
+    return Status::OK();
+}
+
+        
+DECLARE_SHAPE_FN(upsampling3d_bp) {
+    
+    REQUIRE_TRUE(inputShape->at(0)[0] == 5, 0, "UPSAMPLING3D_BP op: input array must be 4D, but got %i instead!", inputShape->at(0)[0]);
+    REQUIRE_TRUE(inputShape->at(1)[0] == 5, 0, "UPSAMPLING3D_BP op: output's gradient array must be 4D, but got %i instead!", inputShape->at(1)[0]);
+    
+    int* gradIShapeInfo(nullptr);
+    COPY_SHAPE(inputShape->at(0), gradIShapeInfo);
+    
+    return SHAPELIST(gradIShapeInfo);
+}
+
 }
 }
 
