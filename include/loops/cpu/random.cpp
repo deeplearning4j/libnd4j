@@ -158,13 +158,13 @@ namespace functions {
 
             if (ews >= 1) {
                 if (ews == 1) {
-#pragma omp parallel for num_threads(_threads) if (_threads > 1) schedule(guided)
+//#pragma omp parallel for num_threads(_threads) if (_threads > 1) schedule(guided)
                     for (Nd4jIndex x = 0; x < length; x++) {
                         z[x] = OpClass::op(x, length, buffer, extraArguments);
                     }
 
                 } else {
-#pragma omp parallel for num_threads(_threads) if (_threads > 1) schedule(guided)
+//#pragma omp parallel for num_threads(_threads) if (_threads > 1) schedule(guided)
                     for (Nd4jIndex x = 0; x < length; x++) {
                         z[x * ews] = OpClass::op(x, length, buffer, extraArguments);
                     }
@@ -178,7 +178,7 @@ namespace functions {
                 int *zStride = shape::stride(zShapeBuffer);
                 int zOffset = shape::offset(zShapeBuffer);
 
-#pragma omp parallel for num_threads(_threads) if (_threads > 1) schedule(guided) private(zCoord)
+//#pragma omp parallel for num_threads(_threads) if (_threads > 1) schedule(guided) private(zCoord)
                 for (Nd4jIndex i = 0; i < length; i++) {
                     shape::ind2sub(zRank, zShape, i, zCoord);
                     Nd4jIndex zOffset2 = shape::getOffset(zOffset, zShape, zStride, zCoord, zRank);

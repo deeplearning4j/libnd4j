@@ -449,7 +449,7 @@ namespace nd4j {
             for (int i = 0; i < numberOfArrays; i++) {
                 auto array = new NDArray<double>('c', shape);
 
-                nd4j::ops::random_normal<double> op;
+                nd4j::ops::randomuniform<double> op;
                 op.execute(rng, {array}, {array}, {0.0, 1.0}, {}, true);
 
                 list.emplace_back(array);
@@ -478,7 +478,7 @@ TEST_F(RNGTests, Test_Reproducibility_1) {
             auto arrayE = expList[a];
             auto arrayT = trialList[a];
 
-            auto t = arrayE->equalsTo(arrayT);
+            bool t = arrayE->equalsTo(arrayT);
             if (!t) {
                 nd4j_printf("Failed at iteration [%i] for array [%i]\n", e, a);
                 ASSERT_TRUE(false);
@@ -514,7 +514,7 @@ TEST_F(RNGTests, Test_Reproducibility_2) {
             auto arrayE = expList[a];
             auto arrayT = trialList[a];
 
-            auto t = arrayE->equalsTo(arrayT);
+            bool t = arrayE->equalsTo(arrayT);
             if (!t) {
                 nd4j_printf("Failed at iteration [%i] for array [%i]\n", e, a);
 
@@ -523,12 +523,12 @@ TEST_F(RNGTests, Test_Reproducibility_2) {
                     double y = arrayT->getIndexedScalar(f);
 
                     if (nd4j::math::nd4j_re(x, y) > 0.1) {
-                        nd4j_printf("E[%lld]%f != T[%lld]%f at %lld\n", (long long) f, (float) x, (long long) f, (float) y);
+                        nd4j_printf("E[%lld] %f != T[%lld] %f\n", (long long) f, (float) x, (long long) f, (float) y);
                         throw "boom";
                     }
-
                 }
 
+                // just breaker, since test failed
                 ASSERT_TRUE(false);
             }
 
