@@ -439,3 +439,7 @@ TEST_F(RNGTests, Test_ExponentialDistribution_2) {
 
     delete result;
 }
+
+TEST_F(RNGTests, Test_Reproducibility_1) {
+
+}
