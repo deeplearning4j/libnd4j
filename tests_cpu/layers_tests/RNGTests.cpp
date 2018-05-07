@@ -440,6 +440,88 @@ TEST_F(RNGTests, Test_ExponentialDistribution_2) {
     delete result;
 }
 
-TEST_F(RNGTests, Test_Reproducibility_1) {
+namespace nd4j {
+    namespace tests {
+        static void fillList(Nd4jIndex seed, int numberOfArrays, std::vector<int> &shape, std::vector<NDArray<double> *> &list, nd4j::random::RandomBuffer *rng) {
+            NativeOps ops;
+            ops.refreshBuffer(nullptr, seed, reinterpret_cast<Nd4jPointer>(rng));
+            
+            for (int i = 0; i < numberOfArrays; i++) {
+                auto array = new NDArray<double>('c', shape);
 
+                nd4j::ops::random_normal<double> op;
+                op.execute(rng, {array}, {array}, {0.0, 1.0}, {}, true);
+
+                list.emplace_back(array);
+            }
+        };
+    }
+}
+
+TEST_F(RNGTests, Test_Reproducibility_1) {
+    NativeOps ops;
+    Nd4jIndex seed = 123;
+
+    std::vector<int> shape = {32, 3, 28, 28};
+    int64_t buffer[1000000];
+
+    auto rng = (nd4j::random::RandomBuffer *) ops.initRandom(nullptr, seed, 1000000, buffer);
+
+    std::vector<NDArray<double> *> expList;
+    nd4j::tests::fillList(seed, 10, shape, expList, rng);
+
+    for (int e = 0; e < 20; e++) {
+        std::vector<NDArray<double> *> trialList;
+        nd4j::tests::fillList(seed, 10, shape, trialList, rng);
+
+        for (int a = 0; a < expList.size(); a++) {
+            auto arrayE = expList[a];
+            auto arrayT = trialList[a];
+
+            auto t = arrayE->equalsTo(arrayT);
+            if (!t) {
+                nd4j_printf("Failed at iteration [%i] for array [%i]\n", e, a);
+                ASSERT_TRUE(false);
+            }
+
+            delete arrayT;
+        }
+    }
+
+    for (auto v: expList)
+            delete v;
+}
+
+TEST_F(RNGTests, Test_Reproducibility_2) {
+    NativeOps ops;
+    Nd4jIndex seed = 123;
+
+    std::vector<int> shape = {32, 3, 64, 64};
+    int64_t buffer[1000000];
+
+    auto rng = (nd4j::random::RandomBuffer *) ops.initRandom(nullptr, seed, 1000000, buffer);
+
+    std::vector<NDArray<double> *> expList;
+    nd4j::tests::fillList(seed, 10, shape, expList, rng);
+
+    for (int e = 0; e < 20; e++) {
+        std::vector<NDArray<double> *> trialList;
+        nd4j::tests::fillList(seed, 10, shape, trialList, rng);
+
+        for (int a = 0; a < expList.size(); a++) {
+            auto arrayE = expList[a];
+            auto arrayT = trialList[a];
+
+            auto t = arrayE->equalsTo(arrayT);
+            if (!t) {
+                nd4j_printf("Failed at iteration [%i] for array [%i]\n", e, a);
+                ASSERT_TRUE(false);
+            }
+
+            delete arrayT;
+        }
+    }
+
+    for (auto v: expList)
+            delete v;
 }
