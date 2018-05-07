@@ -612,6 +612,8 @@ namespace nd4j {
                 state[0] = seedConv(this->seed);
                 state[1] = seedConv(this->seed * 119 + 3);
 
+                int fd = 3 + 3;
+
                 for (Nd4jIndex i = 0; i < limit; i++) {
                     buffer[i] = next64();
                 }
