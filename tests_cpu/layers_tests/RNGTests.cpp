@@ -492,6 +492,8 @@ TEST_F(RNGTests, Test_Reproducibility_9) {
 
     delete[] arrayE;
     delete[] arrayT;
+
+    ops.destroyRandom(reinterpret_cast<Nd4jPointer>(rng));
 }
 
 TEST_F(RNGTests, Test_Reproducibility_8) { 
@@ -528,6 +530,8 @@ TEST_F(RNGTests, Test_Reproducibility_8) {
 
     delete[] arrayE;
     delete[] arrayT;
+
+    ops.destroyRandom(reinterpret_cast<Nd4jPointer>(rng));
 }
 
 TEST_F(RNGTests, Test_Reproducibility_1) {
@@ -535,14 +539,16 @@ TEST_F(RNGTests, Test_Reproducibility_1) {
     Nd4jIndex seed = 123;
 
     std::vector<int> shape = {32, 3, 28, 28};
-    int64_t buffer[1000000];
+    const int bufferSize = 10000;
+    int64_t buffer[bufferSize];
 
-    auto rng = (nd4j::random::RandomBuffer *) ops.initRandom(nullptr, seed, 1000000, buffer);
+    auto rng = (nd4j::random::RandomBuffer *) ops.initRandom(nullptr, seed, bufferSize, buffer);
+
 
     std::vector<NDArray<double> *> expList;
     nd4j::tests::fillList(seed, 10, shape, expList, rng);
 
-    for (int e = 0; e < 20; e++) {
+    for (int e = 0; e < 2; e++) {
         std::vector<NDArray<double> *> trialList;
         nd4j::tests::fillList(seed, 10, shape, trialList, rng);
 
@@ -571,14 +577,15 @@ TEST_F(RNGTests, Test_Reproducibility_2) {
     Nd4jIndex seed = 123;
 
     std::vector<int> shape = {32, 3, 64, 64};
-    int64_t buffer[1000000];
+    const int bufferSize = 10000;
+    int64_t buffer[bufferSize];
 
-    auto rng = (nd4j::random::RandomBuffer *) ops.initRandom(nullptr, seed, 1000000, buffer);
+    auto rng = (nd4j::random::RandomBuffer *) ops.initRandom(nullptr, seed, bufferSize, buffer);
 
     std::vector<NDArray<double> *> expList;
     nd4j::tests::fillList(seed, 10, shape, expList, rng);
 
-    for (int e = 0; e < 20; e++) {
+    for (int e = 0; e < 2; e++) {
         std::vector<NDArray<double> *> trialList;
         nd4j::tests::fillList(seed, 10, shape, trialList, rng);
 
