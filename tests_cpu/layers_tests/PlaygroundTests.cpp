@@ -526,7 +526,7 @@ TEST_F(PlaygroundTests, ndarray_tile_test1) {
     auto timeStart = std::chrono::system_clock::now();
     NDArray<float> tiled = x.tile({2,2,2});
     auto timeEnd = std::chrono::system_clock::now();
-    auto time = std::chrono::duration_cast<std::chrono::milliseconds>(timeEnd - timeStart).count();
+    auto time = std::chrono::duration_cast<std::chrono::microseconds> (timeEnd - timeStart).count();
     nd4j_printf("c-order time: %d;\n", time);
     
     ASSERT_TRUE(tiled.isSameShape(&exp)); 
@@ -542,7 +542,7 @@ TEST_F(PlaygroundTests, ndarray_tile_test2) {
     auto timeStart = std::chrono::system_clock::now();
     NDArray<float> tiled = x.tile({2,2,2});
     auto timeEnd = std::chrono::system_clock::now();
-    auto time = std::chrono::duration_cast<std::chrono::milliseconds>(timeEnd - timeStart).count();
+    auto time = std::chrono::duration_cast<std::chrono::microseconds> (timeEnd - timeStart).count();
     nd4j_printf("f-order time: %d;\n", time);
     
     ASSERT_TRUE(tiled.isSameShape(&exp)); 

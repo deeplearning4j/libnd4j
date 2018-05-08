@@ -4955,7 +4955,7 @@ INLINEDEF Nd4jIndex subArrayIndex(const int* maxShapeInfo, const int* minShapeIn
     const int rankMax = maxShapeInfo[0];
     const int rankMin = minShapeInfo[0];
 
-    int *idxPerRank = new int[rankMax];
+    auto* idxPerRank = new int[rankMax];
     ind2subC(rankMax, const_cast<int*>(maxShapeInfo)+1, const_cast<int&>(maxIdx), idxPerRank);    
 
     Nd4jIndex minIdx = 0;
