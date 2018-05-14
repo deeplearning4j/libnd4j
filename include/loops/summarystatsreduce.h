@@ -102,9 +102,10 @@ namespace functions {
                 if (this->n <= 1) {
                     return 0.0;
                 }
-
-                // return (M2 - nd4j::math::nd4j_pow<T>(skewness(), 2.0) / n) / (n - 1.0);
-                return M2 / (n - 1.0);
+                //T skW = skewness();
+                //double lastV = nd4j::math::nd4j_pow<double>(double(skW), 2.0) / double(n);
+                double res = double(M2) / (double(n) - 1.0);
+                return static_cast<T>(res);
             }
 
 

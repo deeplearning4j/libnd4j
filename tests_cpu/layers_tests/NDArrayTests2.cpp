@@ -655,24 +655,26 @@ TEST_F(NDArrayTest2, TestStdDev3) {
     const int len = array.lengthOf();
 
     double sum = 0.;
-    for(int i=0; i < len; ++i)
+    double sum2 = 0.;
+    for(int i=0; i < len; ++i) {
         sum += array(i);
-
+        sum2 += array(i) * array(i);
+    }
     const double mean = sum / len;
 
     double diffSquared = 0.;
-    for(int i=0; i < len; ++i)
-        diffSquared += (array(i) - mean) * (array(i) - mean);
+    for(int i=0; i < len; ++i) 
+        diffSquared += ((array(i) - mean) * (array(i) - mean));
+    const double naiveDeviation    = math::nd4j_sqrt<double>((sum2 - sum * sum / len) / (len - 1));
+    const double trueDeviation     = math::nd4j_sqrt<double>(diffSquared / len);
+    const double trueDeviationCorr = math::nd4j_sqrt<double>(diffSquared / (len - 1));
 
-    const double trueVariance     = math::nd4j_sqrt<double>(diffSquared / len);
-    const double trueVarianceCorr = math::nd4j_sqrt<double>(diffSquared / (len - 1));
+    const double deviation     = array.varianceNumber<simdOps::SummaryStatsStandardDeviation<double>>(false);
+    const double deviationCorr = array.varianceNumber<simdOps::SummaryStatsStandardDeviation<double>>(true);
 
-    const double variance     = array.varianceNumber<simdOps::SummaryStatsStandardDeviation<double>>(false);
-    const double varianceCorr = array.varianceNumber<simdOps::SummaryStatsStandardDeviation<double>>(true);
+    printf("%s  expected %.10f    calculated %.10f(%.10f)\n","deviation          :", trueDeviation, deviation, naiveDeviation );
+    printf("%s  expected %.10f    calculated %.10f\n","deviation corrected:",  trueDeviationCorr, deviationCorr);
 
-    // printf("%s  expected %.10f    calculated %.10f\n","variance          :", trueVariance, variance );
-    // printf("%s  expected %.10f    calculated %.10f\n","variance corrected:", trueVarianceCorr, varianceCorr);
-
-    ASSERT_NEAR(trueVariance, variance, 1e-8);
-    ASSERT_NEAR(trueVarianceCorr, varianceCorr, 1e-8);
+    ASSERT_NEAR(trueDeviation, deviation, 1e-8);
+    ASSERT_NEAR(trueDeviationCorr, deviationCorr, 1e-8);
 }
