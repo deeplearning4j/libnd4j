@@ -4,7 +4,6 @@
 #include <loops/scalar.h>
 #include <loops/indexreduce.h>
 #include <loops/broadcasting.h>
-#include "Environment.h"
 
 namespace functions {
 	namespace broadcast {
@@ -264,7 +263,7 @@ namespace simdOps {
 
         const bool weirdStride = shape::order(outShapeBuffer) == 'f' || shape::elementWiseStride(outShapeBuffer) != 1;
 
-#pragma omp parallel for if(size01 > nd4j::Environment::getInstance()->elementwiseThreshold()) collapse(2) schedule(guided)             
+#pragma omp parallel for if(size01 > nd4j::Environment::getInstance()->elementwiseThreshold()) collapse(2) schedule(guided)
         for(int b = 0; b < bS; ++b) {
         	for(int c = 0; c < iC; ++c) {
                     
@@ -272,7 +271,7 @@ namespace simdOps {
                 T *pOut = out + oStep01;
                 T *pIn  = in + b * iStride0 + c * iStride1;
 
-#pragma omp parallel for if(size23 > nd4j::Environment::getInstance()->elementwiseThreshold()) collapse(2) schedule(guided)             
+#pragma omp parallel for if(size23 > nd4j::Environment::getInstance()->elementwiseThreshold()) collapse(2) schedule(guided)
                 for(int oh = 0; oh < oH; ++oh) {
                 	for(int ow = 0; ow < oW; ++ow) {
                             
@@ -299,7 +298,7 @@ namespace simdOps {
                         
                         switch(poolingMode) {
 
-                        	case 0:	// max
+                        	case 0:	{// max
 #pragma omp simd reduction(maxT:sum) collapse(2)
                             	for (int kh = hstart; kh < hend; kh += iStep2) 
                             		for (int kw = wstart; kw < wend; kw += iStep3) {
@@ -308,8 +307,8 @@ namespace simdOps {
                                     		sum = val;
                                     }
 								break;
-
-                            case 1:	// avg
+                            }
+                            case 1:	{// avg
 #pragma omp simd reduction(sumT:sum) collapse(2)
     	                        for (int kh = hstart; kh < hend; kh += iStep2) 
                                     for (int kw = wstart; kw < wend; kw += iStep3)
@@ -320,8 +319,8 @@ namespace simdOps {
                         	    else if ((int) extraParam0 == 1)    //Include padding
                             		sum /= kH * kW;
                             	break;
-
-                            case 2: // pnorm
+                            }
+                            case 2: {// pnorm
 #pragma omp simd reduction(sumT:sum) collapse (2)
                                 for (int kh = hstart; kh < hend; kh += iStep2) 
                                     for (int kw = wstart; kw < wend; kw += iStep3)
@@ -329,10 +328,11 @@ namespace simdOps {
                                 
                                 sum = nd4j::math::nd4j_pow<T>(sum, (T) 1. / extraParam0);
                                 break;
-
-                            default:
+                            }
+                            default: {
 								nd4j_printf("special_ops::pooling2d: pooling mode argument can take three values only: 0, 1, 2, but got %i instead !\n", poolingMode);
                             	throw "";
+                            }
                         }
 
                         if (weirdStride)
