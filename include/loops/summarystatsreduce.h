@@ -95,15 +95,17 @@ namespace functions {
             _CUDA_HD T variance() {
                 if (n <= 1)
                     return 0.0;
-                return M2 / (n);
+                return M2 / n;
             }
 
             _CUDA_HD T varianceBiasCorrected() {
                 if (this->n <= 1) {
                     return 0.0;
                 }
-
-                return (M2 - nd4j::math::nd4j_pow<T>(skewness(), 2.0) / n) / (n - 1.0);
+                //T skW = skewness();
+                //double lastV = nd4j::math::nd4j_pow<double>(double(skW), 2.0) / double(n);
+                double res = double(M2) / (double(n) - 1.0);
+                return static_cast<T>(res);
             }
 
 
@@ -113,7 +115,7 @@ namespace functions {
                 return M2 / n;
             }
 
-            _CUDA_HD T skewness() { return M2 > 0 ? nd4j::math::nd4j_sqrt<int>(n) * M3 / nd4j::math::nd4j_pow(M2, (T) 1.5) : (T) 0.0f; }
+            _CUDA_HD T skewness() { return M2 > 0 ? nd4j::math::nd4j_sqrt<T>(n) * M3 / nd4j::math::nd4j_pow(M2, (T) 1.5) : (T) 0.0f; }
 
             _CUDA_HD T kurtosis() { return M2 > 0 ? n * M4 / (M2 * M2) : 0; }
 
