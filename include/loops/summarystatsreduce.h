@@ -103,9 +103,8 @@ namespace functions {
                 if (this->n <= 1) {
                     return 0.0;
                 }
-                double sk = skewness();
-                double res = (double(M2) - sk * sk / n) / (n - 1.0);
-                return static_cast<T>(res);
+
+                return (M2 - nd4j::math::nd4j_pow<T>(skewness(), 2.0) / n) / (n - 1.0);
             }
 
 
