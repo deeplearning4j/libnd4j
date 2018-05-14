@@ -16,7 +16,7 @@
 #define FLOAT_MIN_NORMAL 1.17549435e-38
 #define EPS 1e-5
 #define AFFINITY close
-#define DOUBLE_PI_T (2.0 * 3.14159265358979323846)
+#define DOUBLE_PI_T T(2.0 * 3.14159265358979323846)
 
 #define no_op_exec_special 	static const bool requiresSpecial = false; static void execSpecial(T *dx, int *xShapeBuffer, T *result, int *resultShapeBuffer, T *extraParams, int *tadShapeInfo, Nd4jIndex *tadOffsets) {}
 #define no_op_exec_special_accumulation 	static const bool requiresSpecialAccumulation = false; static void execSpecial(T *x, int *xShapeInfo, T *extraParams, T *result, int *resultShapeInfoBuffer, int *dimension, int dimensionLength, int *tadShapeInfo, Nd4jIndex *tadOffset){}
@@ -77,13 +77,11 @@ namespace simdOps {
 	class Add {
 	public:
 		op_def static T op(T d1, T d2) {
-			double res = double(d1) + double(d2);
-			return static_cast<T>(res);
+			return d1 + d2;
 		}
 
 		op_def static T op(T d1, T d2, T *params) {
-			double res = double(d1) + double(d2);
-			return static_cast<T>(res);
+			return d1 + d2;
 		}
 
 		op_def static T op(T d1) {
@@ -92,8 +90,7 @@ namespace simdOps {
 
 		// op for MetaOps
 		op_def static T op(T d1, T *params) {
-			double res = double(d1) + double(params[0]);
-			return static_cast<T>(res);
+			return d1 + params[0];
 		}
 	};
 
@@ -103,13 +100,11 @@ namespace simdOps {
 	class Subtract {
 	public:
 		op_def static T op(T d1, T d2) {
-			double res = double(d1) - double(d2);
-			return static_cast<T>(res);
+			return d1 - d2;
 		}
 
 		op_def static T op(T d1, T d2, T *params) {
-			double res = double(d1) - double(d2);
-			return static_cast<T>(res);
+			return d1 - d2;
 		}
 
 		op_def static T op(T d1) {
@@ -118,8 +113,7 @@ namespace simdOps {
 
 		// op for MetaOps
 		op_def static T op(T d1, T *params) {
-			double res = double(d1) + double(params[0]);
-			return static_cast<T>(res);
+			return d1 - params[0];
 		}
 	};
 
@@ -127,13 +121,11 @@ namespace simdOps {
 	class SquaredSubtract {
 	public:
 		op_def static T op(T d1, T d2) {
-			double res = nd4j::math::nd4j_pow<double>(double(d1) - double(d2), 2.0);
-			return static_cast<T>(res);
+			return nd4j::math::nd4j_pow<T>(d1 - d2, (T) 2);
 		}
 
 		op_def static T op(T d1, T d2, T *params) {
-			double res = nd4j::math::nd4j_pow<double>(double(d1) - double(d2), 2.0);
-			return static_cast<T>(res);
+			return nd4j::math::nd4j_pow<T>(d1 - d2, (T) 2);
 		}
 
 		op_def static T op(T d1) {
@@ -142,8 +134,7 @@ namespace simdOps {
 
 		// op for MetaOps
 		op_def static T op(T d1, T *params) {
-			double res = nd4j::math::nd4j_pow<double>(double(d1) - double(params[0]), 2.0);
-			return static_cast<T>(res);
+			return nd4j::math::nd4j_pow<T>(d1 - params[0], (T) 2);
 		}
 	};
 
@@ -151,13 +142,11 @@ namespace simdOps {
 	class ReverseSubtract {
 	public:
 		op_def static T op(T d1, T d2) {
-			double res = double(d2) - double(d1);
-			return static_cast<T>(res);
+			return d2 - d1;
 		}
 		
 		op_def static T op(T d1, T d2, T *params) {
-			double res = double(d2) - double(d1);
-			return static_cast<T>(res);
+			return d2 - d1;
 		}
 
 		op_def static T op(T d1) {
@@ -166,8 +155,7 @@ namespace simdOps {
 
 		// op for MetaOps
 		op_def static T op(T d1, T *params) {
-			double res = double(params[0]) - double(d1);
-			return static_cast<T>(res);
+			return params[0] - d1;
 		}
 	};
 
@@ -177,26 +165,20 @@ namespace simdOps {
 
 	public:
 		op_def static T op(T z, T c) {
-			double res = (nd4j::math::nd4j_exp<double>(double(c)) - double(z) * double(c)  + (double(z) * nd4j::math::nd4j_log<double>(double(z)) - double(z) + 0.5 * nd4j::math::nd4j_log<double>(DOUBLE_PI_T * z)));
-			return static_cast<T>(res);
+			return (exp(c) - z * c  + (z * log(z) - z + (T)0.5 * log(DOUBLE_PI_T * z)));
 		}
 
 		op_def static T op(T z, T c, T *params) {
-			double res = (nd4j::math::nd4j_exp<double>(double(c)) - double(z) * double(c)  + (double(z) * nd4j::math::nd4j_log<double>(double(z)) - double(z) + 0.5 * nd4j::math::nd4j_log<double>(DOUBLE_PI_T * z)));
-			return static_cast<T>(res);
+			return (exp(c) - z * c  + (z * log(z) - z + (T)0.5 * log(DOUBLE_PI_T * z)));
 		}
 
 		op_def static T op(T z) {
-//			return (z * log(z) - z + (T)0.5 * log(DOUBLE_PI_T * z));
-			double res = (nd4j::math::nd4j_exp<double>(double(z) * nd4j::math::nd4j_log<double>(double(z)) - double(z) + 0.5 * nd4j::math::nd4j_log<double>(DOUBLE_PI_T * z)));
-			return static_cast<T>(res);
+			return (z * log(z) - z + (T)0.5 * log(DOUBLE_PI_T * z));
 		}
 
 		// op for MetaOps
 		op_def static T op(T z, T *params) {
-//			return (exp(params[0]) - z * params[0]  + (z * log(z) - z + (T)0.5 * log(DOUBLE_PI_T * z)));
-			double res = (nd4j::math::nd4j_exp<double>(double(params[0])) - double(z) * double(params[0])  + (double(z) * nd4j::math::nd4j_log<double>(double(z)) - double(z) + 0.5 * nd4j::math::nd4j_log<double>(DOUBLE_PI_T * z)));
-			return static_cast<T>(res);
+			return (exp(params[0]) - z * params[0]  + (z * log(z) - z + (T)0.5 * log(DOUBLE_PI_T * z)));
 		}
 	};
 
@@ -205,11 +187,11 @@ namespace simdOps {
 
 	public:
 		op_def static T op(T z, T c) {
-			return static_cast<T>(nd4j::math::nd4j_exp<double>(c) - double(z) * double(c));
+			return (exp(c) - z * c);
 		}
 
 		op_def static T op(T z, T c, T *params) {
-			return static_cast<T>(nd4j::math::nd4j_exp<double>(c) - double(z) * double(c));
+			return (exp(c) - z * c);
 		}
 
 		op_def static T op(T z) {
@@ -218,8 +200,7 @@ namespace simdOps {
 
 		// op for MetaOps
 		op_def static T op(T z, T *params) {
-			return static_cast<T>(nd4j::math::nd4j_exp<double>(params[0]) - double(z) * double(params[0]));
-
+			return (exp(params[0]) - z * params[0]);
 		}
 	};
 
@@ -227,12 +208,11 @@ namespace simdOps {
 	class Multiply {
 	public:
 		op_def static T op(T d1, T d2) {
-			return static_cast<T>(double(d1) * double(d2));
+			return d1 * d2;
 		}
 
 		op_def static T op(T d1, T d2, T *params) {
-			return static_cast<T>(double(d1) * double(d2));
-//			return d1 * d2;
+			return d1 * d2;
 		}
 
 		op_def static T op(T d1) {
@@ -241,8 +221,7 @@ namespace simdOps {
 
 		// op for MetaOps
 		op_def static T op(T d1, T *params) {
-			return static_cast<T>(double(d1) * double(params[0]));
-//			return d1 * params[0];
+			return d1 * params[0];
 		}
 	};
 
@@ -250,13 +229,11 @@ namespace simdOps {
 	class Divide {
 	public:
 		op_def static T op(T d1, T d2) {
-			double res = double(d1) / double(d2);
-			return static_cast<T>(res);
+			return d1 / d2;
 		}
 
 		op_def static T op(T d1, T d2, T *params) {
-			double res = double(d1) / double(d2);
-			return static_cast<T>(res);
+			return d1 / d2;
 		}
 		
 		op_def static T op(T d1) {
@@ -265,8 +242,7 @@ namespace simdOps {
 
 		// op for MetaOps
 		op_def static T op(T d1, T *params) {
-			double res = double(d1) / double(params[0]);
-			return static_cast<T>(res);
+			return d1 / params[0];
 		}
 	};
 
@@ -276,15 +252,13 @@ namespace simdOps {
 		op_def static T op(T d1, T d2) {
 			if(d2 == (T)0.)
 				return (T)0.;
-			double res = double(d1) / double(d2);
-			return static_cast<T>(res);
+			return d1 / d2;
 		}
 
 		op_def static T op(T d1, T d2, T *params) {
 			if(d2 == (T)0.)
 				return (T)0.;
-			double res = double(d1) / double(d2);
-			return static_cast<T>(res);
+			return d1 / d2;
 		}
 		
 		op_def static T op(T d1) {
@@ -295,8 +269,7 @@ namespace simdOps {
 		op_def static T op(T d1, T *params) {
 			if(params[0] == (T)0.)
 				return (T)0.;
-			double res = double(d1) / double(params[0]);
-			return static_cast<T>(res);
+			return d1 / params[0];
 		}
 	};
 
@@ -418,13 +391,11 @@ namespace simdOps {
 	class ReverseDivide {
 	public:
 		op_def static T op(T d1, T d2) {
-			double res = double(d2) / double(d1);
-			return static_cast<T>(res);
+			return d2 / d1;
 		}
 
 		op_def static T op(T d1, T d2, T *params) {
-			double res = double(d2) / double(d1);
-			return static_cast<T>(res);
+			return d2 / d1;
 		}
 
 		op_def static T op(T d1) {
@@ -433,8 +404,7 @@ namespace simdOps {
 
 		// op for MetaOps
 		op_def static T op(T d1, T *params) {
-			double res = double(params[0]) / double(d1);
-			return static_cast<T>(res);
+			return params[0] / d1;
 		}
 	};
 
@@ -1879,17 +1849,15 @@ namespace simdOps {
         no_op_exec_special_accumulation_cuda
 
 		op_def static T startingValue(const T *input) {
-			return (T) 0.0;
+			return (T) 0.0f;
 		}
 
 		op_def static T merge(T old, T opOutput, T *extraParams) {
-			double res = double(opOutput) + double(old);
-			return static_cast<T>(res);
+			return opOutput + old;
 		}
 
 		op_def static T update(T old, T opOutput, T *extraParams) {
-			double res = double(opOutput) + double(old);
-			return static_cast<T>(res);
+			return opOutput + old;
 		}
 
 		op_def static T op(T d1, T *extraParams) {
@@ -2164,13 +2132,11 @@ namespace simdOps {
 		}
 
 		op_def static T merge(T old, T opOutput, T *extraParams) {
-			double res = double(opOutput) + double(old);
-			return static_cast<T>(res);
+			return opOutput + old;
 		}
 
 		op_def static T update(T old, T opOutput, T *extraParams) {
-			double res = double(opOutput) + double(old);
-			return static_cast<T>(res);
+			return opOutput + old;
 		}
 
 		op_def static T op(T d1, T *extraParams) {
@@ -2178,8 +2144,7 @@ namespace simdOps {
 		}
 
 		op_def static T postProcess(T reduction, Nd4jIndex n, T *extraParams) {
-			double res = double(reduction) / n;
-			return static_cast<T>(res);
+			return reduction / (int) n;
 		}
 	};
 
@@ -2369,14 +2334,12 @@ namespace simdOps {
 		}
 
 		op_def static T merge(T old, T opOutput, T *extraParams) {
-			double res = double(opOutput) + double(old);
-			return static_cast<T>(res);
+			return opOutput + old;
 
 		}
 
 		op_def static T update(T old, T opOutput, T *extraParams) {
-			double res = double(opOutput) + double(old);
-			return static_cast<T>(res);
+			return opOutput + old;
 
 		}
 
@@ -2401,19 +2364,16 @@ namespace simdOps {
 		}
 
 		op_def static T merge(T old, T opOutput, T *extraParams) {
-			double res = double(opOutput) + double(old);
-			return static_cast<T>(res);
+			return opOutput + old;
 		}
 
 
 		op_def static T update(T old, T opOutput, T *extraParams) {
-			double res = double(opOutput) + double(old);
-			return static_cast<T>(res);
+			return opOutput + old;
 		}
 
 		op_def static T op(T d1, T *extraParams) {
-			double res = double(d1) * double(d1);
-			return static_cast<T>(res);
+			return d1 * d1;
 		}
 
 		op_def static T postProcess(T reduction, Nd4jIndex n, T *extraParams) {
@@ -2432,19 +2392,16 @@ namespace simdOps {
 		}
 
 		op_def static T merge(T old, T opOutput, T *extraParams) {
-			double res = double(opOutput) + double(old);
-			return static_cast<T>(res);
+			return opOutput + old;
 		}
 
 
 		op_def static T update(T old, T opOutput, T *extraParams) {
-			double res = double(opOutput) + double(old);
-			return static_cast<T>(res);
+			return opOutput + old;
 		}
 
 		op_def static T op(T d1, T *extraParams) {
-			double res = double(d1) * double(d1);
-			return static_cast<T>(res);
+			return d1 * d1;
 		}
 
 		op_def static T postProcess(T reduction, Nd4jIndex n, T *extraParams) {
@@ -2585,22 +2542,18 @@ namespace simdOps {
 		}
 
 		op_def static T merge(T old, T opOutput, T *extraParams) {
-			double res = double(old) + double(opOutput);
-			return static_cast<T>(res);
+			return old + opOutput;
 		}
 
 		op_def static T update(T old, T opOutput, T *extraParams) {
-			double res = double(old) + double(opOutput);
-			return static_cast<T>(res);
+			return old + opOutput;
 
 		}
 
 		op_def static T op(T d1, T *extraParams) {
-			double meanD = extraParams[0];
-			double d1D = d1;
-			double ret = d1D - meanD;
-			ret *= ret;
-			return static_cast<T>(ret);
+			T mean = extraParams[0];
+			T ret = d1 - mean;
+			return ret * ret;
 		}
 
 		op_def static T postProcess(T reduction, Nd4jIndex n, T *extraParams) {
@@ -3545,17 +3498,14 @@ namespace simdOps {
         __host__ __device__
 #endif
         static inline T getValue(const bool biasCorrected, functions::summarystats::SummaryStatsData<T> val) {
-			T res;
 			if (biasCorrected) {
 				T ret = val.varianceBiasCorrected();
 				if (ret < (T) 0.0f)
-					res = nd4j::math::nd4j_sqrt<T>(val.variance());
+					return nd4j::math::nd4j_sqrt(val.variance());
 				else
-					res = nd4j::math::nd4j_sqrt<T>(ret);
+					return nd4j::math::nd4j_sqrt(ret);
 			}
-			else
-				res = nd4j::math::nd4j_sqrt<T>(val.variance());
-			return res;
+			return  nd4j::math::nd4j_sqrt(val.variance());
 		}
 
 #ifdef __CUDACC__
@@ -3603,7 +3553,7 @@ template<typename T>
 #ifdef __CUDACC__
 			T length = params[1];
 			T tid = gridDim.x * blockDim.x + threadIdx.x;
-	                T rnd = nd4j::math::nd4j_abs<T>(nd4j::math::nd4j_cos<T>((T) clock64() * (T) tid + (T) length * (T) tid));
+            T rnd = nd4j::math::nd4j_abs<T>(nd4j::math::nd4j_cos<T>((T) clock64() * (T) tid + (T) length * (T) tid));
 #else
 			T rnd = (T) rand() / (T) RAND_MAX;
 #endif
