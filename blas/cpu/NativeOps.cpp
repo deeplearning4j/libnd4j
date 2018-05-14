@@ -3554,6 +3554,12 @@ Nd4jStatus NativeOps::execCustomOpWithScopeDouble(Nd4jPointer *extraPointers, Nd
     return execCustomOpWithScope<double>(extraPointers, (nd4j::graph::GraphState<double> *) state, opHash, scopes, numScopes, inputBuffers, inputShapes, numInputs, outputBuffers, outputShapes, numOutputs);
 }
 
+nd4j::HardwareReport NativeOps::getHardwareReport() {
+    HardwareReport report;
+
+    // just return it
+    return report;
+}
 
 template void flattenGeneric<float16>(Nd4jPointer*, int, char, float16*, int*, float16*, int*);
 template void flattenGeneric<float>(Nd4jPointer*, int, char, float*, int*, float*, int*);

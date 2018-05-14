@@ -82,6 +82,7 @@ endif()
 if(CUDA_BLAS)
     message("Build cublas")
     find_package(CUDA)
+    find_package(NVML)
     add_definitions(-D__CUDABLAS__=true)
     if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
         set (CMAKE_CXX_FLAGS "")
@@ -165,7 +166,7 @@ if(CUDA_BLAS)
             endif()
         endif()
 
-
+        file(GLOB_RECURSE SYSTEM_SOURCES false ../include/system/impl/*.cpp ../include/system/*.h)
         file(GLOB_RECURSE TYPES_SOURCES false ../include/types/*.cpp ../include/types/*.h)
         file(GLOB_RECURSE ARRAY_SOURCES false ../include/array/*.cpp ../include/array/*.h)
         file(GLOB_RECURSE MEMORY_SOURCES false ../include/memory/*.cpp ../include/memory/*.h)
@@ -184,8 +185,8 @@ if(CUDA_BLAS)
                 ../include/cnpy/cnpy.cpp  ../include/nd4jmemset.h ../include/nd4jmalloc.h
                 cpu/GraphExecutioner.cpp cpu/NativeOpExcutioner.cpp cpu/NDArray.cpp cpu/NDArrayFactory.cpp
                 Environment.cpp Environment.h ${LOOPS_SOURCES} ${ARRAY_SOURCES} ${TYPES_SOURCES}
-                ${MEMORY_SOURCES} ${GRAPH_SOURCES} ${CUSTOMOPS_SOURCES} ${INDEXING_SOURCES} ${HELPERS_SOURCES} ${OPS_SOURCES})
-        target_link_libraries(${LIBND4J_NAME} ${CUDA_LIBRARIES})
+                ${MEMORY_SOURCES} ${GRAPH_SOURCES} ${CUSTOMOPS_SOURCES} ${INDEXING_SOURCES} ${HELPERS_SOURCES} ${OPS_SOURCES} ${SYSTEM_SOURCES})
+        target_link_libraries(${LIBND4J_NAME} ${CUDA_LIBRARIES} ${NVML_LIBRARY})
 
         set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/cuda)
 
@@ -193,6 +194,7 @@ if(CUDA_BLAS)
     endif(CUDA_FOUND)
 elseif(CPU_BLAS)
 
+    file(GLOB_RECURSE SYSTEM_SOURCES false ../include/system/impl/*.cpp ../include/system/*.h)
     file(GLOB_RECURSE TYPES_SOURCES false ../include/types/*.cpp ../include/types/*.h)
     file(GLOB_RECURSE ARRAY_SOURCES false ../include/array/*.cpp ../include/array/*.h)
     file(GLOB_RECURSE MEMORY_SOURCES false ../include/memory/*.cpp ../include/memory/*.h)
@@ -212,7 +214,7 @@ if(IOS)
             ../include/cnpy/cnpy.cpp  ../include/nd4jmemset.h ../include/nd4jmalloc.h
             Environment.cpp Environment.h ${LOOPS_SOURCES}  ${ARRAY_SOURCES} ${TYPES_SOURCES}
             ${MEMORY_SOURCES} ${GRAPH_SOURCES} ${CUSTOMOPS_SOURCES} ${INDEXING_SOURCES} ${HELPERS_SOURCES}  ${CUSTOMOPS_HELPERS_SOURCES}
-            ${OPS_SOURCES})
+            ${OPS_SOURCES} ${SYSTEM_SOURCES})
 else()
 
     add_library(${LIBND4J_NAME} SHARED cpu/NativeOps.cpp cpu/GraphExecutioner.cpp
@@ -220,7 +222,7 @@ else()
             ../include/cnpy/cnpy.cpp  ../include/nd4jmemset.h ../include/nd4jmalloc.h
             Environment.cpp Environment.h ${LOOPS_SOURCES}  ${ARRAY_SOURCES} ${TYPES_SOURCES}
             ${MEMORY_SOURCES} ${GRAPH_SOURCES} ${CUSTOMOPS_SOURCES} ${INDEXING_SOURCES} ${HELPERS_SOURCES}  ${CUSTOMOPS_HELPERS_SOURCES}
-            ${OPS_SOURCES} )
+            ${OPS_SOURCES}  ${SYSTEM_SOURCES})
 
 
     if ("${LIBND4J_ALL_OPS}" AND "${LIBND4J_BUILD_MINIFIER}")
@@ -230,7 +232,7 @@ else()
             ../include/cnpy/cnpy.cpp  ../include/nd4jmemset.h ../include/nd4jmalloc.h
             Environment.cpp Environment.h ${LOOPS_SOURCES}  ${ARRAY_SOURCES} ${TYPES_SOURCES}
             ${MEMORY_SOURCES} ${GRAPH_SOURCES} ${CUSTOMOPS_SOURCES} ${INDEXING_SOURCES} ${HELPERS_SOURCES}  ${CUSTOMOPS_HELPERS_SOURCES}
-            ${OPS_SOURCES} )
+            ${OPS_SOURCES}  ${SYSTEM_SOURCES})
 
         add_executable(minifier ../minifier/minifier.cpp ../minifier/graphopt.cpp)
         target_link_libraries(minifier nd4jstatic)
