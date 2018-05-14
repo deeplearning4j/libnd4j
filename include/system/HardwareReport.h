@@ -5,6 +5,7 @@
 #ifndef LIBND4J_HARDWAREREPORT_H
 #define LIBND4J_HARDWAREREPORT_H
 
+#include <system/HardwareFeatures.h>
 #include <system/HardwareStatus.h>
 #include <pointercast.h>
 #include <dll.h>
@@ -14,6 +15,7 @@
 namespace nd4j {
     class ND4J_EXPORT HardwareReport {
     private:
+
         // processors
         std::map<int, HardwareStatus> _processors;
 
@@ -33,6 +35,8 @@ namespace nd4j {
         int getNumberOfDevices();
 
         HardwareStatus getDeviceStatus(int deviceId);
+
+        void storeDeviceStatus(int deviceId, HardwareStatus status);
     };
 }
 

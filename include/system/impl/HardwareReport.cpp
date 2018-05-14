@@ -44,4 +44,16 @@ namespace nd4j {
             _cores[v.first] = r;
         }
     }
+
+    void HardwareReport::storeDeviceStatus(int deviceId, HardwareStatus status) {
+        if (deviceId > 0)
+            if (_devices.count(deviceId - 1) == 0)
+                throw std::runtime_error("All beans should be stored sequentially: 0 -> X");
+
+        if (deviceId < 0)
+            throw std::runtime_error("deviceId can't have negative value");
+
+
+        _devices[deviceId] = status;
+    }
 }

@@ -6724,6 +6724,27 @@ Nd4jStatus NativeOps::execCustomOpWithScopeDouble(Nd4jPointer *extraPointers, Nd
 nd4j::HardwareReport NativeOps::getHardwareReport() {
 	HardwareReport report;
 
+	auto n = getAvailableDevices();
+	for (int e = 0; e < n; e++) {
+        HardwareStatus status;
+
+		int ccMinor = deviceProperties[e].minor;
+		int ccMajor = deviceProperties[e].major;
+
+
+		// set device name & desc
+        status.setDeviceName(deviceProperties[e].name);
+
+		// set device memory params
+        status.setMemoryTotal(getDeviceTotalMemory(reinterpret_cast<Nd4jPointer>(static_cast<Nd4jIndex>(e))));
+        status.setMemoryUsed(status.getMemoryTotal() - getDeviceFreeMemory(reinterpret_cast<Nd4jPointer>(static_cast<Nd4jIndex>(e))));
+
+		// set device utilization params
+
+
+        report.storeDeviceStatus(e, status);
+	}
+
 	// just return it
 	return report;
 }

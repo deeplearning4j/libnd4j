@@ -21,6 +21,38 @@ namespace nd4j {
         return _memoryTotal;
     }
 
+    Nd4jIndex HardwareStatus::getCurrentTemperature() {
+        return _temperature;
+    }
+
+    void HardwareStatus::setDeviceName(std::string& name) {
+        _deviceName = name;
+    }
+
+    void HardwareStatus::setDeviceDescription(std::string& desc) {
+        _deviceDescription = desc;
+    }
+
+    void HardwareStatus::setDeviceName(const char *name) {
+        _deviceName = std::string(name);
+    }
+
+    void HardwareStatus::setDeviceDescription(const char *desc) {
+        _deviceDescription = std::string(desc);
+    }
+
+    void HardwareStatus::setMemoryUsed(Nd4jIndex bytes) {
+        _memoryUsed = bytes;
+    }
+
+    void HardwareStatus::setMemoryTotal(Nd4jIndex bytes) {
+        _memoryTotal = bytes;
+    }
+
+    void HardwareStatus::setCurrentTemperature(Nd4jIndex bytes) {
+        _temperature = bytes;
+    }
+
     HardwareStatus::HardwareStatus(const HardwareStatus &other) {
         _deviceName = other._deviceName;
         _deviceDescription = other._deviceDescription;
