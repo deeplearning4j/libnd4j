@@ -645,6 +645,7 @@ TEST_F(NDArrayTest2, permute_test4) {
     delete []arr1Buffer;
     delete []arr2Buffer;
 }
+
 ////////////////////////////////////////////////////////////////////////////////
 TEST_F(NDArrayTest2, TestStdDev3) {
     
@@ -652,7 +653,7 @@ TEST_F(NDArrayTest2, TestStdDev3) {
     NDArray<double> array('c', {2, 2}, {0.2946, 0.2084, 0.0345, 0.7368});
     // NDArrayFactory<double>::linspace(0.1, array, 0.1);
     const int len = array.lengthOf();
-    
+
     double sum = 0.;
     double sum2 = 0.;
     for(int i=0; i < len; ++i) {
