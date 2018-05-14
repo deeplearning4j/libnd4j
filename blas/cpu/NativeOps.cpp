@@ -4,6 +4,9 @@
 
 #define __STDC_CONSTANT_MACROS
 
+#define _FILE_OFFSET_BITS 64
+#define _INTEGRAL_MAX_BITS 64
+
 #include "../NativeOps.h"
 #include "../NativeOpExcutioner.h"
 #include "../NDArray.h"
@@ -17,17 +20,23 @@
 #include <helpers/logger.h>
 #include <pointercast.h>
 #include <pairwise_util.h>
+
+
+#include <io.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
 #ifndef _WIN32
 #include <sys/mman.h>
 #else
 #include <helpers/mman.h>
 #endif
 #include <sys/types.h>
-#include <fcntl.h>
-#include <unistd.h>
+
 
 #include <layers/layers_factory.h>
 #include <ops/declarable/CustomOperations.h>
+#include <errno.h>
 
 
 char *name;
@@ -3063,13 +3072,20 @@ void NativeOps::decodeBitmapHalf(Nd4jPointer *extraPointers, void *dx, Nd4jIndex
 
 
 Nd4jIndex* NativeOps::mmapFile(Nd4jPointer *extraPointers, const char *fileName, Nd4jIndex length) {
-Nd4jIndex * result = new Nd4jIndex[2];
+auto result = new Nd4jIndex[2];
+errno = 0;
 int fd = open(fileName, O_RDWR, 0);
+// checking for failed fopen
+if (fd < 0) {
+    nd4j_printf("Errno: %i\n", errno);
+    throw std::runtime_error("Failed to open file for MMAP");
+}
+
 void * ptr = mmap(NULL, length, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 
 // check for failed allocation
 if (ptr == MAP_FAILED)
-return nullptr;
+    return nullptr;
 
 result[0] = (Nd4jIndex) ptr;
 result[1] = fd;
