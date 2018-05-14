@@ -24,13 +24,13 @@ namespace functions {
         template <typename T>
         template <typename OpType >
         T SummaryStatsReduce<T>::execScalar(const bool biasCorrected, T *x, int *xShapeInfo, T *extraParams) {
-            SummaryStatsData<double> startingIndex;
+            SummaryStatsData<T> startingIndex;
             startingIndex.initialize();
             Nd4jIndex length = shape::length(xShapeInfo);
             int xElementWiseStride = shape::elementWiseStride(xShapeInfo);
             if (xElementWiseStride == 1) {
                 for (Nd4jIndex i = 0; i < length; i++) {
-                    SummaryStatsData<double> curr;
+                    SummaryStatsData<T> curr;
                     curr.initWithValue(x[i]);
                     startingIndex = update(startingIndex, curr,
                                            extraParams);
@@ -51,7 +51,7 @@ namespace functions {
                     shape::ind2subC(xRank, xShape, i, xCoords);
                     Nd4jIndex xOffset = shape::getOffset(0, xShape, xStride, xCoords, xRank);
 
-                    SummaryStatsData<double> curr;
+                    SummaryStatsData<T> curr;
                     curr.initWithValue(x[xOffset]);
                     startingIndex = update(startingIndex, curr, extraParams);
                 }
