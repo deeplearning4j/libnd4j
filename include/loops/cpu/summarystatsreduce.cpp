@@ -24,19 +24,19 @@ namespace functions {
         template <typename T>
         template <typename OpType >
         T SummaryStatsReduce<T>::execScalar(const bool biasCorrected, T *x, int *xShapeInfo, T *extraParams) {
-            SummaryStatsData<T> startingIndex;
+            SummaryStatsData<double> startingIndex;
             startingIndex.initialize();
             Nd4jIndex length = shape::length(xShapeInfo);
             int xElementWiseStride = shape::elementWiseStride(xShapeInfo);
             if (xElementWiseStride == 1) {
                 for (Nd4jIndex i = 0; i < length; i++) {
-                    SummaryStatsData<T> curr;
+                    SummaryStatsData<double> curr;
                     curr.initWithValue(x[i]);
                     startingIndex = update(startingIndex, curr,
                                            extraParams);
                 }
+                T finalVal = (T) OpType::getValue(biasCorrected, startingIndex);
 
-                T finalVal = OpType::getValue(biasCorrected, startingIndex);
                 return finalVal;
             }
             else {
@@ -51,12 +51,12 @@ namespace functions {
                     shape::ind2subC(xRank, xShape, i, xCoords);
                     Nd4jIndex xOffset = shape::getOffset(0, xShape, xStride, xCoords, xRank);
 
-                    SummaryStatsData<T> curr;
+                    SummaryStatsData<double> curr;
                     curr.initWithValue(x[xOffset]);
                     startingIndex = update(startingIndex, curr, extraParams);
                 }
 
-                T finalVal = OpType::getValue(biasCorrected, startingIndex);
+                T finalVal = (T)OpType::getValue(biasCorrected, startingIndex);
                 return finalVal;
             }
         }
