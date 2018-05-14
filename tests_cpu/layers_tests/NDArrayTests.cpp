@@ -1537,7 +1537,7 @@ TEST_F(NDArrayTest, TestStdDev3) {
 }
 
 TEST_F(NDArrayTest, TestStdDev4) {
-    NDArray<float> array('c', {1, 200000});
+    NDArray<float> array('c', {1, 2000});
     float const ethalon = 1 / 3.f;
     float x = ethalon;
     int total = array.lengthOf();
@@ -1551,29 +1551,33 @@ TEST_F(NDArrayTest, TestStdDev4) {
     }
     x /= array.lengthOf();
     float y = 0;
-    double rY = y;
+    double M2 = 0;
     for (int e = 0; e < total; ++e) {
     //    y += nd4j::math::nd4j_abs(array(e) - x);
-        rY += nd4j::math::nd4j_abs(array(e) - x);
+        M2 += (array(e) - x) * (array(e) - x);
     }
     //y /= total;
-    rY /= total;
-    y = rY;
-    auto std = array.varianceNumber<simdOps::SummaryStatsStandardDeviation<float>>(true);
+    M2 /= total;
+    
+    y = M2;
+    auto std = array.varianceNumber<simdOps::SummaryStatsStandardDeviation<float>>(false);
 //    float bY = array.varianceNumber();
     float bY = 0.3333333f;
-    nd4j_printf("Variance is %f, res is %f, internal is %f\n, deviance is %f(%f)\n", std, x, bY, y, rY);
+    nd4j_printf("Variance is %f, res is %f, internal is %f\n, deviance is %f(%f)\n", std, x, bY, y, nd4j::math::nd4j_sqrt<double>(M2));
     ASSERT_NEAR(std, 0.3333333f, 1.0e-5f);
 }
 
 TEST_F(NDArrayTest, TestStdDev5) {
-    NDArray<float> array('c', {1, 2000000000});
-    for (int e = 0; e < array.lengthOf(); e++)
-        array(e) = 1.f + (e%2?1/5.:-1/5.);
-
-    float stdF = array.varianceNumber<simdOps::SummaryStatsStandardDeviation<float>>(true);
-    double stdD = array.varianceNumber<simdOps::SummaryStatsStandardDeviation<double>>(true);
+    NDArray<float> array('c', {1, 10000}); //00000});
+    NDArray<double> arrayD('c', {1, 10000}); //00000});
+    for (int e = 0; e < array.lengthOf(); e++) {
+        array(e) = 1.f + (e%2?1/5.f:-1/5.f);
+        arrayD(e) = 1.0 + (e%2?1/5.:-1/5.);
+    }
+    float stdF = array.varianceNumber<simdOps::SummaryStatsStandardDeviation<float>>(false);
+    double stdD = arrayD.varianceNumber<simdOps::SummaryStatsStandardDeviation<double>>(false);
     nd4j_printf("Variance is %f(%f)\n", stdF, stdD);
+    ASSERT_NEAR(stdD, 0.2, 1.0e-8); // 1/5 = 0.2
     ASSERT_NEAR(stdF, 0.2f, 1.0e-5f); // 1/5 = 0.2
 }
 

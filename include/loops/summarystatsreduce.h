@@ -93,18 +93,18 @@ namespace functions {
             }
 
             _CUDA_HD T variance() {
-                if (n <= 1)
+                if (n <= (T)1.f)
                     return 0.0;
                 double res = double(M2) / (n);
                 return static_cast<T>(res);
             }
 
             _CUDA_HD T varianceBiasCorrected() {
-                if (this->n <= 1) {
+                if (this->n <= 1.f) {
                     return 0.0;
                 }
 
-                return (M2 - nd4j::math::nd4j_pow<T>(skewness(), 2.0) / n) / (n - 1.0);
+                return M2 / (n - 1.0);
             }
 
 
@@ -115,7 +115,7 @@ namespace functions {
                 return static_cast<T>(res);
             }
 
-            _CUDA_HD T skewness() { return M2 > 0 ? nd4j::math::nd4j_sqrt<int>(n) * M3 / nd4j::math::nd4j_pow(M2, (T) 1.5) : (T) 0.0f; }
+            _CUDA_HD T skewness() { return M2 > 0 ? nd4j::math::nd4j_sqrt<double>(double(n)) * M3 / nd4j::math::nd4j_pow(M2, (T) 1.5) : (T) 0.0f; }
 
             _CUDA_HD T kurtosis() { return M2 > 0 ? n * M4 / (M2 * M2) : 0; }
 
@@ -232,26 +232,25 @@ namespace functions {
                 else if ((int) x.n > 0 && (int) y.n == 0)
                     return x;
                 SummaryStatsData<T> result;
-                T n = x.n + y.n;
-                T n2 = n  * n;
-                T n3 = n2 * n;
+                double n = x.n + y.n;
+                double n2 = n  * n;
+                double n3 = n2 * n;
 
 
-                T delta = y.mean - x.mean;
-                T delta2 = delta  * delta;
-                T delta3 = delta2 * delta;
-                T delta4 = delta3 * delta;
+                double delta = y.mean - x.mean;
+                double delta2 = delta  * delta;
+                double delta3 = delta2 * delta;
+                double delta4 = delta3 * delta;
 
                 //Basic number of samples (n), min, and max
-                result.n = n;
+                result.n = static_cast<T>(n);
                 result.min = nd4j::math::nd4j_min(x.min, y.min);
                 result.max = nd4j::math::nd4j_max(x.max, y.max);
-
-                result.mean = x.mean + delta * y.n / n;
-
-                result.M2 = x.M2 + y.M2;
-                result.M2 += delta2 * x.n * y.n / n;
-
+                double meanD = x.mean + delta * y.n / n;
+                result.mean = static_cast<T>(meanD);
+                double M2D = x.M2 + y.M2;
+                M2D += delta2 * x.n * y.n / n;
+                result.M2 = static_cast<T>(M2D);
                 result.M3 = x.M3 + y.M3;
                 result.M3 += delta3 * x.n * y.n * (x.n - y.n) / n2;
                 result.M3 += (T) 3.0 * delta * (x.n * y.M2 - y.n * x.M2) / n;

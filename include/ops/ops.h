@@ -3545,17 +3545,17 @@ namespace simdOps {
         __host__ __device__
 #endif
         static inline T getValue(const bool biasCorrected, functions::summarystats::SummaryStatsData<T> val) {
-			double res;
+			T res;
 			if (biasCorrected) {
 				T ret = val.varianceBiasCorrected();
 				if (ret < (T) 0.0f)
-					res = nd4j::math::nd4j_sqrt<double>((double)val.variance());
+					res = nd4j::math::nd4j_sqrt<T>(val.variance());
 				else
-					res = nd4j::math::nd4j_sqrt<double>(double(ret));
+					res = nd4j::math::nd4j_sqrt<T>(ret);
 			}
 			else
-				res = nd4j::math::nd4j_sqrt<double>(val.variance());
-			return static_cast<T>(res);
+				res = nd4j::math::nd4j_sqrt<T>(val.variance());
+			return res;
 		}
 
 #ifdef __CUDACC__
