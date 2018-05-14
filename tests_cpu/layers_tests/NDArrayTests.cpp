@@ -1571,9 +1571,10 @@ TEST_F(NDArrayTest, TestStdDev5) {
     for (int e = 0; e < array.lengthOf(); e++)
         array(e) = 1.f + (e%2?1/5.:-1/5.);
 
-    double std = array.varianceNumber<simdOps::SummaryStatsStandardDeviation<float>>(true);
-    nd4j_printf("Variance is %f\n", std);
-    ASSERT_NEAR(std, 0.2f, 1.0e-5f); // 1/5 = 0.2
+    float stdF = array.varianceNumber<simdOps::SummaryStatsStandardDeviation<float>>(true);
+    double stdD = array.varianceNumber<simdOps::SummaryStatsStandardDeviation<double>>(true);
+    nd4j_printf("Variance is %f(%f)\n", stdF, stdD);
+    ASSERT_NEAR(stdF, 0.2f, 1.0e-5f); // 1/5 = 0.2
 }
 
 //////////////////////////////////////////////////////////////////////
