@@ -30,7 +30,6 @@ namespace ops {
 
                 for (int e = shift; e < fullLen; ++e) {
                     (*output)(e) = (*input)(e - shift);
-                    nd4j_printf("%i(%i): %f\n", e, e - shift, (*output)(e));
                 }
              }
              else if (shift < 0 && shift > -fullLen) {
@@ -38,7 +37,7 @@ namespace ops {
                     (*output)(e) = (*input)(e - shift);
                 }
                 for (int e = fullLen + shift; e < fullLen; ++e) {
-                    (*output)(e) = (*input)(fullLen - e - shift);
+                    (*output)(e) = (*input)(e - fullLen - shift);
                 }
              }
              else if (shift < -fullLen) {

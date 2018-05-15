@@ -1302,9 +1302,9 @@ NDArray<double> exp('c', {2, 2, 4, 2}, {
 
 //    x.printIndexedBuffer("images");
 //    nd4j_printf("input params: ksize = [1, 2, 1, 1], strides = [1, 1, 1, 1], rates = [1, 1, 1, 1]\n", "");
-    result->at(0)->printIndexedBuffer("Output");
+//    result->at(0)->printIndexedBuffer("Output");
     //result->at(0)->printShapeInfo("Out Shape");
-    exp.printIndexedBuffer("Expect");
+//    exp.printIndexedBuffer("Expect");
     //exp.printShapeInfo("Exp Shape");
 //    ASSERT_TRUE(exp.isSameShape(result->at(0)));
     ASSERT_TRUE(exp.equalsTo(result->at(0)));
