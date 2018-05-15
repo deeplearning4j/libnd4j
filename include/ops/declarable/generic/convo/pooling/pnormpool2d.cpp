@@ -83,7 +83,7 @@ namespace nd4j {
             int isNCHW  = block.getIArguments()->size() > 10 ? !INT_ARG(10) : 1;       // 0-NDHWC, 1-NCDHW    
 
             int bS = shapeOf[0];
-            int iD = isNCHW ? shapeOf[1] : shapeOf[3];
+            int iC = isNCHW ? shapeOf[1] : shapeOf[3];
             int iH = isNCHW ? shapeOf[2] : shapeOf[1];
             int iW = isNCHW ? shapeOf[3] : shapeOf[2];
             char order = shape::order(inShape); // output order must be equal to input order
@@ -98,13 +98,13 @@ namespace nd4j {
             newShapeInfo[0] = 4;        // rank
             newShapeInfo[1] = bS;
             if (isNCHW) {
-                newShapeInfo[2] = iD;
+                newShapeInfo[2] = iC;
                 newShapeInfo[3] = oH;
                 newShapeInfo[4] = oW;
             } else {
                 newShapeInfo[2] = oH;
                 newShapeInfo[3] = oW;
-                newShapeInfo[4] = iD;
+                newShapeInfo[4] = iC;
             }
             shape::updateStrides(newShapeInfo, order);
 
@@ -156,35 +156,31 @@ CUSTOM_OP_IMPL(pnormpool2d_bp, 2, 1, false, 1, 10) {
     T extraParams1[] = {(T)kH, (T)kW, (T)sH, (T)sW, (T)pH, (T)pW, (T)dH, (T)dW};
     input->template applyTransform<simdOps::Im2col<T>>(columns, extraParams1);
 
+    NDArray<T>* columns2d = columnsWrongShape.reshape('c', {bS*iC*oH*oW, kH*kW});
+  
+    NDArray<T> arrAbs(columns2d->getShapeInfo(), block.getWorkspace());
+    columns2d->template applyTransform<simdOps::Abs<T>>(&arrAbs);
+    
+    T extraParams11[] = {(T)pnorm};
+    NDArray<T> arrPow(columns2d->getShapeInfo(), block.getWorkspace());
+    arrAbs.template applyTransform<simdOps::Pow<T>>(&arrPow, extraParams11);
+    
+    NDArray<T>* arrSum = arrPow.sum({1});
+    T extraParams2[] = {1.f/pnorm};
+    arrSum->template applyTransform<simdOps::Pow<T>>(extraParams2);
 
-            NDArray<T>* columns2d = col6d->reshape('c', {bS*iD*oH*oW, kH*kW});
-
-            T extraParams1[] = {(T)kH, (T)kW, (T)sH, (T)sW, (T)pH, (T)pW, (T)dH, (T)dW, (T)0.0};
-            input->template applyTransform<simdOps::Im2col<T>>(col6dPermuted, extraParams1);
-
-            NDArray<T>* pNorm = new NDArray<T>(columns2d->getShapeInfo(), block.getWorkspace());
-            columns2d->template applyTransform<simdOps::Abs<T>>(pNorm, nullptr);
-
-            T extraParams11[] = {(T)pnorm};
-            pNorm->template applyTransform<simdOps::Pow<T>>(extraParams11);
-            NDArray<T>* sumArr = pNorm->sum({1});
-            *pNorm = *sumArr;
-            T extraParams2[] = {1.f/pnorm};
-            pNorm->template applyTransform<simdOps::Pow<T>>(extraParams2);
-
-            NDArray<T>* numerator = new NDArray<T>(columns2d->getShapeInfo(), block.getWorkspace());
-            if (pnorm != 2) {
-                NDArray<T>* absp2 = new NDArray<T>(columns2d->getShapeInfo(), block.getWorkspace());
-                columns2d->template applyTransform<simdOps::Abs<T>>(absp2, nullptr);
-                T extraParams3[] = {(T) (pnorm - 2)};
-                absp2->template applyTransform<simdOps::Pow<T>>(extraParams3);
-                nd4j::NDArrayFactory<T>::mmulHelper(columns2d, absp2, numerator, (T)1.f, (T)0.f);
-                delete absp2;
-            }
-            NDArray<T>* denom = new NDArray<T>(pNorm->getShapeInfo(), block.getWorkspace());
+    NDArray<T>* numerator(columns2d->getShapeInfo(), block.getWorkspace());
+    
+    if (pnorm != 2) {        
+        T extraParams3[] = {(T) (pnorm - 2)};
+        absp2->template applyTransform<simdOps::Pow<T>>(extraParams3);
+        nd4j::NDArrayFactory<T>::mmulHelper(columns2d, arrAbs, numerator);
+        delete absp2;
+    }
+            NDArray<T>* denom = new NDArray<T>(arrSum->getShapeInfo(), block.getWorkspace());
             T extraParams4[] = {(T) (pnorm - 1)};
 
-            pNorm->template applyTransform<simdOps::Pow<T>>(denom, extraParams4);
+            arrSum->template applyTransform<simdOps::Pow<T>>(denom, extraParams4);
             denom->template applyScalar<simdOps::Max<T>>(eps); // in case of 0
             denom->template applyPairwiseTransform<simdOps::Divide<T>>(epsilon1d, denom, nullptr);
             numerator->muliColumnVector(denom);
@@ -196,8 +192,8 @@ CUSTOM_OP_IMPL(pnormpool2d_bp, 2, 1, false, 1, 10) {
 
             if(isEpsilonDup)
                 delete epsilon;
-            delete sumArr;
-            delete col6d;
+            delete arrSum;
+            delete columnsWrongShape;
             delete col6dPermuted;
             delete epsilon1d;
             delete pNorm;
