@@ -7,10 +7,6 @@
 #include <NDArray.h>
 #include <NDArrayFactory.h>
 #include <NativeOps.h>
-#include <stdio.h>
-
-#include <stdint.h>
-
 #include <fstream>
 
 using namespace nd4j;

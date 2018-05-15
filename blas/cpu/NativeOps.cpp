@@ -4,9 +4,6 @@
 
 #define __STDC_CONSTANT_MACROS
 
-#define _FILE_OFFSET_BITS 64
-#define _INTEGRAL_MAX_BITS 64
-
 #include "../NativeOps.h"
 #include "../NativeOpExcutioner.h"
 #include "../NDArray.h"
