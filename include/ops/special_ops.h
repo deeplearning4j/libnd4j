@@ -236,8 +236,8 @@ namespace simdOps {
         int pW = (int)extraParams[5];
         int dH = (int)extraParams[6];           //Dilation, height dimension
         int dW = (int)extraParams[7];           //Dilation, width dimension
-        int poolingMode = (int)extraParams[9];
-        T extraParam0 = extraParams[10];
+        int poolingMode = (int)extraParams[8];
+        T extraParam0 = extraParams[9];
 
         const int kHEff = kH + (kH-1)*(dH-1);
         const int kWEff = kW + (kW-1)*(dW-1);
@@ -257,9 +257,12 @@ namespace simdOps {
         const int oStride2 = shape::stride(outShapeBuffer)[2];
         const int oStride3 = shape::stride(outShapeBuffer)[3];         
         const int iStep2 = dH*iStride2;
-        const int iStep3 = dW*iStride3;
+        const int iStep3 = dW*iStride3;        
         const int size01 = bS*iC;
         const int size23 = oH*oW;
+        const int kProd  = kH*kW;
+        const T iStep2Inv = 1./iStep2; 
+        const T iStep3Inv = 1./iStep3;
 
         const bool weirdStride = shape::order(outShapeBuffer) == 'f' || shape::elementWiseStride(outShapeBuffer) != 1;
 
@@ -275,19 +278,19 @@ namespace simdOps {
                 for(int oh = 0; oh < oH; ++oh) {
                 	for(int ow = 0; ow < oW; ++ow) {
                             
-                        int hstart = oh * sH - pH;
-                        int wstart = ow * sW - pW;
-                        int hend = hstart + kHEff;
-                        int wend = wstart + kWEff;
+                        Nd4jIndex hstart = oh * sH - pH;
+                        Nd4jIndex wstart = ow * sW - pW;
+                        Nd4jIndex hend = hstart + kHEff;
+                        Nd4jIndex wend = wstart + kWEff;
 
                         if(hstart < 0)
-                            hstart += dH * (int)nd4j::math::nd4j_ceil<T>((T) -hstart / ((T)dH));
+                            hstart += dH * (Nd4jIndex)nd4j::math::nd4j_ceil<T>((T)-hstart / dH);
                         if(wstart < 0)
-                            wstart += dW * (int)nd4j::math::nd4j_ceil<T>((T) -wstart / ((T)dW));
+                            wstart += dW * (Nd4jIndex)nd4j::math::nd4j_ceil<T>((T)-wstart / dW);
                         if(hend > iH)
-                            hend -= dH * (int)nd4j::math::nd4j_ceil<T>((T)(hend-iH)/((T)dH));                            
+                            hend -= dH * (Nd4jIndex)nd4j::math::nd4j_ceil<T>((T)(hend-iH) / dH);                            
                         if(wend > iW)
-                            wend -= dW * (int)nd4j::math::nd4j_ceil<T>((T)(wend-iW)/((T)dW));
+                            wend -= dW * (Nd4jIndex)nd4j::math::nd4j_ceil<T>((T)(wend-iW) / dW);
 
                         T sum = poolingMode == 0 ? (T) -MAX_FLOAT : (T) 0;
 
@@ -300,8 +303,8 @@ namespace simdOps {
 
                         	case 0:	{// max
 #pragma omp simd reduction(maxT:sum) collapse(2)
-                            	for (int kh = hstart; kh < hend; kh += iStep2) 
-                            		for (int kw = wstart; kw < wend; kw += iStep3) {
+                            	for (Nd4jIndex kh = hstart; kh < hend; kh += iStep2) 
+                            		for (Nd4jIndex kw = wstart; kw < wend; kw += iStep3) {
                                 		T val = pIn[kh + kw];
                                         if (val > sum)
                                     		sum = val;
@@ -310,20 +313,20 @@ namespace simdOps {
                             }
                             case 1:	{// avg
 #pragma omp simd reduction(sumT:sum) collapse(2)
-    	                        for (int kh = hstart; kh < hend; kh += iStep2) 
-                                    for (int kw = wstart; kw < wend; kw += iStep3)
+    	                        for (Nd4jIndex kh = hstart; kh < hend; kh += iStep2) 
+                                    for (Nd4jIndex kw = wstart; kw < wend; kw += iStep3)
             	                    	sum += pIn[kh + kw];
                                 
                 	            if ((int) extraParam0 == 0)         //Exclude padding
-                    	        	sum /= (int)(nd4j::math::nd4j_ceil<T>((T) (hend-hstart)/((T)iStep2)) * (int)nd4j::math::nd4j_ceil<T>((T)(wend-wstart)/((T)iStep3)));   //Accounts for dilation
+                    	        	sum /= (Nd4jIndex)(nd4j::math::nd4j_ceil<T>((hend-hstart) * iStep2Inv)) * (Nd4jIndex)nd4j::math::nd4j_ceil<T>((wend-wstart) * iStep3Inv);   //Accounts for dilation
                         	    else if ((int) extraParam0 == 1)    //Include padding
-                            		sum /= kH * kW;
+                            		sum /= kProd;
                             	break;
                             }
                             case 2: {// pnorm
 #pragma omp simd reduction(sumT:sum) collapse (2)
-                                for (int kh = hstart; kh < hend; kh += iStep2) 
-                                    for (int kw = wstart; kw < wend; kw += iStep3)
+                                for (Nd4jIndex kh = hstart; kh < hend; kh += iStep2) 
+                                    for (Nd4jIndex kw = wstart; kw < wend; kw += iStep3)
                                         sum += nd4j::math::nd4j_pow<T>(nd4j::math::nd4j_abs<T>(pIn[kh + kw]), extraParam0);
                                 
                                 sum = nd4j::math::nd4j_pow<T>(sum, (T) 1. / extraParam0);
@@ -336,7 +339,7 @@ namespace simdOps {
                         }
 
                         if (weirdStride)
-                        	out[oStep01 + oh * oStride2 + ow * oStride3] = sum;                            
+                        	out[oStep01 + oh * oStride2 + ow * oStride3] = sum;
                         else                         	
                         	*pOut++ = sum;
                     }

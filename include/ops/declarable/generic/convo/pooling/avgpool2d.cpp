@@ -11,7 +11,7 @@
 
 namespace nd4j {
     namespace ops {
-        CUSTOM_OP_IMPL(avgpool2d, 1, 1, false, 0, 11) {
+        CUSTOM_OP_IMPL(avgpool2d, 1, 1, false, 0, 10) {
 
             NDArray<T>* input = INPUT_VARIABLE(0);
 
@@ -21,42 +21,37 @@ namespace nd4j {
             std::vector<int> argI = *(block.getIArguments());
             NDArray<T>* output = OUTPUT_VARIABLE(0);
 
-            int kY = argI[0];
-            int kX = argI[1];
+            int kH = INT_ARG(0);
+            int kW = INT_ARG(1);
+            int sH = INT_ARG(2);
+            int sW = INT_ARG(3);
+            int pH = INT_ARG(4);
+            int pW = INT_ARG(5);
+            int dH = INT_ARG(6);
+            int dW = INT_ARG(7);
+            bool isSameMode = INT_ARG(8);
+            int extraParam0 = INT_ARG(9);
 
-            int sY = argI[2];
-            int sX = argI[3];
+            int oH = 0;
+            int oW = 0;
 
-            int pY = argI[4];
-            int pX = argI[5];
+            int isNCHW  = block.getIArguments()->size() > 10 ? !INT_ARG(10) : 1;       // 0-NDHWC, 1-NCDHW    
 
-            int dY = argI[6];
-            int dX = argI[7];
-
-            int oY = 0;
-            int oX = 0;
-
-            bool isNCHW = true;
-            if (block.getIArguments()->size() > 10)
-                isNCHW = INT_ARG(10) == 0;
-
-            const int inY = isNCHW ? input->sizeAt(2) : input->sizeAt(1);
-            const int inX = isNCHW ? input->sizeAt(3) : input->sizeAt(2);
+            const int iH = isNCHW ? input->sizeAt(2) : input->sizeAt(1);
+            const int iW = isNCHW ? input->sizeAt(3) : input->sizeAt(2);
 
             if (!isNCHW) {
                 input  = input->permute({0, 3, 1, 2});                // [bS, iH, iW, iC] -> [bS, iC, iH, iW]
                 output = output->permute({0, 3, 1, 2});               // [bS, oH, oW, iC] -> [bS, iC, oH, oW]
-            }
+            }            
 
-            const bool isSameMode = INT_ARG(8) > 0;
-
-            ConvolutionUtils<T>::calcOutSizePool2D(oY, oX, kY, kX, sY, sX, pY, pX, dY, dX, inY, inX, isSameMode);
+            ConvolutionUtils<T>::calcOutSizePool2D(oH, oW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);
 
             if (isSameMode)
-                ConvolutionUtils<T>::calcPadding2D(pY, pX, oY, oX, inY, inX, argI[0], argI[1], argI[2], argI[3], argI[6], argI[7]);
+                ConvolutionUtils<T>::calcPadding2D(pH, pW, oH, oW, iH, iW, kH, kW, sH, sW, dH, dW);            
             
-            // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8,9 - poolingMode; 10 - divisor;
-            std::vector<T> argT = {(T) kY, (T) kX, (T) sY, (T) sX, (T) pY, (T) pX, (T) dY, (T)dX, (T)1.f, (T)1.f, (T) argI[9], (T) oY, (T) oX};
+            // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8 - poolingMode; 9 - divisor;
+            std::vector<T> argT = {(T) kH, (T) kW, (T) sH, (T) sW, (T) pH, (T) pW, (T) dH, (T)dW, 1., (T)extraParam0};
             input->template applyTransform<simdOps::Pooling2D<T>>(output, argT.data());
 
             if (!isNCHW) {
@@ -77,19 +72,17 @@ namespace nd4j {
 
             // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8 - same mode;
             std::vector<int> argI = *(block.getIArguments());
-            int kH = argI[0];
-            int kW = argI[1];
-            int sH = argI[2];
-            int sW = argI[3];
-            int pH = argI[4];
-            int pW = argI[5];
-            int dH = argI[6];
-            int dW = argI[7];
-            int isSameMode = argI[8];
+            int kH = INT_ARG(0);
+            int kW = INT_ARG(1);
+            int sH = INT_ARG(2);
+            int sW = INT_ARG(3);
+            int pH = INT_ARG(4);
+            int pW = INT_ARG(5);
+            int dH = INT_ARG(6);
+            int dW = INT_ARG(7);
+            int isSameMode = INT_ARG(8);
 
-            bool isNCHW = true;
-            if (block.getIArguments()->size() > 10)
-                isNCHW = INT_ARG(10) == 0;
+            int isNCHW  = block.getIArguments()->size() > 10 ? !INT_ARG(10) : 1;       // 0-NDHWC, 1-NCDHW    
 
             int bS = shapeOf[0];
             int iD = isNCHW ? shapeOf[1] : shapeOf[3];
@@ -178,13 +171,13 @@ namespace nd4j {
             if (cOrderStrides) {
                 col6d = new NDArray<T>('c', {bS, iD, oH, oW, kH, kW}, block.getWorkspace());
                 col6dPermuted = col6d->permute({0, 1, 4, 5, 2, 3});
-                epsilon1d = epsilon->reshape('c', {(int) epsilon->lengthOf(), 1}); //zero copy reshape
+                epsilon1d = epsilon->reshape('c', {(int) epsilon->lengthOf(), 1}); //zero copH reshape
             }
             else {
                 col6d = new NDArray<T>('c', {iD, bS, oH, oW, kH, kW}, block.getWorkspace());
                 col6dPermuted = col6d->permute({1, 0, 4, 5, 2, 3});
                 NDArray<T>* epsilonTemp = epsilon->permute({1, 0, 2, 3});
-                epsilon1d = epsilonTemp->reshape('c', {(int) epsilon->lengthOf(), 1}); //Should be a zero-copy reshape always
+                epsilon1d = epsilonTemp->reshape('c', {(int) epsilon->lengthOf(), 1}); //Should be a zero-copH reshape always
                 delete epsilonTemp;
             }
 
@@ -208,7 +201,7 @@ namespace nd4j {
         }
 
         DECLARE_SHAPE_FN(avgpool2d_bp) {
-            // FIXME: memcpy should be removed
+            // FIXME: memcpH should be removed
             int* newShapeInfo = nullptr;
             ALLOCATE(newShapeInfo, block.getWorkspace(), shape::shapeInfoLength(inputShape->at(0)), int);
             memcpy(newShapeInfo, inputShape->at(0), shape::shapeInfoByteLength(inputShape->at(0)));

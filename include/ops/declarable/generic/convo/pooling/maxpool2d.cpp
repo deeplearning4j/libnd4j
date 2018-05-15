@@ -12,6 +12,88 @@
 namespace nd4j {
 namespace ops  {
 
+
+//////////////////////////////////////////////////////////////////////////
+        // maxpool2d corresponds to poolingMode=0
+        CUSTOM_OP_IMPL(maxpool2d, 1, 1, false, 0, 9) {
+
+            NDArray<T>* input  = INPUT_VARIABLE(0);
+            NDArray<T>* output = OUTPUT_VARIABLE(0);
+
+            REQUIRE_TRUE(input->rankOf() == 4, 0, "Input should have rank of 4, but got %i instead", input->rankOf());
+
+            int isNCHW = block.getIArguments()->size() > 10 ? !INT_ARG(10) : 1;           // 0-NHWC, 1-NCHW
+
+            if (!isNCHW) {
+                input  = input->permute({0, 3, 1, 2});                // [bS, iH, iW, iC] -> [bS, iC, iH, iW]
+                output = output->permute({0, 3, 1, 2});               // [bS, oH, oW, iC] -> [bS, iC, oH, oW]
+            }
+        
+            std::vector<int> argI = *(block.getIArguments());
+
+            ConvolutionUtils<T>::maxPool2d(input, output, argI, (NDArray<T>*)nullptr);                
+            
+            if (!isNCHW) {
+                delete input;
+                delete output;
+            }
+
+            return Status::OK();
+        }
+        DECLARE_SYN(MaxPool2D, maxpool2d);
+        DECLARE_SYN(MaxPool, maxpool2d);
+        DECLARE_SYN(maxpool, maxpool2d);
+
+        DECLARE_SHAPE_FN(maxpool2d) {
+            
+            //NDArray<T> *x = block.getVariables().at(0)->getNDArray();
+            int* inShape = inputShape->at(0);
+            int* shapeOf = shape::shapeOf(inShape);
+            // 0 - number of dimensions; 1,2 - kernel Height/Width; 3,4 - stride Height/Width; 5,6 - pad Height/Width; 7,8 - dilation Height/Width; 9,10 - input Height/Width; 11 - batch size; 12 - input depth; 13 - same mode;
+            std::vector<int> argI = *(block.getIArguments());
+            int kH = INT_ARG(0);
+            int kW = INT_ARG(1);
+            int sH = INT_ARG(2);
+            int sW = INT_ARG(3);
+            int pH = INT_ARG(4);
+            int pW = INT_ARG(5);
+            int dH = INT_ARG(6);
+            int dW = INT_ARG(7);
+            int isSameMode = INT_ARG(8);
+            int isNCHW = block.getIArguments()->size() > 10 ? !INT_ARG(10) : 1;           // 0-NHWC, 1-NCHW
+
+            int bS = shapeOf[0];
+            int iC = isNCHW ? shapeOf[1] : shapeOf[3];
+            int iH = isNCHW ? shapeOf[2] : shapeOf[1];
+            int iW = isNCHW ? shapeOf[3] : shapeOf[2];
+
+            char order = shape::order(inShape); // output order must be equal to input order
+
+            // calculate output Height/Width
+            int oH, oW;
+            ConvolutionUtils<T>::calcOutSizePool2D(oH, oW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);
+            
+            // allocate memory for new shape
+            int* newShapeInfo = nullptr;
+            ALLOCATE(newShapeInfo, block.getWorkspace(), 12, int);
+            
+            newShapeInfo[0] = 4;        // rank
+            newShapeInfo[1] = bS;
+            if (isNCHW) {
+                newShapeInfo[2] = iC;
+                newShapeInfo[3] = oH;
+                newShapeInfo[4] = oW;
+            } else {
+                newShapeInfo[2] = oH;
+                newShapeInfo[3] = oW;
+                newShapeInfo[4] = iC;
+            }
+            shape::updateStrides(newShapeInfo, order);
+
+            return SHAPELIST(newShapeInfo);
+        }
+
+//////////////////////////////////////////////////////////////////////////
 CUSTOM_OP_IMPL(maxpool2d_bp, 2, 1, false, 0, 9) {
 
     NDArray<T>* input = INPUT_VARIABLE(0);                          // [bS, iH, iW, iC] (NHWC) or [bS, iC, iH, iW] (NCHW)
@@ -90,95 +172,7 @@ DECLARE_SHAPE_FN(maxpool2d_bp) {
 }
 
 
-        //////////////////////////////////////////////////////////////////////////
-        // maxpool2d corresponds to poolingMode=0
-        CUSTOM_OP_IMPL(maxpool2d, 1, 1, false, 0, 9) {
-
-            NDArray<T>* input  = INPUT_VARIABLE(0);
-            NDArray<T>* output = OUTPUT_VARIABLE(0);
-
-            REQUIRE_TRUE(input->rankOf() == 4, 0, "Input should have rank of 4, but got %i instead", input->rankOf());
-
-            bool isNCHW = true;
-            if (block.getIArguments()->size() > 10)
-                isNCHW = INT_ARG(10) == 0;
-
-            if (!isNCHW) {
-                input  = input->permute({0, 3, 1, 2});                // [bS, iH, iW, iC] -> [bS, iC, iH, iW]
-                output = output->permute({0, 3, 1, 2});               // [bS, oH, oW, iC] -> [bS, iC, oH, oW]
-            }
-        
-            std::vector<int> argI = *(block.getIArguments());
-
-            ConvolutionUtils<T>::maxPool2d(input, output, argI, (NDArray<T>*)nullptr);                
-            
-            if (!isNCHW) {
-                delete input;
-                delete output;
-            }
-
-            return Status::OK();
-        }
-        DECLARE_SYN(MaxPool2D, maxpool2d);
-        DECLARE_SYN(MaxPool, maxpool2d);
-        DECLARE_SYN(maxpool, maxpool2d);
-
-        DECLARE_SHAPE_FN(maxpool2d) {
-            //NDArray<T> *input = block.getVariables().at(0)->getNDArray();
-            int* inShape = inputShape->at(0);
-            int* shapeOf = shape::shapeOf(inShape);
-            // 0 - number of dimensions; 1,2 - kernel Height/Width; 3,4 - stride Height/Width; 5,6 - pad Height/Width; 7,8 - dilation Height/Width; 9,10 - input Height/Width; 11 - batch size; 12 - input depth; 13 - same mode;
-            std::vector<int> argI = *(block.getIArguments());
-            int kH = argI[0];
-            int kW = argI[1];
-            int sH = argI[2];
-            int sW = argI[3];
-            int pH = argI[4];
-            int pW = argI[5];
-            int dH = argI[6];
-            int dW = argI[7];
-            int isSameMode = argI[8];
-
-            bool isNCHW = true;
-            if (block.getIArguments()->size() > 10)
-                isNCHW = INT_ARG(10) == 0;
-
-            int bS = shapeOf[0];
-            int iC = isNCHW ? shapeOf[1] : shapeOf[3];
-            int iH = isNCHW ? shapeOf[2] : shapeOf[1];
-            int iW = isNCHW ? shapeOf[3] : shapeOf[2];
-
-            char order = shape::order(inShape); // output order must be equal to input order
-
-            // calculate output Height/Width
-            int oH, oW;
-            ConvolutionUtils<T>::calcOutSizePool2D(oH, oW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);
-
-            const bool bisSameMode = INT_ARG(8) > 0;
-            if (bisSameMode)
-                ConvolutionUtils<T>::calcPadding2D(pH, pW, oH, oW, iH, iW, argI[0], argI[1], argI[2], argI[3], argI[6], argI[7]);
-
-            // allocate memory for new shape
-            int* newShapeInfo = nullptr;
-            ALLOCATE(newShapeInfo, block.getWorkspace(), 12, int);
-            if (isNCHW) {
-                newShapeInfo[0] = 4;        // rank
-                newShapeInfo[1] = bS;
-                newShapeInfo[2] = iC;
-                newShapeInfo[3] = oH;
-                newShapeInfo[4] = oW;
-            } else {
-                newShapeInfo[0] = 4;        // rank
-                newShapeInfo[1] = bS;
-                newShapeInfo[2] = oH;
-                newShapeInfo[3] = oW;
-                newShapeInfo[4] = iC;
-            }
-            shape::updateStrides(newShapeInfo, order);
-
-            return SHAPELIST(newShapeInfo);
-        }
-    }
+}
 }
 
 #endif

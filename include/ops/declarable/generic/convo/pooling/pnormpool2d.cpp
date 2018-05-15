@@ -11,7 +11,7 @@
 
 namespace nd4j {
     namespace ops {
-        CUSTOM_OP_IMPL(pnormpool2d, 1, 1, false, 0, 11) {
+        CUSTOM_OP_IMPL(pnormpool2d, 1, 1, false, 0, 10) {
 
             REQUIRE_OK(this->validateInputLengthMatch(block));
             REQUIRE_OK(this->validateInputDimensionsMatch(block));
@@ -20,25 +20,21 @@ namespace nd4j {
 
             REQUIRE_TRUE(input->rankOf() == 4, 0, "Input should have rank of 4, but got %i instead", input->rankOf());
 
-            std::vector<int> argI = *(block.getIArguments()); // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8 - same mode; 9 - extraParam0 for pnorm case;
-
-            int kY = argI[0];
-            int kX = argI[1];
-            int sY = argI[2];
-            int sX = argI[3];
-            int pY = argI[4];
-            int pX = argI[5];
-            int dY = argI[6];
-            int dX = argI[7];
+            int kY = INT_ARG(0);
+            int kX = INT_ARG(1);
+            int sY = INT_ARG(2);
+            int sX = INT_ARG(3);
+            int pY = INT_ARG(4);
+            int pX = INT_ARG(5);
+            int dY = INT_ARG(6);
+            int dX = INT_ARG(7);
+            bool isSameMode = INT_ARG(8);
+            int extraParam0 = INT_ARG(9);
 
             int oY = 0;
             int oX = 0;
 
-            const bool isSameMode = INT_ARG(8) > 0;
-
-            bool isNCHW = true;
-            if (block.getIArguments()->size() > 10)
-                isNCHW = INT_ARG(10) == 0;            
+            int isNCHW  = block.getIArguments()->size() > 10 ? !INT_ARG(10) : 1;       // 0-NDHWC, 1-NCDHW    
 
             if (!isNCHW) {
                 input  = input->permute({0, 3, 1, 2});                  // [bS, iH, iW, iC] -> [bS, iC, iH, iW]
@@ -51,10 +47,10 @@ namespace nd4j {
             ConvolutionUtils<T>::calcOutSizePool2D(oY, oX, kY, kX, sY, sX, pY, pX, dY, dX, inY, inX, isSameMode);
 
             if (isSameMode)
-                ConvolutionUtils<T>::calcPadding2D(pY, pX, oY, oX, inY, inX, argI[0], argI[1], argI[2], argI[3], argI[6], argI[7]);
+                ConvolutionUtils<T>::calcPadding2D(pY, pX, oY, oX, inY, inX, kY, kX, sX, pY, dY, dX);
 
-            std::vector<T> argT = {(T) kY, (T) kX, (T) sY, (T) sX, (T) pY, (T) pX, (T) dY, (T)dX, (T)1.f, (T)2.f, (T) argI[9]};
-
+            // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8 - poolingMode; 9 - divisor;
+            std::vector<T> argT = {(T) kY, (T) kX, (T) sY, (T) sX, (T) pY, (T) pX, (T) dY, (T)dX, 2., (T)extraParam0};
             input->template applyTransform<simdOps::Pooling2D<T>>(output, argT.data());
 
             if (!isNCHW) {
@@ -75,19 +71,16 @@ namespace nd4j {
 
             // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8 - same mode;
             std::vector<int> argI = *(block.getIArguments());
-            int kH = argI[0];
-            int kW = argI[1];
-            int sH = argI[2];
-            int sW = argI[3];
-            int pH = argI[4];
-            int pW = argI[5];
-            int dH = argI[6];
-            int dW = argI[7];
-            int isSameMode = argI[8];
-
-            bool isNCHW = true;
-            if (block.getIArguments()->size() > 10)
-                isNCHW = INT_ARG(10) == 0;
+            int kH = INT_ARG(0);
+            int kW = INT_ARG(1);
+            int sH = INT_ARG(2);
+            int sW = INT_ARG(3);
+            int pH = INT_ARG(4);
+            int pW = INT_ARG(5);
+            int dH = INT_ARG(6);
+            int dW = INT_ARG(7);
+            int isSameMode = INT_ARG(8);
+            int isNCHW  = block.getIArguments()->size() > 10 ? !INT_ARG(10) : 1;       // 0-NDHWC, 1-NCDHW    
 
             int bS = shapeOf[0];
             int iD = isNCHW ? shapeOf[1] : shapeOf[3];
@@ -101,15 +94,14 @@ namespace nd4j {
             // allocate memory for new shape
             int* newShapeInfo = nullptr;
             ALLOCATE(newShapeInfo, block.getWorkspace(), 12, int);
+
+            newShapeInfo[0] = 4;        // rank
+            newShapeInfo[1] = bS;
             if (isNCHW) {
-                newShapeInfo[0] = 4;        // rank
-                newShapeInfo[1] = bS;
                 newShapeInfo[2] = iD;
                 newShapeInfo[3] = oH;
                 newShapeInfo[4] = oW;
             } else {
-                newShapeInfo[0] = 4;        // rank
-                newShapeInfo[1] = bS;
                 newShapeInfo[2] = oH;
                 newShapeInfo[3] = oW;
                 newShapeInfo[4] = iD;

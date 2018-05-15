@@ -1,5 +1,6 @@
 //
-// Created by raver119 on 07.10.2017.
+// @author raver119@gmail.com, created on 07.10.2017.
+// @author Yurii Shyrma (iuriish@yahoo.com)
 //
 
 #include <ops/declarable/generic/helpers/convolutions.h>
@@ -1938,29 +1939,29 @@ void ConvolutionUtils<T>::upsampling3dBP(const NDArray<T>& gradO, NDArray<T>& gr
 template <typename T>
 void ConvolutionUtils<T>::maxPool2d(NDArray<T>* input, NDArray<T>* output, const std::vector<int>& params, NDArray<T>* indices) {
 
-    int kY = params[0];
-    int kX = params[1];
-    int sY = params[2];
-    int sX = params[3];
-    int pY = params[4];
-    int pX = params[5];
-    int dY = params[6];
-    int dX = params[7];
+    int kH = params[0];
+    int kW = params[1];
+    int sH = params[2];
+    int sW = params[3];
+    int pH = params[4];
+    int pW = params[5];
+    int dH = params[6];
+    int dW = params[7];
 
     const int bS  = input->sizeAt(0);
     const int inD = input->sizeAt(1);
-    const int inY = input->sizeAt(2);
-    const int inX = input->sizeAt(3);
-    const int oY  = output->sizeAt(2);
-    const int oX  = output->sizeAt(3);
+    const int iH = input->sizeAt(2);
+    const int iW = input->sizeAt(3);
+    const int oH  = output->sizeAt(2);
+    const int oW  = output->sizeAt(3);
 
-    const bool isSameMode = params[8] != 0;
+    const bool isSameMode = params[8];
 
     if (isSameMode)
-        ConvolutionUtils<T>::calcPadding2D(pY, pX, oY, oX, inY, inX, params[0], params[1], params[2], params[3], params[6], params[7]);                    
+        ConvolutionUtils<T>::calcPadding2D(pH, pW, oH, oW, iH, iW, kH, kW, sH, sW, pH, pW);                    
 
-    // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8 - absent (doesn't matter),  9 - poolingMode; 10 - divisor;
-    std::vector<T> argT = {(T) kY, (T) kX, (T) sY, (T) sX, (T) pY, (T) pX, (T) dY, (T)dX, 1., (T)0., (T)1.};
+    // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; poolingMode; 9 - divisor;
+    std::vector<T> argT = {(T) kH, (T) kW, (T) sH, (T) sW, (T) pH, (T) pW, (T) dH, (T)dW, 0., 1.};
 
     input->template applyTransform<simdOps::Pooling2D<T>>(output, argT.data());
     
@@ -1971,6 +1972,161 @@ void ConvolutionUtils<T>::maxPool2d(NDArray<T>* input, NDArray<T>* output, const
         for (int b = 0; b < input->lengthOf(); b += part) 
             for (int i = 0; i < part; i++)
                 (*indices)(b+i) = i;                
+    }
+}
+
+//////////////////////////////////////////////////////////////////////////
+template <typename T>
+void ConvolutionUtils<T>::pooling3d(NDArray<T>& input, NDArray<T>& output, const T* extraParams) {
+    // input is  [bS, iC, iD, iH, iW]
+    // output is [bS, iC, oD, oH, oW]
+    T* out = output.getBuffer();
+    T* in  = input.getBuffer();
+
+    const int kD = (int)extraParams[0];
+    const int kH = (int)extraParams[1];
+    const int kW = (int)extraParams[2];
+    const int sD = (int)extraParams[3];
+    const int sH = (int)extraParams[4];
+    const int sW = (int)extraParams[5];
+    const int pD = (int)extraParams[6];
+    const int pH = (int)extraParams[7];
+    const int pW = (int)extraParams[8];
+    const int dD = (int)extraParams[9]; 
+    const int dH = (int)extraParams[10];
+    const int dW = (int)extraParams[11];
+
+    int poolingMode = (int)extraParams[12];
+    T extraParam0 = extraParams[13];
+
+    const int kDEff = kD + (kD-1)*(dD-1);
+    const int kHEff = kH + (kH-1)*(dH-1);
+    const int kWEff = kW + (kW-1)*(dW-1);
+
+    const int bS = input.sizeAt(0);
+    const int iC = input.sizeAt(1);
+    const int iD = input.sizeAt(2);
+    const int iH = input.sizeAt(3);
+    const int iW = input.sizeAt(4);
+    const int oD = output.sizeAt(2);
+    const int oH = output.sizeAt(3);
+    const int oW = output.sizeAt(4);
+    const int iStride0 = input.stridesOf()[0];
+    const int iStride1 = input.stridesOf()[1];
+    const int iStride2 = input.stridesOf()[2];
+    const int iStride3 = input.stridesOf()[3];
+    const int iStride4 = input.stridesOf()[4];
+    const int oStride0 = output.stridesOf()[0];
+    const int oStride1 = output.stridesOf()[1];
+    const int oStride2 = output.stridesOf()[2];
+    const int oStride3 = output.stridesOf()[3];
+    const int oStride4 = output.stridesOf()[4];
+    const int iStep2   = dD*iStride2;
+    const int iStep3   = dH*iStride3;
+    const int iStep4   = dW*iStride4;
+    const int size01   = bS*iC;
+    const int size234  = oD*oH*oW;
+    const int kProd    = kD*kH*kW;
+    const T iStep2Inv = 1./iStep2;
+    const T iStep3Inv = 1./iStep3;
+    const T iStep4Inv = 1./iStep4;
+
+    const bool weirdStride = output.ordering() == 'f' || output.ews() != 1;
+
+#pragma omp parallel for if(size01 > nd4j::Environment::getInstance()->elementwiseThreshold()) collapse(2) schedule(guided)
+    for(int b = 0; b < bS; ++b) {
+        for(int c = 0; c < iC; ++c) {
+                                
+            T *pOut = out + b * oStride0 + c * oStride1;
+            T *pIn  = in  + b * iStride0 + c * iStride1;
+
+#pragma omp parallel for if(size234 > nd4j::Environment::getInstance()->elementwiseThreshold()) collapse(3) schedule(guided)
+            for(int od = 0; od < oD; ++od) {
+                for(int oh = 0; oh < oH; ++oh) {
+                    for(int ow = 0; ow < oW; ++ow) {
+                            
+                        Nd4jIndex dstart = od * sD - pD;
+                        Nd4jIndex hstart = oh * sH - pH;
+                        Nd4jIndex wstart = ow * sW - pW;
+                        Nd4jIndex dend = dstart + kDEff;
+                        Nd4jIndex hend = hstart + kHEff;
+                        Nd4jIndex wend = wstart + kWEff;
+
+                        if(dstart < 0)
+                            dstart += dD * (Nd4jIndex)nd4j::math::nd4j_ceil<T>((T)-dstart / dD);
+                        if(hstart < 0)
+                            hstart += dH * (Nd4jIndex)nd4j::math::nd4j_ceil<T>((T)-hstart / dH);
+                        if(wstart < 0)
+                            wstart += dW * (Nd4jIndex)nd4j::math::nd4j_ceil<T>((T)-wstart / dW);
+                        if(dend > iD)
+                            dend -= dD * (Nd4jIndex)nd4j::math::nd4j_ceil<T>((T)(dend-iD) / dD);                            
+                        if(hend > iH)
+                            hend -= dH * (Nd4jIndex)nd4j::math::nd4j_ceil<T>((T)(hend-iH) / dH);
+                        if(wend > iW)
+                            wend -= dW * (Nd4jIndex)nd4j::math::nd4j_ceil<T>((T)(wend-iW) / dW);
+
+                        T sum = poolingMode == 0 ? (T) -MAX_FLOAT : (T) 0;
+
+                        dstart *= iStride2;
+                        dend   *= iStride2;
+                        hstart *= iStride3;
+                        hend   *= iStride3;
+                        wstart *= iStride4;
+                        wend   *= iStride4;
+                        
+                        switch(poolingMode) {
+
+                            case 0: {   // max
+#pragma omp simd reduction(maxT:sum) collapse(3)
+                                for (Nd4jIndex kd = dstart; kd < dend; kd += iStep2) 
+                                    for (Nd4jIndex kh = hstart; kh < hend; kh += iStep3) 
+                                        for (Nd4jIndex kw = wstart; kw < wend; kw += iStep4) {
+                                            T val = pIn[kd + kh + kw];
+                                            if (val > sum)
+                                                sum = val;
+                                        }
+                                break;
+                            }
+                            
+                            case 1: {   // avg
+#pragma omp simd reduction(sumT:sum) collapse(3)
+                                for (Nd4jIndex kd = dstart; kd < dend; kd += iStep2) 
+                                    for (Nd4jIndex kh = hstart; kh < hend; kh += iStep3) 
+                                        for (Nd4jIndex kw = wstart; kw < wend; kw += iStep4)
+                                            sum += pIn[kd + kh + kw];
+                                
+                                if ((int) extraParam0 == 0)         //Exclude padding
+                                    sum /= (Nd4jIndex)nd4j::math::nd4j_ceil<T>((dend-dstart) * iStep2Inv) * (Nd4jIndex)nd4j::math::nd4j_ceil<T>((hend-hstart) * iStep3Inv) * (Nd4jIndex)nd4j::math::nd4j_ceil<T>((wend-wstart) * iStep4Inv);   //Accounts for dilation
+                                else if ((int) extraParam0 == 1)    //Include padding
+                                    sum /= kProd;
+                                break;
+                            }
+                            
+                            case 2: {   // pnorm
+#pragma omp simd reduction(sumT:sum) collapse (3)
+                                for (Nd4jIndex kd = dstart; kd < dend; kd += iStep2) 
+                                    for (Nd4jIndex kh = hstart; kh < hend; kh += iStep3) 
+                                        for (Nd4jIndex kw = wstart; kw < wend; kw += iStep4)
+                                            sum += nd4j::math::nd4j_pow<T>(nd4j::math::nd4j_abs<T>(pIn[kd + kh + kw]), extraParam0);
+                                
+                                sum = nd4j::math::nd4j_pow<T>(sum, (T) 1. / extraParam0);
+                                break;
+                            }
+                            
+                            default: {
+                                nd4j_printf("ConvolutionUtils::pooling3d: pooling mode argument can take three values only: 0, 1, 2, but got %i instead !\n", poolingMode);
+                                throw "";
+                            }
+                        }
+
+                        if (weirdStride)
+                            pOut[od * oStride2 + oh * oStride3 + ow * oStride4] = sum;                            
+                        else                            
+                            *pOut++ = sum;
+                    }
+                }
+            }
+        }
     }
 }
 

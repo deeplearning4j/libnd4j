@@ -92,6 +92,8 @@ namespace nd4j {
 
             static void maxPool2d(NDArray<T>* input, NDArray<T>* output, const std::vector<int>& params, NDArray<T>* indices);
 
+            static void pooling3d(NDArray<T>& input, NDArray<T>& output, const T* extraParams);
+
     };
 
 }
