@@ -335,12 +335,15 @@ namespace shape {
 
         int ews = shape::elementWiseStride(shapeInfo);
 
-        if(!shape::isVector(shapeInfo))
-            wholeThing = this->numTads == 1 || ((this->dimensionLength == this->rank || this->numTads == shape::length(shapeInfo)) && ews == 1);                        
-        else if(shape::isScalar(shapeInfo))
+        if(!shape::isVector(shapeInfo)) {
+            wholeThing = this->numTads == 1 // if number of TADs is 1, we just have input shape == TAD shape
+                         || ((this->dimensionLength == this->rank // if number of dimensions is the same as input rank, that'll be wholeTad too, but only if EWS==1 (aka - not a View)
+                         || (this->numTads == shape::length(shapeInfo) && shape::order(shapeInfo) == 'c')) // OR  number of tads equals to shapeInfo length AND input is in C order. if order is F - we'll have to calculate offsets
+                         && ews == 1); // as mentioned above - last 2 rules apply only to non-views
+        } else if(shape::isScalar(shapeInfo)) {
             wholeThing = true;
             //vector case
-        else {
+        } else {
             // if(dimensionLength == 1 && shape::shapeOf(shapeInfo)[dimension[0]] == 1) {
             if(dimension == 0 && shape::shapeOf(shapeInfo)[dimension[0]] == 1) {
                 wholeThing = true;
