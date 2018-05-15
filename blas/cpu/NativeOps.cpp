@@ -26,9 +26,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #ifndef _WIN32
-#include <io.h>
 #include <sys/mman.h>
 #else
+#include <io.h>
 #include <helpers/mman.h>
 #endif
 #include <sys/types.h>
