@@ -22,11 +22,11 @@
 #include <pairwise_util.h>
 
 
-#include <io.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #ifndef _WIN32
+#include <io.h>
 #include <sys/mman.h>
 #else
 #include <helpers/mman.h>
