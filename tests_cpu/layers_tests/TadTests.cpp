@@ -121,13 +121,20 @@ TEST_F(TadTests, TestEdgeCase_2) {
     NDArray<float> array('c', {2, 3, 1}, {1, 2, 3, 4, 5, 6});
     auto arrayF = array.dup('f');
 
-    auto tad = arrayF->tensorAlongDimension(1, {2});
 
-    tad->printShapeInfo("tad shape");
-    tad->printIndexedBuffer("tad");
+
+    for (int e = 0 ; e < arrayF->lengthOf(); e++) {
+        auto tad = arrayF->tensorAlongDimension(e, {2});
+
+        ASSERT_NEAR(tad->getScalar(0), array.getIndexedScalar(e), 1e-5);
+
+        delete tad;
+    }
+
+
 
     delete arrayF;
-    delete tad;
+
 }
 
 TEST_F(TadTests, TadEdgeCase_2) {
