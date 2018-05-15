@@ -162,6 +162,7 @@ TEST_F(TadTests, TestShapeTad_2) {
     
     for(int i=0; i<8; i++)
         std::cout<<tad.tadOnlyShapeInfo[i]<<" ";
+    std::cout<<std::endl;
 
     ASSERT_TRUE(shape::shapeEquals(expected.getShapeInfo(), tad.tadOnlyShapeInfo));
 
