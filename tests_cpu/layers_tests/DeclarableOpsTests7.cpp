@@ -456,7 +456,6 @@ TEST_F(DeclarableOpsTests7, Test_Dynamic_Stitch_Prof_1) {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-
 TEST_F(DeclarableOpsTests7, Test_Dynamic_Stitch_119_1) {
     NDArray<float> indices0('c', {2}, {1.0f, 10.f});
     NDArray<float> indices1('c', {2, 3}, {0,7,9, 5,8,3});
@@ -1253,6 +1252,67 @@ NDArray<double> exp('c', {2, 1, 4, 4}, {
 
     delete result;
 }
+
+////////////////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests7, TestRoll_1) {
+    NDArray<double> x('c', {2, 2, 4, 2}, {
+    11.11, 11.12, 11.21, 11.22, 11.31, 11.32, 11.41, 11.42,     12.11, 12.12, 12.21, 12.22, 12.31, 12.32, 12.41, 12.42,
+    21.11, 21.12, 21.21, 21.22, 21.31, 21.32, 21.41, 21.42,     22.11, 22.12, 22.21, 22.22, 22.31, 22.32, 22.41, 22.42
+});
+
+NDArray<double> exp('c', {2, 2, 4, 2}, {
+    22.21, 22.22, 22.31, 22.32, 22.41, 22.42, 11.11, 11.12, 11.21, 11.22, 11.31, 11.32, 11.41, 11.42,     
+    12.11, 12.12, 12.21, 12.22, 12.31, 12.32, 12.41, 12.42, 21.11, 21.12, 21.21, 21.22, 21.31, 21.32, 
+    21.41, 21.42, 22.11, 22.12
+ });
+// ----------------------------------------------------------------
+    nd4j::ops::roll<double> op;
+
+    auto result = op.execute({&x}, {}, {6});
+    ASSERT_EQ(result->status(), Status::OK());
+
+//    x.printIndexedBuffer("images");
+//    nd4j_printf("input params: ksize = [1, 2, 1, 1], strides = [1, 1, 1, 1], rates = [1, 1, 1, 1]\n", "");
+//    result->at(0)->printIndexedBuffer("Output");
+    //result->at(0)->printShapeInfo("Out Shape");
+//    exp.printIndexedBuffer("Expect");
+    //exp.printShapeInfo("Exp Shape");
+//    ASSERT_TRUE(exp.isSameShape(result->at(0)));
+    ASSERT_TRUE(exp.equalsTo(result->at(0)));
+
+    delete result;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests7, TestRoll_2) {
+    NDArray<double> x('c', {2, 2, 4, 2}, {
+    11.11, 11.12, 11.21, 11.22, 11.31, 11.32, 11.41, 11.42,     12.11, 12.12, 12.21, 12.22, 12.31, 12.32, 12.41, 12.42,
+    21.11, 21.12, 21.21, 21.22, 21.31, 21.32, 21.41, 21.42,     22.11, 22.12, 22.21, 22.22, 22.31, 22.32, 22.41, 22.42
+});
+
+NDArray<double> exp('c', {2, 2, 4, 2}, {
+         12.11, 12.12, 12.21, 12.22, 12.31, 12.32, 12.41, 12.42,    21.11, 21.12, 21.21, 21.22, 21.31, 21.32, 21.41, 21.42,
+         22.11, 22.12, 22.21, 22.22, 22.31, 22.32, 22.41, 22.42,    11.11, 11.12, 11.21, 11.22, 11.31, 11.32, 11.41, 11.42
+ });
+// ----------------------------------------------------------------
+    nd4j::ops::roll<double> op;
+
+    auto result = op.execute({&x}, {}, {-8});
+    ASSERT_EQ(result->status(), Status::OK());
+
+//    x.printIndexedBuffer("images");
+//    nd4j_printf("input params: ksize = [1, 2, 1, 1], strides = [1, 1, 1, 1], rates = [1, 1, 1, 1]\n", "");
+    result->at(0)->printIndexedBuffer("Output");
+    //result->at(0)->printShapeInfo("Out Shape");
+    exp.printIndexedBuffer("Expect");
+    //exp.printShapeInfo("Exp Shape");
+//    ASSERT_TRUE(exp.isSameShape(result->at(0)));
+    ASSERT_TRUE(exp.equalsTo(result->at(0)));
+
+    delete result;
+}
+
+
 
 
 
