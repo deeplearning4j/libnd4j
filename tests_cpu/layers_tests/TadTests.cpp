@@ -162,6 +162,7 @@ TEST_F(TadTests, Tad_1D_1) {
 */
 
 ///////////////////////////////////////////////////////////////////
+/*
 TEST_F(TadTests, TestShapeTad_2) {
         
     NDArray<float> input('c', {2,1,4,1});
@@ -183,6 +184,6 @@ TEST_F(TadTests, TestShapeTad_2) {
     ASSERT_TRUE(shape::shapeEquals(expected.getShapeInfo(), tad.tadOnlyShapeInfo));
 
 }
-
+*/
 
 #endif //LIBND4J_TADTESTS_H
