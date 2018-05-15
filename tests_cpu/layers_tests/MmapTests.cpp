@@ -9,7 +9,6 @@
 #include <NativeOps.h>
 #include <stdio.h>
 
-#include <windows.h>
 #include <stdint.h>
 
 #include <fstream>
