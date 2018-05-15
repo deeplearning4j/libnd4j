@@ -26,7 +26,7 @@ TEST_F(MmapTests, Test_Basic_Mmap_1) {
     NativeOps nativeOps;
 
     // just 10GB
-    Nd4jIndex size = 4500000000L;
+    Nd4jIndex size = 100000L;
 
     std::ofstream ofs("file", std::ios::binary | std::ios::out);
     ofs.seekp(size + 1024L);

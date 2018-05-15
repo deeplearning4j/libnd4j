@@ -3074,6 +3074,10 @@ void NativeOps::decodeBitmapHalf(Nd4jPointer *extraPointers, void *dx, Nd4jIndex
 Nd4jIndex* NativeOps::mmapFile(Nd4jPointer *extraPointers, const char *fileName, Nd4jIndex length) {
 auto result = new Nd4jIndex[2];
 errno = 0;
+
+#if defined(_WIN32) || defined(_WIN64)
+    _mmap(result, static_cast<size_t>(length), fileName);
+#else
 int fd = open(fileName, O_RDWR, 0);
 // checking for failed fopen
 if (fd < 0) {
@@ -3090,6 +3094,9 @@ if (ptr == MAP_FAILED)
 result[0] = (Nd4jIndex) ptr;
 result[1] = fd;
 
+#endif
+
+
 return result;
 
 
@@ -3097,7 +3104,12 @@ return result;
 
 void NativeOps::munmapFile(Nd4jPointer *extraPointers, Nd4jIndex *ptrMap, Nd4jIndex length) {
 munmap((Nd4jPointer) ptrMap[0], length);
-close((int) ptrMap[1]);
+
+#if defined(_WIN32) || defined(_WIN64)
+    CloseHandle(reinterpret_cast<HANDLE>(ptrMap[1]));
+#else
+    close((int) ptrMap[1]);
+#endif
 
 delete[] ptrMap;
 }
