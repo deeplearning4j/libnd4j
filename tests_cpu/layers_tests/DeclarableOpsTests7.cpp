@@ -1240,13 +1240,6 @@ NDArray<double> exp('c', {2, 1, 4, 4}, {
 
     auto result = op.execute({&x}, {}, {2,1, 1,1, 1,1,0});
     ASSERT_EQ(result->status(), Status::OK());
-
-//    x.printIndexedBuffer("images");
-//    nd4j_printf("input params: ksize = [1, 2, 1, 1], strides = [1, 1, 1, 1], rates = [1, 1, 1, 1]\n", "");
-//    result->at(0)->printIndexedBuffer("Output");
-    //result->at(0)->printShapeInfo("Out Shape");
-//    exp.printIndexedBuffer("Expect");
-    //exp.printShapeInfo("Exp Shape");
     ASSERT_TRUE(exp.isSameShape(result->at(0)));
     ASSERT_TRUE(exp.equalsTo(result->at(0)));
 
@@ -1270,14 +1263,6 @@ NDArray<double> exp('c', {2, 2, 4, 2}, {
 
     auto result = op.execute({&x}, {}, {6});
     ASSERT_EQ(result->status(), Status::OK());
-
-//    x.printIndexedBuffer("images");
-//    nd4j_printf("input params: ksize = [1, 2, 1, 1], strides = [1, 1, 1, 1], rates = [1, 1, 1, 1]\n", "");
-//    result->at(0)->printIndexedBuffer("Output");
-    //result->at(0)->printShapeInfo("Out Shape");
-//    exp.printIndexedBuffer("Expect");
-    //exp.printShapeInfo("Exp Shape");
-//    ASSERT_TRUE(exp.isSameShape(result->at(0)));
     ASSERT_TRUE(exp.equalsTo(result->at(0)));
 
     delete result;
@@ -1299,14 +1284,6 @@ NDArray<double> exp('c', {2, 2, 4, 2}, {
 
     auto result = op.execute({&x}, {}, {-8});
     ASSERT_EQ(result->status(), Status::OK());
-
-//    x.printIndexedBuffer("images");
-//    nd4j_printf("input params: ksize = [1, 2, 1, 1], strides = [1, 1, 1, 1], rates = [1, 1, 1, 1]\n", "");
-//    result->at(0)->printIndexedBuffer("Output");
-    //result->at(0)->printShapeInfo("Out Shape");
-//    exp.printIndexedBuffer("Expect");
-    //exp.printShapeInfo("Exp Shape");
-//    ASSERT_TRUE(exp.isSameShape(result->at(0)));
     ASSERT_TRUE(exp.equalsTo(result->at(0)));
 
     delete result;
@@ -1329,13 +1306,6 @@ NDArray<double> exp('c', {2, 2, 4, 2}, {
     auto result = op.execute({&x}, {}, {-40});
     ASSERT_EQ(result->status(), Status::OK());
 
-//    x.printIndexedBuffer("images");
-//    nd4j_printf("input params: ksize = [1, 2, 1, 1], strides = [1, 1, 1, 1], rates = [1, 1, 1, 1]\n", "");
-//    result->at(0)->printIndexedBuffer("Output");
-    //result->at(0)->printShapeInfo("Out Shape");
-//    exp.printIndexedBuffer("Expect");
-    //exp.printShapeInfo("Exp Shape");
-//    ASSERT_TRUE(exp.isSameShape(result->at(0)));
     ASSERT_TRUE(exp.equalsTo(result->at(0)));
 
     delete result;
@@ -1359,13 +1329,29 @@ NDArray<double> exp('c', {2, 2, 4, 2}, {
     auto result = op.execute({&x}, {}, {38});
     ASSERT_EQ(result->status(), Status::OK());
 
-//    x.printIndexedBuffer("images");
-//    nd4j_printf("input params: ksize = [1, 2, 1, 1], strides = [1, 1, 1, 1], rates = [1, 1, 1, 1]\n", "");
-//    result->at(0)->printIndexedBuffer("Output");
-    //result->at(0)->printShapeInfo("Out Shape");
-//    exp.printIndexedBuffer("Expect");
-    //exp.printShapeInfo("Exp Shape");
-//    ASSERT_TRUE(exp.isSameShape(result->at(0)));
+    ASSERT_TRUE(exp.equalsTo(result->at(0)));
+
+    delete result;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests7, TestRoll_5) {
+    NDArray<float> x('c', {3, 4}, {
+    0., 1., 2., 3., 4, 5., 6., 7., 8., 9., 10., 11.
+});
+
+NDArray<float> exp('c', {3, 4}, {
+     4,  5,  6,  7, 8,  9, 10, 11, 0,  1,  2,  3
+});
+// ----------------------------------------------------------------
+    nd4j::ops::roll<float> op;
+
+    auto result = op.execute({&x}, {}, {2, 1});
+    ASSERT_EQ(result->status(), Status::OK());
+
+    result->at(0)->printIndexedBuffer("Output");
+    exp.printIndexedBuffer("Expect");
+
     ASSERT_TRUE(exp.equalsTo(result->at(0)));
 
     delete result;
