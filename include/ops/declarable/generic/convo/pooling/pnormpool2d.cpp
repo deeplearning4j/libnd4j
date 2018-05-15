@@ -111,78 +111,59 @@ namespace nd4j {
             return SHAPELIST(newShapeInfo);
         }
 
-        //////////////////////////////////////////////////////////////////////////
-        CUSTOM_OP_IMPL(pnormpool2d_bp, 2, 1, false, 1, 10) {
+//////////////////////////////////////////////////////////////////////////
+CUSTOM_OP_IMPL(pnormpool2d_bp, 2, 1, false, 1, 10) {
 
-            auto input = INPUT_VARIABLE(0);
-            auto epsilon = INPUT_VARIABLE(1);
-            auto outEpsilon = OUTPUT_VARIABLE(0);
-            std::vector<int> argI = *(block.getIArguments());
-            std::vector<T>   argT = *(block.getTArguments());
+    NDArray<T>* input = INPUT_VARIABLE(0);                          // [bS, iH, iW, iC] (NHWC) or [bS, iC, iH, iW] (NCHW)
+    NDArray<T>* gradO = INPUT_VARIABLE(1);                          // [bS, oH, oW, oC] (NHWC) or [bS, oC, oH, oW] (NCHW), epsilon_next
+    NDArray<T>* gradI = OUTPUT_VARIABLE(0);                         // [bS, iH, iW, iC] (NHWC) or [bS, iC, iH, iW] (NCHW), epsilon
 
-            int kH = argI[0];
-            int kW = argI[1];
-            int sH = argI[2];
-            int sW = argI[3];
-            int pH = argI[4];
-            int pW = argI[5];
-            int dH = argI[6];
-            int dW = argI[7];
-            int isSameMode = argI[8];
-            int pnorm = argI[9];
-            T eps = argT[0];
+    int kH = INT_ARG(0);                                                        // filter(kernel) height
+    int kW = INT_ARG(1);                                                        // filter(kernel) width
+    int sH = INT_ARG(2);                                                        // strides height
+    int sW = INT_ARG(3);                                                        // strides width
+    int pH = INT_ARG(4);                                                        // paddings height
+    int pW = INT_ARG(5);                                                        // paddings width
+    int dH = INT_ARG(6);                                                        // dilations height
+    int dW = INT_ARG(7);                                                        // dilations width
+    int isSameMode = INT_ARG(8);                                                // 0-VALID, 1-SAME
+    int pnorm = INT_ARG(9);
+    int isNCHW = block.getIArguments()->size() > 10 ? !INT_ARG(10) : 1;           // 0-NHWC, 1-NCHW    
 
-            int bS = input->getShapeInfo()[1];
-            int iD = input->getShapeInfo()[2];
-            int iH = input->getShapeInfo()[3];
-            int iW = input->getShapeInfo()[4];
+    REQUIRE_TRUE(input->rankOf() == 4, 0, "MAXPOOL2D_BP op: input should have rank of 4, but got %i instead", input->rankOf());
 
-            // calculate output Height/Width
-            int oH, oW;
-            ConvolutionUtils<T>::calcOutSizePool2D(oH, oW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);
+    int bS, iC, iH, iW, oC, oH, oW;                             // batch size, input channels, input height/width, output channels, output height/width;
+    int indIOioC, indIiH, indWoC, indWiC, indWkH, indOoH;       // corresponding indexes
+    ConvolutionUtils<T>::getSizesAndIndexesConv2d(isNCHW, *input, *gradO, bS, iC, iH, iW, oC, oH, oW, indIOioC, indIiH, indWiC, indWoC, indWkH, indOoH);
 
-            bool cOrderStrides = false;
-            bool isEpsilonDup = false;
-            if (epsilon->ordering() != 'c') {
-                epsilon = epsilon->dup('c');
-                cOrderStrides = true;
-                isEpsilonDup = true;
-            }
+    std::string expectedGradOShape = ShapeUtils<T>::shapeAsString(ShapeUtils<T>::composeShapeUsingDimsAndIdx({bS,iC,oH,oW,  0,indIOioC,indIiH,indIiH+1}));
+    std::string expectedGradIShape = ShapeUtils<T>::shapeAsString(ShapeUtils<T>::composeShapeUsingDimsAndIdx({bS,iC,iH,iW,  0,indIOioC,indIiH,indIiH+1}));
+    REQUIRE_TRUE(expectedGradOShape == ShapeUtils<T>::shapeAsString(gradO), 0, "MAXPOOL2D_BP op: wrong shape of output's gradients array (next epsilon), expected is %s, but got %s instead !", expectedGradOShape.c_str(), ShapeUtils<T>::shapeAsString(gradO).c_str());    
+    REQUIRE_TRUE(expectedGradIShape == ShapeUtils<T>::shapeAsString(gradI), 0, "MAXPOOL2D_BP op: wrong shape of input's gradients array (epsilon), expected is %s, but got %s instead !", expectedGradIShape.c_str(), ShapeUtils<T>::shapeAsString(gradI).c_str());
 
-            int strideToCompare[] = {oH*oW, iD*oH*oW, oW, 1};
-            if (!cOrderStrides && shape::strideDescendingCAscendingF(epsilon->getShapeInfo())) {
-                cOrderStrides = true;
-            }
-            else if (!shape::strideEquals(strideToCompare, 4, epsilon->stridesOf(), epsilon->rankOf())) {
-                epsilon = epsilon->dup('c');
-                cOrderStrides = true;
-                isEpsilonDup = true;
-            }
+    if(!isNCHW) {
+        input = input->permute({0, 3, 1, 2});                                   // [bS, iH, iW, iC] -> [bS, iC, iH, iW]                        
+        gradI = gradI->permute({0, 3, 1, 2});                                   // [bS, iH, iW, iC] -> [bS, iC, iH, iW]                        
+        gradO = gradO->permute({0, 3, 1, 2});                                   // [bS, oH, oW, iC] -> [bS, iC, oH, oW]                        
+    }
+    
+    if(isSameMode)                       // SAME        
+        ConvolutionUtils<T>::calcPadding2D(pH, pW, oH, oW, iH, iW, kH, kW, sH, sW, dH, dW);
 
-            NDArray<T>* col6d = nullptr;
-            NDArray<T>* col6dPermuted = nullptr;
-            NDArray<T>* epsilon1d = nullptr;
+    NDArray<T> columnsWrongShape(input->ordering(), {bS, iC, oH, oW, kH, kW}, input->getWorkspace());    
+    NDArray<T>* columns = columnsWrongShape.permute({0, 1, 4, 5, 2, 3});                                // [bS, iC, oH, oW, kH, kW] -> [bS, iC, kH, kW, oH, oW]
 
-            if (cOrderStrides) {
-                col6d = new NDArray<T>('c', {bS, iD, oH, oW, kH, kW}, block.getWorkspace());
-                col6dPermuted = col6d->permute({0, 1, 4, 5, 2, 3});
-                epsilon1d = epsilon->reshape('c', {(int) epsilon->lengthOf(), 1}); //zero copy reshape
-            }
-            else {
-                col6d = new NDArray<T>('c', {iD, bS, oH, oW, kH, kW}, block.getWorkspace());
-                col6dPermuted = col6d->permute({1, 0, 4, 5, 2, 3});
-                NDArray<T>* epsilonTemp = epsilon->permute({1, 0, 2, 3});
-                epsilon1d = epsilonTemp->reshape('c', {(int) epsilon->lengthOf(), 1}); //Should be a zero-copy reshape always
-                delete epsilonTemp;
-            }
+    T extraParams1[] = {(T)kH, (T)kW, (T)sH, (T)sW, (T)pH, (T)pW, (T)dH, (T)dW};
+    input->template applyTransform<simdOps::Im2col<T>>(columns, extraParams1);
 
-            NDArray<T>* col2d = col6d->reshape('c', {bS*iD*oH*oW, kH*kW});
+
+            NDArray<T>* columns2d = col6d->reshape('c', {bS*iD*oH*oW, kH*kW});
 
             T extraParams1[] = {(T)kH, (T)kW, (T)sH, (T)sW, (T)pH, (T)pW, (T)dH, (T)dW, (T)0.0};
             input->template applyTransform<simdOps::Im2col<T>>(col6dPermuted, extraParams1);
 
-            NDArray<T>* pNorm = new NDArray<T>(col2d->getShapeInfo(), block.getWorkspace());
-            col2d->template applyTransform<simdOps::Abs<T>>(pNorm, nullptr);
+            NDArray<T>* pNorm = new NDArray<T>(columns2d->getShapeInfo(), block.getWorkspace());
+            columns2d->template applyTransform<simdOps::Abs<T>>(pNorm, nullptr);
 
             T extraParams11[] = {(T)pnorm};
             pNorm->template applyTransform<simdOps::Pow<T>>(extraParams11);
@@ -191,13 +172,13 @@ namespace nd4j {
             T extraParams2[] = {1.f/pnorm};
             pNorm->template applyTransform<simdOps::Pow<T>>(extraParams2);
 
-            NDArray<T>* numerator = new NDArray<T>(col2d->getShapeInfo(), block.getWorkspace());
+            NDArray<T>* numerator = new NDArray<T>(columns2d->getShapeInfo(), block.getWorkspace());
             if (pnorm != 2) {
-                NDArray<T>* absp2 = new NDArray<T>(col2d->getShapeInfo(), block.getWorkspace());
-                col2d->template applyTransform<simdOps::Abs<T>>(absp2, nullptr);
+                NDArray<T>* absp2 = new NDArray<T>(columns2d->getShapeInfo(), block.getWorkspace());
+                columns2d->template applyTransform<simdOps::Abs<T>>(absp2, nullptr);
                 T extraParams3[] = {(T) (pnorm - 2)};
                 absp2->template applyTransform<simdOps::Pow<T>>(extraParams3);
-                nd4j::NDArrayFactory<T>::mmulHelper(col2d, absp2, numerator, (T)1.f, (T)0.f);
+                nd4j::NDArrayFactory<T>::mmulHelper(columns2d, absp2, numerator, (T)1.f, (T)0.f);
                 delete absp2;
             }
             NDArray<T>* denom = new NDArray<T>(pNorm->getShapeInfo(), block.getWorkspace());
@@ -222,7 +203,7 @@ namespace nd4j {
             delete pNorm;
             delete numerator;
             delete denom;
-            delete col2d;
+            delete columns2d;
 
             return ND4J_STATUS_OK;
         }

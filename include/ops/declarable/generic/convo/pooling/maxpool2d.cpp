@@ -94,7 +94,7 @@ namespace ops  {
         }
 
 //////////////////////////////////////////////////////////////////////////
-CUSTOM_OP_IMPL(maxpool2d_bp, 2, 1, false, 0, 9) {
+CUSTOM_OP_IMPL(maxpool2d_bp, 2, 1, false, 0, 10) {
 
     NDArray<T>* input = INPUT_VARIABLE(0);                          // [bS, iH, iW, iC] (NHWC) or [bS, iC, iH, iW] (NCHW)
     NDArray<T>* gradO = INPUT_VARIABLE(1);                          // [bS, oH, oW, oC] (NHWC) or [bS, oC, oH, oW] (NCHW), epsilon_next
@@ -109,7 +109,7 @@ CUSTOM_OP_IMPL(maxpool2d_bp, 2, 1, false, 0, 9) {
     int dH = INT_ARG(6);                                                        // dilations height
     int dW = INT_ARG(7);                                                        // dilations width
     int isSameMode = INT_ARG(8);                                                // 0-VALID, 1-SAME
-    int isNCHW = block.getIArguments()->size() > 9 ? !INT_ARG(9) : 1;           // 0-NHWC, 1-NCHW    
+    int isNCHW = block.getIArguments()->size() > 10 ? !INT_ARG(10) : 1;           // 0-NHWC, 1-NCHW    
 
     REQUIRE_TRUE(input->rankOf() == 4, 0, "MAXPOOL2D_BP op: input should have rank of 4, but got %i instead", input->rankOf());
 
