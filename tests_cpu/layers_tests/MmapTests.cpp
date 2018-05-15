@@ -39,5 +39,5 @@ TEST_F(MmapTests, Test_Basic_Mmap_1) {
 
     nativeOps.munmapFile(nullptr, result, size);
 
-    remove("./file");
+    remove("file");
 }
