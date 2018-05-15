@@ -22,7 +22,8 @@ namespace ops {
             shiftIsLinear = false;
         if (shiftIsLinear) {
             int fullLen = output->lengthOf();
-            if (shift > 0 && shift < fullLen) {
+            if (shift > 0) {
+                shift %= fullLen;
                 for (int e = 0; e < shift; ++e) {
                     int sourceIndex = fullLen - shift + e;
                     (*output)(e) = (*input)(sourceIndex);
@@ -32,17 +33,14 @@ namespace ops {
                     (*output)(e) = (*input)(e - shift);
                 }
              }
-             else if (shift < 0 && shift > -fullLen) {
+             else if (shift < 0) {
+                shift %= fullLen;
                 for (int e = 0; e < fullLen + shift; ++e) {
                     (*output)(e) = (*input)(e - shift);
                 }
                 for (int e = fullLen + shift; e < fullLen; ++e) {
                     (*output)(e) = (*input)(e - fullLen - shift);
                 }
-             }
-             else if (shift < -fullLen) {
-             }
-             else if (shift > fullLen) {
              }
              else
                 output->assign(input);
