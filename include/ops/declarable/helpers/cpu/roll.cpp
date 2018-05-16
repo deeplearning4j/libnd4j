@@ -11,34 +11,40 @@ namespace helpers {
 
     template <typename T>
     void rollFunctorLinear(NDArray<T>* input, NDArray<T>* output, int shift, bool inplace){
-
-        int fullLen = output->lengthOf();
-        if (shift > 0) {
-            shift %= fullLen;
-            for (int e = 0; e < shift; ++e) {
-                int sourceIndex = fullLen - shift + e;
-                (*output)(e) = (*input)(sourceIndex);
-            }
-
-            for (int e = shift; e < fullLen; ++e) {
-                (*output)(e) = (*input)(e - shift);
-            }
+        if (inplace) {
+        }
+        else {
+            int fullLen = output->lengthOf();
+            if (shift > 0) {
+                shift %= fullLen;
+                for (int e = 0; e < shift; ++e) {
+                    int sourceIndex = fullLen - shift + e;
+                    (*output)(e) = (*input)(sourceIndex);
+                }
+    
+                for (int e = shift; e < fullLen; ++e) {
+                    (*output)(e) = (*input)(e - shift);
+                }
+             }
+             else if (shift < 0) {
+                shift %= fullLen;
+                for (int e = 0; e < fullLen + shift; ++e) {
+                    (*output)(e) = (*input)(e - shift);
+                }
+                for (int e = fullLen + shift; e < fullLen; ++e) {
+                    (*output)(e) = (*input)(e - fullLen - shift);
+                }
+             }
+             else
+                output->assign(input);
          }
-         else if (shift < 0) {
-            shift %= fullLen;
-            for (int e = 0; e < fullLen + shift; ++e) {
-                (*output)(e) = (*input)(e - shift);
-            }
-            for (int e = fullLen + shift; e < fullLen; ++e) {
-                (*output)(e) = (*input)(e - fullLen - shift);
-            }
-         }
-         else
-            output->assign(input);
     }
 
     template <typename T>
     void rollFunctorFull(NDArray<T>* input, NDArray<T>* output, int shift, std::vector<int> const& axes, bool inplace){
+        if (inplace) {
+        }
+        else {
         NDArray<T>* source = input;
         for (int axe: axes) {
             std::unique_ptr<ResultSet<T>> listOfTensors(NDArrayFactory<T>::allTensorsAlongDimension(source, {axe}));
@@ -72,6 +78,7 @@ namespace helpers {
             else
                 output->assign(input);
                 source = output;
+        }
         }
     }
 
