@@ -18,6 +18,16 @@ namespace ops {
         bool shiftIsLinear = true;
         //std::vector<int> axes(input->rankOf());
         int shift = INT_ARG(0);
+        int inputLen = input->lengthOf();
+
+        if (shift < 0) {
+        // convert shift to positive value between 1 and inputLen - 1
+            shift -= inputLen * (shift / inputLen - 1);
+        }
+        else
+        // cut shift to value between 1 and inputLen - 1
+            shift %= inputLen;
+
         if (block.numI() > 1)
             shiftIsLinear = false;
         if (shiftIsLinear) {

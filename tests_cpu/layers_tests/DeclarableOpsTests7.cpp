@@ -1341,12 +1341,36 @@ TEST_F(DeclarableOpsTests7, TestRoll_5) {
 });
 
 NDArray<float> exp('c', {3, 4}, {
-     4,  5,  6,  7, 8,  9, 10, 11, 0,  1,  2,  3
+    2., 3., 0., 1., 6., 7., 4., 5., 10., 11., 8., 9.
+//     4,  5,  6,  7, 8,  9, 10, 11, 0,  1,  2,  3
 });
 // ----------------------------------------------------------------
     nd4j::ops::roll<float> op;
 
     auto result = op.execute({&x}, {}, {2, 1});
+    ASSERT_EQ(result->status(), Status::OK());
+
+    result->at(0)->printIndexedBuffer("Output");
+    exp.printIndexedBuffer("Expect");
+
+    ASSERT_TRUE(exp.equalsTo(result->at(0)));
+
+    delete result;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests7, TestRoll_6) {
+    NDArray<float> x('c', {2, 3, 2}, {
+    0., 1., 2., 3., 4, 5., 6., 7., 8., 9., 10., 11.
+});
+
+NDArray<float> exp('c', {2, 3, 2}, {
+    1., 0., 3., 2., 5., 4., 7., 6., 9., 8., 11., 10.
+});
+// ----------------------------------------------------------------
+    nd4j::ops::roll<float> op;
+
+    auto result = op.execute({&x}, {}, {1, 2});
     ASSERT_EQ(result->status(), Status::OK());
 
     result->at(0)->printIndexedBuffer("Output");
