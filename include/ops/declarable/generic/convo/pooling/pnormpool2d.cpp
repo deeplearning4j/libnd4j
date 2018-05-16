@@ -130,7 +130,9 @@ CUSTOM_OP_IMPL(pnormpool2d_bp, 2, 1, false, 1, 10) {
     int pnorm = INT_ARG(9);
     int isNCHW = block.getIArguments()->size() > 10 ? !INT_ARG(10) : 1;           // 0-NHWC, 1-NCHW    
 
-    REQUIRE_TRUE(input->rankOf() == 4, 0, "MAXPOOL2D_BP op: input should have rank of 4, but got %i instead", input->rankOf());
+    T eps = T_ARG(0);
+
+    REQUIRE_TRUE(input->rankOf() == 4, 0, "PNORMPOOL2D_BP op: input should have rank of 4, but got %i instead", input->rankOf());
 
     int bS, iC, iH, iW, oC, oH, oW;                             // batch size, input channels, input height/width, output channels, output height/width;
     int indIOioC, indIiH, indWoC, indWiC, indWkH, indOoH;       // corresponding indexes
@@ -138,8 +140,8 @@ CUSTOM_OP_IMPL(pnormpool2d_bp, 2, 1, false, 1, 10) {
 
     std::string expectedGradOShape = ShapeUtils<T>::shapeAsString(ShapeUtils<T>::composeShapeUsingDimsAndIdx({bS,iC,oH,oW,  0,indIOioC,indIiH,indIiH+1}));
     std::string expectedGradIShape = ShapeUtils<T>::shapeAsString(ShapeUtils<T>::composeShapeUsingDimsAndIdx({bS,iC,iH,iW,  0,indIOioC,indIiH,indIiH+1}));
-    REQUIRE_TRUE(expectedGradOShape == ShapeUtils<T>::shapeAsString(gradO), 0, "MAXPOOL2D_BP op: wrong shape of output's gradients array (next epsilon), expected is %s, but got %s instead !", expectedGradOShape.c_str(), ShapeUtils<T>::shapeAsString(gradO).c_str());    
-    REQUIRE_TRUE(expectedGradIShape == ShapeUtils<T>::shapeAsString(gradI), 0, "MAXPOOL2D_BP op: wrong shape of input's gradients array (epsilon), expected is %s, but got %s instead !", expectedGradIShape.c_str(), ShapeUtils<T>::shapeAsString(gradI).c_str());
+    REQUIRE_TRUE(expectedGradOShape == ShapeUtils<T>::shapeAsString(gradO), 0, "PNORMPOOL2D_BP op: wrong shape of output's gradients array (next epsilon), expected is %s, but got %s instead !", expectedGradOShape.c_str(), ShapeUtils<T>::shapeAsString(gradO).c_str());    
+    REQUIRE_TRUE(expectedGradIShape == ShapeUtils<T>::shapeAsString(gradI), 0, "PNORMPOOL2D_BP op: wrong shape of input's gradients array (epsilon), expected is %s, but got %s instead !", expectedGradIShape.c_str(), ShapeUtils<T>::shapeAsString(gradI).c_str());
 
     if(!isNCHW) {
         input = input->permute({0, 3, 1, 2});                                   // [bS, iH, iW, iC] -> [bS, iC, iH, iW]                        
@@ -152,68 +154,55 @@ CUSTOM_OP_IMPL(pnormpool2d_bp, 2, 1, false, 1, 10) {
 
     NDArray<T> columnsWrongShape(input->ordering(), {bS, iC, oH, oW, kH, kW}, input->getWorkspace());    
     NDArray<T>* columns = columnsWrongShape.permute({0, 1, 4, 5, 2, 3});                                // [bS, iC, oH, oW, kH, kW] -> [bS, iC, kH, kW, oH, oW]
-
-    T extraParams1[] = {(T)kH, (T)kW, (T)sH, (T)sW, (T)pH, (T)pW, (T)dH, (T)dW};
-    input->template applyTransform<simdOps::Im2col<T>>(columns, extraParams1);
-
+    NDArray<T>* gradOVector = gradO->reshape('c', {(int) gradO->lengthOf(), 1}); 
     NDArray<T>* columns2d = columnsWrongShape.reshape('c', {bS*iC*oH*oW, kH*kW});
-  
-    NDArray<T> arrAbs(columns2d->getShapeInfo(), block.getWorkspace());
-    columns2d->template applyTransform<simdOps::Abs<T>>(&arrAbs);
-    
-    T extraParams11[] = {(T)pnorm};
-    NDArray<T> arrPow(columns2d->getShapeInfo(), block.getWorkspace());
-    arrAbs.template applyTransform<simdOps::Pow<T>>(&arrPow, extraParams11);
-    
-    NDArray<T>* arrSum = arrPow.sum({1});
-    T extraParams2[] = {1.f/pnorm};
-    arrSum->template applyTransform<simdOps::Pow<T>>(extraParams2);
+    NDArray<T> pNorm(columns2d->getShapeInfo(), block.getWorkspace());    
 
-    NDArray<T>* numerator(columns2d->getShapeInfo(), block.getWorkspace());
+    input->template applyTransform<simdOps::Im2col<T>>(columns, std::vector<T>({(T)kH, (T)kW, (T)sH, (T)sW, (T)pH, (T)pW, (T)dH, (T)dW}).data());
     
-    if (pnorm != 2) {        
-        T extraParams3[] = {(T) (pnorm - 2)};
-        absp2->template applyTransform<simdOps::Pow<T>>(extraParams3);
-        nd4j::NDArrayFactory<T>::mmulHelper(columns2d, arrAbs, numerator);
-        delete absp2;
+    columns2d->template applyTransform<simdOps::Abs<T>>(&pNorm);
+    pNorm.template applyTransform<simdOps::Pow<T>>(&pNorm, std::vector<T>({(T)pnorm}).data());
+
+    NDArray<T>* denomVec = pNorm.sum({1});    
+    denomVec->template applyTransform<simdOps::Pow<T>>(std::vector<T>({(T)1. - (T)1. / pnorm}).data());    
+    denomVec->template applyScalar<simdOps::Max<T>>(eps); // in case of 0    
+    denomVec->template applyPairwiseTransform<simdOps::ReverseDivide<T>>(gradOVector, denomVec, nullptr);
+
+    if(pnorm != 2) {
+        T extraParams[] = {(T)1. - (T)2. / pnorm};
+        pNorm.template applyTransform<simdOps::Pow<T>>(std::vector<T>({(T)1. - (T)2. / pnorm}).data());
+        *columns2d *= pNorm;
+    }    
+    
+    columns2d->muliColumnVector(denomVec);
+    
+    columns->template applyTransform<simdOps::Col2Im<T>>(gradI, std::vector<T>({(T)sH, (T)sW, (T)pH, (T)pW, (T)iH, (T)iW, (T)dH, (T)dW}).data());
+
+    if(!isNCHW) {
+        delete input;
+        delete gradI;
+        delete gradO;
     }
-            NDArray<T>* denom = new NDArray<T>(arrSum->getShapeInfo(), block.getWorkspace());
-            T extraParams4[] = {(T) (pnorm - 1)};
+    delete columns;
+    delete columns2d;
+    delete gradOVector;
+    delete denomVec;
+    
+    return Status::OK();
+}
 
-            arrSum->template applyTransform<simdOps::Pow<T>>(denom, extraParams4);
-            denom->template applyScalar<simdOps::Max<T>>(eps); // in case of 0
-            denom->template applyPairwiseTransform<simdOps::Divide<T>>(epsilon1d, denom, nullptr);
-            numerator->muliColumnVector(denom);
+DECLARE_SHAPE_FN(pnormpool2d_bp) {
+                
+    REQUIRE_TRUE(inputShape->at(0)[0] == 4, 0, "PNORMPOOL2D_BP op: input array must be 4D, but got %i instead!", inputShape->at(0)[0]);
+    REQUIRE_TRUE(inputShape->at(1)[0] == 4, 0, "PNORMPOOL2D_BP op: output's gradient array (next epsilon) must be 4D, but got %i instead!", inputShape->at(1)[0]);
+    
+    int* gradIShapeInfo(nullptr);
+    COPY_SHAPE(inputShape->at(0), gradIShapeInfo);
+    
+    return SHAPELIST(gradIShapeInfo);
+}
 
-            T extraParams5[] = {(T)sH, (T)sW, (T)pH, (T)pW, (T)iH, (T)iW, (T)dH, (T)dW};   			// ??? zeros
-            col6dPermuted->template applyTransform<simdOps::Col2Im<T>>(outEpsilon, extraParams5);
-
-            STORE_RESULT(*outEpsilon);
-
-            if(isEpsilonDup)
-                delete epsilon;
-            delete arrSum;
-            delete columnsWrongShape;
-            delete col6dPermuted;
-            delete epsilon1d;
-            delete pNorm;
-            delete numerator;
-            delete denom;
-            delete columns2d;
-
-            return ND4J_STATUS_OK;
-        }
-
-        //////////////////////////////////////////////////////////////////////////
-        DECLARE_SHAPE_FN(pnormpool2d_bp) {
-
-            // FIXME: remove memcpy here
-            int* newShapeInfo = nullptr;
-            ALLOCATE(newShapeInfo, block.getWorkspace(), shape::shapeInfoLength(inputShape->at(0)), int);
-            memcpy(newShapeInfo, inputShape->at(0), shape::shapeInfoByteLength(inputShape->at(0)));
-            return SHAPELIST(newShapeInfo);
-        }
-    }
+}
 }
 
 #endif

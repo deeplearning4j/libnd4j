@@ -118,96 +118,79 @@ namespace nd4j {
         }
 
 
-        //////////////////////////////////////////////////////////////////////////
-        CUSTOM_OP_IMPL(avgpool2d_bp, 2, 1, false, 0, 9) {
+//////////////////////////////////////////////////////////////////////////
+CUSTOM_OP_IMPL(avgpool2d_bp, 2, 1, false, 0, 10) {
 
-            NDArray<T>* input = INPUT_VARIABLE(0);
-            REQUIRE_TRUE(input->rankOf() == 4, 0, "Input should have rank of 4, but got %i instead", input->rankOf());
-            NDArray<T>* epsilon = INPUT_VARIABLE(1);
-            NDArray<T>* outEpsilon = OUTPUT_VARIABLE(0);
-            std::vector<int> argI = *(block.getIArguments());
+    NDArray<T>* input = INPUT_VARIABLE(0);                          // [bS, iH, iW, iC] (NHWC) or [bS, iC, iH, iW] (NCHW)
+    NDArray<T>* gradO = INPUT_VARIABLE(1);                          // [bS, oH, oW, oC] (NHWC) or [bS, oC, oH, oW] (NCHW), epsilon_next
+    NDArray<T>* gradI = OUTPUT_VARIABLE(0);                         // [bS, iH, iW, iC] (NHWC) or [bS, iC, iH, iW] (NCHW), epsilon
 
-            int kH = argI[0];
-            int kW = argI[1];
-            int sH = argI[2];
-            int sW = argI[3];
-            int pH = argI[4];
-            int pW = argI[5];
-            int dH = argI[6];
-            int dW = argI[7];
-            int isSameMode = argI[8];
+    int kH = INT_ARG(0);                                                        // filter(kernel) height
+    int kW = INT_ARG(1);                                                        // filter(kernel) width
+    int sH = INT_ARG(2);                                                        // strides height
+    int sW = INT_ARG(3);                                                        // strides width
+    int pH = INT_ARG(4);                                                        // paddings height
+    int pW = INT_ARG(5);                                                        // paddings width
+    int dH = INT_ARG(6);                                                        // dilations height
+    int dW = INT_ARG(7);                                                        // dilations width
+    int isSameMode = INT_ARG(8);                                                // 0-VALID, 1-SAME
+    int isNCHW = block.getIArguments()->size() > 10 ? !INT_ARG(10) : 1;         // 0-NHWC, 1-NCHW    
 
-            int bS = input->getShapeInfo()[1];
-            int iD = input->getShapeInfo()[2];
-            int iH = input->getShapeInfo()[3];
-            int iW = input->getShapeInfo()[4];
+    REQUIRE_TRUE(input->rankOf() == 4, 0, "AVGPOOL2D_BP op: input should have rank of 4, but got %i instead", input->rankOf());
 
-            // calculate output Height/Width
-            int oH, oW;
-            ConvolutionUtils<T>::calcOutSizePool2D(oH, oW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);
+    int bS, iC, iH, iW, oC, oH, oW;                             // batch size, input channels, input height/width, output channels, output height/width;
+    int indIOioC, indIiH, indWoC, indWiC, indWkH, indOoH;       // corresponding indexes
+    ConvolutionUtils<T>::getSizesAndIndexesConv2d(isNCHW, *input, *gradO, bS, iC, iH, iW, oC, oH, oW, indIOioC, indIiH, indWiC, indWoC, indWkH, indOoH);
 
-            bool cOrderStrides = false;
-            bool isEpsilonDup = false;
-            if (epsilon->ordering() != 'c') {
-                epsilon = epsilon->dup('c');
-                cOrderStrides = true;
-                isEpsilonDup = true;
-            }
+    std::string expectedGradOShape = ShapeUtils<T>::shapeAsString(ShapeUtils<T>::composeShapeUsingDimsAndIdx({bS,iC,oH,oW,  0,indIOioC,indIiH,indIiH+1}));
+    std::string expectedGradIShape = ShapeUtils<T>::shapeAsString(ShapeUtils<T>::composeShapeUsingDimsAndIdx({bS,iC,iH,iW,  0,indIOioC,indIiH,indIiH+1}));
+    REQUIRE_TRUE(expectedGradOShape == ShapeUtils<T>::shapeAsString(gradO), 0, "AVGPOOL2D_BP op: wrong shape of output's gradients array (next epsilon), expected is %s, but got %s instead !", expectedGradOShape.c_str(), ShapeUtils<T>::shapeAsString(gradO).c_str());    
+    REQUIRE_TRUE(expectedGradIShape == ShapeUtils<T>::shapeAsString(gradI), 0, "AVGPOOL2D_BP op: wrong shape of input's gradients array (epsilon), expected is %s, but got %s instead !", expectedGradIShape.c_str(), ShapeUtils<T>::shapeAsString(gradI).c_str());
 
-            int strideToCompare[] = {oH*oW, iD*oH*oW, oW, 1};
-            if (!cOrderStrides && shape::strideDescendingCAscendingF(epsilon->getShapeInfo())) {
-                cOrderStrides = true;
-            }
-            else if (!shape::strideEquals(strideToCompare, 4, epsilon->stridesOf(), epsilon->rankOf())) {
-                epsilon = epsilon->dup('c');
-                cOrderStrides = true;
-                isEpsilonDup = true;
-            }
-
-            NDArray<T>* col6d = nullptr;
-            NDArray<T>* col6dPermuted = nullptr;
-            NDArray<T>* epsilon1d = nullptr;
-
-            if (cOrderStrides) {
-                col6d = new NDArray<T>('c', {bS, iD, oH, oW, kH, kW}, block.getWorkspace());
-                col6dPermuted = col6d->permute({0, 1, 4, 5, 2, 3});
-                epsilon1d = epsilon->reshape('c', {(int) epsilon->lengthOf(), 1}); //zero copH reshape
-            }
-            else {
-                col6d = new NDArray<T>('c', {iD, bS, oH, oW, kH, kW}, block.getWorkspace());
-                col6dPermuted = col6d->permute({1, 0, 4, 5, 2, 3});
-                NDArray<T>* epsilonTemp = epsilon->permute({1, 0, 2, 3});
-                epsilon1d = epsilonTemp->reshape('c', {(int) epsilon->lengthOf(), 1}); //Should be a zero-copH reshape always
-                delete epsilonTemp;
-            }
-
-            NDArray<T>* col2d = col6d->reshape('c', {bS*iD*oH*oW, kH*kW});
-            col2d->addiColumnVector(epsilon1d);
-
-            T extraParams3[] = {(T)sH, (T)sW, (T)pH, (T)pW, (T)iH, (T)iW, (T)dH, (T)dW};   			// ??? zeros
-            col6dPermuted->template applyTransform<simdOps::Col2Im<T>>(outEpsilon, extraParams3);
-            outEpsilon->template applyScalar<simdOps::Divide<T>>((T) kH*kW, outEpsilon);
-
-            STORE_RESULT(*outEpsilon);
-
-            if(isEpsilonDup)
-                delete epsilon;
-            delete col6d;
-            delete col6dPermuted;
-            delete epsilon1d;
-            delete col2d;
-
-            return ND4J_STATUS_OK;
-        }
-
-        DECLARE_SHAPE_FN(avgpool2d_bp) {
-            // FIXME: memcpH should be removed
-            int* newShapeInfo = nullptr;
-            ALLOCATE(newShapeInfo, block.getWorkspace(), shape::shapeInfoLength(inputShape->at(0)), int);
-            memcpy(newShapeInfo, inputShape->at(0), shape::shapeInfoByteLength(inputShape->at(0)));
-            return SHAPELIST(newShapeInfo);
-        }
+    if(!isNCHW) {
+        gradI = gradI->permute({0, 3, 1, 2});                                   // [bS, iH, iW, iC] -> [bS, iC, iH, iW]                        
+        gradO = gradO->permute({0, 3, 1, 2});                                   // [bS, oH, oW, iC] -> [bS, iC, oH, oW]                        
     }
+    
+    if(isSameMode)                       // SAME        
+        ConvolutionUtils<T>::calcPadding2D(pH, pW, oH, oW, iH, iW, kH, kW, sH, sW, dH, dW);
+
+    NDArray<T> columnsWrongShape(input->ordering(), {bS, iC, oH, oW, kH, kW}, input->getWorkspace());    
+    NDArray<T>* columns = columnsWrongShape.permute({0, 1, 4, 5, 2, 3});                                // [bS, iC, oH, oW, kH, kW] -> [bS, iC, kH, kW, oH, oW]
+    NDArray<T>* gradOVector = gradO->reshape('c', {(int) gradO->lengthOf(), 1}); 
+    NDArray<T>* columns2d = columnsWrongShape.reshape('c', {bS*iC*oH*oW, kH*kW});
+    
+    columns2d->addiColumnVector(gradOVector);
+
+    columns->template applyTransform<simdOps::Col2Im<T>>(gradI, std::vector<T>({(T)sH, (T)sW, (T)pH, (T)pW, (T)iH, (T)iW, (T)dH, (T)dW}).data());
+
+    *gradI /= kH*kW; 
+
+    if(!isNCHW) {
+        delete gradI;
+        delete gradO;
+    }
+    delete columns;
+    delete columns2d;
+    delete gradOVector;
+    
+    return Status::OK();
+
+}
+
+DECLARE_SHAPE_FN(avgpool2d_bp) {
+                
+    REQUIRE_TRUE(inputShape->at(0)[0] == 4, 0, "AVGPOOL2D_BP op: input array must be 4D, but got %i instead!", inputShape->at(0)[0]);
+    REQUIRE_TRUE(inputShape->at(1)[0] == 4, 0, "AVGPOOL2D_BP op: output's gradient array (next epsilon) must be 4D, but got %i instead!", inputShape->at(1)[0]);
+    
+    int* gradIShapeInfo(nullptr);
+    COPY_SHAPE(inputShape->at(0), gradIShapeInfo);
+    
+    return SHAPELIST(gradIShapeInfo);
+}
+
+
+}
 }
 
 #endif

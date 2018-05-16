@@ -120,7 +120,7 @@ namespace nd4j {
          */
         #if NOT_EXCLUDED(OP_avgpool2d)
         DECLARE_CUSTOM_OP(avgpool2d, 1, 1, false, 0, 10);
-        DECLARE_CUSTOM_OP(avgpool2d_bp, 2, 1, false, 0, 9);
+        DECLARE_CUSTOM_OP(avgpool2d_bp, 2, 1, false, 0, 10);
         #endif
 
         /**

@@ -109,7 +109,7 @@ CUSTOM_OP_IMPL(maxpool2d_bp, 2, 1, false, 0, 10) {
     int dH = INT_ARG(6);                                                        // dilations height
     int dW = INT_ARG(7);                                                        // dilations width
     int isSameMode = INT_ARG(8);                                                // 0-VALID, 1-SAME
-    int isNCHW = block.getIArguments()->size() > 10 ? !INT_ARG(10) : 1;           // 0-NHWC, 1-NCHW    
+    int isNCHW = block.getIArguments()->size() > 10 ? !INT_ARG(10) : 1;         // 0-NHWC, 1-NCHW    
 
     REQUIRE_TRUE(input->rankOf() == 4, 0, "MAXPOOL2D_BP op: input should have rank of 4, but got %i instead", input->rankOf());
 
@@ -133,18 +133,16 @@ CUSTOM_OP_IMPL(maxpool2d_bp, 2, 1, false, 0, 10) {
 
     NDArray<T> columnsWrongShape(input->ordering(), {bS, iC, oH, oW, kH, kW}, input->getWorkspace());    
     NDArray<T>* columns = columnsWrongShape.permute({0, 1, 4, 5, 2, 3});                                // [bS, iC, oH, oW, kH, kW] -> [bS, iC, kH, kW, oH, oW]
-
-    T extraParams1[] = {(T)kH, (T)kW, (T)sH, (T)sW, (T)pH, (T)pW, (T)dH, (T)dW};
-    input->template applyTransform<simdOps::Im2col<T>>(columns, extraParams1);
+    
+    input->template applyTransform<simdOps::Im2col<T>>(columns, std::vector<T>({(T)kH, (T)kW, (T)sH, (T)sW, (T)pH, (T)pW, (T)dH, (T)dW}).data());
 
     NDArray<T>* columns2d = columnsWrongShape.reshape('c', {bS*iC*oH*oW, kH*kW});
     NDArray<T>* gradOVector = gradO->reshape('c', {(int) gradO->lengthOf(), 1}); 
-    T extraParams2[] = {(T)1., (T)1.};
-    columns2d->template applyTransform<simdOps::IsMax<T>>(extraParams2);
+    
+    columns2d->template applyTransform<simdOps::IsMax<T>>(std::vector<T>({(T)1., (T)1.}).data());
     columns2d->muliColumnVector(gradOVector);
-
-    T extraParams3[] = {(T) sH, (T)sW, (T)pH, (T)pW, (T)iH, (T)iW, (T)dH, (T)dW};
-    columns->template applyTransform<simdOps::Col2Im<T>>(gradI, extraParams3);
+    
+    columns->template applyTransform<simdOps::Col2Im<T>>(gradI, std::vector<T>({(T)sH, (T)sW, (T)pH, (T)pW, (T)iH, (T)iW, (T)dH, (T)dW}).data());
 
     if(!isNCHW) {
         delete input;
