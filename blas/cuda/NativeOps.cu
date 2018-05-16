@@ -25,6 +25,7 @@
 #include <cuda_runtime_api.h>
 #include <cuda_runtime.h>
 #include <cuda_device_runtime_api.h>
+#include <nvml.h>
 #include <pointercast.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -6718,4 +6719,32 @@ Nd4jStatus NativeOps::execCustomOpWithScopeFloat(Nd4jPointer *extraPointers, Nd4
 
 Nd4jStatus NativeOps::execCustomOpWithScopeDouble(Nd4jPointer *extraPointers, Nd4jPointer state, Nd4jIndex opHash, Nd4jIndex *scopes, int numScopes, Nd4jPointer *inputBuffers, Nd4jPointer *inputShapes, int numInputs, Nd4jPointer *outputBuffers, Nd4jPointer *outputShapes, int numOutputs) {
     return execCustomOpWithScope<double>(extraPointers, (nd4j::graph::GraphState<double> *) state, opHash, scopes, numScopes, inputBuffers, inputShapes, numInputs, outputBuffers, outputShapes, numOutputs);
+}
+
+nd4j::HardwareReport NativeOps::getHardwareReport() {
+	HardwareReport report;
+
+	auto n = getAvailableDevices();
+	for (int e = 0; e < n; e++) {
+        HardwareStatus status;
+
+		int ccMinor = deviceProperties[e].minor;
+		int ccMajor = deviceProperties[e].major;
+
+
+		// set device name & desc
+        status.setDeviceName(deviceProperties[e].name);
+
+		// set device memory params
+        status.setMemoryTotal(getDeviceTotalMemory(reinterpret_cast<Nd4jPointer>(static_cast<Nd4jIndex>(e))));
+        status.setMemoryUsed(status.getMemoryTotal() - getDeviceFreeMemory(reinterpret_cast<Nd4jPointer>(static_cast<Nd4jIndex>(e))));
+
+		// set device utilization params
+
+
+        report.storeDeviceStatus(e, status);
+	}
+
+	// just return it
+	return report;
 }
