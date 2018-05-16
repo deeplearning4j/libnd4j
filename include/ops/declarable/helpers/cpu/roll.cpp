@@ -15,10 +15,10 @@ namespace helpers {
         int fullLen = output->lengthOf();
         int actualShift = shift; // % fullLen; // shift already non-negative then
         if (actualShift < 0) {
-            if (actualShift + fullLen > 0) actualShift += fullLen;
-            else {
+//            if (actualShift + fullLen > 0) actualShift += fullLen;
+//            else {
                 actualShift -= fullLen * (actualShift / fullLen - 1);
-            }
+//            }
         }
         else
             actualShift %= fullLen;
@@ -61,6 +61,11 @@ namespace helpers {
             }
             if (shift > 0) {
                 shift %= fullLen;
+            }
+            else {
+                shift -= fullLen * (shift / fullLen - 1);
+            }
+            if (shift) {
                 for (int e = 0; e < shift; ++e) {
                     int sourceIndex = fullLen - shift + e;
                     listOfOutTensors->at(e)->assign(listOfTensors->at(sourceIndex));
@@ -70,7 +75,7 @@ namespace helpers {
                     listOfOutTensors->at(e)->assign(listOfTensors->at(e - shift));
                 }
             }
-            else if (shift < 0) {
+/*            else if (shift < 0) {
                 shift %= fullLen;
                 for (int e = 0; e < fullLen + shift; ++e) {
                     listOfOutTensors->at(e)->assign(listOfTensors->at(e - shift));
@@ -79,7 +84,7 @@ namespace helpers {
                     (*output)(e) = (*input)(e - fullLen - shift);
                     listOfOutTensors->at(e)->assign(listOfTensors->at(e - fullLen - shift));
                 }
-            }
+            }*/
             else
                 output->assign(input);
                 source = output;
