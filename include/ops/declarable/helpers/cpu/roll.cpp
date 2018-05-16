@@ -49,43 +49,61 @@ namespace helpers {
     void rollFunctorFull(NDArray<T>* input, NDArray<T>* output, int shift, std::vector<int> const& axes, bool inplace){
 
 
-        if (inplace) {
-        }
-        else {
         NDArray<T>* source = input;
         for (int axe: axes) {
-            std::unique_ptr<ResultSet<T>> listOfTensors(NDArrayFactory<T>::allTensorsAlongDimension(source, {axe}));
-            std::unique_ptr<ResultSet<T>> listOfOutTensors(NDArrayFactory<T>::allTensorsAlongDimension(output, {axe}));
 
 
-            int fullLen = listOfTensors->size();
-            int theShift = shift;
-            if (theShift > 0) {
-                theShift %= fullLen;
+            nd4j_printf("Axe %i:\n", axe);
+            if (axe == source->rankOf() - 1) {// last dimension
+                std::unique_ptr<ResultSet<T>> listOfTensors(NDArrayFactory<T>::allTensorsAlongDimension(source, {axe}));
+                std::unique_ptr<ResultSet<T>> listOfOutTensors(NDArrayFactory<T>::allTensorsAlongDimension(output, {axe}));
+                int fullLen = listOfTensors->size();
+                int theShift = shift;
+                if (theShift > 0) {
+                    theShift %= fullLen;
+                }
+                else {
+                        theShift -= fullLen * (theShift / fullLen - 1);
+                }
+
+                for (int k = 0; k < fullLen; k++) {
+                    listOfTensors->at(k)->printIndexedBuffer("Tensor at last");
+                    rollFunctorLinear(listOfTensors->at(k), listOfOutTensors->at(k), theShift);
+                }
             }
             else {
-                theShift -= fullLen * (theShift / fullLen - 1);
-            }
+                std::vector<int> dims(source->rankOf() - axe - 1);
+                for (int i = 0; i < dims.size(); ++i)
+                    dims[i] = axe + 1 + i;
+                std::unique_ptr<ResultSet<T>> listOfTensors(NDArrayFactory<T>::allTensorsAlongDimension(source, {dims}));
+                std::unique_ptr<ResultSet<T>> listOfOutTensors(NDArrayFactory<T>::allTensorsAlongDimension(output, {dims}));
+            
+                int fullLen = listOfTensors->size();
 
-            for (int k = 0; k < fullLen; k++) {
-                listOfTensors->at(k)->printIndexedBuffer("Tensor at 0");
-                rollFunctorLinear(listOfTensors->at(k), listOfOutTensors->at(k), theShift);
-            }
+                int theShift = shift;
+                if (theShift > 0) {
+                    theShift %= fullLen;
+                }
+                else {
+                    theShift -= fullLen * (theShift / fullLen - 1);
+                }
 
-//            if (shift) {
-//                for (int e = 0; e < shift; ++e) {
-//                    int sourceIndex = fullLen - shift + e;
-//                    rollFunctorLinear(source, listOfOutTensors->at(e), shift);
-//                }
-//
-//                for (int e = shift; e < fullLen; ++e) {
-//                    listOfOutTensors->at(e)->assign(listOfTensors->at(e - shift));
-//                }
-//            }
-//            else
-//                output->assign(input);
-//                source = output;
-        }
+                if (theShift) {
+                    for (int e = 0; e < theShift; ++e) {
+                        int sourceIndex = fullLen - theShift + e;
+                        listOfOutTensors->at(e)->assign(listOfTensors->at(sourceIndex));
+                    }
+    
+                    for (int e = theShift; e < fullLen; ++e) {
+                        listOfOutTensors->at(e)->assign(listOfTensors->at(e - theShift));
+                    }
+                }
+                else
+                    output->assign(source);
+                    //rollFunctorLinear(listOfTensors->at(k), listOfOutTensors->at(k), theShift);
+            }
+                // dims
+            source = output;
         }
     }
 
