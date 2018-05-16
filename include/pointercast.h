@@ -8,7 +8,7 @@
 #include <stdint.h>
 
 typedef void* Nd4jPointer;
-typedef int64_t Nd4jLong;
+typedef long long Nd4jLong;
 typedef int Nd4jStatus;
 
 #define ND4J_STATUS_OK            0
