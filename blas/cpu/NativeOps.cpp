@@ -51,6 +51,7 @@ bool experimentalSupport = false;
 #include <ops/declarable/OpRegistrator.h>
 #include <graph/Context.h>
 
+using namespace nd4j;
 
 void NativeOps::setElementThreshold(int num) {
     if (num > 0)
@@ -3079,7 +3080,9 @@ return nullptr;
     result[0] = (Nd4jLong) ptr;
     result[1] = fd;
 
-#endifreturn result;
+#endif
+
+    return result;
 
 }
 
@@ -3087,7 +3090,9 @@ void NativeOps::munmapFile(Nd4jPointer *extraPointers, Nd4jLong *ptrMap, Nd4jLon
 munmap((Nd4jPointer) ptrMap[0], length);
 #if defined(_WIN32) || defined(_WIN64)
     CloseHandle(reinterpret_cast<HANDLE>(ptrMap[1]));
-#elseclose((int) ptrMap[1]);#endif
+#else
+    close((int) ptrMap[1]);
+#endif
 
     delete[] ptrMap;
 }
