@@ -11,33 +11,38 @@ namespace helpers {
 
     template <typename T>
     void rollFunctorLinear(NDArray<T>* input, NDArray<T>* output, int shift, bool inplace){
-        if (inplace) {
+        NDArray<T>* source = input;
+        int fullLen = output->lengthOf();
+        int actualShift = shift; // % fullLen; // shift already non-negative then
+        if (actualShift < 0) {
+            if (actualShift + fullLen > 0) actualShift += fullLen;
+            else {
+                actualShift -= fullLen * (actualShift / fullLen - 1);
+            }
         }
-        else {
-            int fullLen = output->lengthOf();
-            if (shift > 0) {
-                shift %= fullLen;
-                for (int e = 0; e < shift; ++e) {
-                    int sourceIndex = fullLen - shift + e;
-                    (*output)(e) = (*input)(sourceIndex);
-                }
+        else
+            actualShift %= fullLen;
+
+        if (actualShift) {
+            if (inplace)
+                source = input->dup();
+
+#pragma omp parallel for 
+            for (int e = 0; e < actualShift; ++e) {
+                int sourceIndex = fullLen - actualShift + e;
+                (*output)(e) = (*source)(sourceIndex);
+            }
     
-                for (int e = shift; e < fullLen; ++e) {
-                    (*output)(e) = (*input)(e - shift);
-                }
-             }
-             else if (shift < 0) {
-                shift %= fullLen;
-                for (int e = 0; e < fullLen + shift; ++e) {
-                    (*output)(e) = (*input)(e - shift);
-                }
-                for (int e = fullLen + shift; e < fullLen; ++e) {
-                    (*output)(e) = (*input)(e - fullLen - shift);
-                }
-             }
-             else
-                output->assign(input);
-         }
+#pragma omp parallel for 
+            for (int e = actualShift; e < fullLen; ++e) {
+                (*output)(e) = (*source)(e - actualShift);
+            }
+            if (inplace)
+                delete source;
+        }
+        else {// no any changes
+            if (!inplace) output->assign(input);
+        }
     }
 
     template <typename T>
