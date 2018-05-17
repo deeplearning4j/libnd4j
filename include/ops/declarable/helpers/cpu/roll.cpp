@@ -48,11 +48,11 @@ namespace helpers {
     template <typename T>
     void rollFunctorFull(NDArray<T>* input, NDArray<T>* output, int shift, std::vector<int> const& axes, bool inplace){
 
+//        if (!inplace)
+//            output->assign(input);
 
-        NDArray<T>* source = input;
+        NDArray<T>* source = input; //output;
         for (int axe: axes) {
-
-
             nd4j_printf("Axe %i:\n", axe);
             if (axe == source->rankOf() - 1) {// last dimension
                 std::unique_ptr<ResultSet<T>> listOfTensors(NDArrayFactory<T>::allTensorsAlongDimension(source, {axe}));
@@ -65,11 +65,14 @@ namespace helpers {
                 else {
                         theShift -= fullLen * (theShift / fullLen - 1);
                 }
+                nd4j_printf("Axe %i; Total rows: %i; Shift: %i\n", axe, fullLen, theShift);
 
                 for (int k = 0; k < fullLen; k++) {
                     listOfTensors->at(k)->printIndexedBuffer("Tensor at last");
                     rollFunctorLinear(listOfTensors->at(k), listOfOutTensors->at(k), theShift);
                 }
+                nd4j_printf("Axe %i: All done\n", axe);
+                output->printIndexedBuffer("The result at ");
             }
             else {
                 std::vector<int> dims(source->rankOf() - axe - 1);
@@ -79,32 +82,45 @@ namespace helpers {
                 std::unique_ptr<ResultSet<T>> listOfOutTensors(NDArrayFactory<T>::allTensorsAlongDimension(output, {dims}));
             
                 int fullLen = listOfTensors->size();
-
+                int sizeAt = input->sizeAt(axe);
+                nd4j_printf("Total: %i; Dim %i size is %i and should be split on %i(%i).\n", fullLen, axe, sizeAt, fullLen / sizeAt, fullLen % sizeAt);
+                for (int k = 0; k < fullLen; k++) {
+                    listOfTensors->at(k)->printIndexedBuffer("Tensor at ");
+                }
+                //if (axe == 0) continue;
                 int theShift = shift;
                 if (theShift > 0) {
-                    theShift %= fullLen;
+                    theShift %= sizeAt;
                 }
                 else {
-                    theShift -= fullLen * (theShift / fullLen - 1);
+                    theShift -= sizeAt * (theShift / sizeAt - 1);
                 }
 
                 if (theShift) {
+                    for (int dim = 0; dim < fullLen / sizeAt; ++dim) {
                     for (int e = 0; e < theShift; ++e) {
-                        int sourceIndex = fullLen - theShift + e;
-                        listOfOutTensors->at(e)->assign(listOfTensors->at(sourceIndex));
+                        int sourceIndex = dim * sizeAt + sizeAt - theShift + e;
+                        NDArray<T>* sourceM = listOfTensors->at(sourceIndex);
+                        NDArray<T>* targetM = listOfOutTensors->at(dim * sizeAt + e);
+                        //listOfOutTensors->at(e)->assign(listOfTensors->at(sourceIndex));
+                        sourceM->swapUnsafe(*targetM);
                     }
     
-                    for (int e = theShift; e < fullLen; ++e) {
-                        listOfOutTensors->at(e)->assign(listOfTensors->at(e - theShift));
+                    for (int e = theShift; e < sizeAt; ++e) {
+                        NDArray<T>* sourceM = listOfTensors->at(dim * sizeAt + e - theShift);
+                        NDArray<T>* targetM = listOfOutTensors->at(dim * sizeAt + e);
+                        sourceM->swapUnsafe(*targetM);
+                        //listOfOutTensors->at(e)->assign(listOfTensors->at(e - theShift));
+                    }
                     }
                 }
-                else
-                    output->assign(source);
                     //rollFunctorLinear(listOfTensors->at(k), listOfOutTensors->at(k), theShift);
             }
                 // dims
+            //delete source;
             source = output;
         }
+        //delete source;
     }
 
     template void rollFunctorLinear(NDArray<float>*   input, NDArray<float>*   output, int shift, bool inplace);
