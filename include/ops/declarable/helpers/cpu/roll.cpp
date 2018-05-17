@@ -12,28 +12,67 @@ namespace helpers {
     template <typename T>
     void rollFunctorLinear(NDArray<T>* input, NDArray<T>* output, int shift, bool inplace){
         NDArray<T>* source = input;
-        int fullLen = output->lengthOf();
+        if (!inplace)
+            output->assign(input);
+
+        int fullLen = source->lengthOf();
         int actualShift = shift; // % fullLen; // shift already non-negative then
         if (actualShift < 0) {
-                actualShift -= fullLen * (actualShift / fullLen - 1);
+            actualShift -= fullLen * (actualShift / fullLen - 1);
         }
         else
             actualShift %= fullLen;
 
         if (actualShift) {
-            if (!inplace)
-                output->assign(input);
-    
-#pragma omp parallel for 
-            for (int e = actualShift; e < fullLen; ++e) {
-                nd4j::math::nd4j_swap((*output)(e), (*source)(e - actualShift));
-            }
+            source->printIndexedBuffer("Source is ");
+            nd4j_printf("At start: from %i to %i.\n", actualShift, fullLen - actualShift);
 
-#pragma omp parallel for 
+#pragma omp parallel for if (actualShift > Environment::getInstance()->elementwiseThreshold()) schedule(static)
             for (int e = 0; e < actualShift; ++e) {
                 int sourceIndex = fullLen - actualShift + e;
-                nd4j::math::nd4j_swap((*output)(e), (*source)(sourceIndex));
+                nd4j_printf("%i <--> %i\n", e + actualShift, sourceIndex);
+                nd4j::math::nd4j_swap((*output)(e), (*output)(sourceIndex));
             }
+
+//#pragma omp parallel for 
+            bool again = true;
+            int k = 1;
+            while(again) {
+                for (int e = 0; e < actualShift; ++e) {
+                    //nd4j_printf("%i <--> %i\n", e, e - actualShift);
+                    nd4j::math::nd4j_swap((*output)(fullLen - k * actualShift + e), (*output)(fullLen - (k + 1) * actualShift + e));
+                }
+                k++;
+                again = actualShift < fullLen - (k + 1) * actualShift;
+                output->printIndexedBuffer("After shift rest");
+            }
+            int rest = fullLen - k * actualShift - actualShift;
+            nd4j_printf("And last stage: swap (%i, %i) items\n", rest, rest + actualShift);
+            again = rest > 0;
+            k = 0;
+            while(again){
+                for (int e = 0; e < rest; ++e) {
+                    nd4j::math::nd4j_swap((*output)(actualShift + (k + 1)* rest + e), (*output)(actualShift + k * rest + e));
+                }
+                k++;
+                again = 2 * actualShift > actualShift + k * rest;
+            }
+//            for (int e = actualShift; e < fullLen - actualShift; ++e) {
+//                nd4j_printf("%i <--> %i\n", e, e - actualShift);
+//                nd4j::math::nd4j_swap((*output)(e - actualShift), (*output)(e));
+//            }
+//            output->printIndexedBuffer("After shift rest");
+//
+//            nd4j_printf("Then: from 0 to %i.\n", actualShift);
+
+//#pragma omp parallel for 
+//            for (int e = 0; e < actualShift; ++e) {
+//                int sourceIndex = fullLen - actualShift + e;
+//                nd4j_printf("%i <--> %i\n", e + actualShift, sourceIndex);
+//                nd4j::math::nd4j_swap((*output)(e), (*output)(sourceIndex));
+//            }
+            nd4j_printf("And as result:\n", "");
+            output->printIndexedBuffer("Result is ");
         }
     }
 
@@ -56,7 +95,6 @@ namespace helpers {
                 else {
                         theShift -= fullLen * (theShift / fullLen - 1);
                 }
-
                 for (int k = 0; k < fullLen; k++) {
                     rollFunctorLinear(listOfTensors->at(k), listOfOutTensors->at(k), theShift, true);
                 }
