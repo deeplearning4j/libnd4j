@@ -122,7 +122,7 @@ namespace shape {
 
     ND4J_EXPORT _CUDA_HD Nd4jLong *shapeBufferFortran(int rank, Nd4jLong *shape, Nd4jLong *output);
 
-    ND4J_EXPORT _CUDA_HD void doPermuteShapeBuffer(Nd4jLong *shapeBuffer, int* rearrange, Nd4jLong *tmpBuffer);
+    //ND4J_EXPORT _CUDA_HD void doPermuteShapeBuffer(Nd4jLong *shapeBuffer, int* rearrange, Nd4jLong *tmpBuffer);
 
     ND4J_EXPORT _CUDA_HD void doPermuteShapeBuffer(int rank, Nd4jLong *shapeBuffer, int *rearrange, Nd4jLong *tmpBuffer);
 
@@ -163,7 +163,8 @@ namespace shape {
 
 
 // check whether input dimensions are permuted, not permuted dimensions order have to be 0,....,rank-1
-    ND4J_EXPORT _CUDA_HD bool isDimPermuted(const Nd4jLong* dimensions, const int dimSize);
+    template <typename T>
+    ND4J_EXPORT _CUDA_HD bool isDimPermuted(const T* dimensions, const int dimSize);
 
 /**
  * Computes the standard packed array strides for a given shape.
@@ -270,9 +271,9 @@ namespace shape {
      * wise stride.
      */
 
-    ND4J_EXPORT _CUDA_HD Nd4jLong *createPermuteIndexes(int originalRank,Nd4jLong *dimension,int dimensionLength);
+    ND4J_EXPORT _CUDA_HD Nd4jLong* createPermuteIndexes(int originalRank, int *dimension,int dimensionLength);
 
-    ND4J_EXPORT _CUDA_HD Nd4jLong *computeResultShape(Nd4jLong *originalShapeBuffer,Nd4jLong *dimension,int dimensionLength);
+    ND4J_EXPORT _CUDA_HD Nd4jLong* computeResultShape(Nd4jLong *originalShapeBuffer, int *dimension,int dimensionLength);
 
     /**
      * This method does inplace transpose of given shapeBuffer
@@ -310,7 +311,7 @@ namespace shape {
  * @param rearrange the order to re arrange
  * @param rank the rank of the rearrange array
  */
-    ND4J_EXPORT _CUDA_HD void permute(ShapeInformation **info, Nd4jLong *rearrange, int rank);
+    ND4J_EXPORT _CUDA_HD void permute(ShapeInformation **info, int *rearrange, int rank);
 
 /**
  * Returns whether the
@@ -388,7 +389,7 @@ namespace shape {
  * and all must be filled in)
  * @return the rearranged array
  */
-    ND4J_EXPORT _CUDA_HD Nd4jLong *permutedStrides(Nd4jLong *toPermute, int shapeRank, Nd4jLong *rearrange);
+    //ND4J_EXPORT _CUDA_HD Nd4jLong *permutedStrides(Nd4jLong *toPermute, int shapeRank, Nd4jLong *rearrange);
 
 /**
  * Return the slice (shape + 1 in pointer arithmetic)
@@ -474,7 +475,7 @@ namespace shape {
  * buffer
      * relative to a dimension and ordering for a reduction index
  */
-    ND4J_EXPORT _CUDA_HD Nd4jLong reductionIndexElementWiseStride(Nd4jLong *buffer, Nd4jLong *dimension, int dimensionLength);
+    ND4J_EXPORT _CUDA_HD Nd4jLong reductionIndexElementWiseStride(Nd4jLong *buffer, int *dimension, int dimensionLength);
 
 /**
  * Returns whether
@@ -565,13 +566,15 @@ namespace shape {
  * at the specified increment
  *
  */
-    ND4J_EXPORT _CUDA_HD Nd4jLong *range(int from, int to, int increment);
+    template <typename T>
+    ND4J_EXPORT _CUDA_HD T* range(int from, int to, int increment);
 
 /**
  * Range between from and two with an
  * increment of 1
  */
-    ND4J_EXPORT _CUDA_HD Nd4jLong *range(int from, int to);
+    template <typename T>
+    ND4J_EXPORT _CUDA_HD T* range(int from, int to);
 
 /**
  * Keep the given indexes
@@ -616,7 +619,8 @@ namespace shape {
  * @param lengths
  * @return
  */
-    ND4J_EXPORT _CUDA_HD Nd4jLong *concat(int numArrays, int numTotalElements, Nd4jLong **arr, Nd4jLong *lengths);
+    template <typename T>
+    ND4J_EXPORT _CUDA_HD T* concat(int numArrays, int numTotalElements, Nd4jLong **arr, Nd4jLong *lengths);
 
 /**
  * Get the length per slice of the
@@ -630,7 +634,7 @@ namespace shape {
  * @return the length per slice of the given shape
  * along the given dimension
  */
-    ND4J_EXPORT _CUDA_HD int lengthPerSlice(int rank, Nd4jLong *shape, Nd4jLong *dimension, int dimensionLength);
+    ND4J_EXPORT _CUDA_HD Nd4jLong lengthPerSlice(int rank, Nd4jLong *shape, int *dimension, int dimensionLength);
 
 /**
  * calculates the offset for a tensor
@@ -639,12 +643,12 @@ namespace shape {
  * @param tensorShape
  * @return
  */
-    ND4J_EXPORT _CUDA_HD int sliceOffsetForTensor(int rank,
+    ND4J_EXPORT _CUDA_HD Nd4jLong sliceOffsetForTensor(int rank,
                                        int index,
                                        Nd4jLong *shape,
                                        Nd4jLong *tensorShape,
                                        int tensorShapeLength,
-                                       Nd4jLong *dimension,
+                                       int *dimension,
                                        int dimensionLength);
 
 /**
@@ -654,7 +658,7 @@ namespace shape {
  * @param tensorShape
  * @return
  */
-    ND4J_EXPORT _CUDA_HD int sliceOffsetForTensor(int index,int tensorLength,int lengthPerSlice2);
+    ND4J_EXPORT _CUDA_HD Nd4jLong sliceOffsetForTensor(int index,int tensorLength,int lengthPerSlice2);
 /**
  * Computes the tensor along dimension
  * offset
@@ -675,10 +679,10 @@ namespace shape {
  * of tensors along
  * a given dimension
  */
-    ND4J_EXPORT _CUDA_HD int tensorsAlongDimension(int rank,
+    ND4J_EXPORT _CUDA_HD Nd4jLong tensorsAlongDimension(int rank,
                                         volatile int length,
                                         volatile Nd4jLong *shape,
-                                        Nd4jLong *dimension,
+                                        int *dimension,
                                         int dimensionLength);
 
 /**
@@ -686,7 +690,7 @@ namespace shape {
  * of tensors along
  * a given dimension
  */
-    ND4J_EXPORT _CUDA_HD int tensorsAlongDimension(Nd4jLong *shapeInfo, Nd4jLong *dimension, int dimensionLength);
+    ND4J_EXPORT _CUDA_HD Nd4jLong tensorsAlongDimension(Nd4jLong *shapeInfo, int *dimension, int dimensionLength);
 
 
 
@@ -1078,7 +1082,7 @@ __device__ INLINEDEF Nd4jLong *cuMalloc(Nd4jLong *buffer, long size) {
  * Again: this may not preserve ordering of the tad
  * but maybe used for reductions.
  */
-    INLINEDEF _CUDA_HD int tadElementWiseStride(Nd4jLong *shapeInfo,Nd4jLong *dimension,int dimensionLength) {
+    INLINEDEF _CUDA_HD int tadElementWiseStride(Nd4jLong *shapeInfo, int *dimension,int dimensionLength) {
         return reductionIndexElementWiseStride(shapeInfo,dimension,dimensionLength);
     }
 
@@ -1144,25 +1148,25 @@ __device__ INLINEDEF Nd4jLong *cuMalloc(Nd4jLong *buffer, long size) {
         //ensure vector is proper shape
         if (retShapeLength == 1) {
             if (dimension[0] == 0) {
-                Nd4jLong *newRetShape = new Nd4jLong[2]{1, retShape[0]};
+                auto newRetShape = new Nd4jLong[2]{1, retShape[0]};
                 delete[] retShape;
                 retShape = newRetShape;
                 retShapeLength = 2;
             }
             else {
-                Nd4jLong *newRetShape = new Nd4jLong[2]{retShape[0], 1};
+                auto newRetShape = new Nd4jLong[2]{retShape[0], 1};
                 delete[] retShape;
                 retShape = newRetShape;
                 retShapeLength = 2;
             }
         } else if (retShapeLength == 0) {
-            Nd4jLong *newRetShape = new Nd4jLong[2]{1, 1};
+            auto newRetShape = new Nd4jLong[2]{1, 1};
             delete[] retShape;
             retShape = newRetShape;
             retShapeLength = 2;
         }
 
-        Nd4jLong *ret = shape::shapeBuffer(retShapeLength,retShape);
+        auto ret = shape::shapeBuffer(retShapeLength,retShape);
         delete[] retShape;
 
         return ret;
@@ -2112,22 +2116,24 @@ template <typename T>
 
         // doPermuteShapeInfo(shapeBuffer, rearrange); // possible fix of integer overflow issue when strides are too large
     }
-
-    INLINEDEF _CUDA_HD void doPermuteShapeBuffer(Nd4jLong *shapeBuffer, int *rearrange, int *tmpBuffer) {
-        Nd4jLong *shapeRef = shapeBuffer;
+/*
+    INLINEDEF _CUDA_HD void doPermuteShapeBuffer(Nd4jLong *shapeBuffer, int *rearrange, Nd4jLong *tmpBuffer) {
+        auto shapeRef = shapeBuffer;
         //rank of the rearrange array == rank of shape buffer
         int rearrageRank = shape::rank(shapeRef);
-        Nd4jLong *shape = shape::shapeOf(shapeRef);
-        Nd4jLong *stride = shape::stride(shapeRef);
+        auto shape = shape::shapeOf(shapeRef);
+        auto stride = shape::stride(shapeRef);
 
         shape::copyOf(rearrageRank,rearrange, tmpBuffer);
-        shape::doPermuteSwap(rearrageRank,&shape,tmpBuffer);
+        shape::doPermuteSwap(rearrageRank,&shape, tmpBuffer);
 
         shape::copyOf(rearrageRank,rearrange, tmpBuffer);
         shape::doPermuteSwap(rearrageRank,&stride,tmpBuffer);
+
         shapeRef[shapeInfoLength(rearrageRank) - 2] = -1;
         shapeRef[shape::shapeInfoLength(rearrageRank) - 1] = shape::getOrder(rearrageRank,shape,stride,1);
     }
+    */
 
     INLINEDEF _CUDA_HD void doPermuteShapeBuffer(int rank,Nd4jLong *shapeBuffer, int *rearrange) {
         Nd4jLong *shapeRef = shapeBuffer;
@@ -2161,7 +2167,7 @@ template <typename T>
     }
 
 
-    INLINEDEF _CUDA_HD Nd4jLong *createPermuteIndexes(int originalRank,Nd4jLong *dimension,int dimensionLength) {
+    INLINEDEF _CUDA_HD Nd4jLong *createPermuteIndexes(int originalRank, int *dimension,int dimensionLength) {
         int delta = originalRank - dimensionLength;
 
         traceNew(17);
@@ -2452,6 +2458,7 @@ template <typename T>
  * and all must be filled in)
  * @return the rearranged array
  */
+ /*
     INLINEDEF _CUDA_HD Nd4jLong *permutedStrides(Nd4jLong *toPermute, int shapeRank, int *rearrange) {
         Nd4jLong *strideCopy = copyOf(shapeRank, toPermute);
         checkArrangeArray(rearrange, shapeRank, shapeRank);
@@ -2459,6 +2466,7 @@ template <typename T>
         delete[] strideCopy;
         return newStride;
     }
+    */
 
 /**
  * Return the slice (shape + 1 in pointer arithmetic)
@@ -3155,7 +3163,7 @@ template <typename T>
  * @return the length per slice of the given shape
  * along the given dimension
  */
-    INLINEDEF _CUDA_HD int lengthPerSlice(int rank, Nd4jLong *shape, int* dimension, int dimensionLength) {
+    INLINEDEF _CUDA_HD Nd4jLong lengthPerSlice(int rank, Nd4jLong *shape, int* dimension, int dimensionLength) {
         if(shape::isVector(shape,rank)) {
             //return total length for row vectors
             if(dimensionLength == 1 && shape[0] == 1) {
@@ -3166,8 +3174,8 @@ template <typename T>
             return shape::prod(shape,rank);
         int absSelta = nd4j::math::nd4j_abs<int>(rank - dimensionLength);
         traceNew(27);
-        Nd4jLong *ret2 = shape::removeIndex<Nd4jLong>(shape, dimension, rank, dimensionLength);
-        int ret = prod(ret2, absSelta);
+        auto ret2 = shape::removeIndex<Nd4jLong>(shape, dimension, rank, dimensionLength);
+        auto ret = prodLong(ret2, absSelta);
         delete[] ret2;
         return ret;
     }
@@ -3198,8 +3206,8 @@ template <typename T>
  * @return
  */
 
-    INLINEDEF _CUDA_HD int sliceOffsetForTensor(int index,int tensorLength,int lengthPerSlice2) {
-        int offset = index * tensorLength / lengthPerSlice2;
+    INLINEDEF _CUDA_HD Nd4jLong sliceOffsetForTensor(int index,int tensorLength,int lengthPerSlice2) {
+        Nd4jLong offset = index * tensorLength / lengthPerSlice2;
         return offset;
     }
 

@@ -3438,6 +3438,11 @@ void NativeOps::deleteIntArray(Nd4jPointer pointer) {
     delete[] ptr;
 }
 
+void NativeOps::deleteLongArray(Nd4jPointer pointer) {
+    auto ptr = reinterpret_cast<Nd4jLong *>(pointer);
+    delete[] ptr;
+}
+
 template <typename T>
 static void deleteVariablesSetT(Nd4jPointer pointer) {
     auto ptr = reinterpret_cast<nd4j::graph::VariablesSet<T>*>(pointer);
