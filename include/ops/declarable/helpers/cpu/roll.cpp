@@ -15,33 +15,25 @@ namespace helpers {
         int fullLen = output->lengthOf();
         int actualShift = shift; // % fullLen; // shift already non-negative then
         if (actualShift < 0) {
-//            if (actualShift + fullLen > 0) actualShift += fullLen;
-//            else {
                 actualShift -= fullLen * (actualShift / fullLen - 1);
-//            }
         }
         else
             actualShift %= fullLen;
 
         if (actualShift) {
-            if (inplace)
-                source = input->dup();
+            if (!inplace)
+                output->assign(input);
+    
+#pragma omp parallel for 
+            for (int e = actualShift; e < fullLen; ++e) {
+                nd4j::math::nd4j_swap((*output)(e), (*source)(e - actualShift));
+            }
 
 #pragma omp parallel for 
             for (int e = 0; e < actualShift; ++e) {
                 int sourceIndex = fullLen - actualShift + e;
-                (*output)(e) = (*source)(sourceIndex);
+                nd4j::math::nd4j_swap((*output)(e), (*source)(sourceIndex));
             }
-    
-#pragma omp parallel for 
-            for (int e = actualShift; e < fullLen; ++e) {
-                (*output)(e) = (*source)(e - actualShift);
-            }
-            if (inplace)
-                delete source;
-        }
-        else {// no any changes
-            if (!inplace) output->assign(input);
         }
     }
 
