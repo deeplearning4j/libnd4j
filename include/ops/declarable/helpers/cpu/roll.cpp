@@ -98,20 +98,30 @@ namespace helpers {
 
                 if (theShift) {
                     for (int dim = 0; dim < fullLen / sizeAt; ++dim) {
-                    for (int e = 0; e < theShift; ++e) {
-                        int sourceIndex = dim * sizeAt + sizeAt - theShift + e;
-                        NDArray<T>* sourceM = listOfTensors->at(sourceIndex);
-                        NDArray<T>* targetM = listOfOutTensors->at(dim * sizeAt + e);
-                        //listOfOutTensors->at(e)->assign(listOfTensors->at(sourceIndex));
-                        sourceM->swapUnsafe(*targetM);
-                    }
     
-                    for (int e = theShift; e < sizeAt; ++e) {
+                    for (int e = theShift; e < sizeAt - theShift; ++e) {
+                        nd4j_printf("(first) Exchange %i <--> %i.\n", dim * sizeAt + e - shift, dim * sizeAt + e);
                         NDArray<T>* sourceM = listOfTensors->at(dim * sizeAt + e - theShift);
                         NDArray<T>* targetM = listOfOutTensors->at(dim * sizeAt + e);
                         sourceM->swapUnsafe(*targetM);
                         //listOfOutTensors->at(e)->assign(listOfTensors->at(e - theShift));
                     }
+
+                    nd4j_printf("Than\n", "");
+
+                    for (int e = 0; e < theShift; ++e) {
+                        int sourceIndex = dim * sizeAt + sizeAt - theShift + e;
+                        nd4j_printf("(last) Exchange %i <--> %i.\n", dim * sizeAt + e, sourceIndex);
+                        NDArray<T>* sourceM = listOfTensors->at(sourceIndex);
+                        NDArray<T>* targetM = listOfOutTensors->at(dim * sizeAt + e);
+                        //listOfOutTensors->at(e)->assign(listOfTensors->at(sourceIndex));
+                        sourceM->swapUnsafe(*targetM);
+                    }
+
+                    for (int k = 0; k < fullLen; k++) {
+                        listOfTensors->at(k)->printIndexedBuffer("Tensor after at ");
+                    }
+
                     }
                 }
                     //rollFunctorLinear(listOfTensors->at(k), listOfOutTensors->at(k), theShift);
