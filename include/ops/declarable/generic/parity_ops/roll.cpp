@@ -19,7 +19,7 @@ namespace ops {
         //std::vector<int> axes(input->rankOf());
         int shift = INT_ARG(0);
         int inputLen = input->lengthOf();
-
+        if (block.isInplace()) output = input;
         if (shift < 0) {
         // convert shift to positive value between 1 and inputLen - 1
             shift -= inputLen * (shift / inputLen - 1);
@@ -31,7 +31,7 @@ namespace ops {
         if (block.numI() > 1)
             shiftIsLinear = false;
         if (shiftIsLinear) {
-            helpers::rollFunctorLinear(input, output, shift);
+            helpers::rollFunctorLinear(input, output, shift, block.isInplace());
         }
         else {
             std::vector<int> axes(block.numI() - 1);
@@ -41,7 +41,7 @@ namespace ops {
                     input->rankOf(), input->rankOf() - 1, axe);
                 axes[e] = (axe < 0? (input->rankOf() + axe) : axe);
             }
-            helpers::rollFunctorFull(input, output, shift, axes);
+            helpers::rollFunctorFull(input, output, shift, axes, block.isInplace());
         }
 
         return ND4J_STATUS_OK;
