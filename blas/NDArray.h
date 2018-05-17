@@ -256,6 +256,7 @@ namespace nd4j {
         NDArray<T>* permute(const std::initializer_list<Nd4jLong>& dimensions) const;
         NDArray<T>* permute(const std::vector<Nd4jLong>& dimensions) const;
         NDArray<T>* permute(const Nd4jLong* dimensions, const int rank) const;
+
         void permute(const Nd4jLong* dimensions, const int rank, NDArray<T>& target) const;
         void permute(const std::vector<Nd4jLong>& dimensions, NDArray<T>& target) const;
 

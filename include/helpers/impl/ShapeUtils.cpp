@@ -233,21 +233,43 @@ Nd4jLong* ShapeUtils<T>::evalReduceShapeInfo(const char order, std::vector<int>&
     template<typename T>
     Nd4jLong* ShapeUtils<T>::evalPermShapeInfo(const int* dimensions, const int rank, const NDArray<T>& arr, nd4j::memory::Workspace* workspace) {
 
-    if (!arr.nonNull() || rank != arr.rankOf())
-        throw "ShapeUtils<T>::evalPermShapeInfo static method: wrong arguments in pn/termute method: either array is nullptr or rank is not suitable!";
+        if (!arr.nonNull() || rank != arr.rankOf())
+            throw "ShapeUtils<T>::evalPermShapeInfo static method: wrong arguments in pn/termute method: either array is nullptr or rank is not suitable!";
     
-    auto shapeInfoLength = shape::shapeInfoLength(rank);
-    // allocate memory for new array - shapeInfo
+        auto shapeInfoLength = shape::shapeInfoLength(rank);
+        // allocate memory for new array - shapeInfo
 
-    Nd4jLong* shapeInfoNew = nullptr;
-    ALLOCATE(shapeInfoNew, workspace, shapeInfoLength, Nd4jLong);
-    // copy arr _shapeInfo into new array       
-    memcpy(shapeInfoNew, arr.getShapeInfo(), shape::shapeInfoByteLength(rank));
-    // perform buffer permutation   
-    shape::doPermuteShapeInfo(shapeInfoNew, dimensions);      
+        Nd4jLong *shapeInfoNew = nullptr;
+        ALLOCATE(shapeInfoNew, workspace, shapeInfoLength, Nd4jLong);
+        // copy arr _shapeInfo into new array
+        memcpy(shapeInfoNew, arr.getShapeInfo(), shape::shapeInfoByteLength(rank));
+        // perform buffer permutation
+        shape::doPermuteShapeInfo(shapeInfoNew, dimensions);
 
-    return shapeInfoNew;
-}
+        return shapeInfoNew;
+    }
+
+
+    //////////////////////////////////////////////////////////////////////////
+// evaluate shapeInfo of permuted array
+    template<typename T>
+    Nd4jLong* ShapeUtils<T>::evalPermShapeInfo(const Nd4jLong *dimensions, const int rank, const NDArray<T>& arr, nd4j::memory::Workspace* workspace) {
+
+        if (!arr.nonNull() || rank != arr.rankOf())
+            throw "ShapeUtils<T>::evalPermShapeInfo static method: wrong arguments in pn/termute method: either array is nullptr or rank is not suitable!";
+
+        auto shapeInfoLength = shape::shapeInfoLength(rank);
+        // allocate memory for new array - shapeInfo
+
+        Nd4jLong *shapeInfoNew = nullptr;
+        ALLOCATE(shapeInfoNew, workspace, shapeInfoLength, Nd4jLong);
+        // copy arr _shapeInfo into new array
+        memcpy(shapeInfoNew, arr.getShapeInfo(), shape::shapeInfoByteLength(rank));
+        // perform buffer permutation
+        shape::doPermuteShapeInfo(shapeInfoNew, dimensions);
+
+        return shapeInfoNew;
+    }
 
 //////////////////////////////////////////////////////////////////////////
 // evaluate shapeInfo of transposed array

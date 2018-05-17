@@ -2175,11 +2175,38 @@ void NDArray<T>::permute(const int* dimensions, const int rank, NDArray<T>& targ
 
 }
 
+
+    template <typename T>
+    void NDArray<T>::permute(const Nd4jLong *dimensions, const int rank, NDArray<T>& target) const {
+
+        if (!nonNull() || !target.nonNull() || rank != rankOf() || rank != target.rankOf() )
+            throw "NDArray<T>::permute method: either arrays are nullptr or ranks are not suitable!";
+
+        // check whether target has allocated (its own) buffer
+        if (target._isBuffAlloc)
+            RELEASE(target._buffer, target._workspace);
+
+        auto shapeInfoNew = ShapeUtils<T>::evalPermShapeInfo(dimensions, rank, *this, target._workspace);
+
+        target._buffer = _buffer;
+        target._shapeInfo = shapeInfoNew;
+        // don't forget to indicate that memory for new array was allocated
+        target._isBuffAlloc = false;
+        target._isShapeAlloc = true;
+        //target._isView = true;
+
+    }
+
 //////////////////////////////////////////////////////////////////////////
 template <typename T>
 void NDArray<T>::permute(const std::vector<int>& dimensions, NDArray<T>& target) const {
     permute(dimensions.data(), dimensions.size(), target);
 }
+
+    template <typename T>
+    void NDArray<T>::permute(const std::vector<Nd4jLong>& dimensions, NDArray<T>& target) const {
+        permute(dimensions.data(), dimensions.size(), target);
+    }
 
 //////////////////////////////////////////////////////////////////////////
 template<typename T>
