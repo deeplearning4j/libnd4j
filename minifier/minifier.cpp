@@ -123,12 +123,32 @@ main(int argc, char *argv[]) {
 
     // just stacking everything together
     std::string cmdline = "./buildnativeoperations.sh " + name_arg + build_arg + arch_arg + opts_arg;
-
-    std::string cppLine(" -I../include -I../blas -I../include/ops -I../include/helpers -I../include/types -I../include/array -I../include/cnpy -I../include/ops/declarable ../include/ops/declarable/CustomOperations.h -o ");
-    cppLine += opt.outputName();
-    nd4j_printf("Run preprocessor as \ncpp %s\n", cppLine.c_str());
+    std::string input("../include/ops/declarable/CustomOperations.h");
+    std::string output(opt.outputName());
+    nd4j_printf("Run preprocessor as \ncpp %s\n", input.c_str());
 //    int err;
-    if (0 > (err = execl("/usr/bin/cpp", cppLine.c_str()))) {
+    int ret;
+    char const* env[] = { "HOME=/var/sandbox", "LOGNAME=minifier", "PATH=/usr/bin:/usr/local/bin:/usr/lib/gcc/x86_64-linux-gnu/6", (char *)0 };
+
+//    ret = execle ("/usr/bin/cpp", "cpp", "-o", "result.h", "-I/usr/include", "file.h", (char *)0, env);
+    if (ret != 0) {
+        perror("Cannot exec preprocessor");
+    }
+
+    if (0 > (err = execle("/usr/bin/cpp", "cpp", "-x", "c++", "-std=c++11", "-o", output.c_str(), 
+        "-I../include",
+        "-I../blas",
+        "-I../include/ops",
+        "-I../include/helpers",
+        "-I../include/types",
+        "-I../include/array",
+        "-I../include/cnpy",
+        "-I../include/ops/declarable", 
+        "-I/usr/include/c++/6",
+        "-I/usr/include/x86_64-linux-gnu/c++/6", 
+        input.c_str(),
+        (char*)nullptr, 
+        env))) {
         perror("\nCannot run CPP properly due \n");
     }
     //nd4j_printf("Command line: %s\n", cmdline.c_str());
