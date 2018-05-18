@@ -93,7 +93,7 @@ namespace nd4j {
             ConvolutionUtils<T>::calcOutSizePool2D(oH, oW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);
             // allocate memory for new shape
             Nd4jLong* newShapeInfo = nullptr;
-            ALLOCATE(newShapeInfo, block.getWorkspace(), 12, int);
+            ALLOCATE(newShapeInfo, block.getWorkspace(), 12, Nd4jLong);
 
             newShapeInfo[0] = 4;        // rank
             newShapeInfo[1] = bS;

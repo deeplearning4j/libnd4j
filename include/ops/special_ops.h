@@ -224,7 +224,7 @@ namespace simdOps {
 #endif
 
 
-	static void execSpecial(T *in, Nd4jLong *inShapeBuffer, T *out, Nd4jLong *outShapeBuffer, T *extraParams, intNd4jLong *tadShapeInfo, Nd4jLong *tadOffsets) {
+	static void execSpecial(T *in, Nd4jLong *inShapeBuffer, T *out, Nd4jLong *outShapeBuffer, T *extraParams, Nd4jLong *tadShapeInfo, Nd4jLong *tadOffsets) {
 	// input is  [bS, iC, iH, iW]
 	// output is [bS, iC, oH, oW]
 
@@ -284,13 +284,13 @@ namespace simdOps {
                         Nd4jLong wend = wstart + kWEff;
 
                         if(hstart < 0)
-                            hstart += dH * (Nd4jIndex)nd4j::math::nd4j_ceil<T>((T)-hstart / dH);
+                            hstart += dH * (Nd4jLong)nd4j::math::nd4j_ceil<T>((T)-hstart / dH);
                         if(wstart < 0)
-                            wstart += dW * (Nd4jIndex)nd4j::math::nd4j_ceil<T>((T)-wstart / dW);
+                            wstart += dW * (Nd4jLong)nd4j::math::nd4j_ceil<T>((T)-wstart / dW);
                         if(hend > iH)
-                            hend -= dH * (Nd4jIndex)nd4j::math::nd4j_ceil<T>((T)(hend-iH) / dH);                            
+                            hend -= dH * (Nd4jLong)nd4j::math::nd4j_ceil<T>((T)(hend-iH) / dH);                            
                         if(wend > iW)
-                            wend -= dW * (Nd4jIndex)nd4j::math::nd4j_ceil<T>((T)(wend-iW) / dW);
+                            wend -= dW * (Nd4jLong)nd4j::math::nd4j_ceil<T>((T)(wend-iW) / dW);
 
                         T sum = poolingMode == 0 ? (T) -MAX_FLOAT : (T) 0;
 
@@ -318,7 +318,7 @@ namespace simdOps {
             	                    	sum += pIn[kh + kw];
                                 
                 	            if ((int) extraParam0 == 0)         //Exclude padding
-                    	        	sum /= (Nd4jIndex)(nd4j::math::nd4j_ceil<T>((hend-hstart) * iStep2Inv)) * (Nd4jIndex)nd4j::math::nd4j_ceil<T>((wend-wstart) * iStep3Inv);   //Accounts for dilation
+                    	        	sum /= (Nd4jLong)(nd4j::math::nd4j_ceil<T>((hend-hstart) * iStep2Inv)) * (Nd4jLong)nd4j::math::nd4j_ceil<T>((wend-wstart) * iStep3Inv);   //Accounts for dilation
                         	    else if ((int) extraParam0 == 1)    //Include padding
                             		sum /= kProd;
                             	break;

@@ -47,8 +47,8 @@ namespace ops  {
         DECLARE_SHAPE_FN(maxpool2d) {
             
             //NDArray<T> *x = block.getVariables().at(0)->getNDArray();
-            int* inShape = inputShape->at(0);
-            int* shapeOf = shape::shapeOf(inShape);
+            Nd4jLong* inShape = inputShape->at(0);
+            Nd4jLong* shapeOf = shape::shapeOf(inShape);
             // 0 - number of dimensions; 1,2 - kernel Height/Width; 3,4 - stride Height/Width; 5,6 - pad Height/Width; 7,8 - dilation Height/Width; 9,10 - input Height/Width; 11 - batch size; 12 - input depth; 13 - same mode;
             std::vector<int> argI = *(block.getIArguments());
             int kH = INT_ARG(0);
@@ -74,8 +74,8 @@ namespace ops  {
             ConvolutionUtils<T>::calcOutSizePool2D(oH, oW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);
             
             // allocate memory for new shape
-            int* newShapeInfo = nullptr;
-            ALLOCATE(newShapeInfo, block.getWorkspace(), 12, int);
+            Nd4jLong* newShapeInfo = nullptr;
+            ALLOCATE(newShapeInfo, block.getWorkspace(), 12, Nd4jLong);
             
             newShapeInfo[0] = 4;        // rank
             newShapeInfo[1] = bS;
