@@ -35,7 +35,7 @@ namespace helpers {
             }
 
 //#pragma omp parallel for 
-            bool again = true;
+            bool again = actualShift < fullLen - actualShift;
             int k = 1;
             while(again) {
                 for (int e = 0; e < actualShift; ++e) {
@@ -55,7 +55,7 @@ namespace helpers {
                     nd4j::math::nd4j_swap((*output)(actualShift + (k + 1)* rest + e), (*output)(actualShift + k * rest + e));
                 }
                 k++;
-                again = 2 * actualShift > actualShift + k * rest;
+                again = (2 * actualShift > (actualShift + k * rest)) && (actualShift + k * rest < fullLen);
             }
 //            for (int e = actualShift; e < fullLen - actualShift; ++e) {
 //                nd4j_printf("%i <--> %i\n", e, e - actualShift);
