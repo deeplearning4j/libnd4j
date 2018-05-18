@@ -43,7 +43,7 @@ CUSTOM_OP_IMPL(percentile, 1, 1, false, 1, -2) {
 
 DECLARE_SHAPE_FN(percentile) {
 
-    int* inputShapeInfo = inputShape->at(0);
+    Nd4jLong* inputShapeInfo = inputShape->at(0);
     const int keepDims = block.getTArguments()->size() > 2 ? T_ARG(2) : (T)0.;        // false is default
 
     const int axisArrRank = block.getIArguments()->size();
@@ -58,7 +58,7 @@ DECLARE_SHAPE_FN(percentile) {
     }
 
     std::vector<int> axises = *block.getIArguments();
-    int* outputShapeInfo = ShapeUtils<T>::evalReduceShapeInfo(shape::order(inputShapeInfo), axises, inputShapeInfo, keepDims, false, block.getWorkspace());
+    Nd4jLong* outputShapeInfo = ShapeUtils<T>::evalReduceShapeInfo(shape::order(inputShapeInfo), axises, inputShapeInfo, keepDims, false, block.getWorkspace());
 
     return SHAPELIST(outputShapeInfo);
 }

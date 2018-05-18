@@ -26,7 +26,7 @@ void percentile(const NDArray<T>& input, NDArray<T>& output, std::vector<int>& a
 
     ResultSet<T>* listOfSubArrs = NDArrayFactory<T>::allTensorsAlongDimension(&input, axises);
     
-    std::vector<int> shapeOfSubArr(listOfSubArrs->at(0)->rankOf());
+    std::vector<Nd4jLong> shapeOfSubArr(listOfSubArrs->at(0)->rankOf());
     for(int i=0; i<shapeOfSubArr.size(); ++i)
         shapeOfSubArr[i] = listOfSubArrs->at(0)->shapeOf()[i];
 
