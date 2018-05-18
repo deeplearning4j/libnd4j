@@ -1462,6 +1462,29 @@ NDArray<float> exp('c', {2, 3, 2}, {
 //    delete result;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests7, TestRoll_9) {
+    NDArray<float> x('c', {2, 3, 3}, {
+    0., 1., 2., 3.,  4.,  5., 6., 7., 8., 9., 10., 11., 12., 13., 14., 15., 16., 17.
+});
+
+NDArray<float> exp('c', {2, 3, 3}, {
+    6.,  7.,  8., 0., 1., 2., 3., 4., 5., 15., 16., 17., 9., 10., 11., 12., 13., 14.
+});
+// ----------------------------------------------------------------
+    nd4j::ops::roll<float> op;
+    NDArray<float>* y;
+    auto result = op.execute({&x}, {y}, {}, {1, 1}, true);
+    ASSERT_EQ(result, Status::OK());
+
+    x.printIndexedBuffer("Output");
+    exp.printIndexedBuffer("Expect");
+
+    ASSERT_TRUE(exp.equalsTo(&x));
+
+//    delete result;
+}
+
 
 
 
