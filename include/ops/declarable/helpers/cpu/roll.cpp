@@ -24,32 +24,30 @@ namespace helpers {
             actualShift %= fullLen;
 
         if (actualShift) {
-
+            int shiftCount = fullLen / actualShift - 1;
+            int remainShift = fullLen % actualShift; 
+            
+            // stage 1) swap last actualShift elements with first ones.
 #pragma omp parallel for if (actualShift > Environment::getInstance()->elementwiseThreshold()) schedule(static)
             for (int e = 0; e < actualShift; ++e) {
                 int sourceIndex = fullLen - actualShift + e;
                 nd4j::math::nd4j_swap((*output)(e), (*output)(sourceIndex));
             }
 
-            bool again = actualShift < fullLen - actualShift;
-            int k = 1;
-            while(again) {
+            // stage 2) swap swapped actualShift elements with rest remainShiftCount times.
+#pragma omp parallel for if (shiftCount > Environment::getInstance()->elementwiseThreshold()) schedule(static)
+            for (int count = 1; count < shiftCount; ++count) {
                 for (int e = 0; e < actualShift; ++e) {
-                    nd4j::math::nd4j_swap((*output)(fullLen - k * actualShift + e), (*output)(fullLen - (k + 1) * actualShift + e));
+                    int destinationIndex = fullLen - (count + 1) * actualShift + e;
+                    int sourceIndex = fullLen - count * actualShift + e;
+                    nd4j::math::nd4j_swap((*output)(destinationIndex), (*output)(sourceIndex));
                 }
-                k++;
-                again = actualShift < fullLen - (k + 1) * actualShift;
             }
-            int rest = fullLen - k * actualShift - actualShift;
-            again = rest > 0;
-            k = 0;
-            while(again){
-                for (int e = 0; e < rest; ++e) {
-                    nd4j::math::nd4j_swap((*output)(actualShift + (k + 1)* rest + e), (*output)(actualShift + k * rest + e));
-                }
-                k++;
-                again = (2 * actualShift > (actualShift + k * rest)) && (actualShift + k * rest < fullLen);
-            }
+            
+            // stage 3) swap remainer of items.
+            if (remainShift && shiftCount)
+            for (int i = actualShift; i < 2 * actualShift; ++i) 
+                nd4j::math::nd4j_swap((*output)(i), (*output)(i + remainShift));
         }
     }
 
