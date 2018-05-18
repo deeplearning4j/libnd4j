@@ -79,7 +79,7 @@ DECLARE_SHAPE_FN(avgpool3dnew) {
     int isSameMode = INT_ARG(12);                                               // 1-SAME,  0-VALID
     int isNCDHW  = block.getIArguments()->size() > 14 ? !INT_ARG(14) : 1;       // 0-NDHWC, 1-NCDHW    
     
-    int* inputShapeInfo = inputShape->at(0);
+    Nd4jLong* inputShapeInfo = inputShape->at(0);
 
     int idxID, idxIC;    
     if(isNCDHW) { idxID = 2; idxIC = 1;}
@@ -94,8 +94,8 @@ DECLARE_SHAPE_FN(avgpool3dnew) {
     int oD, oH, oW;                         // output depth, height, width
     ConvolutionUtils<T>::calcOutSizePool3D(oD, oH, oW, kD, kH, kW, sD, sH, sW, pD, pH, pW, dD, dH, dW, iD, iH, iW, isSameMode);
     
-    int* outputShapeInfo = nullptr;
-    ALLOCATE(outputShapeInfo, block.getWorkspace(), shape::shapeInfoLength(inputShapeInfo), int);
+    Nd4jLong* outputShapeInfo = nullptr;
+    ALLOCATE(outputShapeInfo, block.getWorkspace(), shape::shapeInfoLength(inputShapeInfo), Nd4jLong);
 
     outputShapeInfo[0] = 5;
     outputShapeInfo[1] = bS;
@@ -183,7 +183,7 @@ CUSTOM_OP_IMPL(avgpool3dnew_bp, 2, 1, false, 0, 10) {
 
 DECLARE_SHAPE_FN(avgpool3dnew_bp) {
 
-    int* gradIshapeInfo(nullptr);
+    Nd4jLong* gradIshapeInfo(nullptr);
     COPY_SHAPE(inputShape->at(0), gradIshapeInfo);
         
     return SHAPELIST(gradIshapeInfo);        

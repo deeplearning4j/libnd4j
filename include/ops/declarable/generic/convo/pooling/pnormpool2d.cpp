@@ -66,8 +66,8 @@ namespace nd4j {
 
 
         DECLARE_SHAPE_FN(pnormpool2d) {
-            int* inShape = inputShape->at(0);
-            int* shapeOf = shape::shapeOf(inShape);
+            auto inShape = inputShape->at(0);
+            auto shapeOf = shape::shapeOf(inShape);
 
             // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8 - same mode;
             std::vector<int> argI = *(block.getIArguments());
@@ -92,7 +92,7 @@ namespace nd4j {
             int oH, oW;
             ConvolutionUtils<T>::calcOutSizePool2D(oH, oW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);
             // allocate memory for new shape
-            int* newShapeInfo = nullptr;
+            Nd4jLong* newShapeInfo = nullptr;
             ALLOCATE(newShapeInfo, block.getWorkspace(), 12, int);
 
             newShapeInfo[0] = 4;        // rank
@@ -196,7 +196,7 @@ DECLARE_SHAPE_FN(pnormpool2d_bp) {
     REQUIRE_TRUE(inputShape->at(0)[0] == 4, 0, "PNORMPOOL2D_BP op: input array must be 4D, but got %i instead!", inputShape->at(0)[0]);
     REQUIRE_TRUE(inputShape->at(1)[0] == 4, 0, "PNORMPOOL2D_BP op: output's gradient array (next epsilon) must be 4D, but got %i instead!", inputShape->at(1)[0]);
     
-    int* gradIShapeInfo(nullptr);
+    Nd4jLong* gradIShapeInfo(nullptr);
     COPY_SHAPE(inputShape->at(0), gradIShapeInfo);
     
     return SHAPELIST(gradIShapeInfo);

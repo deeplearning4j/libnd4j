@@ -167,9 +167,9 @@ DECLARE_SHAPE_FN(maxpool2d_bp) {
     REQUIRE_TRUE(inputShape->at(0)[0] == 4, 0, "MAXPOOL2D_BP op: input array must be 4D, but got %i instead!", inputShape->at(0)[0]);
     REQUIRE_TRUE(inputShape->at(1)[0] == 4, 0, "MAXPOOL2D_BP op: output's gradient array (next epsilon) must be 4D, but got %i instead!", inputShape->at(1)[0]);
     
-    int* gradIShapeInfo(nullptr);
+    Nd4jLong* gradIShapeInfo(nullptr);
     COPY_SHAPE(inputShape->at(0), gradIShapeInfo);
-    
+
     return SHAPELIST(gradIShapeInfo);
 }
 

@@ -11,7 +11,7 @@
 namespace nd4j {
     namespace ops {
         DECLARE_SHAPE_FN(avgpool3d) {
-            int* input = inputShape->at(0);
+            auto input = inputShape->at(0);
 
             int kT = INT_ARG(0);
             int kW = INT_ARG(1);
@@ -24,13 +24,13 @@ namespace nd4j {
             int padH = INT_ARG(8);
             bool ceil_mode = INT_ARG(9) != 0;
 
-            Nd4jIndex nslices;
-            Nd4jIndex itime;
-            Nd4jIndex iheight;
-            Nd4jIndex iwidth;
-            Nd4jIndex otime;
-            Nd4jIndex oheight;
-            Nd4jIndex owidth;
+            Nd4jLong nslices;
+            Nd4jLong itime;
+            Nd4jLong iheight;
+            Nd4jLong iwidth;
+            Nd4jLong otime;
+            Nd4jLong oheight;
+            Nd4jLong owidth;
 
             int dimN = 2;
             int dimt = 3;
@@ -45,15 +45,15 @@ namespace nd4j {
 
             if (ceil_mode)
             {
-                otime   = (Nd4jIndex)(nd4j::math::nd4j_ceil<T>((T)(itime   - kT + 2*padT) / dT)) + 1;
-                oheight = (Nd4jIndex)(nd4j::math::nd4j_ceil<T>((T)(iheight - kH + 2*padH) / dH)) + 1;
-                owidth  = (Nd4jIndex)(nd4j::math::nd4j_ceil<T>((T)(iwidth  - kW + 2*padW) / dW)) + 1;
+                otime   = (Nd4jLong)(nd4j::math::nd4j_ceil<T>((T)(itime   - kT + 2*padT) / dT)) + 1;
+                oheight = (Nd4jLong)(nd4j::math::nd4j_ceil<T>((T)(iheight - kH + 2*padH) / dH)) + 1;
+                owidth  = (Nd4jLong)(nd4j::math::nd4j_ceil<T>((T)(iwidth  - kW + 2*padW) / dW)) + 1;
             }
             else
             {
-                otime   = (Nd4jIndex)(nd4j::math::nd4j_floor<T>((T)(itime   - kT + 2*padT) / dT)) + 1;
-                oheight = (Nd4jIndex)(nd4j::math::nd4j_floor<T>((T)(iheight - kH + 2*padH) / dH)) + 1;
-                owidth  = (Nd4jIndex)(nd4j::math::nd4j_floor<T>((T)(iwidth  - kW + 2*padW) / dW)) + 1;
+                otime   = (Nd4jLong)(nd4j::math::nd4j_floor<T>((T)(itime   - kT + 2*padT) / dT)) + 1;
+                oheight = (Nd4jLong)(nd4j::math::nd4j_floor<T>((T)(iheight - kH + 2*padH) / dH)) + 1;
+                owidth  = (Nd4jLong)(nd4j::math::nd4j_floor<T>((T)(iwidth  - kW + 2*padW) / dW)) + 1;
             }
             if (padT || padH || padW)
             {
@@ -67,12 +67,12 @@ namespace nd4j {
                     --owidth;
             }
 
-            int *shapeOf;
-            int *newShape;
-            ALLOCATE(shapeOf, block.getWorkspace(), 5, int);
-            ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(5), int);
+            Nd4jLong *shapeOf;
+            Nd4jLong *newShape;
+            ALLOCATE(shapeOf, block.getWorkspace(), 5, Nd4jLong);
+            ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(5), Nd4jLong);
 
-            nd4j::ArrayUtils::toIntPtr({nBatch, (int) nslices, (int)otime, (int)oheight, (int)owidth}, shapeOf);
+            nd4j::ArrayUtils::toLongPtr({nBatch, (Nd4jLong) nslices, (Nd4jLong)otime, (Nd4jLong)oheight, (Nd4jLong)owidth}, shapeOf);
 
             shape::shapeBuffer(5, shapeOf, newShape);
 
@@ -90,14 +90,15 @@ namespace nd4j {
 
             REQUIRE_TRUE(input->rankOf() == 5, 0, "Input should be 5D, got %i instead", input->rankOf());
 
-            int nslices;
-            int itime;
-            int iheight;
-            int iwidth;
-            int otime;
-            int oheight;
-            int owidth;
-
+            Nd4jLong nslices;
+            Nd4jLong itime;
+            Nd4jLong iheight;
+            Nd4jLong iwidth;
+            Nd4jLong otime;
+            Nd4jLong oheight;
+            Nd4jLong owidth;
+            T *gradInput_data;
+            T *gradOutput_data;
             int kT = INT_ARG(0);
             int kW = INT_ARG(1);
             int kH = INT_ARG(2);
@@ -119,7 +120,37 @@ namespace nd4j {
 
             output->assign(0.0);
 
-            ConvolutionUtils<T>::avgPool3DBP(*gradNext, *output,  kT, kW, kH, dT, dW, dH, padT, padW, padH, count_include_pad);
+            nslices = input->sizeAt(dimN);
+            itime = input->shapeOf()[dimt];
+            iheight = input->shapeOf()[dimh];
+            iwidth = input->shapeOf()[dimw];
+            otime = gradNext->shapeOf()[dimt];
+            oheight = gradNext->shapeOf()[dimh];
+            owidth = gradNext->shapeOf()[dimw];
+
+
+            gradInput_data = output->getBuffer();
+            gradOutput_data = gradNext->getBuffer();
+
+            long nBatch = input->sizeAt(0);
+
+            long istride = nslices * itime * iwidth * iheight;
+            long ostride = nslices * otime * owidth * oheight;
+
+            for (int p = 0; p < nBatch; p++)
+            {
+                ConvolutionUtils<T>::_avgPool3D_bp(
+                        gradInput_data  + p * istride,
+                        gradOutput_data + p * ostride,
+                        nslices,
+                        itime, iwidth, iheight,
+                        otime, owidth, oheight,
+                        kT, kW, kH,
+                        dT, dW, dH,
+                        padT, padW, padH,
+                        count_include_pad
+                );
+            }
 
             STORE_RESULT(*output);
 
@@ -127,9 +158,8 @@ namespace nd4j {
         }
         DECLARE_SHAPE_FN(avgpool3d_bp) {
             // output shape equals to input shape, all out of sudden
-            int* newShape;
-            ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(inputShape->at(0)), int);
-            memcpy(newShape, inputShape->at(0), shape::shapeInfoByteLength(inputShape->at(0)));
+            Nd4jLong* newShape;
+            COPY_SHAPE(inputShape->at(0), newShape);
             return SHAPELIST(newShape);
         }
 
@@ -155,14 +185,13 @@ namespace nd4j {
             bool count_include_pad  = INT_ARG(10) != 0;
 
 
-            Nd4jIndex bS;
-            Nd4jIndex nslices;
-            Nd4jIndex itime;
-            Nd4jIndex iheight;
-            Nd4jIndex iwidth;
-            Nd4jIndex otime;
-            Nd4jIndex oheight;
-            Nd4jIndex owidth;
+            Nd4jLong nslices;
+            Nd4jLong itime;
+            Nd4jLong iheight;
+            Nd4jLong iwidth;
+            Nd4jLong otime;
+            Nd4jLong oheight;
+            Nd4jLong owidth;
             T *input_data;
             T *output_data;
 
@@ -171,7 +200,6 @@ namespace nd4j {
             int dimh = 3;
             int dimw = 4;
 
-            bS      = input->sizeAt(0);
             nslices = input->sizeAt(dimN);
             itime   = input->sizeAt(dimt);
             iheight = input->sizeAt(dimh);
@@ -179,15 +207,15 @@ namespace nd4j {
 
             if (ceil_mode)
             {
-                otime   = (Nd4jIndex)(nd4j::math::nd4j_ceil<T>((T)(itime   - kT + 2*padT) / dT)) + 1;
-                oheight = (Nd4jIndex)(nd4j::math::nd4j_ceil<T>((T)(iheight - kH + 2*padH) / dH)) + 1;
-                owidth  = (Nd4jIndex)(nd4j::math::nd4j_ceil<T>((T)(iwidth  - kW + 2*padW) / dW)) + 1;
+                otime   = (Nd4jLong)(nd4j::math::nd4j_ceil<T>((T)(itime   - kT + 2*padT) / dT)) + 1;
+                oheight = (Nd4jLong)(nd4j::math::nd4j_ceil<T>((T)(iheight - kH + 2*padH) / dH)) + 1;
+                owidth  = (Nd4jLong)(nd4j::math::nd4j_ceil<T>((T)(iwidth  - kW + 2*padW) / dW)) + 1;
             }
             else
             {
-                otime   = (Nd4jIndex)(nd4j::math::nd4j_floor<T>((T)(itime   - kT + 2*padT) / dT)) + 1;
-                oheight = (Nd4jIndex)(nd4j::math::nd4j_floor<T>((T)(iheight - kH + 2*padH) / dH)) + 1;
-                owidth  = (Nd4jIndex)(nd4j::math::nd4j_floor<T>((T)(iwidth  - kW + 2*padW) / dW)) + 1;
+                otime   = (Nd4jLong)(nd4j::math::nd4j_floor<T>((T)(itime   - kT + 2*padT) / dT)) + 1;
+                oheight = (Nd4jLong)(nd4j::math::nd4j_floor<T>((T)(iheight - kH + 2*padH) / dH)) + 1;
+                owidth  = (Nd4jLong)(nd4j::math::nd4j_floor<T>((T)(iwidth  - kW + 2*padW) / dW)) + 1;
             }
             if (padT || padH || padW)
             {
@@ -203,9 +231,28 @@ namespace nd4j {
 
             int nBatch = input->sizeAt(0);
 
+            Nd4jLong istride = nslices * itime * iwidth * iheight;
+            Nd4jLong ostride = nslices * otime * owidth * oheight;
+
             REQUIRE_TRUE(output->isSameShape({nBatch, (int) nslices, (int)otime, (int)oheight, (int)owidth}), 0, "Output should have shape of [%i, %i, %i, %i, %i], but got [%i, %i, %i, %i, %i] instead", nBatch, nslices, otime, oheight, owidth, output->sizeAt(0), output->sizeAt(1), output->sizeAt(2), output->sizeAt(3), output->sizeAt(4));
 
-            ConvolutionUtils<T>::avgPool3D(*input, *output,  kT, kH, kW, dT, dH, dW, padT, padH, padW, count_include_pad);
+            input_data = input->getBuffer();
+            output_data = output->getBuffer();
+
+            for (int p=0; p < nBatch; p++)
+            {
+
+                ConvolutionUtils<T>::_avgPool3D(
+                        input_data + p * istride, output_data + p * ostride, nslices,
+                        itime, iheight, iwidth,
+                        otime, oheight, owidth,
+                        kT, kH, kW, 
+                        dT, dH, dW, 
+                        padT, padH, padW,
+                        count_include_pad
+                );
+
+            }
 
             STORE_RESULT(*output);
 
@@ -261,13 +308,13 @@ namespace nd4j {
                                  "kT: %d kW: %d, kH: %d, padT: %d, padW: %d, padH: %d",
                          kT, kW, kH, pT, pW, pH);
 
-            Nd4jIndex nslices;
-            Nd4jIndex itime;
-            Nd4jIndex iheight;
-            Nd4jIndex iwidth;
-            Nd4jIndex otime;
-            Nd4jIndex oheight;
-            Nd4jIndex owidth;
+            Nd4jLong nslices;
+            Nd4jLong itime;
+            Nd4jLong iheight;
+            Nd4jLong iwidth;
+            Nd4jLong otime;
+            Nd4jLong oheight;
+            Nd4jLong owidth;
             T *input_data(nullptr);
             T *output_data(nullptr);
 
@@ -314,8 +361,8 @@ namespace nd4j {
             else
                 _input = input;
 
-            Nd4jIndex istride = nslices * itime * iwidth * iheight;
-            Nd4jIndex ostride = nslices * otime * owidth * oheight;
+            Nd4jLong istride = nslices * itime * iwidth * iheight;
+            Nd4jLong ostride = nslices * otime * owidth * oheight;
 
             input_data = _input->getBuffer();
             output_data = output->getBuffer();
@@ -352,7 +399,7 @@ namespace nd4j {
             // "Output shape expected to be [%i, %i, %i, %i, %i], but got [%i, %i, %i, %i, %i] instead", input->sizeAt(0), nslices, otime, oheight, owidth, output->sizeAt(0), output->sizeAt(1), output->sizeAt(2), output->sizeAt(3), output->sizeAt(4));
             // REQUIRE_TRUE(indices->isSameShape(output), 0, "Output and Indices shapes should be equal");
 
-            int* inputShapeInfo = inputShape->at(0);   
+            Nd4jLong* inputShapeInfo = inputShape->at(0);   
                 
             int rank = inputShapeInfo[0];       // = 5
             int bS = inputShapeInfo[1];
@@ -390,9 +437,9 @@ namespace nd4j {
             int shapeInfoLength = rank*2 + 4;        
             char order = (char)(inputShapeInfo[shapeInfoLength-1]);
         
-            int* newShapeInfo0(nullptr), *newShapeInfo1(nullptr);
-            ALLOCATE(newShapeInfo0, block.getWorkspace(), shapeInfoLength, int);
-            ALLOCATE(newShapeInfo1, block.getWorkspace(), shapeInfoLength, int);
+            Nd4jLong* newShapeInfo0(nullptr), *newShapeInfo1(nullptr);
+            ALLOCATE(newShapeInfo0, block.getWorkspace(), shapeInfoLength, Nd4jLong);
+            ALLOCATE(newShapeInfo1, block.getWorkspace(), shapeInfoLength, Nd4jLong);
 
             newShapeInfo0[0] = rank;
             newShapeInfo0[1] = bS;
@@ -489,8 +536,8 @@ namespace nd4j {
 
             int nBatch = input->sizeAt(0);
 
-            Nd4jIndex istride = nslices * itime * iwidth * iheight;
-            Nd4jIndex ostride = nslices * otime * owidth * oheight;
+            Nd4jLong istride = nslices * itime * iwidth * iheight;
+            Nd4jLong ostride = nslices * otime * owidth * oheight;
 
             for (int p = 0; p < nBatch; p++) {
                 ConvolutionUtils<T>::_dilatedMaxPool3D_bp(
@@ -513,9 +560,8 @@ namespace nd4j {
         DECLARE_SHAPE_FN(maxpool3d_bp) {
             // output shape equals to input shape, all out of sudden
             // FIXME: remove memcpy here
-            int* newShape;
-            ALLOCATE(newShape, block.getWorkspace(), shape::shapeInfoLength(inputShape->at(0)), int);
-            memcpy(newShape, inputShape->at(0), shape::shapeInfoByteLength(inputShape->at(0)));
+            Nd4jLong* newShape;
+            COPY_SHAPE(inputShape->at(0), newShape);
             return SHAPELIST(newShape);
         }
     }

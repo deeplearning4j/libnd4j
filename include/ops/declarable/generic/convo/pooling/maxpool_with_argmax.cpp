@@ -7,6 +7,7 @@
 
 #include <ops/declarable/CustomOperations.h>
 #include <ops/declarable/generic/helpers/convolutions.h>
+#include <ops/declarable/helpers/max_pooling.h>
 
 namespace nd4j {
     namespace ops {
@@ -18,17 +19,17 @@ namespace nd4j {
 
             REQUIRE_TRUE(x->rankOf() == 4, 0, "max_pool_with_argmax: Input should have rank of 4, but got %i instead", x->rankOf());
 
-            std::vector<int> argI = *(block.getIArguments());
+            auto argI = *(block.getIArguments());
 
-            ConvolutionUtils<T>::maxPool2d(x, z, argI, indeces);
+            helpers::maxPoolingFunctor(x, z, argI, indeces);
 
             return ND4J_STATUS_OK;
         }
         
         DECLARE_SHAPE_FN(max_pool_with_argmax) {
-            int* in = inputShape->at(0);
-            int* valuesShape = nullptr;
-            int* indicesShape = nullptr;
+            auto in = inputShape->at(0);
+            Nd4jLong* valuesShape = nullptr;
+            Nd4jLong* indicesShape = nullptr;
             COPY_SHAPE(in, valuesShape);
             COPY_SHAPE(in, indicesShape);
             auto shapes = SHAPELIST(valuesShape, indicesShape);

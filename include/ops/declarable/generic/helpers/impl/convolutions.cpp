@@ -56,11 +56,11 @@ namespace ops  {
             const T* colBuff = col.getBuffer();            
             T* volBuff       = vol.getBuffer();            
 
-            int *colShapeOnly = shape::shapeOf(col.getShapeInfo());
-            int *colStrides   = shape::stride(col.getShapeInfo());
-            int *volShapeOnly = shape::shapeOf(vol.getShapeInfo());
-            char volOrder     = shape::order(vol.getShapeInfo());
-            int *volStrides   = shape::stride(vol.getShapeInfo());
+            auto colShapeOnly = shape::shapeOf(col.getShapeInfo());
+            auto colStrides   = shape::stride(col.getShapeInfo());
+            auto volShapeOnly = shape::shapeOf(vol.getShapeInfo());
+            auto volOrder     = shape::order(vol.getShapeInfo());
+            auto volStrides   = shape::stride(vol.getShapeInfo());
 
             int strideBS   = colStrides[0];
             int strideColC = colStrides[1];
@@ -333,13 +333,13 @@ void ConvolutionUtils<T>::avgPool3D(NDArray<T>& input, NDArray<T>& output, const
 
 //////////////////////////////////////////////////////////////////////////
         template<typename T>
-        void ConvolutionUtils<T>::_dilatedMaxPool3D(T *input_p, T *output_p, T *indBuff, Nd4jIndex nslices, Nd4jIndex itime, Nd4jIndex iwidth, Nd4jIndex iheight, Nd4jIndex otime, Nd4jIndex owidth, Nd4jIndex oheight, int kD, int kW, int kH, int dT, int dW, int dH, int pT, int pW, int pH, int dilationT, int dilationW, int dilationH) {
-            Nd4jIndex k;
+        void ConvolutionUtils<T>::_dilatedMaxPool3D(T *input_p, T *output_p, T *indBuff, Nd4jLong nslices, Nd4jLong itime, Nd4jLong iwidth, Nd4jLong iheight, Nd4jLong otime, Nd4jLong owidth, Nd4jLong oheight, int kD, int kW, int kH, int dT, int dW, int dH, int pT, int pW, int pH, int dilationT, int dilationW, int dilationH) {
+            Nd4jLong k;
 #pragma omp parallel for private(k)
             for (k = 0; k < nslices; k++)
             {
                 /* loop over output */
-                Nd4jIndex i, j, ti;
+                Nd4jLong i, j, ti;
                 for (ti = 0; ti < otime; ti++)
                 {
                     for (i = 0; i < oheight; i++)
@@ -348,13 +348,13 @@ void ConvolutionUtils<T>::avgPool3D(NDArray<T>& input, NDArray<T>& output, const
                         {
                             /* local pointers */
 
-                            Nd4jIndex start_t = ti * dT - pT;
-                            Nd4jIndex start_h = i * dH - pH;
-                            Nd4jIndex start_w = j * dW - pW;
+                            Nd4jLong start_t = ti * dT - pT;
+                            Nd4jLong start_h = i * dH - pH;
+                            Nd4jLong start_w = j * dW - pW;
 
-                            Nd4jIndex kernel_d = nd4j::math::nd4j_min<Nd4jIndex>(kD, kD + start_t);
-                            Nd4jIndex kernel_h = nd4j::math::nd4j_min<Nd4jIndex>(kH, kH + start_h);
-                            Nd4jIndex kernel_w = nd4j::math::nd4j_min<Nd4jIndex>(kW, kW + start_w);
+                            Nd4jLong kernel_d = nd4j::math::nd4j_min<Nd4jLong>(kD, kD + start_t);
+                            Nd4jLong kernel_h = nd4j::math::nd4j_min<Nd4jLong>(kH, kH + start_h);
+                            Nd4jLong kernel_w = nd4j::math::nd4j_min<Nd4jLong>(kW, kW + start_w);
 
                             while(start_t < 0)
                                 start_t += dilationT;
@@ -411,12 +411,12 @@ void ConvolutionUtils<T>::avgPool3D(NDArray<T>& input, NDArray<T>& output, const
 
 //////////////////////////////////////////////////////////////////////////
         template<typename T>
-        void ConvolutionUtils<T>::validXCorr3Dptr(T*r_, T alpha, T *t_, Nd4jIndex it, Nd4jIndex ir, Nd4jIndex ic, T *k_, Nd4jIndex kt, Nd4jIndex kr, Nd4jIndex kc, Nd4jIndex st, Nd4jIndex sr, Nd4jIndex sc) {
-            Nd4jIndex tot = (it - kt) / st + 1;
-            Nd4jIndex tor = (ir - kr) / sr + 1;
-            Nd4jIndex toc = (ic - kc) / sc + 1;
+        void ConvolutionUtils<T>::validXCorr3Dptr(T*r_, T alpha, T *t_, Nd4jLong it, Nd4jLong ir, Nd4jLong ic, T *k_, Nd4jLong kt, Nd4jLong kr, Nd4jLong kc, Nd4jLong st, Nd4jLong sr, Nd4jLong sc) {
+            Nd4jLong tot = (it - kt) / st + 1;
+            Nd4jLong tor = (ir - kr) / sr + 1;
+            Nd4jLong toc = (ic - kc) / sc + 1;
 
-            Nd4jIndex zz, xx, yy;
+            Nd4jLong zz, xx, yy;
 
             for (zz = 0; zz < tot; zz++) {
                 for(yy = 0; yy < tor; yy++) {
@@ -425,7 +425,7 @@ void ConvolutionUtils<T>::avgPool3D(NDArray<T>& input, NDArray<T>& output, const
                         T *pi_ = t_ + zz*st*ir*ic + yy*sr*ic + xx*sc;
                         T *pw_ = k_;
                         T sum = 0;
-                        Nd4jIndex kz, kx, ky;
+                        Nd4jLong kz, kx, ky;
                         for(kz = 0; kz < kt; kz++) {
                             for(ky = 0; ky < kr; ky++) {
                                 for(kx = 0; kx < kc; kx++) {
@@ -445,12 +445,12 @@ void ConvolutionUtils<T>::avgPool3D(NDArray<T>& input, NDArray<T>& output, const
 
 //////////////////////////////////////////////////////////////////////////
         template<typename T>
-        void ConvolutionUtils<T>::validConv3Dptr(T*r_, T alpha, T *t_, Nd4jIndex it, Nd4jIndex ir, Nd4jIndex ic, T *k_, Nd4jIndex kt, Nd4jIndex kr, Nd4jIndex kc, Nd4jIndex st, Nd4jIndex sr, Nd4jIndex sc) {
-            Nd4jIndex tot = (it - kt) / st + 1;
-            Nd4jIndex tor = (ir - kr) / sr + 1;
-            Nd4jIndex toc = (ic - kc) / sc + 1;
+        void ConvolutionUtils<T>::validConv3Dptr(T*r_, T alpha, T *t_, Nd4jLong it, Nd4jLong ir, Nd4jLong ic, T *k_, Nd4jLong kt, Nd4jLong kr, Nd4jLong kc, Nd4jLong st, Nd4jLong sr, Nd4jLong sc) {
+            Nd4jLong tot = (it - kt) / st + 1;
+            Nd4jLong tor = (ir - kr) / sr + 1;
+            Nd4jLong toc = (ic - kc) / sc + 1;
 
-            Nd4jIndex zz, xx, yy;
+            Nd4jLong zz, xx, yy;
 
             for(zz = 0; zz < tot; zz++) {
                 for(yy = 0; yy < tor; yy++) {
@@ -459,7 +459,7 @@ void ConvolutionUtils<T>::avgPool3D(NDArray<T>& input, NDArray<T>& output, const
                         T *pi_ = t_ + zz*st*ir*ic + yy*sr*ic + xx*sc;
                         T *pw_ = k_ + kt*kr*kc - 1;
                         T sum = 0;
-                        Nd4jIndex kz, kx, ky;
+                        Nd4jLong kz, kx, ky;
                         for(kz = 0; kz < kt; kz++) {
                             for(ky = 0; ky < kr; ky++) {
                                 for(kx = 0; kx < kc; kx++) {
@@ -479,11 +479,11 @@ void ConvolutionUtils<T>::avgPool3D(NDArray<T>& input, NDArray<T>& output, const
 
 //////////////////////////////////////////////////////////////////////////
         template<typename T>
-        void ConvolutionUtils<T>::fullConv3Dptr(T*r_, T alpha, T *t_, Nd4jIndex it, Nd4jIndex ir, Nd4jIndex ic, T *k_, Nd4jIndex kt, Nd4jIndex kr, Nd4jIndex kc, Nd4jIndex st, Nd4jIndex sr, Nd4jIndex sc) {
-            Nd4jIndex tor = (ir - 1) * sr + kr;
-            Nd4jIndex toc = (ic - 1) * sc + kc;
+        void ConvolutionUtils<T>::fullConv3Dptr(T*r_, T alpha, T *t_, Nd4jLong it, Nd4jLong ir, Nd4jLong ic, T *k_, Nd4jLong kt, Nd4jLong kr, Nd4jLong kc, Nd4jLong st, Nd4jLong sr, Nd4jLong sc) {
+            Nd4jLong tor = (ir - 1) * sr + kr;
+            Nd4jLong toc = (ic - 1) * sc + kc;
 
-            Nd4jIndex zz, xx, yy;
+            Nd4jLong zz, xx, yy;
 
             for(zz = 0; zz < it; zz++) {
                 for(yy = 0; yy < ir; yy++) {
@@ -491,7 +491,7 @@ void ConvolutionUtils<T>::avgPool3D(NDArray<T>& input, NDArray<T>& output, const
                         /* Outer product in two dimensions... (between input image and the mask) */
                         T *po_ = r_ + zz*st*tor*toc + yy*sr*toc + xx*sc;
                         T *pw_ = k_;
-                        Nd4jIndex kz, kx, ky;
+                        Nd4jLong kz, kx, ky;
                         /* printf("Output Plane : %ld,%ld,%ld, input val=%g\n",zz,yy,xx,*t_); */
                         for(kz = 0; kz < kt; kz++) {
                             for(ky = 0; ky < kr; ky++) {
@@ -516,11 +516,11 @@ void ConvolutionUtils<T>::avgPool3D(NDArray<T>& input, NDArray<T>& output, const
 
 //////////////////////////////////////////////////////////////////////////
         template<typename T>
-        void ConvolutionUtils<T>::fullXCorr3Dptr(T*r_, T alpha, T *t_, Nd4jIndex it, Nd4jIndex ir, Nd4jIndex ic, T *k_, Nd4jIndex kt, Nd4jIndex kr, Nd4jIndex kc, Nd4jIndex st, Nd4jIndex sr, Nd4jIndex sc) {
-            Nd4jIndex tor = (ir - 1) * sr + kr;
-            Nd4jIndex toc = (ic - 1) * sc + kc;
+        void ConvolutionUtils<T>::fullXCorr3Dptr(T*r_, T alpha, T *t_, Nd4jLong it, Nd4jLong ir, Nd4jLong ic, T *k_, Nd4jLong kt, Nd4jLong kr, Nd4jLong kc, Nd4jLong st, Nd4jLong sr, Nd4jLong sc) {
+            Nd4jLong tor = (ir - 1) * sr + kr;
+            Nd4jLong toc = (ic - 1) * sc + kc;
 
-            Nd4jIndex zz, xx, yy;
+            Nd4jLong zz, xx, yy;
 
             for(zz = 0; zz < it; zz++) {
                 for(yy = 0; yy < ir; yy++) {
@@ -528,7 +528,7 @@ void ConvolutionUtils<T>::avgPool3D(NDArray<T>& input, NDArray<T>& output, const
                         /* Outer product in two dimensions... (between input image and the mask) */
                         T *po_ = r_ + zz * st * tor * toc + yy*sr*toc + xx*sc;
                         T *pw_ = k_ + kt*kr*kc -1;
-                        Nd4jIndex kz, kx, ky;
+                        Nd4jLong kz, kx, ky;
                         for(kz = 0; kz < kt; kz++) {
                             for(ky = 0; ky < kr; ky++) {
                                 T z = *t_ * alpha;
@@ -548,7 +548,7 @@ void ConvolutionUtils<T>::avgPool3D(NDArray<T>& input, NDArray<T>& output, const
 
 //////////////////////////////////////////////////////////////////////////
         template<typename T>
-        Nd4jIndex ConvolutionUtils<T>::convsize(Nd4jIndex x, Nd4jIndex k, Nd4jIndex s, const char* vf) {
+        Nd4jLong ConvolutionUtils<T>::convsize(Nd4jLong x, Nd4jLong k, Nd4jLong s, const char* vf) {
             if (*vf == 'V')
                 return (x-k)/s + 1;
             else
@@ -558,19 +558,19 @@ void ConvolutionUtils<T>::avgPool3D(NDArray<T>& input, NDArray<T>& output, const
 //////////////////////////////////////////////////////////////////////////
         template<typename T>
         Nd4jStatus ConvolutionUtils<T>::conv3Dmv(NDArray<T>* r_, T beta, T alpha, NDArray<T>* t_, NDArray<T>* k_,
-                                       Nd4jIndex sdepth, Nd4jIndex srow, Nd4jIndex scol, const char *vf, const char *xc) {
+                                       Nd4jLong sdepth, Nd4jLong srow, Nd4jLong scol, const char *vf, const char *xc) {
 
-            Nd4jIndex nInputPlane, nInputDepth, nInputRows, nInputCols;
-            Nd4jIndex nKernelDepth, nKernelRows, nKernelCols;
-            Nd4jIndex nOutputPlane, nOutputDepth, nOutputRows, nOutputCols;
-            Nd4jIndex istride0, kstride0, kstride1;
+            Nd4jLong nInputPlane, nInputDepth, nInputRows, nInputCols;
+            Nd4jLong nKernelDepth, nKernelRows, nKernelCols;
+            Nd4jLong nOutputPlane, nOutputDepth, nOutputRows, nOutputCols;
+            Nd4jLong istride0, kstride0, kstride1;
             NDArray<T> *input;
             NDArray<T> *kernel;
             T* input_data;
             T* weight_data;
             T* output_data;
-            Nd4jIndex nelem;
-            Nd4jIndex k, i;
+            Nd4jLong nelem;
+            Nd4jLong k, i;
 
             if (t_->rankOf() != 4)
                 throw "Boom";
@@ -754,12 +754,11 @@ void ConvolutionUtils<T>::avgPool3D(NDArray<T>& input, NDArray<T>& output, const
 
 //////////////////////////////////////////////////////////////////////////
 template<typename T>
-void ConvolutionUtils<T>::maxPool3d(NDArray<T>& input, NDArray<T>& output,  const int kD, const int kH, const int kW, const int sD, const int sH, const int sW, const int pD, const int pH, const int pW, const int dD, const int dH, const int dW) {
+void ConvolutionUtils<T>::maxPool3dFrame(NDArray<T>& input, NDArray<T>& output, const int iStride, const int indStride, const int kD, const int kH, const int kW, const int sD, const int sH, const int sW, const int pD, const int pH, const int pW, const int dD, const int dH, const int dW) {
         
-    T* inBuff = input.getBuffer();
-    T* outBuff = output.getBuffer();
+    T* inBuff  = input.getBuffer()  + iStride;
+    T* outBuff = output.getBuffer() + indStride;
 
-    const int bS = input.sizeAt(0);
     const int iC = input.sizeAt(1);
     const int iD = input.sizeAt(2);
     const int iH = input.sizeAt(3);
@@ -768,62 +767,56 @@ void ConvolutionUtils<T>::maxPool3d(NDArray<T>& input, NDArray<T>& output,  cons
     const int oD = output.sizeAt(2);
     const int oH = output.sizeAt(3);
     const int oW = output.sizeAt(4);    
+
+    int k;
+
+#pragma omp parallel for private(k)
+    for (k = 0; k < iC; k++) {
     
-    const int iStride2 = iH * iW;
-    const int oStride2 = oH * oW;
-    const int iStride1 = iD * iStride2;
-    const int oStride1 = oD * oStride2;
-    const int iStride0 = iC * iStride1;
-    const int oStride0 = iC * oStride1;
-    const int size0 = bS * iC;
-        
-#pragma omp parallel for if(size0 > Environment::getInstance()->elementwiseThreshold()) schedule(guided) collapse(2)
-    for (int s = 0; s < bS; ++s) {
-        for (int k = 0; k < iC; ++k) {
-
-            /* local pointers. */
-            T *in  = inBuff  + s*iStride0 + k*iStride1;
-            T *out = outBuff + s*oStride0 + k*oStride1;
-
-#pragma omp parallel for if(oStride1 > Environment::getInstance()->elementwiseThreshold()) schedule(guided) collapse(3)
-            /* loop over output */
-            for (int ti = 0; ti < oD; ti++) {
-                for (int i = 0; i < oH; i++) {
-                    for (int j = 0; j < oW; j++){
+        /* loop over output */
+        int i, j, ti;
+        for (ti = 0; ti < oD; ti++) {
+            for (i = 0; i < oH; i++) {
+                for (j = 0; j < oW; j++){
           
-                        /* local pointers */
-                        int start_d = ti * sD - pD;
-                        int start_w = j  * sW - pW;
-                        int start_h = i  * sH - pH;
+                    /* local pointers */
+                    int start_d = ti * sD - pD;
+                    int start_w = j  * sW - pW;
+                    int start_h = i  * sH - pH;
                     
-                        int kernel_d = math::nd4j_min<int>(kD, kD + start_d);
-                        int kernel_h = math::nd4j_min<int>(kH, kH + start_h);
-                        int kernel_w = math::nd4j_min<int>(kW, kW + start_w);
+                    int kernel_d = math::nd4j_min<int>(kD, kD + start_d);
+                    int kernel_h = math::nd4j_min<int>(kH, kH + start_h);
+                    int kernel_w = math::nd4j_min<int>(kW, kW + start_w);
 
-                        while(start_d < 0)
-                            start_d += dD;
-                        while(start_h < 0)
-                            start_h += dH;
-                        while(start_w < 0)
-                            start_w += dW;
+                    while(start_d < 0)
+                        start_d += dD;
+                    while(start_h < 0)
+                        start_h += dH;
+                    while(start_w < 0)
+                        start_w += dW;
 
-                        T* ip = in + start_d * iStride2 + start_h * iW + start_w;
-                        T* op = out + ti * oStride2 + i * oW + j;          
+                    T* ip = inBuff + k * iD * iW * iH  + start_d * iW * iH + start_h * iW + start_w;
+                    T* op = outBuff + k * oD * oW * oH + ti * oW * oH + i * oW + j;          
 
-                        // compute local max
-                        T maxval = - DataTypeUtils::max<T>();                        
+                    // compute local max
+                    T maxval = - DataTypeUtils::max<T>();
+                    int x,y,z;                    
 
-                        for (int z = 0; z < kernel_d; z++) 
-                            for (int y = 0; y < kernel_h; y++) 
-                                for (int x = 0; x < kernel_w; x++) 
-                                    if ((start_d + z * dD < iD) && (start_h + y * dH < iH) && (start_w + x * dW < iW)) {                                    
-                                        T val = *(ip + z * dD * iW * iH + y * dH * iW + x * dW);
-                                        if (val > maxval)                  
-                                            maxval = val;                                     
-                                    }
-                        // set output to local max
-                        *op = maxval;
+                    for (z = 0; z < kernel_d; z++) {
+                        for (y = 0; y < kernel_h; y++) {
+                            for (x = 0; x < kernel_w; x++) {
+
+                                if ((start_d + z * dD < iD) && (start_h + y * dH < iH) && (start_w + x * dW < iW)) {
+                                    
+                                    T val = *(ip + z * dD * iW * iH + y * dH * iW + x * dW);
+                                    if (val > maxval)                  
+                                        maxval = val;                                     
+                                }
+                            }
+                        }
                     }
+                    // set output to local max
+                    *op = maxval;
                 }
             }
         }
@@ -832,78 +825,75 @@ void ConvolutionUtils<T>::maxPool3d(NDArray<T>& input, NDArray<T>& output,  cons
 
 //////////////////////////////////////////////////////////////////////////
 template<typename T>
-void ConvolutionUtils<T>::maxPool3dIndices(NDArray<T>& input, int* indices, const int oD, const int oH, const int oW, const int kD, const int kH, const int kW, const int sD, const int sH, const int sW, const int pD, const int pH, const int pW, const int dD, const int dH, const int dW) {
+void ConvolutionUtils<T>::maxPool3dIndicesFrame(NDArray<T>& input, int* indices, const int iStride, const int indStride, const int oD, const int oH, const int oW, const int kD, const int kH, const int kW, const int sD, const int sH, const int sW, const int pD, const int pH, const int pW, const int dD, const int dH, const int dW) {
+        
+    T* inBuff    = input.getBuffer()   + iStride;    
+    int* indBuff = indices + indStride;
 
-    T* inBuff  = input.getBuffer();  
-
-    const int bS = input.sizeAt(0);
     const int iC = input.sizeAt(1);
     const int iD = input.sizeAt(2);
     const int iH = input.sizeAt(3);
     const int iW = input.sizeAt(4);
 
-    const int iStride2 = iH * iW;
-    const int oStride2 = oH * oW;
-    const int iStride1 = iD * iStride2;
-    const int oStride1 = oD * oStride2;
-    const int iStride0 = iC * iStride1;
-    const int oStride0 = iC * oStride1;
-    const int size0 = bS * iC;
+    int k;
 
-#pragma omp parallel for if(size0 > Environment::getInstance()->elementwiseThreshold()) schedule(guided) collapse(2)
-    for (int s = 0; s < bS; ++s) {
-        for (int k = 0; k < iC; ++k) {
-            
-            T* in    = inBuff  + s*iStride0 + k*iStride1;
-            int* ind = indices + s*oStride0 + k*oStride1;
-
-#pragma omp parallel for if(oStride1 > Environment::getInstance()->elementwiseThreshold()) schedule(guided) collapse(3)
-            for (int ti = 0; ti < oD; ti++) {
-                for (int i = 0; i < oH; i++) {
-                    for (int j = 0; j < oW; j++){
+#pragma omp parallel for private(k)
+    for (k = 0; k < iC; k++) {
+    
+        /* loop over output */
+        int i, j, ti;
+        for (ti = 0; ti < oD; ti++) {
+            for (i = 0; i < oH; i++) {
+                for (j = 0; j < oW; j++){
           
-                        /* local pointers */
-                        int start_d = ti * sD - pD;
-                        int start_h = i  * sH - pH;
-                        int start_w = j  * sW - pW;                    
+                    /* local pointers */
+                    int start_d = ti * sD - pD;
+                    int start_h = i  * sH - pH;
+                    int start_w = j  * sW - pW;                    
                     
-                        int kernel_d = math::nd4j_min<int>(kD, kD + start_d);
-                        int kernel_h = math::nd4j_min<int>(kH, kH + start_h);
-                        int kernel_w = math::nd4j_min<int>(kW, kW + start_w);
+                    int kernel_d = math::nd4j_min<int>(kD, kD + start_d);
+                    int kernel_h = math::nd4j_min<int>(kH, kH + start_h);
+                    int kernel_w = math::nd4j_min<int>(kW, kW + start_w);
 
-                        while(start_d < 0)
-                            start_d += dD;
-                        while(start_h < 0)
-                            start_h += dH;
-                        while(start_w < 0)
-                            start_w += dW;                    
+                    while(start_d < 0)
+                        start_d += dD;
+                    while(start_h < 0)
+                        start_h += dH;
+                    while(start_w < 0)
+                        start_w += dW;                    
 
-                        T* ip     = in  + start_d * iStride2 + start_h * iW + start_w;                    
-                        int* indP = ind + ti * oStride2 + i * oW + j;
+                    T* ip   = inBuff  + k * iD * iH * iW + start_d * iH * iW + start_h * iW + start_w;                    
+                    int* indP = indBuff + k * oD * oH * oW + ti * oH * oW + i * oW + j;
                     
-                        T maxval = - DataTypeUtils::max<T>();
-                        int mx, my, mz;
-                        mx = my = mz = -1;
+                    T maxval = - DataTypeUtils::max<T>();
+                    int x,y,z;                    
+                    int mx, my, mz;
+                    mx = my = mz = -1;
 
-                        for (int z = 0; z < kernel_d; z++)
-                            for (int y = 0; y < kernel_h; y++)
-                                for (int x = 0; x < kernel_w; x++)
-                                    if ((start_d + z * dD < iD) && (start_h + y * dH < iH) && (start_w + x * dW < iW)) {   
-                                        T val = *(ip + z * dD * iH * iW + y * dH * iW + x * dW);
-                                        if (val > maxval) {                 
+                    for (z = 0; z < kernel_d; z++) {
+                        for (y = 0; y < kernel_h; y++) {
+                            for (x = 0; x < kernel_w; x++) {
+
+                                if ((start_d + z * dD < iD) && (start_h + y * dH < iH) && (start_w + x * dW < iW)) {   
+
+                                    T val = *(ip + z * dD * iH * iW + y * dH * iW + x * dW);
+                                    
+                                    if (val > maxval) {                 
                                         
-                                            maxval = val;                                  
-                                            mz = z + (kD - kernel_d);
-                                            my = y + (kH - kernel_h);
-                                            mx = x + (kW - kernel_w);
-                                        }
+                                        maxval = val;                                  
+                                        mz = z + (kD - kernel_d);
+                                        my = y + (kH - kernel_h);
+                                        mx = x + (kW - kernel_w);
                                     }
-                        // set max values
-                        ((unsigned char*)(indP))[0] = mz;
-                        ((unsigned char*)(indP))[1] = my;
-                        ((unsigned char*)(indP))[2] = mx;
-                        ((unsigned char*)(indP))[3] = 0;                    
+                                }
+                            }
+                        }
                     }
+                    // set max values
+                    ((unsigned char*)(indP))[0] = mz;
+                    ((unsigned char*)(indP))[1] = my;
+                    ((unsigned char*)(indP))[2] = mx;
+                    ((unsigned char*)(indP))[3] = 0;                    
                 }
             }
         }
@@ -912,50 +902,42 @@ void ConvolutionUtils<T>::maxPool3dIndices(NDArray<T>& input, int* indices, cons
 
 //////////////////////////////////////////////////////////////////////////
 template<typename T>
-void ConvolutionUtils<T>::maxPool3dBP(NDArray<T>& input, const int* indices, NDArray<T>& output, const int kD, const int kH, const int kW, const int sD, const int sH, const int sW, const int pD, const int pH, const int pW, const int dD, const int dH, const int dW) {
+void ConvolutionUtils<T>::maxPool3dFrameBp(NDArray<T>& input, const int* indices, NDArray<T>& output, const int iStride, const int oStride, const int kD, const int kH, const int kW, const int sD, const int sH, const int sW, const int pD, const int pH, const int pW, const int dD, const int dH, const int dW) {
 
-    T* inBuff  = input.getBuffer();
-    T* outBuff = output.getBuffer();    
+    T* inBuff  = input.getBuffer()  + iStride;
+    T* outBuff = output.getBuffer() + oStride;    
+    const int* indBuff = indices + iStride;
 
-    const int bS = input.sizeAt(0);
-    const int iC = input.sizeAt(1);
-    const int iD = input.sizeAt(2);
-    const int iH = input.sizeAt(3);
-    const int iW = input.sizeAt(4);
-    const int oD = output.sizeAt(2);
-    const int oH = output.sizeAt(3);
-    const int oW = output.sizeAt(4);  
+    int iC = input.sizeAt(1);
+    int iD = input.sizeAt(2);
+    int iH = input.sizeAt(3);
+    int iW = input.sizeAt(4);
 
-    const int iStride2 = iH * iW;
-    const int oStride2 = oH * oW;
-    const int iStride1 = iD * iStride2;
-    const int oStride1 = oD * oStride2;
-    const int iStride0 = iC * iStride1;
-    const int oStride0 = iC * oStride1;
-    const int size0 = bS * iC;  
-    
-#pragma omp parallel for if(size0 > Environment::getInstance()->elementwiseThreshold()) schedule(guided) collapse(2)
-    for (int s = 0; s < bS; ++s) {
-        for (int k = 0; k < iC; k++) {
+    int oD = output.sizeAt(2);
+    int oH = output.sizeAt(3);
+    int oW = output.sizeAt(4);    
+
+    int k;
+#pragma omp parallel for private(k)
+    for (k = 0; k < iC; k++) {
         
-            T* oP           = outBuff + s*oStride0 + k*oStride1;
-            T* iP           = inBuff  + s*iStride0 + k*iStride1;    
-            const int* indP = indices + s*iStride0 + k*iStride1;
+        T* oP = outBuff + k * oD * oW * oH;
+        T* iP = inBuff  + k * iD * iW * iH;    
+        const int* indP = indBuff + k * iD * iH * iW;
 
-#pragma omp parallel for if(iStride1 > Environment::getInstance()->elementwiseThreshold()) schedule(guided) collapse(3)            
-            for (int ti = 0; ti < iD; ++ti) {
-                for (int i = 0; i < iH; ++i)  {
-                    for (int j = 0; j < iW; ++j) {
+        int ti, i, j;
+        for (ti = 0; ti < iD; ti++) {
+            for (i = 0; i < iH; i++)  {
+                for (j = 0; j < iW; j++) {
                                         
-                        const int* indzP = indP + ti * iStride2 + i * iW + j;
+                    const int* indzP = &indP[ti * iH * iW + i * iW + j];
 
-                        int maxti = ((unsigned char*)(indzP))[0] * dD + ti * sD - pD;
-                        int maxi  = ((unsigned char*)(indzP))[1] * dH + i  * sH - pH;
-                        int maxj  = ((unsigned char*)(indzP))[2] * dW + j  * sW - pW;
+                    int maxti = ((unsigned char*)(indzP))[0] * dD + ti * sD - pD;
+                    int maxi  = ((unsigned char*)(indzP))[1] * dH + i  * sH - pH;
+                    int maxj  = ((unsigned char*)(indzP))[2] * dW + j  * sW - pW;
                     
-                        if (maxti != -1) 
-                            oP[maxti * oStride2 + maxi * oW + maxj] += iP[ti * iStride2 + i * iW + j];      
-                    }
+                    if (maxti != -1) 
+                        oP[maxti * oH * oW + maxi * oW + maxj] += iP[ti * iH * iW + i * iW + j];      
                 }
             }
         }
@@ -970,12 +952,12 @@ void ConvolutionUtils<T>::vol2col2(NDArray<T>& vol, NDArray<T>& col, const int s
 
     T* colBuff = col.getBuffer();    
 
-    int *colShape  = shape::shapeOf(col.getShapeInfo());
-    char colOrder  = shape::order(col.getShapeInfo());
-    int *colStride = shape::stride(col.getShapeInfo());
+    auto colShape  = shape::shapeOf(col.getShapeInfo());
+    auto colOrder  = shape::order(col.getShapeInfo());
+    auto colStride = shape::stride(col.getShapeInfo());
 
-    int *volShape  = shape::shapeOf(vol.getShapeInfo());
-    int *volStride = shape::stride(vol.getShapeInfo());
+    auto volShape  = shape::shapeOf(vol.getShapeInfo());
+    auto volStride = shape::stride(vol.getShapeInfo());
 
     int bS   = volShape[0];
     int volC = volShape[1];
@@ -1078,7 +1060,7 @@ void ConvolutionUtils<T>::vol2col2(NDArray<T>& vol, NDArray<T>& col, const int s
 
 //////////////////////////////////////////////////////////////////////////
 template<typename T>
-void ConvolutionUtils<T>::getSizesAndIndexesConv2d(const bool isNCHW, const int* inShapeInfo, const int* outShapeInfo, int& bS, int& iC, int& iH, int& iW, int& oC, int& oH, int& oW, int& indIOioC, int& indIiH, int& indWiC, int& indWoC, int& indWkH, int& indOoH) {
+void ConvolutionUtils<T>::getSizesAndIndexesConv2d(const bool isNCHW, const Nd4jLong* inShapeInfo, const Nd4jLong* outShapeInfo, int& bS, int& iC, int& iH, int& iW, int& oC, int& oH, int& oW, int& indIOioC, int& indIiH, int& indWiC, int& indWoC, int& indWkH, int& indOoH) {
 
     // input   [bS, iH, iW, iC] (NHWC) or [bS, iC, iH, iW] (NCHW)
     // weights [kH, kW, iC, oC] (NHWC) or [oC, iC, kH, kW] (NCHW)
@@ -1283,9 +1265,9 @@ void ConvolutionUtils<T>::depthwiseConv2d(const std::vector<NDArray<T>*>& inArrs
     getSizesAndIndexesConv2d(isNCHW, *input, *output, bS, iC, iH, iW, oC, oH, oW, indIOioC, indIiH, indWiC, indWmC, indWkH, indOoH);    
     mC = weights->sizeAt(indWmC);                           // channels multiplier
     
-    std::vector<std::vector<int>> modifColumns = {{1,0,4,5,2,3}, {iC,bS*oH*oW,kH*kW}};  // [bS,iC,kH,kW,oH,oW] -> [iC,bS,oH,oW,kH,kW] -> [iC,bS*oH*oW,kH*kW]
-    std::vector<std::vector<int>> modifWeights, modifOutput;
-    std::vector<int> outReShape;
+    std::vector<std::vector<Nd4jLong>> modifColumns = {{1,0,4,5,2,3}, {iC,bS*oH*oW,kH*kW}};  // [bS,iC,kH,kW,oH,oW] -> [iC,bS,oH,oW,kH,kW] -> [iC,bS*oH*oW,kH*kW]
+    std::vector<std::vector<Nd4jLong>> modifWeights, modifOutput;
+    std::vector<Nd4jLong> outReShape;
 
     if(!isNCHW) {        
         input = input->permute({0, 3, 1, 2});                                           // [bS,iH,iW,iC]    -> [bS,iC,iH,iW] 
@@ -1300,7 +1282,7 @@ void ConvolutionUtils<T>::depthwiseConv2d(const std::vector<NDArray<T>*>& inArrs
     }
 
     if(isSameMode)                       // SAME        
-        ConvolutionUtils<T>::calcPadding2D(pH, pW, oH, oW, iH, iW, kH, kW, sH, sW, dH, dW);
+        ConvolutionUtils<T>::_calcPadding2D(pH, pW, oH, oW, iH, iW, kH, kW, sH, sW, dH, dW);
 
     NDArray<T> columns(input->ordering(), {bS, iC, kH, kW, oH, oW}, input->getWorkspace());                
     NDArray<T>* outputReshaped = output->reshape(output->ordering(), outReShape);
@@ -1347,9 +1329,9 @@ void ConvolutionUtils<T>::depthwiseConv2dBP(const std::vector<NDArray<T>*>& inAr
     ConvolutionUtils<T>::getSizesAndIndexesConv2d(isNCHW, *input, *gradO, bS, iC, iH, iW, oC, oH, oW, indIOioC, indIiH, indWiC, indWmC, indWkH, indOoH);    
     mC = weights->sizeAt(indWmC);                           // channels multiplier    
 
-    std::vector<std::vector<int>> modifColumns = {{1,2,3,0,4,5}, {iC, kH*kW, bS*oH*oW}};      // [bS,iC,kH,kW,oH,oW] -> [iC, kH*kW, bS*oH*oW]
-    std::vector<std::vector<int>> modifGradW, modifGradO1, modifGradO2;
-    std::vector<int> gradOreShape;
+    std::vector<std::vector<Nd4jLong>> modifColumns = {{1,2,3,0,4,5}, {iC, kH*kW, bS*oH*oW}};      // [bS,iC,kH,kW,oH,oW] -> [iC, kH*kW, bS*oH*oW]
+    std::vector<std::vector<Nd4jLong>> modifGradW, modifGradO1, modifGradO2;
+    std::vector<Nd4jLong> gradOreShape;
 
     if(!isNCHW) {        
         input = input->permute({0, 3, 1, 2});                                           // [bS,iH,iW,iC]    -> [bS,iC,iH,iW] 
@@ -1429,7 +1411,7 @@ void ConvolutionUtils<T>::sconv2d(const std::vector<NDArray<T>*>& inArrs, NDArra
 
     NDArray<T>* outputDepth = output;
     if(weightsPoint)                        // if pointwise convolution is expected
-        outputDepth = new NDArray<T>(output->ordering(), !isNCHW ? std::vector<int>({bS, oH, oW, iC*mC}) : std::vector<int>({bS, iC*mC, oH, oW}));    
+        outputDepth = new NDArray<T>(output->ordering(), !isNCHW ? std::vector<Nd4jLong>({bS, oH, oW, iC*mC}) : std::vector<Nd4jLong>({bS, iC*mC, oH, oW}));    
 
     // ----- perform depthwise convolution (if weightsPoint is absent then oC = iC*mC) ----- //    
     ConvolutionUtils<T>::depthwiseConv2d({input, weightsDepth, weightsPoint ? nullptr : bias}, outputDepth, {kH,kW, sH,sW, pH,pW, dH,dW, isSameMode, isNCHW});                                   
@@ -1934,6 +1916,7 @@ void ConvolutionUtils<T>::upsampling3dBP(const NDArray<T>& gradO, NDArray<T>& gr
         }
     }    
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 template <typename T>

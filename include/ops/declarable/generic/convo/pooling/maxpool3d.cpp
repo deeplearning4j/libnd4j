@@ -83,7 +83,7 @@ DECLARE_SHAPE_FN(maxpool3dnew) {
     // int extraParam0 = INT_ARG(13);
     int isNCDHW  = block.getIArguments()->size() > 14 ? !INT_ARG(14) : 1;       // 0-NDHWC, 1-NCDHW    
     
-    int* inputShapeInfo = inputShape->at(0);
+    Nd4jLong* inputShapeInfo = inputShape->at(0);
 
     int idxID, idxIC;    
     if(isNCDHW) { idxID = 2; idxIC = 1;}
@@ -98,13 +98,13 @@ DECLARE_SHAPE_FN(maxpool3dnew) {
     int oD, oH, oW;                         // output depth, height, width
     ConvolutionUtils<T>::calcOutSizePool3D(oD, oH, oW, kD, kH, kW, sD, sH, sW, pD, pH, pW, dD, dH, dW, iD, iH, iW, isSameMode);
     
-    int* outputShapeInfo = nullptr;
-    ALLOCATE(outputShapeInfo, block.getWorkspace(), shape::shapeInfoLength(inputShapeInfo), int);
+    Nd4jLong* outputShapeInfo = nullptr;
+    ALLOCATE(outputShapeInfo, block.getWorkspace(), shape::shapeInfoLength(inputShapeInfo), Nd4jLong);
 
     outputShapeInfo[0] = 5;
     outputShapeInfo[1] = bS;
-
-    if (isNCDHW) {    
+    
+    if (isNCDHW) {
         outputShapeInfo[2] = iC;
         outputShapeInfo[3] = oD;
         outputShapeInfo[4] = oH;
@@ -191,7 +191,7 @@ CUSTOM_OP_IMPL(maxpool3dnew_bp, 2, 1, false, 0, 13) {
 
 DECLARE_SHAPE_FN(maxpool3dnew_bp) {
 
-    int* gradIshapeInfo(nullptr);
+    Nd4jLong* gradIshapeInfo(nullptr);
     COPY_SHAPE(inputShape->at(0), gradIshapeInfo);
         
     return SHAPELIST(gradIshapeInfo);        
