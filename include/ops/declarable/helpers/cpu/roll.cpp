@@ -24,30 +24,23 @@ namespace helpers {
             actualShift %= fullLen;
 
         if (actualShift) {
-            source->printIndexedBuffer("Source is ");
-            nd4j_printf("At start: from %i to %i.\n", actualShift, fullLen - actualShift);
 
 #pragma omp parallel for if (actualShift > Environment::getInstance()->elementwiseThreshold()) schedule(static)
             for (int e = 0; e < actualShift; ++e) {
                 int sourceIndex = fullLen - actualShift + e;
-                nd4j_printf("%i <--> %i\n", e + actualShift, sourceIndex);
                 nd4j::math::nd4j_swap((*output)(e), (*output)(sourceIndex));
             }
 
-//#pragma omp parallel for 
             bool again = actualShift < fullLen - actualShift;
             int k = 1;
             while(again) {
                 for (int e = 0; e < actualShift; ++e) {
-                    //nd4j_printf("%i <--> %i\n", e, e - actualShift);
                     nd4j::math::nd4j_swap((*output)(fullLen - k * actualShift + e), (*output)(fullLen - (k + 1) * actualShift + e));
                 }
                 k++;
                 again = actualShift < fullLen - (k + 1) * actualShift;
-                output->printIndexedBuffer("After shift rest");
             }
             int rest = fullLen - k * actualShift - actualShift;
-            nd4j_printf("And last stage: swap (%i, %i) items\n", rest, rest + actualShift);
             again = rest > 0;
             k = 0;
             while(again){
@@ -57,22 +50,6 @@ namespace helpers {
                 k++;
                 again = (2 * actualShift > (actualShift + k * rest)) && (actualShift + k * rest < fullLen);
             }
-//            for (int e = actualShift; e < fullLen - actualShift; ++e) {
-//                nd4j_printf("%i <--> %i\n", e, e - actualShift);
-//                nd4j::math::nd4j_swap((*output)(e - actualShift), (*output)(e));
-//            }
-//            output->printIndexedBuffer("After shift rest");
-//
-//            nd4j_printf("Then: from 0 to %i.\n", actualShift);
-
-//#pragma omp parallel for 
-//            for (int e = 0; e < actualShift; ++e) {
-//                int sourceIndex = fullLen - actualShift + e;
-//                nd4j_printf("%i <--> %i\n", e + actualShift, sourceIndex);
-//                nd4j::math::nd4j_swap((*output)(e), (*output)(sourceIndex));
-//            }
-            nd4j_printf("And as result:\n", "");
-            output->printIndexedBuffer("Result is ");
         }
     }
 
