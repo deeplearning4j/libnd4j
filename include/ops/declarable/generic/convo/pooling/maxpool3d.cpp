@@ -13,7 +13,7 @@ namespace ops  {
 
 
 //////////////////////////////////////////////////////////////////////////
-CUSTOM_OP_IMPL(maxpool3dnew, 1, 1, false, 0, 13) {
+CUSTOM_OP_IMPL(maxpool3dnew, 1, 1, false, 0, 14) {
     
     NDArray<T> *input   = INPUT_VARIABLE(0);                                    // [bS, iD, iH, iW, iC] (NDHWC) or [bS, iC, iD, iH, iW] (NCDHW)
     NDArray<T> *output  = OUTPUT_VARIABLE(0);                                   // [bS, oD, oH, oW, iC] (NDHWC) or [bS, iC, oD, oH, oW] (NCDHW)
@@ -31,7 +31,7 @@ CUSTOM_OP_IMPL(maxpool3dnew, 1, 1, false, 0, 13) {
     int dH = INT_ARG(10);                                                       // dilations height
     int dW = INT_ARG(11);                                                       // dilations width
     int isSameMode = INT_ARG(12);                                               // 1-SAME,  0-VALID
-    int extraParam0 = 1;                                                        // INT_ARG(13);
+    // int extraParam0 = INT_ARG(13);                                           // unnecessary for max case, required only for avg and pnorm cases
     int isNCDHW  = block.getIArguments()->size() > 14 ? !INT_ARG(14) : 1;       // 0-NDHWC, 1-NCDHW    
 
     REQUIRE_TRUE(input->rankOf() == 5, 0, "MAXPOOL3D OP: rank of input array must be equal to 5, but got %i instead !", input->rankOf());    
@@ -53,7 +53,7 @@ CUSTOM_OP_IMPL(maxpool3dnew, 1, 1, false, 0, 13) {
     if(isSameMode)                       // SAME
         ConvolutionUtils<T>::calcPadding3D(pD, pH, pW, oD, oH, oW, iD, iH, iW, kD, kH, kW, sD, sH, sW, dD, dH, dW);    
     
-    T extraParams[] = {(T)kD, (T)kH, (T)kW, (T)sD, (T)sH, (T)sW, (T)pD, (T)pH, (T)pW, (T)dD, (T)dH, (T)dW, 0., (T)extraParam0};
+    T extraParams[] = {(T)kD, (T)kH, (T)kW, (T)sD, (T)sH, (T)sW, (T)pD, (T)pH, (T)pW, (T)dD, (T)dH, (T)dW, 0., 1.};
     ConvolutionUtils<T>::pooling3d(*input, *output, extraParams);
    
     if(!isNCDHW) {              
@@ -122,26 +122,27 @@ DECLARE_SHAPE_FN(maxpool3dnew) {
 }
 
 //////////////////////////////////////////////////////////////////////////
-CUSTOM_OP_IMPL(maxpool3dnew_bp, 2, 1, false, 0, 13) {
+CUSTOM_OP_IMPL(maxpool3dnew_bp, 2, 1, false, 0, 14) {
 
     NDArray<T>* input = INPUT_VARIABLE(0);                          // [bS, iD, iH, iW, iC] (NDHWC) or [bS, iC, iD, iH, iW] (NCDHW)
     NDArray<T>* gradO = INPUT_VARIABLE(1);                          // [bS, oD, oH, oW, oC] (NDHWC) or [bS, oC, oD, oH, oW] (NCDHW), epsilon_next
     NDArray<T>* gradI = OUTPUT_VARIABLE(0);                         // [bS, iD, iH, iW, iC] (NDHWC) or [bS, iC, iD, iH, iW] (NCDHW), epsilon
 
-    int kD = INT_ARG(0);                                                        // filter(kernel) depth
-    int kH = INT_ARG(1);                                                        // filter(kernel) height
-    int kW = INT_ARG(2);                                                        // filter(kernel) width
-    int sD = INT_ARG(3);                                                        // strides depth
-    int sH = INT_ARG(4);                                                        // strides height
-    int sW = INT_ARG(5);                                                        // strides width
-    int pD = INT_ARG(6);                                                        // paddings depth
-    int pH = INT_ARG(7);                                                        // paddings height
-    int pW = INT_ARG(8);                                                        // paddings width
-    int dD = INT_ARG(9);                                                        // dilations depth
-    int dH = INT_ARG(10);                                                       // dilations height
-    int dW = INT_ARG(11);                                                       // dilations width
-    int isSameMode = INT_ARG(12);                                               // 1-SAME,  0-VALID
-    int isNCDHW  = block.getIArguments()->size() > 13 ? !INT_ARG(13) : 1;       // 0-NDHWC, 1-NCDHW    
+    const int kD = INT_ARG(0);                                                  // filter(kernel) depth
+    const int kH = INT_ARG(1);                                                  // filter(kernel) height
+    const int kW = INT_ARG(2);                                                  // filter(kernel) width
+    const int sD = INT_ARG(3);                                                  // strides depth
+    const int sH = INT_ARG(4);                                                  // strides height
+    const int sW = INT_ARG(5);                                                  // strides width
+          int pD = INT_ARG(6);                                                  // paddings depth
+          int pH = INT_ARG(7);                                                  // paddings height
+          int pW = INT_ARG(8);                                                  // paddings width
+    const int dD = INT_ARG(9);                                                  // dilations depth
+    const int dH = INT_ARG(10);                                                 // dilations height
+    const int dW = INT_ARG(11);                                                 // dilations width
+    const int isSameMode = INT_ARG(12);                                         // 1-SAME,  0-VALID
+    // int extraParam0 = INT_ARG(13);                                           // unnecessary for max case, required only for avg and pnorm cases
+    int isNCDHW  = block.getIArguments()->size() > 14 ? !INT_ARG(14) : 1;       // 0-NDHWC, 1-NCDHW    
 
     REQUIRE_TRUE(input->rankOf() == 5, 0, "MAXPOOL3D_BP op: input should have rank of 5, but got %i instead", input->rankOf());    
 
@@ -163,27 +164,31 @@ CUSTOM_OP_IMPL(maxpool3dnew_bp, 2, 1, false, 0, 13) {
     if(isSameMode)                       // SAME
         ConvolutionUtils<T>::calcPadding3D(pD, pH, pW, oD, oH, oW, iD, iH, iW, kD, kH, kW, sD, sH, sW, dD, dH, dW);    
     
-    NDArray<T> columnsWrongShape(input->ordering(), {bS, iC, oD, oH, oW, kD, kH, kW}, input->getWorkspace());    
-    NDArray<T>* columns = columnsWrongShape.permute({0, 1, 5, 6, 7, 2, 3, 4});                      // [bS, iC, oD, oH, oW, kD, kH, kW] -> [bS, iC, kD, kH, kW, oD, oH, oW]
+    // NDArray<T> columnsWrongShape(input->ordering(), {bS, iC, oD, oH, oW, kD, kH, kW}, input->getWorkspace());    
+    // NDArray<T>* columns = columnsWrongShape.permute({0, 1, 5, 6, 7, 2, 3, 4});                      // [bS, iC, oD, oH, oW, kD, kH, kW] -> [bS, iC, kD, kH, kW, oD, oH, oW]
 
-    ConvolutionUtils<T>::vol2col(*input, *columns, sD, sH, sW, pD, pH, pW, dD, dH, dW);                 // [bS, iC, iD, iH, iW] is convoluted to [bS, iC, kD, kH, kW, oD, oH, oW]        
+    // ConvolutionUtils<T>::vol2col(*input, *columns, sD, sH, sW, pD, pH, pW, dD, dH, dW);                 // [bS, iC, iD, iH, iW] is convoluted to [bS, iC, kD, kH, kW, oD, oH, oW]        
 
-    NDArray<T>* columns2d = columnsWrongShape.reshape('c', {bS*iC*oD*oH*oW, kD*kH*kW});
-    NDArray<T>* gradOVector = gradO->reshape('c', {(int) gradO->lengthOf(), 1}); 
-    T extraParams[] = {(T)1., (T)1.};
-    columns2d->template applyTransform<simdOps::IsMax<T>>(extraParams);
-    columns2d->muliColumnVector(gradOVector);
+    // NDArray<T>* columns2d = columnsWrongShape.reshape('c', {bS*iC*oD*oH*oW, kD*kH*kW});
+    // NDArray<T>* gradOVector = gradO->reshape('c', {(int) gradO->lengthOf(), 1}); 
+    // T extraParams[] = {(T)1., (T)1.};
+    // columns2d->template applyTransform<simdOps::IsMax<T>>(extraParams);
+    // columns2d->muliColumnVector(gradOVector);
 
-    ConvolutionUtils<T>::col2vol(*columns, *gradI, sD, sH, sW, pD, pH, pW, dD, dH, dW);                     // columns [bS, iC, kD, kH, kW, oD, oH, oW] is de-convoluted to  [bS, iC, iD, iH, iW]
+    // ConvolutionUtils<T>::col2vol(*columns, *gradI, sD, sH, sW, pD, pH, pW, dD, dH, dW);                     // columns [bS, iC, kD, kH, kW, oD, oH, oW] is de-convoluted to  [bS, iC, iD, iH, iW]
+
+        // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8 - poolingMode; 9 - unnecessary;
+    std::vector<T> argT = {(T) kD, (T) kH, (T) kW, (T) sD, (T) sH, (T) sW, (T) pD, (T) pH, (T) pW, (T) dD, (T) dH, (T)dW, 0., 1.};
+    ConvolutionUtils<T>::pooling3dBP(*input, *gradO, *gradI, argT.data());
 
     if(!isNCDHW) {
         delete input;
         delete gradI;
         delete gradO;
     }
-    delete columns;
-    delete columns2d;
-    delete gradOVector;
+    // delete columns;
+    // delete columns2d;
+    // delete gradOVector;
     
     return Status::OK();
 }

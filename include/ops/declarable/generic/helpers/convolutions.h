@@ -96,6 +96,8 @@ namespace nd4j {
 
             static void pooling2dBP(NDArray<T>& input, NDArray<T>& gradO, NDArray<T>& gradI, const T* extraParams);
 
+            static void pooling3dBP(NDArray<T>& input, NDArray<T>& gradO, NDArray<T>& gradI, const T* extraParams);
+
     };
 
 }
