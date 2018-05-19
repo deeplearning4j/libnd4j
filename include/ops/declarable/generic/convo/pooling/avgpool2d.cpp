@@ -10,112 +10,113 @@
 #include <ops/declarable/generic/helpers/convolutions.h>
 
 namespace nd4j {
-    namespace ops {
-        CUSTOM_OP_IMPL(avgpool2d, 1, 1, false, 0, 10) {
+namespace ops  {
 
-            NDArray<T>* input = INPUT_VARIABLE(0);
+CUSTOM_OP_IMPL(avgpool2d, 1, 1, false, 0, 10) {
 
-            REQUIRE_TRUE(input->rankOf() == 4, 0, "Input should have rank of 4, but got %i instead", input->rankOf());
+    NDArray<T>* input = INPUT_VARIABLE(0);
 
-            // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8 - same mode;
-            std::vector<int> argI = *(block.getIArguments());
-            NDArray<T>* output = OUTPUT_VARIABLE(0);
+    REQUIRE_TRUE(input->rankOf() == 4, 0, "Input should have rank of 4, but got %i instead", input->rankOf());
 
-            int kH = INT_ARG(0);
-            int kW = INT_ARG(1);
-            int sH = INT_ARG(2);
-            int sW = INT_ARG(3);
-            int pH = INT_ARG(4);
-            int pW = INT_ARG(5);
-            int dH = INT_ARG(6);
-            int dW = INT_ARG(7);
-            bool isSameMode = INT_ARG(8);
-            int extraParam0 = INT_ARG(9);
+    // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8 - same mode;
+    std::vector<int> argI = *(block.getIArguments());
+    NDArray<T>* output = OUTPUT_VARIABLE(0);
 
-            int oH = 0;
-            int oW = 0;
+    const int kH = INT_ARG(0);
+    const int kW = INT_ARG(1);
+    const int sH = INT_ARG(2);
+    const int sW = INT_ARG(3);
+          int pH = INT_ARG(4);
+          int pW = INT_ARG(5);
+    const int dH = INT_ARG(6);
+    const int dW = INT_ARG(7);
+    const bool isSameMode = INT_ARG(8);
+    const int extraParam0 = INT_ARG(9);
 
-            int isNCHW  = block.getIArguments()->size() > 10 ? !INT_ARG(10) : 1;       // 0-NDHWC, 1-NCDHW    
+    int oH = 0;
+    int oW = 0;
 
-            const int iH = isNCHW ? input->sizeAt(2) : input->sizeAt(1);
-            const int iW = isNCHW ? input->sizeAt(3) : input->sizeAt(2);
+    int isNCHW  = block.getIArguments()->size() > 10 ? !INT_ARG(10) : 1;       // 0-NDHWC, 1-NCDHW    
 
-            if (!isNCHW) {
-                input  = input->permute({0, 3, 1, 2});                // [bS, iH, iW, iC] -> [bS, iC, iH, iW]
-                output = output->permute({0, 3, 1, 2});               // [bS, oH, oW, iC] -> [bS, iC, oH, oW]
-            }            
+    const int iH = isNCHW ? input->sizeAt(2) : input->sizeAt(1);
+    const int iW = isNCHW ? input->sizeAt(3) : input->sizeAt(2);
 
-            ConvolutionUtils<T>::calcOutSizePool2D(oH, oW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);
+    if (!isNCHW) {
+        input  = input->permute({0, 3, 1, 2});                // [bS, iH, iW, iC] -> [bS, iC, iH, iW]
+        output = output->permute({0, 3, 1, 2});               // [bS, oH, oW, iC] -> [bS, iC, oH, oW]
+    }            
 
-            if (isSameMode)
-                ConvolutionUtils<T>::calcPadding2D(pH, pW, oH, oW, iH, iW, kH, kW, sH, sW, dH, dW);            
+    ConvolutionUtils<T>::calcOutSizePool2D(oH, oW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);
+
+    if (isSameMode)
+        ConvolutionUtils<T>::calcPadding2D(pH, pW, oH, oW, iH, iW, kH, kW, sH, sW, dH, dW);            
             
-            // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8 - poolingMode; 9 - divisor;
-            std::vector<T> argT = {(T) kH, (T) kW, (T) sH, (T) sW, (T) pH, (T) pW, (T) dH, (T)dW, 1., (T)extraParam0};
-            input->template applyTransform<simdOps::Pooling2D<T>>(output, argT.data());
+    // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8 - poolingMode; 9 - divisor;
+    std::vector<T> argT = {(T) kH, (T) kW, (T) sH, (T) sW, (T) pH, (T) pW, (T) dH, (T)dW, 1., (T)extraParam0};
+    input->template applyTransform<simdOps::Pooling2D<T>>(output, argT.data());
 
-            if (!isNCHW) {
-                delete input;
-                delete output;
-            }
+    if (!isNCHW) {
+        delete input;
+        delete output;
+    }
 
-            return Status::OK();
-        }
+    return Status::OK();
+}
 
-        DECLARE_SYN(AvgPool2D, avgpool2d);
-        DECLARE_SYN(AvgPool, avgpool2d);
-        DECLARE_SYN(avgpool, avgpool2d);
+DECLARE_SYN(AvgPool2D, avgpool2d);
+DECLARE_SYN(AvgPool, avgpool2d);
+DECLARE_SYN(avgpool, avgpool2d);
 
-        DECLARE_SHAPE_FN(avgpool2d) {
-            auto inShape = inputShape->at(0);
-            auto shapeOf = shape::shapeOf(inShape);
+DECLARE_SHAPE_FN(avgpool2d) {
+    
+    auto inShape = inputShape->at(0);
+    auto shapeOf = shape::shapeOf(inShape);
 
-            // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8 - same mode;
-            std::vector<int> argI = *(block.getIArguments());
-            int kH = INT_ARG(0);
-            int kW = INT_ARG(1);
-            int sH = INT_ARG(2);
-            int sW = INT_ARG(3);
-            int pH = INT_ARG(4);
-            int pW = INT_ARG(5);
-            int dH = INT_ARG(6);
-            int dW = INT_ARG(7);
-            int isSameMode = INT_ARG(8);
+    // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8 - same mode;
+    std::vector<int> argI = *(block.getIArguments());
+    const int kH = INT_ARG(0);
+    const int kW = INT_ARG(1);
+    const int sH = INT_ARG(2);
+    const int sW = INT_ARG(3);
+    const int pH = INT_ARG(4);
+    const int pW = INT_ARG(5);
+    const int dH = INT_ARG(6);
+    const int dW = INT_ARG(7);
+    const int isSameMode = INT_ARG(8);
 
-            int isNCHW  = block.getIArguments()->size() > 10 ? !INT_ARG(10) : 1;       // 0-NDHWC, 1-NCDHW    
+    const int isNCHW  = block.getIArguments()->size() > 10 ? !INT_ARG(10) : 1;       // 0-NDHWC, 1-NCDHW    
 
-            int bS = shapeOf[0];
-            int iD = isNCHW ? shapeOf[1] : shapeOf[3];
-            int iH = isNCHW ? shapeOf[2] : shapeOf[1];
-            int iW = isNCHW ? shapeOf[3] : shapeOf[2];
+    const int bS = shapeOf[0];
+    const int iD = isNCHW ? shapeOf[1] : shapeOf[3];
+    const int iH = isNCHW ? shapeOf[2] : shapeOf[1];
+    const int iW = isNCHW ? shapeOf[3] : shapeOf[2];
 
+    const char order = shape::order(inShape); // output order must be equal to input order
 
-            char order = shape::order(inShape); // output order must be equal to input order
+    // calculate output Height/Width
+    int oH, oW;
+    ConvolutionUtils<T>::calcOutSizePool2D(oH, oW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);
 
-            // calculate output Height/Width
-            int oH, oW;
-            ConvolutionUtils<T>::calcOutSizePool2D(oH, oW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);
+    // allocate memory for new shape
+    Nd4jLong* newShapeInfo = nullptr;
+    ALLOCATE(newShapeInfo, block.getWorkspace(), 12, Nd4jLong);
+    if (isNCHW) {
+        newShapeInfo[0] = 4;        // rank
+        newShapeInfo[1] = bS;
+        newShapeInfo[2] = iD;
+        newShapeInfo[3] = oH;
+        newShapeInfo[4] = oW;
+    } else {
+        newShapeInfo[0] = 4;        // rank
+        newShapeInfo[1] = bS;
+        newShapeInfo[2] = oH;
+        newShapeInfo[3] = oW;
+        newShapeInfo[4] = iD;
+    }
+    shape::updateStrides(newShapeInfo, order);
 
-            // allocate memory for new shape
-            Nd4jLong* newShapeInfo = nullptr;
-            ALLOCATE(newShapeInfo, block.getWorkspace(), 12, Nd4jLong);
-            if (isNCHW) {
-                newShapeInfo[0] = 4;        // rank
-                newShapeInfo[1] = bS;
-                newShapeInfo[2] = iD;
-                newShapeInfo[3] = oH;
-                newShapeInfo[4] = oW;
-            } else {
-                newShapeInfo[0] = 4;        // rank
-                newShapeInfo[1] = bS;
-                newShapeInfo[2] = oH;
-                newShapeInfo[3] = oW;
-                newShapeInfo[4] = iD;
-            }
-            shape::updateStrides(newShapeInfo, order);
-
-            return SHAPELIST(newShapeInfo);
-        }
+    return SHAPELIST(newShapeInfo);
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -134,6 +135,7 @@ CUSTOM_OP_IMPL(avgpool2d_bp, 2, 1, false, 0, 10) {
     int dH = INT_ARG(6);                                                        // dilations height
     int dW = INT_ARG(7);                                                        // dilations width
     int isSameMode = INT_ARG(8);                                                // 0-VALID, 1-SAME
+    int extraParam0 = INT_ARG(9);
     int isNCHW = block.getIArguments()->size() > 10 ? !INT_ARG(10) : 1;         // 0-NHWC, 1-NCHW    
 
     REQUIRE_TRUE(input->rankOf() == 4, 0, "AVGPOOL2D_BP op: input should have rank of 4, but got %i instead", input->rankOf());
@@ -155,24 +157,29 @@ CUSTOM_OP_IMPL(avgpool2d_bp, 2, 1, false, 0, 10) {
     if(isSameMode)                       // SAME        
         ConvolutionUtils<T>::calcPadding2D(pH, pW, oH, oW, iH, iW, kH, kW, sH, sW, dH, dW);
 
-    NDArray<T> columnsWrongShape(input->ordering(), {bS, iC, oH, oW, kH, kW}, input->getWorkspace());    
-    NDArray<T>* columns = columnsWrongShape.permute({0, 1, 4, 5, 2, 3});                                // [bS, iC, oH, oW, kH, kW] -> [bS, iC, kH, kW, oH, oW]
-    NDArray<T>* gradOVector = gradO->reshape('c', {(int) gradO->lengthOf(), 1}); 
-    NDArray<T>* columns2d = columnsWrongShape.reshape('c', {bS*iC*oH*oW, kH*kW});
+    // NDArray<T> columnsWrongShape(input->ordering(), {bS, iC, oH, oW, kH, kW}, input->getWorkspace());    
+    // NDArray<T>* columns = columnsWrongShape.permute({0, 1, 4, 5, 2, 3});                                // [bS, iC, oH, oW, kH, kW] -> [bS, iC, kH, kW, oH, oW]
+    // NDArray<T>* gradOVector = gradO->reshape('c', {(int) gradO->lengthOf(), 1}); 
+    // NDArray<T>* columns2d = columnsWrongShape.reshape('c', {bS*iC*oH*oW, kH*kW});
     
-    columns2d->addiColumnVector(gradOVector);
+    // columns2d->addiColumnVector(gradOVector);
 
-    columns->template applyTransform<simdOps::Col2Im<T>>(gradI, std::vector<T>({(T)sH, (T)sW, (T)pH, (T)pW, (T)iH, (T)iW, (T)dH, (T)dW}).data());
+    // columns->template applyTransform<simdOps::Col2Im<T>>(gradI, std::vector<T>({(T)sH, (T)sW, (T)pH, (T)pW, (T)iH, (T)iW, (T)dH, (T)dW}).data());
 
-    *gradI /= kH*kW; 
+    // *gradI /= kH*kW; 
+        
+    NDArray<T> temp;    // does not mean anything, just to fit pooling2dBP signature
+    // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8 - poolingMode; 9 - divisor;
+    std::vector<T> argT = {(T) kH, (T) kW, (T) sH, (T) sW, (T) pH, (T) pW, (T) dH, (T)dW, 1., (T)extraParam0};    
+    ConvolutionUtils<T>::pooling2dBP(temp, *gradO, *gradI, argT.data());
 
     if(!isNCHW) {
         delete gradI;
         delete gradO;
     }
-    delete columns;
-    delete columns2d;
-    delete gradOVector;
+    // delete columns;
+    // delete columns2d;
+    // delete gradOVector;
     
     return Status::OK();
 

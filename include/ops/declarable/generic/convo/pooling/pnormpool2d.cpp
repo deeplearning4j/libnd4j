@@ -149,44 +149,47 @@ CUSTOM_OP_IMPL(pnormpool2d_bp, 2, 1, false, 1, 10) {
         gradO = gradO->permute({0, 3, 1, 2});                                   // [bS, oH, oW, iC] -> [bS, iC, oH, oW]                        
     }
     
-    if(isSameMode)                       // SAME        
-        ConvolutionUtils<T>::calcPadding2D(pH, pW, oH, oW, iH, iW, kH, kW, sH, sW, dH, dW);
+    // if(isSameMode)                       // SAME        
+    //     ConvolutionUtils<T>::calcPadding2D(pH, pW, oH, oW, iH, iW, kH, kW, sH, sW, dH, dW);
 
-    NDArray<T> columnsWrongShape(input->ordering(), {bS, iC, oH, oW, kH, kW}, input->getWorkspace());    
-    NDArray<T>* columns = columnsWrongShape.permute({0, 1, 4, 5, 2, 3});                                // [bS, iC, oH, oW, kH, kW] -> [bS, iC, kH, kW, oH, oW]
-    NDArray<T>* gradOVector = gradO->reshape('c', {(int) gradO->lengthOf(), 1}); 
-    NDArray<T>* columns2d = columnsWrongShape.reshape('c', {bS*iC*oH*oW, kH*kW});
-    NDArray<T> pNorm(columns2d->getShapeInfo(), block.getWorkspace());    
+    // NDArray<T> columnsWrongShape(input->ordering(), {bS, iC, oH, oW, kH, kW}, input->getWorkspace());    
+    // NDArray<T>* columns = columnsWrongShape.permute({0, 1, 4, 5, 2, 3});                                // [bS, iC, oH, oW, kH, kW] -> [bS, iC, kH, kW, oH, oW]
+    // NDArray<T>* gradOVector = gradO->reshape('c', {(int) gradO->lengthOf(), 1}); 
+    // NDArray<T>* columns2d = columnsWrongShape.reshape('c', {bS*iC*oH*oW, kH*kW});
+    // NDArray<T> pNorm(columns2d->getShapeInfo(), block.getWorkspace());    
 
-    input->template applyTransform<simdOps::Im2col<T>>(columns, std::vector<T>({(T)kH, (T)kW, (T)sH, (T)sW, (T)pH, (T)pW, (T)dH, (T)dW}).data());
+    // input->template applyTransform<simdOps::Im2col<T>>(columns, std::vector<T>({(T)kH, (T)kW, (T)sH, (T)sW, (T)pH, (T)pW, (T)dH, (T)dW}).data());
     
-    columns2d->template applyTransform<simdOps::Abs<T>>(&pNorm);
-    pNorm.template applyTransform<simdOps::Pow<T>>(&pNorm, std::vector<T>({(T)pnorm}).data());
+    // columns2d->template applyTransform<simdOps::Abs<T>>(&pNorm);
+    // pNorm.template applyTransform<simdOps::Pow<T>>(&pNorm, std::vector<T>({(T)pnorm}).data());
 
-    NDArray<T>* denomVec = pNorm.sum({1});    
-    denomVec->template applyTransform<simdOps::Pow<T>>(std::vector<T>({(T)1. - (T)1. / pnorm}).data());    
-    denomVec->template applyScalar<simdOps::Max<T>>(eps); // in case of 0    
-    denomVec->template applyPairwiseTransform<simdOps::ReverseDivide<T>>(gradOVector, denomVec, nullptr);
+    // NDArray<T>* denomVec = pNorm.sum({1});    
+    // denomVec->template applyTransform<simdOps::Pow<T>>(std::vector<T>({(T)1. - (T)1. / pnorm}).data());    
+    // denomVec->template applyScalar<simdOps::Max<T>>(eps); // in case of 0    
+    // denomVec->template applyPairwiseTransform<simdOps::ReverseDivide<T>>(gradOVector, denomVec, nullptr);
 
-    if(pnorm != 2) {
-        T extraParams[] = {(T)1. - (T)2. / pnorm};
-        pNorm.template applyTransform<simdOps::Pow<T>>(std::vector<T>({(T)1. - (T)2. / pnorm}).data());
-        *columns2d *= pNorm;
-    }    
+    // if(pnorm != 2) {
+    //     T extraParams[] = {(T)1. - (T)2. / pnorm};
+    //     pNorm.template applyTransform<simdOps::Pow<T>>(std::vector<T>({(T)1. - (T)2. / pnorm}).data());
+    //     *columns2d *= pNorm;
+    // }    
     
-    columns2d->muliColumnVector(denomVec);
+    // columns2d->muliColumnVector(denomVec);
     
-    columns->template applyTransform<simdOps::Col2Im<T>>(gradI, std::vector<T>({(T)sH, (T)sW, (T)pH, (T)pW, (T)iH, (T)iW, (T)dH, (T)dW}).data());
+    // columns->template applyTransform<simdOps::Col2Im<T>>(gradI, std::vector<T>({(T)sH, (T)sW, (T)pH, (T)pW, (T)iH, (T)iW, (T)dH, (T)dW}).data());
+    
+    std::vector<T> argT = {(T) kH, (T) kW, (T) sH, (T) sW, (T) pH, (T) pW, (T) dH, (T)dW, 2., (T)pnorm};
+    ConvolutionUtils<T>::pooling2dBP(*input, *gradO, *gradI, argT.data());
 
     if(!isNCHW) {
         delete input;
         delete gradI;
         delete gradO;
     }
-    delete columns;
-    delete columns2d;
-    delete gradOVector;
-    delete denomVec;
+    // delete columns;
+    // delete columns2d;
+    // delete gradOVector;
+    // delete denomVec;
     
     return Status::OK();
 }
