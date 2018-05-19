@@ -2265,7 +2265,7 @@ void ConvolutionUtils<T>::pooling2dBP(NDArray<T>& input, NDArray<T>& gradO, NDAr
                                     sum += nd4j::math::nd4j_pow<T>(nd4j::math::nd4j_abs<T>(pIn[kh + kw]), extraParam0);
                                 
                             valOut *= nd4j::math::nd4j_pow<T>(sum, ((T)1. - extraParam0) / extraParam0);
-#pragma omp simd reduction(sumT:sum) collapse(2)
+#pragma omp simd collapse(2)
                             for (Nd4jLong kh = hstart; kh < hend; kh += iStep2) 
                                 for (Nd4jLong kw = wstart; kw < wend; kw += iStep3)
                                     pgI[kh + kw] += valOut * nd4j::math::nd4j_pow<T>(nd4j::math::nd4j_abs<T>(pIn[kh + kw]), extraParam0 - 1.);
