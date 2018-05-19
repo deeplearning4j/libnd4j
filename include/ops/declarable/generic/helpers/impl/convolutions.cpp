@@ -2170,15 +2170,18 @@ void ConvolutionUtils<T>::pooling2dBP(NDArray<T>& input, NDArray<T>& gradO, NDAr
     const int oStride2 = gradO.stridesOf()[2];
     const int oStride3 = gradO.stridesOf()[3];         
     const int iStep2 = dH*iStride2;
-    const int iStep3 = dW*iStride3;        
+    const int iStep3 = dW*iStride3;
+    const int ihEnd  = iH*iStride2;
+    const int iwEnd  = iW*iStride3;
     const int size01 = bS*iC;
     const int size23 = oH*oW;
     const int kProd  = kH*kW;
     const T iStep2Inv = 1./iStep2; 
     const T iStep3Inv = 1./iStep3;
 
-    const bool weirdStride = gradO.ordering() == 'f' || gradO.ews() != 1;
-    Nd4jLong maxKH, maxKW;
+    const bool weirdStrideGradO = gradO.ordering() == 'f' || gradO.ews() != 1;
+    const bool weirdStrideGradI = gradI.ordering() == 'f' || gradI.ews() != 1;
+    
 
 // #pragma omp parallel for if(size01 > nd4j::Environment::getInstance()->elementwiseThreshold()) collapse(2) schedule(guided)
         for(int b = 0; b < bS; ++b) {
@@ -2189,7 +2192,17 @@ void ConvolutionUtils<T>::pooling2dBP(NDArray<T>& input, NDArray<T>& gradO, NDAr
                 T *pgI = gI + b * iStride0 + c * iStride1;
                 T *pIn = in + b * iStride0 + c * iStride1;
 
-// #pragma omp parallel for if(size23 > nd4j::Environment::getInstance()->elementwiseThreshold()) collapse(2) schedule(guided)
+                if(poolingMode == 0) {              // for max case we do initial zeroing of all elements of gradI
+                    if(weirdStrideGradI)
+#pragma omp parallel for simd collapse(2)                        
+                        for(int ih = 0; ih < ihEnd; ih+=iStride2) 
+                            for(int iw = 0; iw < iwEnd; iw+=iStride3)
+                                pgI[ih + iw] = 0.;
+                    else
+                        memset(pgI, 0, iStride1*sizeof(T));
+                }    
+
+#pragma omp parallel for if(size23 > nd4j::Environment::getInstance()->elementwiseThreshold()) collapse(2) schedule(guided)
                 for(int oh = 0; oh < oH; ++oh) {
                     for(int ow = 0; ow < oW; ++ow) {
                             
@@ -2217,8 +2230,8 @@ void ConvolutionUtils<T>::pooling2dBP(NDArray<T>& input, NDArray<T>& gradO, NDAr
                         switch(poolingMode) {
 
                             case 0: {// max
-
-// #pragma omp simd private(maxKH, maxKW) reduction(maxT:sum) collapse(2)
+                               Nd4jLong maxKH, maxKW;
+#pragma omp simd reduction(maxT:sum) collapse(2)
                                 for (Nd4jLong kh = hstart; kh < hend; kh += iStep2) {
                                     for (Nd4jLong kw = wstart; kw < wend; kw += iStep3) {
                                         T val = pIn[kh + kw];
@@ -2227,13 +2240,12 @@ void ConvolutionUtils<T>::pooling2dBP(NDArray<T>& input, NDArray<T>& gradO, NDAr
                                             maxKH = kh;
                                             maxKW = kw;
                                         }
-                                        pgI[kh + kw] = 0.;
                                     }
                                 }
-                                if (weirdStride)
-                                    pgI[maxKH + maxKW] = pgO[oh * oStride2 + ow * oStride3];
+                                if (weirdStrideGradO)
+                                    pgI[maxKH + maxKW] += pgO[oh * oStride2 + ow * oStride3];
                                 else                            
-                                    pgI[maxKH + maxKW] = *pgO++;
+                                    pgI[maxKH + maxKW] += *pgO++;
 
                                 break;
                             }
@@ -2265,7 +2277,7 @@ void ConvolutionUtils<T>::pooling2dBP(NDArray<T>& input, NDArray<T>& gradO, NDAr
                             }
                         }
 
-                        // if (weirdStride)
+                        // if (weirdStrideGradO)
                         //     out[oStep01 + oh * oStride2 + ow * oStride3] = sum;
                         // else                            
                         //     *pOut++ = sum;
