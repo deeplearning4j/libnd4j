@@ -1,6 +1,5 @@
 //
-// @author raver119@gmail.com, created on 29/10/17.
-// @author Yurii Shyrma (iuriish@yahoo.com), changed on 14.05.2018
+// Created by raver119 on 29/10/17.
 //
 
 #include <op_boilerplate.h>
@@ -15,19 +14,22 @@ namespace nd4j {
 
             REQUIRE_OK(this->validateInputLengthMatch(block));
             REQUIRE_OK(this->validateInputDimensionsMatch(block));
-            NDArray<T>* input = INPUT_VARIABLE(0);
-            NDArray<T>* output = OUTPUT_VARIABLE(0);
+            auto x = INPUT_VARIABLE(0);
+            auto z = OUTPUT_VARIABLE(0);
 
-            REQUIRE_TRUE(input->rankOf() == 4, 0, "Input should have rank of 4, but got %i instead", input->rankOf());
+            REQUIRE_TRUE(x->rankOf() == 4, 0, "Input should have rank of 4, but got %i instead", x->rankOf());
 
             std::vector<int> argI = *(block.getIArguments()); // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8 - same mode; 9 - extraParam0 for pnorm case;
 
             int kY = argI[0];
             int kX = argI[1];
+
             int sY = argI[2];
             int sX = argI[3];
+
             int pY = argI[4];
             int pX = argI[5];
+
             int dY = argI[6];
             int dX = argI[7];
 
@@ -38,31 +40,43 @@ namespace nd4j {
 
             bool isNCHW = true;
             if (block.getIArguments()->size() > 10)
-                isNCHW = INT_ARG(10) == 0;            
+                isNCHW = INT_ARG(10) == 0;
+
+            const int inY = isNCHW ? x->sizeAt(2) : x->sizeAt(1);
+            const int inX = isNCHW ? x->sizeAt(3) : x->sizeAt(2);
 
             if (!isNCHW) {
-                input  = input->permute({0, 3, 1, 2});                  // [bS, iH, iW, iC] -> [bS, iC, iH, iW]
-                output = output->permute({0, 3, 1, 2});                 // [bS, oH, oW, iC] -> [bS, iC, oH, oW]
-            }
+                x = x->permute({0, 3, 1, 2});
 
-            const int inY = input->sizeAt(2);
-            const int inX = input->sizeAt(3);
+                // FIXME: eventually we want NWHC impl
+                auto tz = z->permute({0, 3, 1, 2});
+                z = tz->dup('c');
+
+                delete tz;
+            }
 
             ConvolutionUtils<T>::calcOutSizePool2D(oY, oX, kY, kX, sY, sX, pY, pX, dY, dX, inY, inX, isSameMode);
 
-            if (isSameMode)
-                ConvolutionUtils<T>::calcPadding2D(pY, pX, oY, oX, inY, inX, argI[0], argI[1], argI[2], argI[3], argI[6], argI[7]);
-
-            std::vector<T> argT = {(T) kY, (T) kX, (T) sY, (T) sX, (T) pY, (T) pX, (T) dY, (T)dX, (T)1.f, (T)2.f, (T) argI[9]};
-
-            input->template applyTransform<simdOps::Pooling2D<T>>(output, argT.data());
-
-            if (!isNCHW) {
-                delete input;
-                delete output;
+            if (isSameMode) {
+                ConvolutionUtils<T>::_calcPadding2D(pY, pX, oY, oX, inY, inX, argI[0], argI[1],
+                                                    argI[2], argI[3], argI[6], argI[7]);
             }
 
-            return Status::OK();
+            std::vector<T> argT = {(T) kY, (T) kX, (T) sY, (T) sX, (T) pY, (T) pX, (T) dY, (T)dX, (T)1.f, (T)2.f, (T) argI[9], (T) oY, (T) oX};
+
+            x->template applyTransform<simdOps::Pooling2D<T>>(z, argT.data());
+
+            STORE_RESULT(*z);
+
+            if (!isNCHW) {
+                delete x;
+                z->permutei({0, 2, 3, 1});
+
+                //z->printShapeInfo("pnorm pool shape");
+                //z->printIndexedBuffer("pnorm pool final");
+            }
+
+            return ND4J_STATUS_OK;
         }
         DECLARE_SYN(PnormPool2D, pnormpool2d);
         DECLARE_SYN(PnormPool, pnormpool2d);
@@ -70,11 +84,11 @@ namespace nd4j {
 
 
         DECLARE_SHAPE_FN(pnormpool2d) {
-            int* inShape = inputShape->at(0);
-            int* shapeOf = shape::shapeOf(inShape);
+            auto inShape = inputShape->at(0);
+            auto shapeOf = shape::shapeOf(inShape);
 
             // 0,1 - kernel Height/Width; 2,3 - stride Height/Width; 4,5 - pad Height/Width; 6,7 - dilation Height/Width; 8 - same mode;
-            std::vector<int> argI = *(block.getIArguments());
+            auto argI = *(block.getIArguments());
             int kH = argI[0];
             int kW = argI[1];
             int sH = argI[2];
@@ -99,8 +113,8 @@ namespace nd4j {
             int oH, oW;
             ConvolutionUtils<T>::calcOutSizePool2D(oH, oW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);
             // allocate memory for new shape
-            int* newShapeInfo = nullptr;
-            ALLOCATE(newShapeInfo, block.getWorkspace(), 12, int);
+            Nd4jLong* newShapeInfo = nullptr;
+            ALLOCATE(newShapeInfo, block.getWorkspace(), 12, Nd4jLong);
             if (isNCHW) {
                 newShapeInfo[0] = 4;        // rank
                 newShapeInfo[1] = bS;
@@ -125,8 +139,8 @@ namespace nd4j {
             auto input = INPUT_VARIABLE(0);
             auto epsilon = INPUT_VARIABLE(1);
             auto outEpsilon = OUTPUT_VARIABLE(0);
-            std::vector<int> argI = *(block.getIArguments());
-            std::vector<T>   argT = *(block.getTArguments());
+            auto argI = *(block.getIArguments());
+            auto argT = *(block.getTArguments());
 
             int kH = argI[0];
             int kW = argI[1];
@@ -157,7 +171,7 @@ namespace nd4j {
                 isEpsilonDup = true;
             }
 
-            int strideToCompare[] = {oH*oW, iD*oH*oW, oW, 1};
+            Nd4jLong strideToCompare[] = {oH*oW, iD*oH*oW, oW, 1};
             if (!cOrderStrides && shape::strideDescendingCAscendingF(epsilon->getShapeInfo())) {
                 cOrderStrides = true;
             }
@@ -239,9 +253,8 @@ namespace nd4j {
         DECLARE_SHAPE_FN(pnormpool2d_bp) {
 
             // FIXME: remove memcpy here
-            int* newShapeInfo = nullptr;
-            ALLOCATE(newShapeInfo, block.getWorkspace(), shape::shapeInfoLength(inputShape->at(0)), int);
-            memcpy(newShapeInfo, inputShape->at(0), shape::shapeInfoByteLength(inputShape->at(0)));
+            Nd4jLong* newShapeInfo = nullptr;
+            COPY_SHAPE(inputShape->at(0), newShapeInfo);
             return SHAPELIST(newShapeInfo);
         }
     }

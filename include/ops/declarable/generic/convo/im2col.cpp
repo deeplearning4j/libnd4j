@@ -58,8 +58,8 @@ namespace nd4j {
             bool isSameMode = INT_ARG(8) > 0;
 
             // output is always 6d for im2col
-            int* zShape;
-            ALLOCATE(zShape, block.getWorkspace(), shape::shapeInfoLength(6), int);
+            Nd4jLong* zShape;
+            ALLOCATE(zShape, block.getWorkspace(), shape::shapeInfoLength(6), Nd4jLong);
 
             int oY = 0;
             int oX = 0;
@@ -67,7 +67,7 @@ namespace nd4j {
             ConvolutionUtils<T>::calcOutSizePool2D(oY, oX, kY, kX, sY, sX, pY, pX, dY, dX, inY, inX, isSameMode);
 
             if (isSameMode)
-                ConvolutionUtils<T>::calcPadding2D(pY, pX, oY, oX, inY, inX, kY, kX, sY, sX, dY, dX);
+                ConvolutionUtils<T>::_calcPadding2D(pY, pX, oY, oX, inY, inX, kY, kX, sY, sX, dY, dX);
 
             zShape[0] = 6;
             zShape[1] = bS;

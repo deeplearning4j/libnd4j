@@ -57,8 +57,12 @@ CUSTOM_OP_IMPL(avgpool3dnew, 1, 1, false, 0, 10) {
 
     if(isSameMode)                       // SAME
         ConvolutionUtils<T>::calcPadding3D(pD, pH, pW, oD, oH, oW, iD, iH, iW, kD, kH, kW, sD, sH, sW, 1, 1, 1);    
-        
-    ConvolutionUtils<T>::avgPool3D(*input, *output, kD, kH, kW, sD, sH, sW, pD, pH, pW, !isSameMode);
+
+    int iStride = iC * iD * iH * iW;
+    int oStride = iC * oD * oH * oW;
+    
+    for(int i = 0; i < bS; ++i)   
+        ConvolutionUtils<T>::_avgPool3D(input->getBuffer() + i*iStride, output->getBuffer() + i*oStride, iC, iD, iH, iW, oD, oH, oW, kD, kH, kW, sD, sH, sW, pD, pH, pW, !isSameMode);
    
     if(!isNCHW) {              
 
@@ -87,7 +91,7 @@ DECLARE_SHAPE_FN(avgpool3dnew) {
     int isSameMode = INT_ARG(9);                                                // 1-SAME,  0-VALID;
     int isNCHW  = block.getIArguments()->size() > 10 ? !INT_ARG(10) : 1;        // 1-NDHWC, 0-NCDHW
     
-    int* inputShapeInfo = inputShape->at(0);
+    Nd4jLong* inputShapeInfo = inputShape->at(0);
 
     int idxID, idxIC;    
     if(isNCHW) { idxID = 2; idxIC = 1;}
@@ -102,8 +106,8 @@ DECLARE_SHAPE_FN(avgpool3dnew) {
     int oD, oH, oW;                         // output depth, height, width
     ConvolutionUtils<T>::calcOutSizePool3D(oD, oH, oW, kD, kH, kW, sD, sH, sW, pD, pH, pW, 1, 1, 1, iD, iH, iW, isSameMode);
     
-    int* outputShapeInfo = nullptr;
-    ALLOCATE(outputShapeInfo, block.getWorkspace(), shape::shapeInfoLength(inputShapeInfo), int);
+    Nd4jLong* outputShapeInfo = nullptr;
+    ALLOCATE(outputShapeInfo, block.getWorkspace(), shape::shapeInfoLength(inputShapeInfo), Nd4jLong);
 
     if (isNCHW) {
         outputShapeInfo[0] = 5;
@@ -175,8 +179,12 @@ CUSTOM_OP_IMPL(avgpool3dnew_bp, 2, 1, false, 0, 10) {
    
     if(isSameMode)                       // SAME
         ConvolutionUtils<T>::calcPadding3D(pD, pH, pW, oD, oH, oW, iD, iH, iW, kD, kH, kW, sD, sH, sW, 1, 1, 1);    
+
+    int iStride = iC * iD * iH * iW;
+    int oStride = iC * oD * oH * oW;
     
-    ConvolutionUtils<T>::avgPool3DBP(*gradO, *gradI, kD, kH, kW, sD, sH, sW, pD, pH, pW, !isSameMode);
+    for(int i = 0; i < bS; ++i)   
+        ConvolutionUtils<T>::_avgPool3D_bp(gradI->getBuffer() + i*iStride, gradO->getBuffer() + i*oStride, iC, iD, iH, iW, oD, oH, oW, kD, kH, kW, sD, sH, sW, pD, pH, pW, !isSameMode);
 
     if(!isNCHW) {              
 
@@ -193,7 +201,7 @@ CUSTOM_OP_IMPL(avgpool3dnew_bp, 2, 1, false, 0, 10) {
 
 DECLARE_SHAPE_FN(avgpool3dnew_bp) {
 
-    int* gradIshapeInfo(nullptr);
+    Nd4jLong* gradIshapeInfo(nullptr);
     COPY_SHAPE(inputShape->at(0), gradIshapeInfo);
         
     return SHAPELIST(gradIshapeInfo);        
