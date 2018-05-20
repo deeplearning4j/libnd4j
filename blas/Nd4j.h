@@ -9,41 +9,47 @@
 #include <pointercast.h>
 #include <initializer_list>
 #include <vector>
+#include <map>
 #include "NDArray.h"
 #include <dll.h>
 #include <memory/Workspace.h>
 #include <array/LaunchContext.h>
+#include <types/float16.h>
+#include <mutex>
+
 
 
 namespace nd4j {
     template <typename T>
     class PointerFactory {
+    private:
+        LaunchContext *_context;
+
     public:
-        nd4j::LaunchContext* context();
+        LaunchContext* context();
 
-        NDArray<T>* create(char order, std::initializer_list<Nd4jLong> shape, std::initializer_list<T> data = {});
+        NDArray<T>* valueOf(std::initializer_list<Nd4jLong> shape, T value, char order = 'c');
 
-        NDArray<T>* create(std::initializer_list<Nd4jLong> shape, std::initializer_list<T> data = {});
+        NDArray<T>* create(std::initializer_list<Nd4jLong> shape, char order = 'c', std::initializer_list<T> data = {});
 
-        NDArray<T>* createUninitialized(char order, std::initializer_list<Nd4jLong> shape, std::initializer_list<T> data = {});
-
-        NDArray<T>* createUninitialized(std::initializer_list<Nd4jLong> shape, std::initializer_list<T> data = {});
+        NDArray<T>* createUninitialized(std::initializer_list<Nd4jLong> shape, char order = 'c');
     };
 
 
     template <typename T>
     class ObjectFactory {
+    private:
+        LaunchContext *_context;
+
     public:
-        // this method returns
-        nd4j::LaunchContext* context();
+        // this method returns context
+        LaunchContext* context();
 
-        NDArray<T> create(char order, std::initializer_list<Nd4jLong> shape, std::initializer_list<T> data = {});
+        NDArray<T> valueOf(std::initializer_list<Nd4jLong> shape, T value, char order = 'c');
 
-        NDArray<T> create(std::initializer_list<Nd4jLong> shape, std::initializer_list<T> data = {});
+        NDArray<T> create(std::initializer_list<Nd4jLong> shape, char order = 'c', std::initializer_list<T> data = {});
 
-        NDArray<T> createUninitialized(char order, std::initializer_list<Nd4jLong> shape, std::initializer_list<T> data = {});
-
-        NDArray<T> createUninitialized(std::initializer_list<Nd4jLong> shape, std::initializer_list<T> data = {});
+        NDArray<T> createUninitialized(std::initializer_list<Nd4jLong> shape, char order = 'c');
     };
 }
 
@@ -51,8 +57,13 @@ class Nd4j {
 private:
     nd4j::LaunchContext *_context;
 
+    // meh
+    static std::map<Nd4jLong, nd4j::ObjectFactory<float>> _factoriesOF;
+    static std::map<Nd4jLong, nd4j::ObjectFactory<float16>> _factoriesOH;
+    static std::map<Nd4jLong, nd4j::ObjectFactory<double >> _factoriesOD;
+
 public:
-    Nd4j(LaunchContext *context = nullptr);
+    explicit Nd4j(LaunchContext *context = nullptr);
     ~Nd4j() = default;
 
     nd4j::LaunchContext* context();

@@ -307,17 +307,17 @@ template <typename T>
 
         if (second == nullptr) {
             nd4j_printf("applyTriplewiseLambda requires three operands to be valid NDArrays, but Second is NULL\n","");
-            throw "second is null";
+            throw std::runtime_error("second is null");
         }
 
         if (third == nullptr) {
             nd4j_printf("applyTriplewiseLambda requires three operands to be valid NDArrays, but Third is NULL\n","");
-            throw "third is null";
+            throw std::runtime_error("third is null");
         }
 
         if (this->lengthOf() != second->lengthOf() || this->lengthOf() != third->lengthOf() || !this->isSameShape(second) || !this->isSameShape(third)) {
             nd4j_printf("applyPairwiseLambda requires both operands to have the same shape\n","");
-            throw "Shapes mismach";
+            throw std::runtime_error("Shapes mismach");
         }        
 
         if (this->ordering() == second->ordering() && this->ordering() == third->ordering()  && this->ordering() == target->ordering() && (this->ews() == 1 && target->ews() == 1) && this->ews() == second->ews() && this->ews() == third->ews()) {
@@ -354,12 +354,12 @@ template <typename T>
 
         if (other == nullptr) {
             nd4j_printf("applyPairwiseLambda requires both operands to be valid NDArrays, but Y is NULL\n","");
-            throw "Other is null";
+            throw std::runtime_error("Other is null");
         }
 
         if (this->lengthOf() != other->lengthOf()) {
             nd4j_printf("applyPairwiseLambda requires both operands to have the same shape\n","");
-            throw "Shapes mismach";
+            throw std::runtime_error("Shapes mismach");
         }
 
         if (this->ordering() == other->ordering() && this->ordering() == target->ordering() && (this->ews() == 1 && target->ews() == 1) && this->ews() == other->ews()) {
@@ -736,13 +736,16 @@ void NDArray<T>::replacePointers(T *buffer, Nd4jLong *shapeInfo, const bool rele
 
         }
 
-        if (shape::length(_shapeInfo) != data.size()) {
-            nd4j_printf("Data size [%i] doesn't match shape length [%i]\n", data.size(), shape::length(_shapeInfo));
-            throw "Data size doesn't match shape";
-        }
+        // copy is optional, because data list might be empty
+        if (data.size() > 0) {
+            if (shape::length(_shapeInfo) != data.size()) {
+                nd4j_printf("Data size [%i] doesn't match shape length [%i]\n", data.size(), shape::length(_shapeInfo));
+                throw std::runtime_error("Data size doesn't match shape");
+            }
 
-        //memset(_buffer, 0, sizeOfT() * shape::length(_shapeInfo));
-        memcpy(_buffer, data.data(), sizeOfT() * shape::length(_shapeInfo));
+            //memset(_buffer, 0, sizeOfT() * shape::length(_shapeInfo));
+            memcpy(_buffer, data.data(), sizeOfT() * shape::length(_shapeInfo));
+        }
 
 		_isBuffAlloc = true;
 		_isShapeAlloc = true;
