@@ -14,25 +14,54 @@
 #include <memory/Workspace.h>
 #include <array/LaunchContext.h>
 
-template <typename T>
+
+namespace nd4j {
+    template <typename T>
+    class PointerFactory {
+    public:
+        nd4j::LaunchContext* context();
+
+        NDArray<T>* create(char order, std::initializer_list<Nd4jLong> shape, std::initializer_list<T> data = {});
+
+        NDArray<T>* create(std::initializer_list<Nd4jLong> shape, std::initializer_list<T> data = {});
+
+        NDArray<T>* createUninitialized(char order, std::initializer_list<Nd4jLong> shape, std::initializer_list<T> data = {});
+
+        NDArray<T>* createUninitialized(std::initializer_list<Nd4jLong> shape, std::initializer_list<T> data = {});
+    };
+
+
+    template <typename T>
+    class ObjectFactory {
+    public:
+        // this method returns
+        nd4j::LaunchContext* context();
+
+        NDArray<T> create(char order, std::initializer_list<Nd4jLong> shape, std::initializer_list<T> data = {});
+
+        NDArray<T> create(std::initializer_list<Nd4jLong> shape, std::initializer_list<T> data = {});
+
+        NDArray<T> createUninitialized(char order, std::initializer_list<Nd4jLong> shape, std::initializer_list<T> data = {});
+
+        NDArray<T> createUninitialized(std::initializer_list<Nd4jLong> shape, std::initializer_list<T> data = {});
+    };
+}
+
 class Nd4j {
 private:
     nd4j::LaunchContext *_context;
 
-
-protected:
-    nd4j::LaunchContext* context();
 public:
     Nd4j(LaunchContext *context = nullptr);
     ~Nd4j() = default;
 
-    NDArray<T>* create(char order, std::initializer_list<Nd4jLong> shape, std::initializer_list<T> data = {});
+    nd4j::LaunchContext* context();
 
-    NDArray<T>* create(std::initializer_list<Nd4jLong> shape, std::initializer_list<T> data = {});
+    template <typename T>
+    static PointerFactory<T>* p(LaunchContext *ctx = nullptr);
 
-    NDArray<T>* createUninitialized(char order, std::initializer_list<Nd4jLong> shape, std::initializer_list<T> data = {});
-
-    NDArray<T>* createUninitialized(std::initializer_list<Nd4jLong> shape, std::initializer_list<T> data = {});
+    template <typename T>
+    static ObjectFactory<T>* o(LaunchContext *ctx = nullptr);
 };
 
 
