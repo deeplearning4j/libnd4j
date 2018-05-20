@@ -14,51 +14,12 @@
 #include <dll.h>
 #include <memory/Workspace.h>
 #include <array/LaunchContext.h>
+
+#include <array/ObjectFactory.h>
+#include <array/PointerFactory.h>
+
 #include <types/float16.h>
 #include <mutex>
-
-
-
-namespace nd4j {
-    template <typename T>
-    class PointerFactory {
-    private:
-        LaunchContext *_context;
-
-    public:
-        PointerFactory() = default;
-        ~PointerFactory() = default;
-
-        LaunchContext* context();
-
-        NDArray<T>* valueOf(std::initializer_list<Nd4jLong> shape, T value, char order = 'c');
-
-        NDArray<T>* create(std::initializer_list<Nd4jLong> shape, char order = 'c', std::initializer_list<T> data = {});
-
-        NDArray<T>* createUninitialized(std::initializer_list<Nd4jLong> shape, char order = 'c');
-    };
-
-
-    template <typename T>
-    class ObjectFactory {
-    private:
-        LaunchContext *_context;
-
-    public:
-        ObjectFactory() = default;
-        ~ObjectFactory() = default;
-
-
-        // this method returns context
-        LaunchContext* context();
-
-        NDArray<T> valueOf(std::initializer_list<Nd4jLong> shape, T value, char order = 'c');
-
-        NDArray<T> create(std::initializer_list<Nd4jLong> shape, char order = 'c', std::initializer_list<T> data = {});
-
-        NDArray<T> createUninitialized(std::initializer_list<Nd4jLong> shape, char order = 'c');
-    };
-}
 
 class Nd4j {
 private:
@@ -72,6 +33,12 @@ private:
 
     static thread_local nd4j::ObjectFactory<float> _objectFactoryF;
     static thread_local nd4j::PointerFactory<float> _pointerFactoryF;
+
+    static thread_local nd4j::ObjectFactory<float16> _objectFactoryH;
+    static thread_local nd4j::PointerFactory<float16> _pointerFactoryH;
+
+    static thread_local nd4j::ObjectFactory<double> _objectFactoryD;
+    static thread_local nd4j::PointerFactory<double> _pointerFactoryD;
 
 
 public:
