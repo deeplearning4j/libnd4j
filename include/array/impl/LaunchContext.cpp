@@ -8,4 +8,8 @@ namespace nd4j {
     LaunchContext::LaunchContext() {
         // default constructor, just to make clang/ranlib happy
     }
+
+    Workspace* LaunchContext::workspace() {
+        return _workspace;
+    }
 }

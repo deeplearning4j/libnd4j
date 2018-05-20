@@ -14,32 +14,25 @@
 #include <memory/Workspace.h>
 #include <array/LaunchContext.h>
 
+template <typename T>
 class Nd4j {
 private:
-    Nd4j() = default;
-    ~Nd4j() = default;
+    nd4j::LaunchContext *_context;
+
+
+protected:
+    nd4j::LaunchContext* context();
 public:
-    template <typename T>
-    NDArray<T>* create(char order, std::initializer_list<Nd4jLong> shape, std::initializer_list<T> data = {}) {
-        //LaunchContext::segment(0);
-        return nullptr;
-    }
+    Nd4j(LaunchContext *context = nullptr);
+    ~Nd4j() = default;
 
-    template <typename T>
-    NDArray<T>* create(std::initializer_list<Nd4jLong> shape, std::initializer_list<T> data = {}) {
-        //LaunchContext::segment(0);
-        return nullptr;
-    }
+    NDArray<T>* create(char order, std::initializer_list<Nd4jLong> shape, std::initializer_list<T> data = {});
 
-    template <typename T>
-    NDArray<T>* createUninitialized(char order, std::initializer_list<Nd4jLong> shape, std::initializer_list<T> data = {}) {
-        return nullptr;
-    }
+    NDArray<T>* create(std::initializer_list<Nd4jLong> shape, std::initializer_list<T> data = {});
 
-    template <typename T>
-    NDArray<T>* createUninitialized(std::initializer_list<Nd4jLong> shape, std::initializer_list<T> data = {}) {
-        return nullptr;
-    }
+    NDArray<T>* createUninitialized(char order, std::initializer_list<Nd4jLong> shape, std::initializer_list<T> data = {});
+
+    NDArray<T>* createUninitialized(std::initializer_list<Nd4jLong> shape, std::initializer_list<T> data = {});
 };
 
 

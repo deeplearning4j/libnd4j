@@ -14,7 +14,7 @@ namespace nd4j {
 
             // input [bS, iC, kH, kW, oH, oW] is de-convoluted to output [bS, iC, iH, iW]
             template <typename T>
-            void _col2im(nd4j::graph::LaunchContext& context, T *out, T *in, Nd4jLong *outShapeInfo, Nd4jLong *inShapeInfo, int sH, int sW, int pH, int pW, int iH, int iW, int dH, int dW) {
+            void _col2im(nd4j::LaunchContext& context, T *out, T *in, Nd4jLong *outShapeInfo, Nd4jLong *inShapeInfo, int sH, int sW, int pH, int pW, int iH, int iW, int dH, int dW) {
 
                 const auto inShape = shape::shapeOf(inShapeInfo);
                 const auto inStride = shape::stride(inShapeInfo);
@@ -245,9 +245,9 @@ namespace nd4j {
                 */
             }
 
-            template void _col2im<float>(nd4j::graph::LaunchContext& context, float *in, float *output, Nd4jLong *outShapeInfo, Nd4jLong *inShapeInfo, int sH, int sW, int pH, int pW, int iH, int iW, int dH, int dW);
-            template void _col2im<float16>(nd4j::graph::LaunchContext& context, float16 *in, float16 *output, Nd4jLong *outShapeInfo, Nd4jLong *inShapeInfo, int sH, int sW, int pH, int pW, int iH, int iW, int dH, int dW);
-            template void _col2im<double>(nd4j::graph::LaunchContext& context, double *in, double *output, Nd4jLong *outShapeInfo, Nd4jLong *inShapeInfo, int sH, int sW, int pH, int pW, int iH, int iW, int dH, int dW);
+            template void _col2im<float>(nd4j::LaunchContext& context, float *in, float *output, Nd4jLong *outShapeInfo, Nd4jLong *inShapeInfo, int sH, int sW, int pH, int pW, int iH, int iW, int dH, int dW);
+            template void _col2im<float16>(nd4j::LaunchContext& context, float16 *in, float16 *output, Nd4jLong *outShapeInfo, Nd4jLong *inShapeInfo, int sH, int sW, int pH, int pW, int iH, int iW, int dH, int dW);
+            template void _col2im<double>(nd4j::LaunchContext& context, double *in, double *output, Nd4jLong *outShapeInfo, Nd4jLong *inShapeInfo, int sH, int sW, int pH, int pW, int iH, int iW, int dH, int dW);
         }
     }
 }

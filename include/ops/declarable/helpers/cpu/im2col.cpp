@@ -15,7 +15,7 @@ namespace nd4j {
 
             // input [bS, iC, iH, iW] is convoluted to output [bS, iC, kH, kW, oH, oW]
             template <typename T>
-            void _im2col(nd4j::graph::LaunchContext& context, T *out, T *in, Nd4jLong *zShape, Nd4jLong *xShape, int kH, int kW, int sH, int sW, int pH, int pW, int dH, int dW, bool isSameMode, T zeroPadVal) {
+            void _im2col(nd4j::LaunchContext& context, T *out, T *in, Nd4jLong *zShape, Nd4jLong *xShape, int kH, int kW, int sH, int sW, int pH, int pW, int dH, int dW, bool isSameMode, T zeroPadVal) {
 
                 int kSize = kH * kW;
 
@@ -130,9 +130,9 @@ namespace nd4j {
                 }
             }
 
-            template void _im2col<float>(nd4j::graph::LaunchContext& context, float *output, float *in, Nd4jLong *zShape, Nd4jLong *xShape, int kH, int kW, int sH, int sW, int pH, int pW, int dH, int dW, bool isSameMode, float zeroPadVal);
-            template void _im2col<float16>(nd4j::graph::LaunchContext& context, float16 *output, float16 *in, Nd4jLong *zShape, Nd4jLong *xShape, int kH, int kW, int sH, int sW, int pH, int pW, int dH, int dW, bool isSameMode, float16 zeroPadVal);
-            template void _im2col<double>(nd4j::graph::LaunchContext& context, double *output, double *in, Nd4jLong *zShape, Nd4jLong *xShape, int kH, int kW, int sH, int sW, int pH, int pW, int dH, int dW, bool isSameMode, double zeroPadVal);
+            template void _im2col<float>(nd4j::LaunchContext& context, float *output, float *in, Nd4jLong *zShape, Nd4jLong *xShape, int kH, int kW, int sH, int sW, int pH, int pW, int dH, int dW, bool isSameMode, float zeroPadVal);
+            template void _im2col<float16>(nd4j::LaunchContext& context, float16 *output, float16 *in, Nd4jLong *zShape, Nd4jLong *xShape, int kH, int kW, int sH, int sW, int pH, int pW, int dH, int dW, bool isSameMode, float16 zeroPadVal);
+            template void _im2col<double>(nd4j:: LaunchContext& context, double *output, double *in, Nd4jLong *zShape, Nd4jLong *xShape, int kH, int kW, int sH, int sW, int pH, int pW, int dH, int dW, bool isSameMode, double zeroPadVal);
         }
     }
 }

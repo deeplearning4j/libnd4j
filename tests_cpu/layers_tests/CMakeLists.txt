@@ -86,7 +86,7 @@ add_library(nd4jcpu STATIC ../../blas/cpu/NativeOps.cpp ../../blas/cpu/GraphExec
         ../../include/cnpy/cnpy.cpp  ../../include/nd4jmemset.h ../../include/nd4jmalloc.h
         ../../blas/Environment.cpp ../../blas/Environment.h
         ${MEMORY_SOURCES} ${GRAPH_SOURCES} ${CUSTOMOPS_SOURCES} ${INDEXING_SOURCES} ${HELPERS_SOURCES} ${CUSTOMOPS_HELPERS_SOURCES}
-        ${OPS_SOURCES} ${LOOPS_SOURCES} ${ARRAY_SOURCES} ${TYPES_SOURCES})
+        ${OPS_SOURCES} ${LOOPS_SOURCES} ${ARRAY_SOURCES} ${TYPES_SOURCES} ../../blas/cpu/Nd4j.cpp)
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND "${CMAKE_CXX_COMPILER_VERSION}" VERSION_LESS 4.9)
     message(FATAL_ERROR "You need at least GCC 4.9")
@@ -124,5 +124,5 @@ endif ()
 
 target_link_libraries(runtests nd4jcpu gtest gtest_main)
 
-add_executable(minifier ../../minifier/minifier.cpp ../../minifier/graphopt.cpp)
+add_executable(minifier ../../minifier/minifier.cpp ../../minifier/graphopt.cpp ../../include/array/ArrayLocation.h)
 target_link_libraries(minifier nd4jcpu)
