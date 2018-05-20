@@ -8,6 +8,7 @@
 #include <pointercast.h>
 #include <graph/Node.h>
 #include <graph/Graph.h>
+#include <dll.h>
 
 namespace nd4j {
     namespace graph {

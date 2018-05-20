@@ -7,7 +7,7 @@
 
 #include <pointercast.h>
 #include <op_boilerplate.h>
-#include <graph/LaunchContext.h>
+#include <array/LaunchContext.h>
 #include <types/float16.h>
 #include <helpers/shape.h>
 #include <NDArray.h>
