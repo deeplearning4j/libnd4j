@@ -15,14 +15,64 @@ LaunchContext* Nd4j::context() {
     return _context;
 }
 
-template <typename T>
-PointerFactory<T>* Nd4j::p(LaunchContext *ctx) {
-    return nullptr;
+template <>
+PointerFactory<float>* Nd4j::p<float>(LaunchContext *ctx) {
+    // default context used, on per-thread basis
+    if (ctx == nullptr) {
+            return &_pointerFactoryF;
+    } else
+        return nullptr;
 }
 
-template <typename T>
-ObjectFactory<T>* Nd4j::o(LaunchContext *ctx) {
-    return nullptr;
+template <>
+PointerFactory<float16>* Nd4j::p<float16>(LaunchContext *ctx) {
+    // default context used, on per-thread basis
+    if (ctx == nullptr) {
+        //return &_pointerFactoryH;
+        return nullptr;
+    } else
+        return nullptr;
+}
+
+
+template <>
+PointerFactory<double>* Nd4j::p<double>(LaunchContext *ctx) {
+    // default context used, on per-thread basis
+    if (ctx == nullptr) {
+        //return &_pointerFactoryD;
+        return nullptr;
+    } else
+        return nullptr;
+}
+
+
+template <>
+nd4j::ObjectFactory<float>* Nd4j::o<float>(LaunchContext *ctx) {
+    // default context used, on per-thread basis
+    if (ctx == nullptr) {
+        return &_objectFactoryF;
+    } else
+        return nullptr;
+}
+
+template <>
+nd4j::ObjectFactory<float16>* Nd4j::o<float16>(LaunchContext *ctx) {
+    // default context used, on per-thread basis
+    if (ctx == nullptr) {
+        //return &_objectFactoryH;
+        return nullptr;
+    } else
+        return nullptr;
+}
+
+template <>
+nd4j::ObjectFactory<double>* Nd4j::o<double>(LaunchContext *ctx) {
+    // default context used, on per-thread basis
+    if (ctx == nullptr) {
+        //return &_objectFactoryD;
+        return nullptr;
+    } else
+        return nullptr;
 }
 
 ///////////////
@@ -77,6 +127,9 @@ NDArray<T> ObjectFactory<T>::valueOf(std::initializer_list<Nd4jLong> shape, T va
     x.assign(value);
     return x;
 }
+
+thread_local nd4j::ObjectFactory<float> Nd4j::_objectFactoryF;
+thread_local nd4j::PointerFactory<float> Nd4j::_pointerFactoryF;
 
 
 template class nd4j::PointerFactory<float>;

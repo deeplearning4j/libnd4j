@@ -743,8 +743,10 @@ void NDArray<T>::replacePointers(T *buffer, Nd4jLong *shapeInfo, const bool rele
                 throw std::runtime_error("Data size doesn't match shape");
             }
 
-            //memset(_buffer, 0, sizeOfT() * shape::length(_shapeInfo));
             memcpy(_buffer, data.data(), sizeOfT() * shape::length(_shapeInfo));
+        } else {
+            // TODO: make memset optional? or leave it to unitialized?
+            memset(_buffer, 0, sizeOfT() * shape::length(_shapeInfo));
         }
 
 		_isBuffAlloc = true;

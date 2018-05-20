@@ -26,6 +26,9 @@ namespace nd4j {
         LaunchContext *_context;
 
     public:
+        PointerFactory() = default;
+        ~PointerFactory() = default;
+
         LaunchContext* context();
 
         NDArray<T>* valueOf(std::initializer_list<Nd4jLong> shape, T value, char order = 'c');
@@ -42,6 +45,10 @@ namespace nd4j {
         LaunchContext *_context;
 
     public:
+        ObjectFactory() = default;
+        ~ObjectFactory() = default;
+
+
         // this method returns context
         LaunchContext* context();
 
@@ -62,6 +69,11 @@ private:
     static std::map<Nd4jLong, nd4j::ObjectFactory<float16>> _factoriesOH;
     static std::map<Nd4jLong, nd4j::ObjectFactory<double >> _factoriesOD;
 
+
+    static thread_local nd4j::ObjectFactory<float> _objectFactoryF;
+    static thread_local nd4j::PointerFactory<float> _pointerFactoryF;
+
+
 public:
     explicit Nd4j(LaunchContext *context = nullptr);
     ~Nd4j() = default;
@@ -69,10 +81,10 @@ public:
     nd4j::LaunchContext* context();
 
     template <typename T>
-    static PointerFactory<T>* p(LaunchContext *ctx = nullptr);
+    static nd4j::PointerFactory<T>* p(LaunchContext *ctx = nullptr);
 
     template <typename T>
-    static ObjectFactory<T>* o(LaunchContext *ctx = nullptr);
+    static nd4j::ObjectFactory<T>* o(LaunchContext *ctx = nullptr);
 };
 
 
