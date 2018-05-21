@@ -1427,11 +1427,12 @@ void ConvolutionUtils<T>::vol2col(NDArray<T>& volume, NDArray<T>& columns, const
     T* vol = volume.getBuffer();
     T* col = columns.getBuffer();
 
-    T* col0, *col1, *vol0, *vol1;
+    T* col0, *vol0;
     int volDepStart, volRowStart, volColStart, volDep, volRow, volCol;
 
 if (volume.ordering() == 'c' &&  columns.ordering() == 'c' && shape::strideDescendingCAscendingF(volume.getShapeInfo()) && shape::strideDescendingCAscendingF(columns.getShapeInfo())) 
-#pragma omp parallel for schedule(static) proc_bind(close) private(vol1, col1, volDep, volRow, volCol,vol0, col0, volDepStart, volRowStart, volColStart)    
+
+#pragma omp parallel for schedule(static) proc_bind(close) private(vol0, col0, volDep, volRow, volCol, volDepStart, volRowStart, volColStart)    
     for (int b = 0; b < bS; b++) {
         for (int c = 0; c < iC; ++c) {        
             for (int kDep = 0; kDep < kD; ++kDep) { 
@@ -1463,7 +1464,7 @@ if (volume.ordering() == 'c' &&  columns.ordering() == 'c' && shape::strideDesce
 
 else 
 
-#pragma omp parallel for schedule(static) proc_bind(close) private(vol1, col1, volDep, volRow, volCol,vol0, col0, volDepStart, volRowStart, volColStart)
+#pragma omp parallel for schedule(static) proc_bind(close) private(vol0, col0, volDep, volRow, volCol, volDepStart, volRowStart, volColStart)    
     for (int b = 0; b < bS; b++) {
         for (int colD = 0; colD < oD; ++colD) {
             for (int colH = 0; colH < oH; ++colH) {
@@ -1473,13 +1474,9 @@ else
                             for (int kRow = 0; kRow < kH; ++kRow) {                        
                                 for (int kCol = 0; kCol < kW; ++kCol) {                            
                         
-                                    volDepStart = -pD + kDep * dD;
-                                    volRowStart = -pH + kRow * dH;
-                                    volColStart = -pW + kCol * dW;
-        
-                                    volDep = volDepStart + colD*sD;
-                                    volRow = volRowStart + colH*sH;
-                                    volCol = volColStart + colW*sW;
+                                    volDep = (-pD + kDep * dD) + colD*sD;
+                                    volRow = (-pH + kRow * dH) + colH*sH;
+                                    volCol = (-pW + kCol * dW) + colW*sW;
                                         
                                     col0 = col + b*colStride0 + c*colStride1 + kDep*colStride2 + kRow*colStride3 + kCol*colStride4 + colD*colStride5 + colH*colStride6 + colW*colStride7;;
                                     vol0 = vol + b*volStride0 + c*volStride1 + volDep*volStride2 + volRow*volStride3 + volCol*volStride4;
