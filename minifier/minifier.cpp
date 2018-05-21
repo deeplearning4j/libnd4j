@@ -128,14 +128,18 @@ main(int argc, char *argv[]) {
     nd4j_printf("Run preprocessor as \ncpp %s\n", input.c_str());
 //    int err;
     int ret;
-    char const* env[] = { "HOME=/var/sandbox", "LOGNAME=minifier", "PATH=/usr/bin:/usr/local/bin:/usr/lib/gcc/x86_64-linux-gnu/6", (char *)0 };
+    char const* env[] = { "HOME=/tmp", 
+                          "LOGNAME=minifier", 
+                          "PATH=/usr/bin:/usr/local/bin:/usr/lib/gcc/x86_64-linux-gnu/6", 
+                          "CPLUS_INCLUDE_PATH=/usr/include/c++/6:/usr/include/x86_64-linux-gnu/c++/6:/usr/include",
+                          (char *)0 };
 
 //    ret = execle ("/usr/bin/cpp", "cpp", "-o", "result.h", "-I/usr/include", "file.h", (char *)0, env);
     if (ret != 0) {
         perror("Cannot exec preprocessor");
     }
-
-    if (0 > (err = execle("/usr/bin/cpp", "cpp", "-x", "c++", "-std=c++11", "-o", output.c_str(), 
+// to retrieve c++ version (hardcoded 6): c++ -v 2>&1 | tail -1 | awk '{v = int($3); print v;}' 
+    err = execle("/usr/bin/cpp", "cpp", "-x", "c++", "-std=c++11", "-o", output.c_str(), 
         "-I../include",
         "-I../blas",
         "-I../include/ops",
@@ -144,11 +148,10 @@ main(int argc, char *argv[]) {
         "-I../include/array",
         "-I../include/cnpy",
         "-I../include/ops/declarable", 
-        "-I/usr/include/c++/6",
-        "-I/usr/include/x86_64-linux-gnu/c++/6", 
         input.c_str(),
         (char*)nullptr, 
-        env))) {
+        env);
+    if (err == -1 && errno) {
         perror("\nCannot run CPP properly due \n");
     }
     //nd4j_printf("Command line: %s\n", cmdline.c_str());
