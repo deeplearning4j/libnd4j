@@ -134,7 +134,7 @@ main(int argc, char *argv[]) {
                           (char *)0 };
 
 // to retrieve c++ version (hardcoded 6): c++ -v 2>&1 | tail -1 | awk '{v = int($3); print v;}' 
-    err = execle("/usr/bin/cpp", "cpp", "-x", "c++", "-std=c++11", "-o", output.c_str(), 
+    err = execle("/usr/bin/cpp", "cpp", "-x", "c++", "-std=c++11", "-P", "-o", output.c_str(), 
         "-I../include",
         "-I../blas",
         "-I../include/ops",
@@ -146,7 +146,7 @@ main(int argc, char *argv[]) {
         input.c_str(),
         (char*)nullptr, 
         env);
-    if (err == -1 && errno) {
+    if (err < 0) {
         perror("\nCannot run CPP properly due \n");
     }
     //nd4j_printf("Command line: %s\n", cmdline.c_str());
