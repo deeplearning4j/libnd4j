@@ -28,7 +28,7 @@ namespace nd4j {
             int dY = INT_ARG(6);			//Dilation, height/y dimension
             int dX = INT_ARG(7);			//Dilation, width/x dimension
             bool isSameMode = INT_ARG(8) > 0;
-            double zeroPadVal = 0.0;
+            T zeroPadVal = 0.0;
             if (block.getTArguments()->size() > 0)
                 zeroPadVal = T_ARG(0);
 
@@ -58,8 +58,8 @@ namespace nd4j {
             bool isSameMode = INT_ARG(8) > 0;
 
             // output is always 6d for im2col
-            int* zShape;
-            ALLOCATE(zShape, block.getWorkspace(), shape::shapeInfoLength(6), int);
+            Nd4jLong* zShape;
+            ALLOCATE(zShape, block.getWorkspace(), shape::shapeInfoLength(6), Nd4jLong);
 
             int oY = 0;
             int oX = 0;

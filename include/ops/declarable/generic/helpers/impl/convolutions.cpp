@@ -8,36 +8,6 @@
 namespace nd4j {
 namespace ops  {
 
-//////////////////////////////////////////////////////////////////////////
-        template<typename T>
-        void ConvolutionUtils<T>::_im2col(const T* data_im, const int channels,
-                                const int height, const int width, const int kernel_h, const int kernel_w,
-                                const int pad_h, const int pad_w,
-                                const int stride_h, const int stride_w,
-                                const int dilation_h, const int dilation_w,
-                                T* data_col) {
-            const int height_col = (height + 2 * pad_h - (dilation_h * (kernel_h - 1) + 1)) / stride_h + 1;
-            const int width_col = (width + 2 * pad_w - (dilation_w * (kernel_w - 1) + 1)) / stride_w + 1;
-            const int channels_col = channels * kernel_h * kernel_w;
-
-            for (int c_col = 0; c_col < channels_col; ++c_col) {
-                int w_offset = c_col % kernel_w;
-                int h_offset = (c_col / kernel_w) % kernel_h;
-                int c_im = c_col / kernel_h / kernel_w;
-
-                for (int h_col = 0; h_col < height_col; ++h_col) {
-                    for (int w_col = 0; w_col < width_col; ++w_col) {
-                        int h_im = h_col * stride_h - pad_h + h_offset * dilation_h;
-                        int w_im = w_col * stride_w - pad_w + w_offset * dilation_w;
-
-                        data_col[(c_col * height_col + h_col) * width_col + w_col] = (h_im >= (int) 0 && w_im >= (int) 0 && h_im < height &&
-                                                                                      w_im < width) ?
-                                                                                     data_im[(c_im * height + h_im) * width +
-                                                                                             w_im] : (T) 0.f;
-                    }
-                }
-            }
-        }
 
 //////////////////////////////////////////////////////////////////////////
         template<typename T>
@@ -80,109 +50,16 @@ namespace ops  {
 
 //////////////////////////////////////////////////////////////////////////
         template<typename T>
-        void ConvolutionUtils<T>::vol2col(NDArray<T>& vol, NDArray<T>& col,
-                                          const int colD, const int colH, const int colW, 
-                                          const int kD,   const int kH,   const int kW, 
-                                          const int sD,   const int sH,   const int sW,
-                                          const int pD,   const int pH,   const int pW,  
-                                          const int dD,   const int dH,   const int dW ) {
-
-            T* volBuff = vol.getBuffer();
-            T* colBuff = col.getBuffer();
-
-            int volC = vol.sizeAt(0);
-            int volD = vol.sizeAt(1);
-            int volH = vol.sizeAt(2);
-            int volW = vol.sizeAt(3);
-
-            int c, d, h, w;    
-            int outDim = volC * kD * kH * kW;
-            
-            for (c = 0; c < outDim; ++c) {
-                
-                int w_offset = c % kW;
-                int h_offset = (c / kW) % kH;
-                int d_offset = (c / kW / kH) % kD;
-                int c_vol = c / kD / kH / kW;
-                
-                for (d = 0; d < colD; ++d) {
-                    for (h = 0; h < colH; ++h) {
-                        for (w = 0; w < colW; ++w) {
-                            
-                            int d_pad = d * sD - pD + d_offset * dD;
-                            int h_pad = h * sH - pH + h_offset * dH;
-                            int w_pad = w * sW - pW + w_offset * dW;
-                            
-                            if (d_pad >= 0 && d_pad < volD && h_pad >= 0 && h_pad < volH && w_pad >= 0 && w_pad < volW)
-                                colBuff[((c * colD + d) * colH + h) * colW + w] = volBuff[((c_vol * volD + d_pad) * volH + h_pad) * volW + w_pad];
-                            else
-                                colBuff[((c * colD + d) * colH + h) * colW + w] = 0;
-                        }
-                    }
-                }
-            }
-        }
-
-//////////////////////////////////////////////////////////////////////////
-        template<typename T>
-        void ConvolutionUtils<T>::col2vol(NDArray<T>& col, NDArray<T>& vol, 
-                                          const int colD, const int colH, const int colW, 
-                                          const int kD, const int kH, const int kW, 
-                                          const int sD, const int sH, const int sW, 
-                                          const int pD, const int pH, const int pW, 
-                                          const int dD, const int dH, const int dW) {
-            
-            T* colBuff = col.getBuffer();
-            T* volBuff = vol.getBuffer();            
-
-            int volC = vol.sizeAt(0);
-            int volD = vol.sizeAt(1);
-            int volH = vol.sizeAt(2);
-            int volW = vol.sizeAt(3);
-
-            int c, t, h, w;
-            memset(volBuff, 0, sizeof(T) * volC * volD * volH * volW);
-
-            int effkD = kD; // + (kD - 1) * (dD - 1);
-            int effkH = kH; // + (kH - 1) * (dH - 1);
-            int effkW = kW; // + (kW - 1) * (dW - 1);            
-
-            int inDim = volC * effkD * effkH * effkW;
-            for (c = 0; c < inDim; ++c) {
-                
-                int w_offset = c % effkW;
-                int h_offset = (c / effkW) % effkH;
-                int t_offset = (c / (effkW * effkH)) % effkD;
-                int c_vol = c / (effkD * effkH * effkW);
-
-                for (t = 0; t < colD; ++t) {
-                    for (h = 0; h < colH; ++h) {
-                        for (w = 0; w < colW; ++w) {
-                
-                            int t_pad = t * sD - pD + t_offset * dD;
-                            int h_pad = h * sH - pH + h_offset * dH;
-                            int w_pad = w * sW - pW + w_offset * dW;
-                
-                            if (t_pad >= 0 && t_pad < volD && h_pad >= 0 && h_pad < volH && w_pad >= 0 && w_pad < volW)
-                                volBuff[((c_vol * volD + t_pad) * volH + h_pad) * volW + w_pad] += colBuff[((c * colD + t) * colH + h) * colW + w];
-                        }
-                    }
-                }
-            }
-        }        
-
-//////////////////////////////////////////////////////////////////////////
-        template<typename T>
         void ConvolutionUtils<T>::col2vol2(NDArray<T>& col, NDArray<T>& vol, const int sD, const int sH, const int sW, const int pD, const int pH, const int pW, const int dD, const int dH, const int dW) {
             
             const T* colBuff = col.getBuffer();            
             T* volBuff       = vol.getBuffer();            
 
-            int *colShapeOnly = shape::shapeOf(col.getShapeInfo());
-            int *colStrides   = shape::stride(col.getShapeInfo());
-            int *volShapeOnly = shape::shapeOf(vol.getShapeInfo());
-            char volOrder     = shape::order(vol.getShapeInfo());
-            int *volStrides   = shape::stride(vol.getShapeInfo());
+            auto colShapeOnly = shape::shapeOf(col.getShapeInfo());
+            auto colStrides   = shape::stride(col.getShapeInfo());
+            auto volShapeOnly = shape::shapeOf(vol.getShapeInfo());
+            auto volOrder     = shape::order(vol.getShapeInfo());
+            auto volStrides   = shape::stride(vol.getShapeInfo());
 
             int strideBS   = colStrides[0];
             int strideColC = colStrides[1];
@@ -266,83 +143,13 @@ namespace ops  {
 
         }
 
-//////////////////////////////////////////////////////////////////////////
-        template<typename T>
-        void ConvolutionUtils<T>::_vol2col(const T *data_vol, const int channels, const int depth, const int height, const int width, const int kD, const int kH, const int kW, const int pT, const int pH, const int pW, const int dT, const int dH, const int dW, const int dilationT, const int dilationH, const int dilationW, T *data_col) {
-            int c, t, h, w;
-            int depth_col  = (depth  + 2 * pT - (dilationT * (kD - 1) + 1)) / dT + 1;
-            int height_col = (height + 2 * pH - (dilationH * (kH - 1) + 1)) / dH + 1;
-            int width_col  = (width  + 2 * pW - (dilationW * (kW - 1) + 1)) / dW + 1;
-            int channels_col = channels * kD * kH * kW;
-            for (c = 0; c < channels_col; ++c)
-            {
-                int w_offset = c % kW;
-                int h_offset = (c / kW) % kH;
-                int t_offset = (c / kW / kH) % kD;
-                int c_vol = c / kD / kH / kW;
-                for (t = 0; t < depth_col; ++t)
-                {
-                    for (h = 0; h < height_col; ++h)
-                    {
-                        for (w = 0; w < width_col; ++w)
-                        {
-                            int t_pad = t * dT - pT + t_offset * dilationT;
-                            int h_pad = h * dH - pH + h_offset * dilationH;
-                            int w_pad = w * dW - pW + w_offset * dilationW;
-                            if (t_pad >= 0 && t_pad < depth &&
-                                h_pad >= 0 && h_pad < height &&
-                                w_pad >= 0 && w_pad < width)
-                                data_col[((c * depth_col + t) * height_col + h) * width_col + w] =
-                                        data_vol[((c_vol * depth + t_pad) * height + h_pad) * width + w_pad];
-                            else
-                                data_col[((c * depth_col + t) * height_col + h) * width_col + w] = 0;
-                        }
-                    }
-                }
-            }
-        }
 
 //////////////////////////////////////////////////////////////////////////
         template<typename T>
-        void ConvolutionUtils<T>::_col2vol(const T* data_col, const int channels, const int depth, const int height, const int width, const int out_depth, const int out_height, const int out_width, const int kD, const int kH, const int kW, const int pT, const int pH, const int pW, const int dT, const int dH, const int dW, const int dilationT, const int dilationH, const int dilationW, T* data_vol) {
-            int c, t, h, w;
-            memset(data_vol, 0, sizeof(T) * depth * height * width * channels);
-            int depth_col  = out_depth;
-            int height_col = out_height;
-            int width_col  = out_width;
-            int channels_col = channels * kD * kH * kW;
-            for (c = 0; c < channels_col; ++c)
-            {
-                int w_offset = c % kW;
-                int h_offset = (c / kW) % kH;
-                int t_offset = (c / kW / kH) % kD;
-                int c_vol = c / kD / kH / kW;
-                for (t = 0; t < depth_col; ++t)
-                {
-                    for (h = 0; h < height_col; ++h)
-                    {
-                        for (w = 0; w < width_col; ++w)
-                        {
-                            int t_pad = t * dT - pT + t_offset * dilationT;
-                            int h_pad = h * dH - pH + h_offset * dilationH;
-                            int w_pad = w * dW - pW + w_offset * dilationW;
-                            if (t_pad >= 0 && t_pad < depth &&
-                                h_pad >= 0 && h_pad < height &&
-                                w_pad >= 0 && w_pad < width)
-                                data_vol[((c_vol * depth + t_pad) * height + h_pad) * width + w_pad] +=
-                                        data_col[((c * depth_col + t) * height_col + h) * width_col + w];
-                        }
-                    }
-                }
-            }
-        }
-
-//////////////////////////////////////////////////////////////////////////
-        template<typename T>
-        void ConvolutionUtils<T>::_avgPool3D_bp(T *gradI_p, T *gradO_p, Nd4jIndex iC, Nd4jIndex iD, Nd4jIndex iH, Nd4jIndex iW, Nd4jIndex oD, Nd4jIndex oH, Nd4jIndex oW, int kD, int kH, int kW, int sD, int sH, int sW, int pD, int pH, int pW, bool count_include_pad) {
+        void ConvolutionUtils<T>::_avgPool3D_bp(T *gradI_p, T *gradO_p, Nd4jLong iC, Nd4jLong iD, Nd4jLong iH, Nd4jLong iW, Nd4jLong oD, Nd4jLong oH, Nd4jLong oW, int kD, int kH, int kW, int sD, int sH, int sW, int pD, int pH, int pW, bool count_include_pad) {
             for (int k = 0; k < iC; k++)
             {
-                Nd4jIndex i, j, ti;
+                Nd4jLong i, j, ti;
 
                 /* local pointers */
                 T *ip = gradI_p + k * iD * iW * iH;
@@ -357,21 +164,21 @@ namespace ops  {
                     {
                         for (j = 0; j < oW; j++)
                         {
-                            Nd4jIndex cstart = ti * sD - pD;
-                            Nd4jIndex hstart = i  * sH - pH;
-                            Nd4jIndex wstart = j  * sW - pW;
-                            Nd4jIndex cend = nd4j::math::nd4j_min<Nd4jIndex>(cstart + kD, iD + pD);
-                            Nd4jIndex hend = nd4j::math::nd4j_min<Nd4jIndex>(hstart + kH, iH + pH);
-                            Nd4jIndex wend = nd4j::math::nd4j_min<Nd4jIndex>(wstart + kW, iW + pW);
-                            Nd4jIndex pool_size = (cend -cstart) * (hend - hstart) * (wend - wstart);
-                            cstart = nd4j::math::nd4j_max<Nd4jIndex>(cstart, 0);
-                            hstart = nd4j::math::nd4j_max<Nd4jIndex>(hstart, 0);
-                            wstart = nd4j::math::nd4j_max<Nd4jIndex>(wstart, 0);
-                            cend = nd4j::math::nd4j_min<Nd4jIndex>(cend, iD);
-                            hend = nd4j::math::nd4j_min<Nd4jIndex>(hend, iH);
-                            wend = nd4j::math::nd4j_min<Nd4jIndex>(wend, iW);
+                            Nd4jLong cstart = ti * sD - pD;
+                            Nd4jLong hstart = i  * sH - pH;
+                            Nd4jLong wstart = j  * sW - pW;
+                            Nd4jLong cend = nd4j::math::nd4j_min<Nd4jLong>(cstart + kD, iD + pD);
+                            Nd4jLong hend = nd4j::math::nd4j_min<Nd4jLong>(hstart + kH, iH + pH);
+                            Nd4jLong wend = nd4j::math::nd4j_min<Nd4jLong>(wstart + kW, iW + pW);
+                            Nd4jLong pool_size = (cend -cstart) * (hend - hstart) * (wend - wstart);
+                            cstart = nd4j::math::nd4j_max<Nd4jLong>(cstart, 0);
+                            hstart = nd4j::math::nd4j_max<Nd4jLong>(hstart, 0);
+                            wstart = nd4j::math::nd4j_max<Nd4jLong>(wstart, 0);
+                            cend = nd4j::math::nd4j_min<Nd4jLong>(cend, iD);
+                            hend = nd4j::math::nd4j_min<Nd4jLong>(hend, iH);
+                            wend = nd4j::math::nd4j_min<Nd4jLong>(wend, iW);
 
-                            Nd4jIndex divide_factor;
+                            Nd4jLong divide_factor;
                             if (count_include_pad)
                                 divide_factor = pool_size;
                             else
@@ -399,8 +206,8 @@ namespace ops  {
 
 //////////////////////////////////////////////////////////////////////////
         template<typename T>
-        void ConvolutionUtils<T>::_avgPool3D(T *input_p, T *output_p, Nd4jIndex iC, Nd4jIndex iD, Nd4jIndex iH, Nd4jIndex iW, Nd4jIndex oD, Nd4jIndex oH, Nd4jIndex oW, int kD, int kH, int kW, int sD, int sH, int sW, int pD, int pH, int pW, bool count_include_pad) {
-            for (Nd4jIndex k = 0; k < iC; k++)
+        void ConvolutionUtils<T>::_avgPool3D(T *input_p, T *output_p, Nd4jLong iC, Nd4jLong iD, Nd4jLong iH, Nd4jLong iW, Nd4jLong oD, Nd4jLong oH, Nd4jLong oW, int kD, int kH, int kW, int sD, int sH, int sW, int pD, int pH, int pW, bool count_include_pad) {
+            for (Nd4jLong k = 0; k < iC; k++)
             {
                 long i, j, ti;
 
@@ -418,21 +225,21 @@ namespace ops  {
                         for (j = 0; j < oW; j++)
                         {
                             /* compute pool range. */
-                            Nd4jIndex cstart = ti * sD - pD;
-                            Nd4jIndex hstart = i  * sH - pH;
-                            Nd4jIndex wstart = j  * sW - pW;
-                            Nd4jIndex cend = nd4j::math::nd4j_min<Nd4jIndex>(cstart + kD, iD + pD);
-                            Nd4jIndex hend = nd4j::math::nd4j_min<Nd4jIndex>(hstart + kH, iH + pH);
-                            Nd4jIndex wend = nd4j::math::nd4j_min<Nd4jIndex>(wstart + kW, iW + pW);
-                            Nd4jIndex pool_size = (cend - cstart) * (hend - hstart) * (wend - wstart);
-                            cstart = nd4j::math::nd4j_max<Nd4jIndex>(cstart, 0);
-                            hstart = nd4j::math::nd4j_max<Nd4jIndex>(hstart, 0);
-                            wstart = nd4j::math::nd4j_max<Nd4jIndex>(wstart, 0);
-                            cend = nd4j::math::nd4j_min<Nd4jIndex>(cend, iD);
-                            hend = nd4j::math::nd4j_min<Nd4jIndex>(hend, iH);
-                            wend = nd4j::math::nd4j_min<Nd4jIndex>(wend, iW);
+                            Nd4jLong cstart = ti * sD - pD;
+                            Nd4jLong hstart = i  * sH - pH;
+                            Nd4jLong wstart = j  * sW - pW;
+                            Nd4jLong cend = nd4j::math::nd4j_min<Nd4jLong>(cstart + kD, iD + pD);
+                            Nd4jLong hend = nd4j::math::nd4j_min<Nd4jLong>(hstart + kH, iH + pH);
+                            Nd4jLong wend = nd4j::math::nd4j_min<Nd4jLong>(wstart + kW, iW + pW);
+                            Nd4jLong pool_size = (cend - cstart) * (hend - hstart) * (wend - wstart);
+                            cstart = nd4j::math::nd4j_max<Nd4jLong>(cstart, 0);
+                            hstart = nd4j::math::nd4j_max<Nd4jLong>(hstart, 0);
+                            wstart = nd4j::math::nd4j_max<Nd4jLong>(wstart, 0);
+                            cend = nd4j::math::nd4j_min<Nd4jLong>(cend, iD);
+                            hend = nd4j::math::nd4j_min<Nd4jLong>(hend, iH);
+                            wend = nd4j::math::nd4j_min<Nd4jLong>(wend, iW);
 
-                            Nd4jIndex divide_factor;
+                            Nd4jLong divide_factor;
                             if (count_include_pad)
                                 divide_factor = pool_size;
                             else
@@ -463,7 +270,7 @@ namespace ops  {
 
 //////////////////////////////////////////////////////////////////////////
         template<typename T>
-        void ConvolutionUtils<T>::_dilatedMaxPool3D_bp(T *gradInput_p, T *gradOutput_p, T *indBuff, Nd4jIndex nslices, Nd4jIndex  itime, Nd4jIndex  iwidth, Nd4jIndex  iheight, Nd4jIndex otime, Nd4jIndex owidth, Nd4jIndex oheight, int dT, int dW, int dH, int pT, int pW, int pH, int dilationT, int dilationW, int dilationH) {
+        void ConvolutionUtils<T>::_dilatedMaxPool3D_bp(T *gradInput_p, T *gradOutput_p, T *indBuff, Nd4jLong nslices, Nd4jLong  itime, Nd4jLong  iwidth, Nd4jLong  iheight, Nd4jLong otime, Nd4jLong owidth, Nd4jLong oheight, int dT, int dW, int dH, int pT, int pW, int pH, int dilationT, int dilationW, int dilationH) {
             for (int k = 0; k < nslices; k++)
             {
                 T *gradInput_p_k  = gradInput_p  + k * itime * iwidth * iheight;
@@ -496,13 +303,13 @@ namespace ops  {
 
 //////////////////////////////////////////////////////////////////////////
         template<typename T>
-        void ConvolutionUtils<T>::_dilatedMaxPool3D(T *input_p, T *output_p, T *indBuff, Nd4jIndex nslices, Nd4jIndex itime, Nd4jIndex iwidth, Nd4jIndex iheight, Nd4jIndex otime, Nd4jIndex owidth, Nd4jIndex oheight, int kD, int kW, int kH, int dT, int dW, int dH, int pT, int pW, int pH, int dilationT, int dilationW, int dilationH) {
-            Nd4jIndex k;
+        void ConvolutionUtils<T>::_dilatedMaxPool3D(T *input_p, T *output_p, T *indBuff, Nd4jLong nslices, Nd4jLong itime, Nd4jLong iwidth, Nd4jLong iheight, Nd4jLong otime, Nd4jLong owidth, Nd4jLong oheight, int kD, int kW, int kH, int dT, int dW, int dH, int pT, int pW, int pH, int dilationT, int dilationW, int dilationH) {
+            Nd4jLong k;
 #pragma omp parallel for private(k)
             for (k = 0; k < nslices; k++)
             {
                 /* loop over output */
-                Nd4jIndex i, j, ti;
+                Nd4jLong i, j, ti;
                 for (ti = 0; ti < otime; ti++)
                 {
                     for (i = 0; i < oheight; i++)
@@ -511,13 +318,13 @@ namespace ops  {
                         {
                             /* local pointers */
 
-                            Nd4jIndex start_t = ti * dT - pT;
-                            Nd4jIndex start_h = i * dH - pH;
-                            Nd4jIndex start_w = j * dW - pW;
+                            Nd4jLong start_t = ti * dT - pT;
+                            Nd4jLong start_h = i * dH - pH;
+                            Nd4jLong start_w = j * dW - pW;
 
-                            Nd4jIndex kernel_d = nd4j::math::nd4j_min<Nd4jIndex>(kD, kD + start_t);
-                            Nd4jIndex kernel_h = nd4j::math::nd4j_min<Nd4jIndex>(kH, kH + start_h);
-                            Nd4jIndex kernel_w = nd4j::math::nd4j_min<Nd4jIndex>(kW, kW + start_w);
+                            Nd4jLong kernel_d = nd4j::math::nd4j_min<Nd4jLong>(kD, kD + start_t);
+                            Nd4jLong kernel_h = nd4j::math::nd4j_min<Nd4jLong>(kH, kH + start_h);
+                            Nd4jLong kernel_w = nd4j::math::nd4j_min<Nd4jLong>(kW, kW + start_w);
 
                             while(start_t < 0)
                                 start_t += dilationT;
@@ -574,12 +381,12 @@ namespace ops  {
 
 //////////////////////////////////////////////////////////////////////////
         template<typename T>
-        void ConvolutionUtils<T>::validXCorr3Dptr(T*r_, T alpha, T *t_, Nd4jIndex it, Nd4jIndex ir, Nd4jIndex ic, T *k_, Nd4jIndex kt, Nd4jIndex kr, Nd4jIndex kc, Nd4jIndex st, Nd4jIndex sr, Nd4jIndex sc) {
-            Nd4jIndex tot = (it - kt) / st + 1;
-            Nd4jIndex tor = (ir - kr) / sr + 1;
-            Nd4jIndex toc = (ic - kc) / sc + 1;
+        void ConvolutionUtils<T>::validXCorr3Dptr(T*r_, T alpha, T *t_, Nd4jLong it, Nd4jLong ir, Nd4jLong ic, T *k_, Nd4jLong kt, Nd4jLong kr, Nd4jLong kc, Nd4jLong st, Nd4jLong sr, Nd4jLong sc) {
+            Nd4jLong tot = (it - kt) / st + 1;
+            Nd4jLong tor = (ir - kr) / sr + 1;
+            Nd4jLong toc = (ic - kc) / sc + 1;
 
-            Nd4jIndex zz, xx, yy;
+            Nd4jLong zz, xx, yy;
 
             for (zz = 0; zz < tot; zz++) {
                 for(yy = 0; yy < tor; yy++) {
@@ -588,7 +395,7 @@ namespace ops  {
                         T *pi_ = t_ + zz*st*ir*ic + yy*sr*ic + xx*sc;
                         T *pw_ = k_;
                         T sum = 0;
-                        Nd4jIndex kz, kx, ky;
+                        Nd4jLong kz, kx, ky;
                         for(kz = 0; kz < kt; kz++) {
                             for(ky = 0; ky < kr; ky++) {
                                 for(kx = 0; kx < kc; kx++) {
@@ -608,12 +415,12 @@ namespace ops  {
 
 //////////////////////////////////////////////////////////////////////////
         template<typename T>
-        void ConvolutionUtils<T>::validConv3Dptr(T*r_, T alpha, T *t_, Nd4jIndex it, Nd4jIndex ir, Nd4jIndex ic, T *k_, Nd4jIndex kt, Nd4jIndex kr, Nd4jIndex kc, Nd4jIndex st, Nd4jIndex sr, Nd4jIndex sc) {
-            Nd4jIndex tot = (it - kt) / st + 1;
-            Nd4jIndex tor = (ir - kr) / sr + 1;
-            Nd4jIndex toc = (ic - kc) / sc + 1;
+        void ConvolutionUtils<T>::validConv3Dptr(T*r_, T alpha, T *t_, Nd4jLong it, Nd4jLong ir, Nd4jLong ic, T *k_, Nd4jLong kt, Nd4jLong kr, Nd4jLong kc, Nd4jLong st, Nd4jLong sr, Nd4jLong sc) {
+            Nd4jLong tot = (it - kt) / st + 1;
+            Nd4jLong tor = (ir - kr) / sr + 1;
+            Nd4jLong toc = (ic - kc) / sc + 1;
 
-            Nd4jIndex zz, xx, yy;
+            Nd4jLong zz, xx, yy;
 
             for(zz = 0; zz < tot; zz++) {
                 for(yy = 0; yy < tor; yy++) {
@@ -622,7 +429,7 @@ namespace ops  {
                         T *pi_ = t_ + zz*st*ir*ic + yy*sr*ic + xx*sc;
                         T *pw_ = k_ + kt*kr*kc - 1;
                         T sum = 0;
-                        Nd4jIndex kz, kx, ky;
+                        Nd4jLong kz, kx, ky;
                         for(kz = 0; kz < kt; kz++) {
                             for(ky = 0; ky < kr; ky++) {
                                 for(kx = 0; kx < kc; kx++) {
@@ -642,11 +449,11 @@ namespace ops  {
 
 //////////////////////////////////////////////////////////////////////////
         template<typename T>
-        void ConvolutionUtils<T>::fullConv3Dptr(T*r_, T alpha, T *t_, Nd4jIndex it, Nd4jIndex ir, Nd4jIndex ic, T *k_, Nd4jIndex kt, Nd4jIndex kr, Nd4jIndex kc, Nd4jIndex st, Nd4jIndex sr, Nd4jIndex sc) {
-            Nd4jIndex tor = (ir - 1) * sr + kr;
-            Nd4jIndex toc = (ic - 1) * sc + kc;
+        void ConvolutionUtils<T>::fullConv3Dptr(T*r_, T alpha, T *t_, Nd4jLong it, Nd4jLong ir, Nd4jLong ic, T *k_, Nd4jLong kt, Nd4jLong kr, Nd4jLong kc, Nd4jLong st, Nd4jLong sr, Nd4jLong sc) {
+            Nd4jLong tor = (ir - 1) * sr + kr;
+            Nd4jLong toc = (ic - 1) * sc + kc;
 
-            Nd4jIndex zz, xx, yy;
+            Nd4jLong zz, xx, yy;
 
             for(zz = 0; zz < it; zz++) {
                 for(yy = 0; yy < ir; yy++) {
@@ -654,7 +461,7 @@ namespace ops  {
                         /* Outer product in two dimensions... (between input image and the mask) */
                         T *po_ = r_ + zz*st*tor*toc + yy*sr*toc + xx*sc;
                         T *pw_ = k_;
-                        Nd4jIndex kz, kx, ky;
+                        Nd4jLong kz, kx, ky;
                         /* printf("Output Plane : %ld,%ld,%ld, input val=%g\n",zz,yy,xx,*t_); */
                         for(kz = 0; kz < kt; kz++) {
                             for(ky = 0; ky < kr; ky++) {
@@ -679,11 +486,11 @@ namespace ops  {
 
 //////////////////////////////////////////////////////////////////////////
         template<typename T>
-        void ConvolutionUtils<T>::fullXCorr3Dptr(T*r_, T alpha, T *t_, Nd4jIndex it, Nd4jIndex ir, Nd4jIndex ic, T *k_, Nd4jIndex kt, Nd4jIndex kr, Nd4jIndex kc, Nd4jIndex st, Nd4jIndex sr, Nd4jIndex sc) {
-            Nd4jIndex tor = (ir - 1) * sr + kr;
-            Nd4jIndex toc = (ic - 1) * sc + kc;
+        void ConvolutionUtils<T>::fullXCorr3Dptr(T*r_, T alpha, T *t_, Nd4jLong it, Nd4jLong ir, Nd4jLong ic, T *k_, Nd4jLong kt, Nd4jLong kr, Nd4jLong kc, Nd4jLong st, Nd4jLong sr, Nd4jLong sc) {
+            Nd4jLong tor = (ir - 1) * sr + kr;
+            Nd4jLong toc = (ic - 1) * sc + kc;
 
-            Nd4jIndex zz, xx, yy;
+            Nd4jLong zz, xx, yy;
 
             for(zz = 0; zz < it; zz++) {
                 for(yy = 0; yy < ir; yy++) {
@@ -691,7 +498,7 @@ namespace ops  {
                         /* Outer product in two dimensions... (between input image and the mask) */
                         T *po_ = r_ + zz * st * tor * toc + yy*sr*toc + xx*sc;
                         T *pw_ = k_ + kt*kr*kc -1;
-                        Nd4jIndex kz, kx, ky;
+                        Nd4jLong kz, kx, ky;
                         for(kz = 0; kz < kt; kz++) {
                             for(ky = 0; ky < kr; ky++) {
                                 T z = *t_ * alpha;
@@ -711,7 +518,7 @@ namespace ops  {
 
 //////////////////////////////////////////////////////////////////////////
         template<typename T>
-        Nd4jIndex ConvolutionUtils<T>::convsize(Nd4jIndex x, Nd4jIndex k, Nd4jIndex s, const char* vf) {
+        Nd4jLong ConvolutionUtils<T>::convsize(Nd4jLong x, Nd4jLong k, Nd4jLong s, const char* vf) {
             if (*vf == 'V')
                 return (x-k)/s + 1;
             else
@@ -721,19 +528,19 @@ namespace ops  {
 //////////////////////////////////////////////////////////////////////////
         template<typename T>
         Nd4jStatus ConvolutionUtils<T>::conv3Dmv(NDArray<T>* r_, T beta, T alpha, NDArray<T>* t_, NDArray<T>* k_,
-                                       Nd4jIndex sdepth, Nd4jIndex srow, Nd4jIndex scol, const char *vf, const char *xc) {
+                                       Nd4jLong sdepth, Nd4jLong srow, Nd4jLong scol, const char *vf, const char *xc) {
 
-            Nd4jIndex nInputPlane, nInputDepth, nInputRows, nInputCols;
-            Nd4jIndex nKernelDepth, nKernelRows, nKernelCols;
-            Nd4jIndex nOutputPlane, nOutputDepth, nOutputRows, nOutputCols;
-            Nd4jIndex istride0, kstride0, kstride1;
+            Nd4jLong nInputPlane, nInputDepth, nInputRows, nInputCols;
+            Nd4jLong nKernelDepth, nKernelRows, nKernelCols;
+            Nd4jLong nOutputPlane, nOutputDepth, nOutputRows, nOutputCols;
+            Nd4jLong istride0, kstride0, kstride1;
             NDArray<T> *input;
             NDArray<T> *kernel;
             T* input_data;
             T* weight_data;
             T* output_data;
-            Nd4jIndex nelem;
-            Nd4jIndex k, i;
+            Nd4jLong nelem;
+            Nd4jLong k, i;
 
             if (t_->rankOf() != 4)
                 throw "Boom";
@@ -838,9 +645,9 @@ namespace ops  {
         template<typename T>
         Nd4jStatus ConvolutionUtils<T>::conv3D(T* output_data,
                                      T alpha,
-                                     T* ptr_input, Nd4jIndex nInputDepth, Nd4jIndex nInputRows, Nd4jIndex nInputCols,
-                                     T* ptr_weight, Nd4jIndex nKernelDepth, Nd4jIndex nKernelRows, Nd4jIndex nKernelCols,
-                                     Nd4jIndex sdepth, Nd4jIndex srow, Nd4jIndex scol,
+                                     T* ptr_input, Nd4jLong nInputDepth, Nd4jLong nInputRows, Nd4jLong nInputCols,
+                                     T* ptr_weight, Nd4jLong nKernelDepth, Nd4jLong nKernelRows, Nd4jLong nKernelCols,
+                                     Nd4jLong sdepth, Nd4jLong srow, Nd4jLong scol,
                                      const char *vf, const char *xc) {
 
             if (!(*vf == 'V' || *vf == 'F'))
@@ -1115,12 +922,12 @@ void ConvolutionUtils<T>::vol2col2(NDArray<T>& vol, NDArray<T>& col, const int s
 
     T* colBuff = col.getBuffer();    
 
-    int *colShape  = shape::shapeOf(col.getShapeInfo());
-    char colOrder  = shape::order(col.getShapeInfo());
-    int *colStride = shape::stride(col.getShapeInfo());
+    auto colShape  = shape::shapeOf(col.getShapeInfo());
+    auto colOrder  = shape::order(col.getShapeInfo());
+    auto colStride = shape::stride(col.getShapeInfo());
 
-    int *volShape  = shape::shapeOf(vol.getShapeInfo());
-    int *volStride = shape::stride(vol.getShapeInfo());
+    auto volShape  = shape::shapeOf(vol.getShapeInfo());
+    auto volStride = shape::stride(vol.getShapeInfo());
 
     int bS   = volShape[0];
     int volC = volShape[1];
@@ -1223,7 +1030,7 @@ void ConvolutionUtils<T>::vol2col2(NDArray<T>& vol, NDArray<T>& col, const int s
 
 //////////////////////////////////////////////////////////////////////////
 template<typename T>
-void ConvolutionUtils<T>::getSizesAndIndexesConv2d(const bool isNCHW, const int* inShapeInfo, const int* outShapeInfo, int& bS, int& iC, int& iH, int& iW, int& oC, int& oH, int& oW, int& indIOioC, int& indIiH, int& indWiC, int& indWoC, int& indWkH, int& indOoH) {
+void ConvolutionUtils<T>::getSizesAndIndexesConv2d(const bool isNCHW, const Nd4jLong* inShapeInfo, const Nd4jLong* outShapeInfo, int& bS, int& iC, int& iH, int& iW, int& oC, int& oH, int& oW, int& indIOioC, int& indIiH, int& indWiC, int& indWoC, int& indWkH, int& indOoH) {
 
     // input   [bS, iH, iW, iC] (NHWC) or [bS, iC, iH, iW] (NCHW)
     // weights [kH, kW, iC, oC] (NHWC) or [oC, iC, kH, kW] (NCHW)
@@ -1377,7 +1184,7 @@ void ConvolutionUtils<T>::conv2dBP(const std::vector<NDArray<T>*>& inArrs, const
         _calcPadding2D(pH, pW, oH, oW, iH, iW, kH, kW, sH, sW, dH, dW);
 
     // ----- calculation of gradW and gradB ----- // 
-    NDArray<T>  columns(input->ordering(), {bS, iC, kH, kW, oH, oW}, input->getWorkspace());              
+    NDArray<T> columns(input->ordering(), {bS, iC, kH, kW, oH, oW}, input->getWorkspace());
     std::vector<T> extrasIm2Col({(T) kH, (T) kW, (T) sH, (T) sW, (T) pH, (T) pW, (T) dH, (T) dW});
     input->template applyTransform<simdOps::Im2col<T>>(&columns, extrasIm2Col.data());                          // [bS, iC, iH, iW] is convoluted to [bS, iC, kH, kW, oH, oW]        
     nd4j::NDArrayFactory<T>::tensorDot(&columns, gradO, gradW, {0,4,5}, gradOaxesForDot, permutForGradW);       // [bS, iC, kH, kW, oH, oW] x [bS, oH, oW, oC]/[bS, oC, oH, oW] = [iC, kH, kW, oC]
@@ -1428,9 +1235,9 @@ void ConvolutionUtils<T>::depthwiseConv2d(const std::vector<NDArray<T>*>& inArrs
     getSizesAndIndexesConv2d(isNCHW, *input, *output, bS, iC, iH, iW, oC, oH, oW, indIOioC, indIiH, indWiC, indWmC, indWkH, indOoH);    
     mC = weights->sizeAt(indWmC);                           // channels multiplier
     
-    std::vector<std::vector<int>> modifColumns = {{1,0,4,5,2,3}, {iC,bS*oH*oW,kH*kW}};  // [bS,iC,kH,kW,oH,oW] -> [iC,bS,oH,oW,kH,kW] -> [iC,bS*oH*oW,kH*kW]
-    std::vector<std::vector<int>> modifWeights, modifOutput;
-    std::vector<int> outReShape;
+    std::vector<std::vector<Nd4jLong>> modifColumns = {{1,0,4,5,2,3}, {iC,bS*oH*oW,kH*kW}};  // [bS,iC,kH,kW,oH,oW] -> [iC,bS,oH,oW,kH,kW] -> [iC,bS*oH*oW,kH*kW]
+    std::vector<std::vector<Nd4jLong>> modifWeights, modifOutput;
+    std::vector<Nd4jLong> outReShape;
 
     if(!isNCHW) {        
         input = input->permute({0, 3, 1, 2});                                           // [bS,iH,iW,iC]    -> [bS,iC,iH,iW] 
@@ -1492,9 +1299,9 @@ void ConvolutionUtils<T>::depthwiseConv2dBP(const std::vector<NDArray<T>*>& inAr
     ConvolutionUtils<T>::getSizesAndIndexesConv2d(isNCHW, *input, *gradO, bS, iC, iH, iW, oC, oH, oW, indIOioC, indIiH, indWiC, indWmC, indWkH, indOoH);    
     mC = weights->sizeAt(indWmC);                           // channels multiplier    
 
-    std::vector<std::vector<int>> modifColumns = {{1,2,3,0,4,5}, {iC, kH*kW, bS*oH*oW}};      // [bS,iC,kH,kW,oH,oW] -> [iC, kH*kW, bS*oH*oW]
-    std::vector<std::vector<int>> modifGradW, modifGradO1, modifGradO2;
-    std::vector<int> gradOreShape;
+    std::vector<std::vector<Nd4jLong>> modifColumns = {{1,2,3,0,4,5}, {iC, kH*kW, bS*oH*oW}};      // [bS,iC,kH,kW,oH,oW] -> [iC, kH*kW, bS*oH*oW]
+    std::vector<std::vector<Nd4jLong>> modifGradW, modifGradO1, modifGradO2;
+    std::vector<Nd4jLong> gradOreShape;
 
     if(!isNCHW) {        
         input = input->permute({0, 3, 1, 2});                                           // [bS,iH,iW,iC]    -> [bS,iC,iH,iW] 
@@ -1551,8 +1358,8 @@ void ConvolutionUtils<T>::sconv2d(const std::vector<NDArray<T>*>& inArrs, NDArra
 
     NDArray<T> *input        = inArrs[0];                                           // [bS, iH, iW, iC]  (NHWC) or [bS, iC, iH, iW]  (NCHW)
     NDArray<T> *weightsDepth = inArrs[1];                                           // [kH, kW, iC, mC]  (NHWC) or [mC, iC, kH, kW]  (NCHW)
-    NDArray<T> *weightsPoint = inArrs[2];                                                     // [1, 1, iC*mC, oC] (NHWC) or [oC, iC*mC, 1, 1] (NCHW)
-    NDArray<T> *bias         = inArrs[3];                                                     // [oC], oC = iC*mC if weightsPoint=nullptr
+    NDArray<T> *weightsPoint = inArrs[2];                                           // [1, 1, iC*mC, oC] (NHWC) or [oC, iC*mC, 1, 1] (NCHW)
+    NDArray<T> *bias         = inArrs[3];                                           // [oC], oC = iC*mC if weightsPoint=nullptr
     
     // output is [bS, oH, oW, oC]  (NHWC) or [bS, oC, oH, oW]  (NCHW)
 
@@ -1574,7 +1381,7 @@ void ConvolutionUtils<T>::sconv2d(const std::vector<NDArray<T>*>& inArrs, NDArra
 
     NDArray<T>* outputDepth = output;
     if(weightsPoint)                        // if pointwise convolution is expected
-        outputDepth = new NDArray<T>(output->ordering(), !isNCHW ? std::vector<int>({bS, oH, oW, iC*mC}) : std::vector<int>({bS, iC*mC, oH, oW}));    
+        outputDepth = new NDArray<T>(output->ordering(), !isNCHW ? std::vector<Nd4jLong>({bS, oH, oW, iC*mC}) : std::vector<Nd4jLong>({bS, iC*mC, oH, oW}));    
 
     // ----- perform depthwise convolution (if weightsPoint is absent then oC = iC*mC) ----- //    
     ConvolutionUtils<T>::depthwiseConv2d({input, weightsDepth, weightsPoint ? nullptr : bias}, outputDepth, {kH,kW, sH,sW, pH,pW, dH,dW, isSameMode, isNCHW});                                   
@@ -1586,6 +1393,499 @@ void ConvolutionUtils<T>::sconv2d(const std::vector<NDArray<T>*>& inArrs, NDArra
     }
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+// [bS, iC, iD, iH, iW] is convoluted to [bS, iC, kD, kH, kW, oD, oH, oW]        
+template <typename T>
+void ConvolutionUtils<T>::vol2col(NDArray<T>& volume, NDArray<T>& columns, const int sD, const int sH, const int sW, const int pD, const int pH, const int pW, const int dD, const int dH, const int dW) {
+
+    const int bS = volume.sizeAt(0);
+    const int iC = volume.sizeAt(1);
+    const int iD = volume.sizeAt(2);
+    const int iH = volume.sizeAt(3);
+    const int iW = volume.sizeAt(4);
+    const int kD = columns.sizeAt(2);
+    const int kH = columns.sizeAt(3);
+    const int kW = columns.sizeAt(4);
+    const int oD = columns.sizeAt(5);
+    const int oH = columns.sizeAt(6);
+    const int oW = columns.sizeAt(7);
+    const int colStride0 = columns.stridesOf()[0];
+    const int colStride1 = columns.stridesOf()[1];
+    const int colStride2 = columns.stridesOf()[2];
+    const int colStride3 = columns.stridesOf()[3];
+    const int colStride4 = columns.stridesOf()[4];
+    const int colStride5 = columns.stridesOf()[5];
+    const int colStride6 = columns.stridesOf()[6];
+    const int colStride7 = columns.stridesOf()[7];  
+    const int volStride0 = volume.stridesOf()[0];
+    const int volStride1 = volume.stridesOf()[1];
+    const int volStride2 = volume.stridesOf()[2];
+    const int volStride3 = volume.stridesOf()[3];
+    const int volStride4 = volume.stridesOf()[4];    
+    
+    T* vol = volume.getBuffer();
+    T* col = columns.getBuffer();
+
+    const T* vol0End = vol + volStride1 * iC;
+    const int kDepEnd = -pD + kD * dD;
+    const int kRowEnd = -pH + kH * dH;
+    const int kColEnd = -pW + kW * dW;
+    const int oHW = oH * oW;
+    const int volDepEnd = oD * sD;
+    const int volRowEnd = oH * sH;
+    const int volColEnd = oW * sW;
+
+    T *vol1, *vol2, *col0;
+    int volDepStart, volRowStart, volColStart, volDep, volRow, volCol;
+
+    if (volume.ordering() == 'c' &&  columns.ordering() == 'c' && shape::strideDescendingCAscendingF(volume.getShapeInfo()) && shape::strideDescendingCAscendingF(columns.getShapeInfo())) {
+
+#pragma omp parallel for if(bS > Environment::getInstance()->elementwiseThreshold()) schedule(static) proc_bind(close) private(vol1, vol2, col0, volDepStart, volRowStart, volColStart, volDep, volRow, volCol)
+        for (int b = 0; b < bS; b++) {            
+            col0 = col + (b * colStride0);                        
+            T *vol0 = vol + (b * volStride0);
+
+            for (int channel = 0; channel < iC; ++channel, vol0 += volStride1) { 
+
+                for (int kDep = 0; kDep < kD; ++kDep) { 
+                    volDepStart = -pD + kDep * dD;
+
+                    for (int kRow = 0; kRow < kH; ++kRow) {
+                        volRowStart = -pH + kRow * dH;
+
+                        for (int kCol = 0; kCol < kW; ++kCol) {
+                            volDep = volDepStart;
+                            volColStart = -pW + kCol * dW;
+                            
+                            for (int colDep = 0; colDep < oD; ++colDep, volDep += sD) {
+
+                                if(static_cast<unsigned>(volDep) >= static_cast<unsigned>(iD)) {                                
+                                    for (int colHW = 0; colHW < oHW; ++colHW, ++col0)
+                                            *col0 = 0.;
+                                }
+                                else {
+                                    volRow = volRowStart;
+                                    vol1 = vol0 + volDep * volStride2;
+
+                                    for (int colRow = 0; colRow < oH; ++colRow, volRow+=sH) {
+
+                                        if (static_cast<unsigned>(volRow) >= static_cast<unsigned>(iH)) {                                        
+                                            for (int colW = 0; colW < oW; ++colW, ++col0) 
+                                                *col0 = 0.;
+                                        }
+                                        else {
+                                            volCol = volColStart;
+                                            vol2 = vol1 + volRow * volStride3;
+
+                                            for (int colCol = 0; colCol < oW; ++colCol, volCol+=sW, ++col0) 
+                                                if (static_cast<unsigned>(volCol) >= static_cast<unsigned>(iW))                                                
+                                                    *col0 = 0.;                  
+                                                else 
+                                                    *col0 = *(vol2 + volCol * volStride4);                
+                                        }        
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    else {
+        const int col5End = oH * colStride6;
+        const int col6End = oW * colStride7;
+        T *col1, *col2, *col3, *col4, *col5, *col6;
+#pragma omp parallel for if(bS > Environment::getInstance()->elementwiseThreshold()) schedule(static) proc_bind(close) private(vol1, vol2, col0, col1, col2, col3, col4, col5, col6, volDepStart, volRowStart, volColStart, volDep, volRow, volCol)
+          for (int b = 0; b < bS; b++) {            
+            col0 = col + (b * colStride0);     
+            T *vol0 = vol + (b * volStride0);                   
+            
+            for (int channel = 0; channel < iC; ++channel, vol0+=volStride1, col0+=colStride1) {            
+                col1 = col0;
+
+                for (int kDep = 0; kDep < kD; ++kDep, col1+=colStride2) { 
+                    col2 = col1;
+                    volDepStart = -pD + kDep * dD;                   
+                    
+                    for (int kRow = 0; kRow < kH; ++kRow, col2+=colStride3) {
+                        col3 = col2;
+                        volRowStart = -pH + kRow * dH;
+                    
+                        for (int kCol = 0; kCol < kW; ++kCol, col3+=colStride4) {
+                            col4 = col3;
+                            volDep = volDepStart;
+                            volColStart = -pW + kCol * dW;
+                            
+                            for (int colDep = 0; colDep < oD; ++colDep, volDep+=sD, col4+=colStride5) {                            
+                                col5 = col4;
+
+                                if (static_cast<unsigned>(volDep) >= static_cast<unsigned>(iD)) {
+                                    for (int colH = 0; colH < oH; ++colH, col5+=colStride6) {
+                                        col6 = col5;                                        
+                                        for (int colW = 0; colW < oW; ++colW, col6+=colStride7)
+                                            *col6 = 0.;
+                                    }                                    
+                                }
+                                else {
+                                    volRow = volRowStart;                                    
+                                    vol1 = vol0 + volDep * volStride2;
+
+                                    for (int colRow = 0; colRow < oH; ++colRow, volRow+=sH, col5+=colStride6) {                                    
+                                        col6 = col5;                                        
+
+                                        if (static_cast<unsigned>(volRow) >= static_cast<unsigned>(iH)) {
+                                            for (int colW = 0; colW < oW; ++colW, col6+=colStride7)
+                                                *col6 = 0.;
+                                        }
+                                        else {
+                                            volCol = volColStart;                            
+                                            vol2 = vol1 + volRow * volStride3;
+
+                                            for (int colCol = 0; colCol < oW; ++colCol, volCol+=sW, col6+=colStride7) 
+                                                if (static_cast<unsigned>(volCol) >= static_cast<unsigned>(iW))                                                
+                                                    *col6 = 0.;                  
+                                                else 
+                                                    *col6 = *(vol2 + volCol * volStride4);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }  
+    }
+}
+
+//////////////////////////////////////////////////////////////////////////
+// [bS, iC, kD, kH, kW, oD, oH, oW] is de-convoluted to [bS, iC, iD, iH, iW]
+template <typename T>
+void ConvolutionUtils<T>::col2vol(NDArray<T>& columns, NDArray<T>& volume, const int sD, const int sH, const int sW, const int pD, const int pH, const int pW, const int dD, const int dH, const int dW) {
+
+    const int bS = volume.sizeAt(0);
+    const int iC = volume.sizeAt(1);
+    const int iD = volume.sizeAt(2);
+    const int iH = volume.sizeAt(3);
+    const int iW = volume.sizeAt(4);
+    const int kD = columns.sizeAt(2);
+    const int kH = columns.sizeAt(3);
+    const int kW = columns.sizeAt(4);
+    const int oD = columns.sizeAt(5);
+    const int oH = columns.sizeAt(6);
+    const int oW = columns.sizeAt(7);
+    const int colStride0 = columns.stridesOf()[0];
+    const int colStride1 = columns.stridesOf()[1];
+    const int colStride2 = columns.stridesOf()[2];
+    const int colStride3 = columns.stridesOf()[3];
+    const int colStride4 = columns.stridesOf()[4];
+    const int colStride5 = columns.stridesOf()[5];
+    const int colStride6 = columns.stridesOf()[6];
+    const int colStride7 = columns.stridesOf()[7];  
+    const int volStride0 = volume.stridesOf()[0];
+    const int volStride1 = volume.stridesOf()[1];
+    const int volStride2 = volume.stridesOf()[2];
+    const int volStride3 = volume.stridesOf()[3];
+    const int volStride4 = volume.stridesOf()[4];    
+    
+    T* vol = volume.getBuffer();
+    T* col = columns.getBuffer();
+
+    const T* vol0End = vol + volStride1 * iC;
+    const int kDepEnd = -pD + kD * dD;
+    const int kRowEnd = -pH + kH * dH;
+    const int kColEnd = -pW + kW * dW;
+    const int colStepOH = oH * colStride6;
+    const int colStepOW = oW * colStride7;
+    const int volDepEnd = oD * sD;
+    const int volRowEnd = oH * sH;
+    const int volColEnd = oW * sW;
+
+    T *vol1, *vol2, *vol3, *col0;
+    int volDepStart, volRowStart, volColStart, volDep, volRow, volCol;
+
+    if (volume.ordering() == 'c' &&  columns.ordering() == 'c' && shape::strideDescendingCAscendingF(volume.getShapeInfo()) && shape::strideDescendingCAscendingF(columns.getShapeInfo())) {
+
+#pragma omp parallel for if(bS > Environment::getInstance()->elementwiseThreshold()) schedule(static) proc_bind(close) private(vol1, vol2, vol3, col0, volDepStart, volRowStart, volColStart, volDep, volRow, volCol)
+        for (int b = 0; b < bS; b++) {            
+            col0 = col + (b * colStride0);                        
+            T *vol0 = vol + (b * volStride0);
+
+            for (int channel = 0; channel < iC; ++channel, vol0 += volStride1) { 
+
+                for (int kDep = 0; kDep < kD; ++kDep) { 
+                    volDepStart = -pD + kDep * dD;
+
+                    for (int kRow = 0; kRow < kH; ++kRow) {
+                        volRowStart = -pH + kRow * dH;
+
+                        for (int kCol = 0; kCol < kW; ++kCol) {
+                            volDep = volDepStart;
+                            volColStart = -pW + kCol * dW;
+                                   
+                            for (int colDep = 0; colDep < oD; ++colDep, volDep += sD) {                            
+
+                                if(static_cast<unsigned>(volDep) >= static_cast<unsigned>(iD)) {                            
+                                    col0 += colStepOH;
+                                }
+                                else {
+                                    volRow = volRowStart;
+                                    vol1 = vol0 + volDep * volStride2;
+
+                                    for (int colRow = 0; colRow < oH; ++colRow, volRow+=sH) {                                    
+
+                                        if (static_cast<unsigned>(volRow) >= static_cast<unsigned>(iH)) {                                        
+                                            col0 += colStepOW;           
+                                        }
+                                        else {                                            
+                                            volCol = volColStart;
+                                            vol2 = vol1 + volRow * volStride3;
+
+                                            if(kDep == -pD &&  kRow == -pH && kCol == -pW) {        // first pass, nullify all columns elemets
+                                                for (int colCol = 0; colCol < oW; ++colCol, volCol+=sW,  col0+=colStride7)
+                                                    if (static_cast<unsigned>(volCol) < static_cast<unsigned>(iW)) 
+                                                        *(vol2 + volCol * volStride4) = *col0;                                                        
+                                            }
+                                            else {
+                                                for (int colCol = 0; colCol < oW; ++colCol, volCol+=sW,  col0+=colStride7) {
+                                                    if (static_cast<unsigned>(volCol) < static_cast<unsigned>(iW)) {
+                                                        vol3 = vol2 + volCol * volStride4;
+                                                        *vol3 += *col0;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    else {
+        const int col5End = oH * colStride6;
+        const int col6End = oW * colStride7;
+        T *vol0, *col1, *col2, *col3, *col4, *col5, *col6;
+#pragma omp parallel for if(bS > Environment::getInstance()->elementwiseThreshold()) schedule(static) proc_bind(close) private(vol1, vol2, col0, col1, col2, col3, col4, col5, col6, volDepStart, volRowStart, volColStart, volDep, volRow, volCol)
+          for (int b = 0; b < bS; b++) {            
+            col0 = col + (b * colStride0);     
+            T *vol0 = vol + (b * volStride0);                   
+            
+            for (int channel = 0; channel < iC; ++channel, vol0+=volStride1, col0+=colStride1) {            
+                col1 = col0;
+
+                    for (int kDep = 0; kDep < kD; ++kDep, col1+=colStride2) { 
+                    col2 = col1;
+                    volDepStart = -pD + kDep * dD;                   
+                    
+                    for (int kRow = 0; kRow < kH; ++kRow, col2+=colStride3) {
+                        col3 = col2;
+                        volRowStart = -pH + kRow * dH;
+                    
+                        for (int kCol = 0; kCol < kW; ++kCol, col3+=colStride4) {
+                            col4 = col3;
+                            volDep = volDepStart;
+                            volColStart = -pW + kCol * dW;                    
+
+                            for (int colDep = 0; colDep < oD; ++colDep, volDep+=sD, col4+=colStride5) {                            
+                                col5 = col4;
+
+                                if (static_cast<unsigned>(volDep) >= static_cast<unsigned>(iD)) {
+                                    col5 += colStepOH;
+                                }
+                                else {
+                                    volRow = volRowStart;                                    
+                                    vol1 = vol0 + volDep * volStride2;
+
+                                    for (int colRow = 0; colRow < oH; ++colRow, volRow+=sH, col5+=colStride6) {                                    
+                                        col6 = col5;         
+
+                                        if (static_cast<unsigned>(volRow) >= static_cast<unsigned>(iH)) {
+                                            col6 += colStepOW;
+                                        }
+                                        else {                                            
+                                            volCol = volColStart;    
+                                            vol2 = vol1 + volRow * volStride3;
+
+                                            if(kDep == -pD &&  kRow == -pH && kCol == -pW) {        // first pass, nullify all columns elemets
+                                                for (int colCol = 0; colCol < oW; ++colCol, volCol+=sW, col6+=colStride7)
+                                                    if (static_cast<unsigned>(volCol) < static_cast<unsigned>(iW)) 
+                                                        *(vol2 + volCol * volStride4) = *col6;
+                                            }
+                                            else {
+                                                for (int colCol = 0; colCol < oW; ++colCol, volCol+=sW, col6+=colStride7) {
+                                                    if (static_cast<unsigned>(volCol) < static_cast<unsigned>(iW)) {
+                                                        vol3 = vol2 + volCol * volStride4;
+                                                        *vol3 += *col6;   
+                                                    }
+                                                }
+                                            }
+                                        }        
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }  
+    }
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+template <typename T>
+void ConvolutionUtils<T>::upsampling2d(const NDArray<T>& input, NDArray<T>& output, const int factorH, const int factorW, const bool isNCHW) {
+    // input  has shape [bS, iC, iH, iW] (NCHW) or [bS, iH, iW, iC] (NHWC) 
+    // output has shape [bS, iC, factorH*iH, factorW*iW ] (NCHW) or [bS, factorH*iH, factorW*iW, iC] (NHWC)
+    
+    int indIn[8]  = {0,0,  0,0,  0,0,  0,0};
+    int indOut[8] = {0,0,  0,0,  0,0,  0,0};
+    const int dimIH = isNCHW ? 2 : 1;    
+    const int j0 = 2*dimIH;
+    const int j1 = j0+1, j2 = j0+2, j3 = j0+3;
+    const int size0 = input.sizeAt(dimIH) * input.sizeAt(dimIH+1);
+    // const int size1 = factorH * factorW;
+
+#pragma omp parallel for if(size0 > Environment::getInstance()->elementwiseThreshold()) schedule(guided) collapse(2) firstprivate(indIn, indOut) 
+    for(int ih = 0; ih < input.sizeAt(dimIH); ++ih) {
+        for(int iw = 0; iw < input.sizeAt(dimIH+1); ++iw) {
+            indIn[j0] = ih; indIn[j1] = ih+1; 
+            indIn[j2] = iw; indIn[j3] = iw+1; 
+
+// #pragma omp parallel for if(size1 > Environment::getInstance()->elementwiseThreshold()) schedule(guided) collapse(2) firstprivate(indOut) 
+            for(int fh = 0; fh < factorH; ++fh) {
+                for(int fw = 0; fw < factorW; ++fw) {
+                    
+                    indOut[j0] = ih * factorH + fh; indOut[j1] = indOut[j0] + 1; 
+                    indOut[j2] = iw * factorW + fw; indOut[j3] = indOut[j2] + 1;                     
+                    output(indOut).assign(input(indIn));
+                }
+            }
+        }
+    }
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+template <typename T>
+void ConvolutionUtils<T>::upsampling3d(const NDArray<T>& input, NDArray<T>& output, const int factorD, const int factorH, const int factorW, const bool isNCDHW) {
+    // input  has shape [bS, iC, iD, iH, iW] (NCDHW) or [bS, iD, iH, iW, iC] (NDHWC) 
+    // output has shape [bS, iC, factorD*iD, factorH*iH, factorW*iW ] (NCDHW) or [bS, factorD*iD, factorH*iH, factorW*iW, iC] (NDHWC)
+    int indIn[10]  = {0,0,  0,0,  0,0,  0,0,  0,0};
+    int indOut[10] = {0,0,  0,0,  0,0,  0,0,  0,0};
+    const int dimID = isNCDHW ? 2 : 1;    
+    const int j0 = 2*dimID;
+    const int j1 = j0+1, j2 = j0+2, j3 = j0+3, j4 = j0+4, j5 = j0+5;;
+    const int size0 = input.sizeAt(dimID) * input.sizeAt(dimID+1) * input.sizeAt(dimID+2);
+    // const int size1 = factorD * factorH * factorW;
+
+#pragma omp parallel for if(size0 > Environment::getInstance()->elementwiseThreshold()) schedule(guided) collapse(2) firstprivate(indIn, indOut) 
+    for(int id = 0; id < input.sizeAt(dimID); ++id) {
+        for(int ih = 0; ih < input.sizeAt(dimID+1); ++ih) {
+            for(int iw = 0; iw < input.sizeAt(dimID+2); ++iw) {
+                indIn[j0] = id; indIn[j1] = id+1;
+                indIn[j2] = ih; indIn[j3] = ih+1;
+                indIn[j4] = iw; indIn[j5] = iw+1;
+
+// #pragma omp parallel for if(size1 > Environment::getInstance()->elementwiseThreshold()) schedule(guided) collapse(2) firstprivate(indOut) 
+            for(int fd = 0; fd < factorD; ++fd) {
+                for(int fh = 0; fh < factorH; ++fh) {
+                    for(int fw = 0; fw < factorW; ++fw) {
+                            indOut[j0] = id * factorD + fd; indOut[j1] = indOut[j0] + 1; 
+                            indOut[j2] = ih * factorH + fh; indOut[j3] = indOut[j2] + 1; 
+                            indOut[j4] = iw * factorW + fw; indOut[j5] = indOut[j4] + 1;                     
+                            output(indOut).assign(input(indIn));
+                        }
+                    }
+                }
+            }
+        }
+    }    
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+template <typename T>
+void ConvolutionUtils<T>::upsampling2dBP(const NDArray<T>& gradO, NDArray<T>& gradI, const bool isNCHW) {
+    // gradO has shape [bS, iC, factorH*iH, factorW*iW ] (NCHW) or [bS, factorH*iH, factorW*iW, iC] (NHWC)
+    // gradI has shape [bS, iC, iH, iW] (NCHW) or [bS, iH, iW, iC] (NHWC)     
+    int indIn[8]  = {0,0,  0,0,  0,0,  0,0};
+    int indOut[8] = {0,0,  0,0,  0,0,  0,0};
+    const int dimIH = isNCHW ? 2 : 1;    
+    const int factorH = gradO.sizeAt(dimIH)   / gradI.sizeAt(dimIH);
+    const int factorW = gradO.sizeAt(dimIH+1) / gradI.sizeAt(dimIH+1);
+    const int j0 = 2*dimIH;
+    const int j1 = j0+1, j2 = j0+2, j3 = j0+3;
+    const int size0 = gradI.sizeAt(dimIH) * gradI.sizeAt(dimIH+1);
+
+#pragma omp parallel for if(size0 > Environment::getInstance()->elementwiseThreshold()) schedule(guided) collapse(2) firstprivate(indIn, indOut) 
+    for(int ih = 0; ih < gradI.sizeAt(dimIH); ++ih) {
+        for(int iw = 0; iw < gradI.sizeAt(dimIH+1); ++iw) {
+            indIn[j0] = ih; indIn[j1] = ih+1; 
+            indIn[j2] = iw; indIn[j3] = iw+1; 
+            NDArray<T> subGradI = gradI(indIn);
+
+            for(int fh = 0; fh < factorH; ++fh) {
+                for(int fw = 0; fw < factorW; ++fw) {                    
+                    indOut[j0] = ih * factorH + fh; indOut[j1] = indOut[j0] + 1; 
+                    indOut[j2] = iw * factorW + fw; indOut[j3] = indOut[j2] + 1;                     
+                    if(!fh && !fw)
+                        subGradI.assign(gradO(indOut));
+                    else
+                        subGradI += gradO(indOut);
+                }
+            }
+        }
+    }
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+template <typename T>
+void ConvolutionUtils<T>::upsampling3dBP(const NDArray<T>& gradO, NDArray<T>& gradI, const bool isNCDHW) {
+    // input  has shape [bS, iC, iD, iH, iW] (NCDHW) or [bS, iD, iH, iW, iC] (NDHWC) 
+    // output has shape [bS, iC, factorD*iD, factorH*iH, factorW*iW ] (NCDHW) or [bS, factorD*iD, factorH*iH, factorW*iW, iC] (NDHWC)
+    int indIn[10]  = {0,0,  0,0,  0,0,  0,0,  0,0};
+    int indOut[10] = {0,0,  0,0,  0,0,  0,0,  0,0};
+    const int dimID = isNCDHW ? 2 : 1;
+    const int factorD = gradO.sizeAt(dimID)   / gradI.sizeAt(dimID);
+    const int factorH = gradO.sizeAt(dimID+1) / gradI.sizeAt(dimID+1);
+    const int factorW = gradO.sizeAt(dimID+2) / gradI.sizeAt(dimID+2);
+    const int j0 = 2*dimID;
+    const int j1 = j0+1, j2 = j0+2, j3 = j0+3, j4 = j0+4, j5 = j0+5;;
+    const int size0 = gradI.sizeAt(dimID) * gradI.sizeAt(dimID+1) * gradI.sizeAt(dimID+2);
+
+#pragma omp parallel for if(size0 > Environment::getInstance()->elementwiseThreshold()) schedule(guided) collapse(3) firstprivate(indOut, indIn) 
+    for(int id = 0; id < gradI.sizeAt(dimID); ++id) {
+        for(int ih = 0; ih < gradI.sizeAt(dimID+1); ++ih) {
+            for(int iw = 0; iw < gradI.sizeAt(dimID+2); ++iw) {
+                indIn[j0] = id; indIn[j1] = id+1;
+                indIn[j2] = ih; indIn[j3] = ih+1;
+                indIn[j4] = iw; indIn[j5] = iw+1;
+                NDArray<T> subGradI = gradI(indIn);
+
+            for(int fd = 0; fd < factorD; ++fd) {
+                for(int fh = 0; fh < factorH; ++fh) {
+                    for(int fw = 0; fw < factorW; ++fw) {
+                            indOut[j0] = id * factorD + fd; indOut[j1] = indOut[j0] + 1; 
+                            indOut[j2] = ih * factorH + fh; indOut[j3] = indOut[j2] + 1; 
+                            indOut[j4] = iw * factorW + fw; indOut[j5] = indOut[j4] + 1;                     
+                            if(!fd && !fh && !fw)
+                                subGradI.assign(gradO(indOut));
+                            else
+                                subGradI += gradO(indOut);
+                        }
+                    }
+                }
+            }
+        }
+    }    
+}
 template class ND4J_EXPORT ConvolutionUtils<float>;
 template class ND4J_EXPORT ConvolutionUtils<float16>;
 template class ND4J_EXPORT ConvolutionUtils<double>;

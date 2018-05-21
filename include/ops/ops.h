@@ -18,12 +18,12 @@
 #define AFFINITY close
 #define DOUBLE_PI_T T(2.0 * 3.14159265358979323846)
 
-#define no_op_exec_special 	static const bool requiresSpecial = false; static void execSpecial(T *dx, int *xShapeBuffer, T *result, int *resultShapeBuffer, T *extraParams, int *tadShapeInfo, Nd4jIndex *tadOffsets) {}
-#define no_op_exec_special_accumulation 	static const bool requiresSpecialAccumulation = false; static void execSpecial(T *x, int *xShapeInfo, T *extraParams, T *result, int *resultShapeInfoBuffer, int *dimension, int dimensionLength, int *tadShapeInfo, Nd4jIndex *tadOffset){}
+#define no_op_exec_special 	static const bool requiresSpecial = false; static void execSpecial(T *dx, Nd4jLong *xShapeBuffer, T *result, Nd4jLong *resultShapeBuffer, T *extraParams, Nd4jLong *tadShapeInfo, Nd4jLong *tadOffsets) {}
+#define no_op_exec_special_accumulation 	static const bool requiresSpecialAccumulation = false; static void execSpecial(T *x, Nd4jLong *xShapeInfo, T *extraParams, T *result, Nd4jLong *resultShapeInfoBuffer, int *dimension, int dimensionLength, Nd4jLong *tadShapeInfo, Nd4jLong *tadOffset){}
 #ifdef __CUDACC__
 #include <helpers/sharedmem.h>
-#define no_op_exec_special_cuda static __device__ void execSpecialCuda(T *dx,int *xShapeBuffer,T *result,int *resultShapeBuffer,T *extraParams, int *allocationPointer, T *reductionPointer, UnifiedSharedMemory *manager, int *tadShapeInfo, Nd4jIndex *tadOffsets) {}
-#define no_op_exec_special_accumulation_cuda 	static inline __device__ void execSpecialCuda(T *dx, int *xShapeInfo, T *extraParams, T *result, int *resultShapeInfo, int *dimension, int dimensionLength, T *reductionBuffer, UnifiedSharedMemory *manager, int *tadOnlyShapeInfo, Nd4jIndex *tadOffsets) {}
+#define no_op_exec_special_cuda static __device__ void execSpecialCuda(T *dx, Nd4jLong *xShapeBuffer,T *result, Nd4jLong *resultShapeBuffer,T *extraParams, int *allocationPointer, T *reductionPointer, UnifiedSharedMemory *manager, Nd4jLong *tadShapeInfo, Nd4jLong *tadOffsets) {}
+#define no_op_exec_special_accumulation_cuda 	static inline __device__ void execSpecialCuda(T *dx, Nd4jLong *xShapeInfo, T *extraParams, T *result, Nd4jLong *resultShapeInfo, int *dimension, int dimensionLength, T *reductionBuffer, UnifiedSharedMemory *manager, Nd4jLong *tadOnlyShapeInfo, Nd4jLong *tadOffsets) {}
 #else
 // hacky fix for isnan/being being out of scope
 //#ifdef IOS
@@ -62,7 +62,7 @@ namespace functions {
 		template<typename T>
 		struct IndexValue {
 			T value;
-            Nd4jIndex index;
+            Nd4jLong index;
 		};
 	}
 
@@ -936,6 +936,77 @@ namespace simdOps {
 
 
 	template<typename T>
+	class RelativeError {
+	public:
+		no_op_exec_special
+		no_op_exec_special_cuda
+
+		op_def static T op(T d1, T *params) {
+			return nd4j::math::nd4j_re<T>(d1, params[0]);
+		}
+
+		op_def static T op(T d1, T d2) {
+			return nd4j::math::nd4j_re<T>(d1, d2);
+		}
+
+		op_def static T op(T d1, T d2, T *params) {
+			return nd4j::math::nd4j_re<T>(d1, d2);
+		}
+
+		op_def static T op(T d1) {
+			return (T) 0.0f;
+		}
+	};
+
+	template<typename T>
+	class BinaryRelativeError {
+	public:
+		no_op_exec_special
+		no_op_exec_special_cuda
+
+		op_def static T op(T d1, T *params) {
+			T d2 = params[0];
+			T threshold = params[1];
+			return nd4j::math::nd4j_re<T>(d1, d2) > threshold ? (T) 1.0f : (T) 0.0f;
+ 		}
+
+		op_def static T op(T d1, T d2, T *params) {
+			T threshold = params[0];
+			return nd4j::math::nd4j_re<T>(d1, d2) > threshold ? (T) 1.0f : (T) 0.0f;
+		}
+
+		op_def static T op(T d1) {
+			return (T) 0.0f;
+		}
+	};
+
+	template<typename T>
+	class BinaryMinimumAbsoluteRelativeError {
+	public:
+		no_op_exec_special
+		no_op_exec_special_cuda
+
+		op_def static T op(T d1, T *params) {
+			T d2 = params[0];
+			T thresholdRelative = params[1];
+			T thresholdAbsolute = params[2];
+			return nd4j::math::nd4j_re<T>(d1, d2) > thresholdRelative ? (nd4j::math::nd4j_abs<T>(d1 - d2) < thresholdAbsolute ? (T) 0.0f : (T) 1.0f) : (T) 0.0f;
+ 		}
+
+		op_def static T op(T d1, T d2, T *params) {
+			T thresholdRelative = params[0];
+			T thresholdAbsolute = params[1];
+			return nd4j::math::nd4j_re<T>(d1, d2) > thresholdRelative ? (nd4j::math::nd4j_abs<T>(d1 - d2) < thresholdAbsolute ? (T) 0.0f : (T) 1.0f) : (T) 0.0f;
+		}
+
+		op_def static T op(T d1) {
+			return (T) 0.0f;
+		}
+	};
+
+
+
+	template<typename T>
 	class Pow {
 	public:
 		no_op_exec_special
@@ -1524,7 +1595,7 @@ namespace simdOps {
             return d1;
         }
 
-        op_def static T postProcess(T reduction, Nd4jIndex n, T *extraParams) {
+        op_def static T postProcess(T reduction, Nd4jLong n, T *extraParams) {
             return reduction;
         }
     };
@@ -1793,7 +1864,7 @@ namespace simdOps {
 			return d1;
 		}
 
-		op_def static T postProcess(T reduction, Nd4jIndex n, T *extraParams) {
+		op_def static T postProcess(T reduction, Nd4jLong n, T *extraParams) {
 			return reduction;
 		}
 	};
@@ -1823,7 +1894,7 @@ namespace simdOps {
             return nd4j::math::nd4j_pow<T>(d1, (T) 2.0f) * nd4j::math::nd4j_log<T>(nd4j::math::nd4j_pow<T>(d1, (T) 2.0f));
         }
 
-        op_def static T postProcess(T reduction, Nd4jIndex n, T *extraParams) {
+        op_def static T postProcess(T reduction, Nd4jLong n, T *extraParams) {
             return -reduction;
         }
     };
@@ -1851,7 +1922,7 @@ namespace simdOps {
             return nd4j::math::nd4j_log<T>(nd4j::math::nd4j_pow<T>(d1, (T) 2.0f));
         }
 
-        op_def static T postProcess(T reduction, Nd4jIndex n, T *extraParams) {
+        op_def static T postProcess(T reduction, Nd4jLong n, T *extraParams) {
             return reduction;
         }
     };
@@ -1878,7 +1949,7 @@ namespace simdOps {
             return d1 * nd4j::math::nd4j_log<T>(d1);
         }
 
-        op_def static T postProcess(T reduction, Nd4jIndex n, T *extraParams) {
+        op_def static T postProcess(T reduction, Nd4jLong n, T *extraParams) {
             return reduction;
         }
     };
@@ -1906,7 +1977,7 @@ namespace simdOps {
             return nd4j::math::nd4j_abs<T>(d1);
         }
 
-        op_def static T postProcess(T reduction, Nd4jIndex n, T *extraParams) {
+        op_def static T postProcess(T reduction, Nd4jLong n, T *extraParams) {
             return nd4j::math::nd4j_abs<T>(reduction);
         }
     };
@@ -1934,7 +2005,7 @@ namespace simdOps {
             return d1 == (T) 0.0f ? (T) 0.0f : (T) 1.0f;
         }
 
-        op_def static T postProcess(T reduction, Nd4jIndex n, T *extraParams) {
+        op_def static T postProcess(T reduction, Nd4jLong n, T *extraParams) {
             return reduction;
         }
     };
@@ -1962,7 +2033,7 @@ namespace simdOps {
             return d1 == (T) 0.0f ? (T) 1.0f : (T) 0.0f;
         }
 
-        op_def static T postProcess(T reduction, Nd4jIndex n, T *extraParams) {
+        op_def static T postProcess(T reduction, Nd4jLong n, T *extraParams) {
             return reduction;
         }
     };
@@ -1989,7 +2060,7 @@ namespace simdOps {
 			return d1;
 		}
 
-		op_def static T postProcess(T reduction, Nd4jIndex n, T *extraParams) {
+		op_def static T postProcess(T reduction, Nd4jLong n, T *extraParams) {
 			return reduction;
 		}
 	};
@@ -2017,7 +2088,7 @@ namespace simdOps {
 			return d1;
 		}
 
-		op_def static T postProcess(T reduction, Nd4jIndex n, T *extraParams) {
+		op_def static T postProcess(T reduction, Nd4jLong n, T *extraParams) {
 			return reduction > (T) 0.0f ? (T) 1.0f : (T) 0.0f ;
 		}
 	};
@@ -2045,7 +2116,7 @@ namespace simdOps {
             return d1;
         }
 
-        op_def static T postProcess(T reduction, Nd4jIndex n, T *extraParams) {
+        op_def static T postProcess(T reduction, Nd4jLong n, T *extraParams) {
             return reduction > (T) 0.0f ? (T) 1.0f : (T) 0.0f ;
         }
     };
@@ -2072,7 +2143,7 @@ namespace simdOps {
 			return d1;
 		}
 
-		op_def static T postProcess(T reduction, Nd4jIndex n, T *extraParams) {
+		op_def static T postProcess(T reduction, Nd4jLong n, T *extraParams) {
 			return reduction / (int) n;
 		}
 	};
@@ -2100,7 +2171,7 @@ namespace simdOps {
             return nd4j::math::nd4j_abs<T>(d1);
         }
 
-        op_def static T postProcess(T reduction, Nd4jIndex n, T *extraParams) {
+        op_def static T postProcess(T reduction, Nd4jLong n, T *extraParams) {
             return nd4j::math::nd4j_abs<T>(reduction) / (int) n;
         }
     };
@@ -2136,7 +2207,7 @@ namespace simdOps {
 			return d1;
 		}
 
-		op_def static T postProcess(T reduction, Nd4jIndex n, T *extraParams) {
+		op_def static T postProcess(T reduction, Nd4jLong n, T *extraParams) {
 			return reduction;
 		}
 	};
@@ -2173,7 +2244,7 @@ namespace simdOps {
             return nd4j::math::nd4j_abs<T>(d1);
         }
 
-        op_def static T postProcess(T reduction, Nd4jIndex n, T *extraParams) {
+        op_def static T postProcess(T reduction, Nd4jLong n, T *extraParams) {
             return nd4j::math::nd4j_abs<T>(reduction);
         }
     };
@@ -2210,7 +2281,7 @@ namespace simdOps {
 			return nd4j::math::nd4j_abs<T>(d1);
 		}
 
-		op_def static T postProcess(T reduction, Nd4jIndex n, T *extraParams) {
+		op_def static T postProcess(T reduction, Nd4jLong n, T *extraParams) {
 			return nd4j::math::nd4j_abs<T>(reduction);
 		}
 	};
@@ -2246,7 +2317,7 @@ namespace simdOps {
             return d1;
         }
 
-        op_def static T postProcess(T reduction, Nd4jIndex n, T *extraParams) {
+        op_def static T postProcess(T reduction, Nd4jLong n, T *extraParams) {
             return reduction;
         }
     };
@@ -2276,7 +2347,7 @@ namespace simdOps {
 			return nd4j::math::nd4j_abs<T>(d1);
 		}
 
-		op_def static T postProcess(T reduction, Nd4jIndex n, T *extraParams) {
+		op_def static T postProcess(T reduction, Nd4jLong n, T *extraParams) {
 			return reduction;
 		}
 	};
@@ -2305,7 +2376,7 @@ namespace simdOps {
 			return d1 * d1;
 		}
 
-		op_def static T postProcess(T reduction, Nd4jIndex n, T *extraParams) {
+		op_def static T postProcess(T reduction, Nd4jLong n, T *extraParams) {
 			return nd4j::math::nd4j_sqrt<T>(reduction);
 		}
 	};
@@ -2333,7 +2404,7 @@ namespace simdOps {
 			return d1 * d1;
 		}
 
-		op_def static T postProcess(T reduction, Nd4jIndex n, T *extraParams) {
+		op_def static T postProcess(T reduction, Nd4jLong n, T *extraParams) {
 			return reduction;
 		}
 	};
@@ -2362,7 +2433,7 @@ namespace simdOps {
 			return v * v;
 		}
 
-		op_def static T postProcess(T reduction, Nd4jIndex n, T *extraParams) {
+		op_def static T postProcess(T reduction, Nd4jLong n, T *extraParams) {
 			return nd4j::math::nd4j_sqrt<T>(reduction);
 		}
 	};
@@ -2390,7 +2461,7 @@ namespace simdOps {
 			return nd4j::math::nd4j_pow(nd4j::math::nd4j_abs(d1), extraParams[0]);
 		}
 
-		op_def static T postProcess(T reduction, Nd4jIndex n, T *extraParams) {
+		op_def static T postProcess(T reduction, Nd4jLong n, T *extraParams) {
 			return nd4j::math::nd4j_pow(reduction, (T) 1.0 / extraParams[0]);
 		}
 	};
@@ -2419,7 +2490,7 @@ namespace simdOps {
 			return d1;
 		}
 
-		op_def static T postProcess(T reduction, Nd4jIndex n, T *extraParams) {
+		op_def static T postProcess(T reduction, Nd4jLong n, T *extraParams) {
 			return nd4j::math::nd4j_max<T>(nd4j::math::nd4j_abs<T>(reduction),
 				nd4j::math::nd4j_abs<T>(reduction));
 		}
@@ -2450,7 +2521,7 @@ namespace simdOps {
 			return ret * ret;
 		}
 
-		op_def static T postProcess(T reduction, Nd4jIndex n, T *extraParams) {
+		op_def static T postProcess(T reduction, Nd4jLong n, T *extraParams) {
 			T bias = extraParams[1];
 			return (reduction - (nd4j::math::nd4j_pow<T>(bias, (T) 2.0f) / (int) n))
                 / (n - (int) 1);
@@ -2485,7 +2556,7 @@ namespace simdOps {
 			return ret * ret;
 		}
 
-		op_def static T postProcess(T reduction, Nd4jIndex n, T *extraParams) {
+		op_def static T postProcess(T reduction, Nd4jLong n, T *extraParams) {
 			T ret = Variance<T>::postProcess(reduction, n, extraParams);
 			T sqrtRet = nd4j::math::nd4j_sqrt<T>(ret);
 			return sqrtRet;
@@ -2510,7 +2581,7 @@ namespace simdOps {
 			return (T) 0.0f;
 		}
 
-		op_def static  T postProcess(T reduction, Nd4jIndex n, T *extraParams) {
+		op_def static  T postProcess(T reduction, Nd4jLong n, T *extraParams) {
 			return reduction / (nd4j::math::nd4j_sqrt<T>(extraParams[0]) * nd4j::math::nd4j_sqrt<T>(extraParams[1]));
 		}
 
@@ -2564,7 +2635,7 @@ namespace simdOps {
             return (T) 0.0f;
         }
 
-        op_def static  T postProcess(T reduction, Nd4jIndex n, T *extraParams) {
+        op_def static  T postProcess(T reduction, Nd4jLong n, T *extraParams) {
             // num / denom
             return ((T) 1.0f) - (extraParams[0] / extraParams[1]);
         }
@@ -2627,7 +2698,7 @@ namespace simdOps {
             return (T) 0.0f;
         }
 
-        op_def static  T postProcess(T reduction, Nd4jIndex n, T *extraParams) {
+        op_def static  T postProcess(T reduction, Nd4jLong n, T *extraParams) {
             return (T) (reduction / (T) n);
         }
 
@@ -2674,7 +2745,7 @@ namespace simdOps {
             return (T) 0.0f;
         }
 
-        op_def static  T postProcess(T reduction, Nd4jIndex n, T *extraParams) {
+        op_def static  T postProcess(T reduction, Nd4jLong n, T *extraParams) {
             return ((T) 1.0f) - (reduction / (nd4j::math::nd4j_sqrt<T>(extraParams[0]) * nd4j::math::nd4j_sqrt<T>(extraParams[1])));
         }
 
@@ -2731,7 +2802,7 @@ namespace simdOps {
 			return (T) 0.0f;
 		}
 
-		op_def static T postProcess(T reduction, Nd4jIndex n, T *extraParamsRef) {
+		op_def static T postProcess(T reduction, Nd4jLong n, T *extraParamsRef) {
 			return reduction;
 		}
 
@@ -2779,7 +2850,7 @@ namespace simdOps {
             return (T) 0.0f;
         }
 
-        op_def static T postProcess(T reduction, Nd4jIndex n, T *extraParamsRef) {
+        op_def static T postProcess(T reduction, Nd4jLong n, T *extraParamsRef) {
             return reduction;
         }
 
@@ -2838,7 +2909,7 @@ namespace simdOps {
 			return (T) 0.0f;
 		}
 
-		op_def static T postProcess(T reduction, Nd4jIndex n, T *extraParamsRef) {
+		op_def static T postProcess(T reduction, Nd4jLong n, T *extraParamsRef) {
 			return nd4j::math::nd4j_sqrt<T>(reduction);
 		}
 
@@ -2884,7 +2955,7 @@ namespace simdOps {
 			return (T) 0.0f;
 		}
 
-		op_def static T postProcess(T reduction, Nd4jIndex n, T *extraParamsRef) {
+		op_def static T postProcess(T reduction, Nd4jLong n, T *extraParamsRef) {
 			return reduction;
 		}
 

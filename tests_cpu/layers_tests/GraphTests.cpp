@@ -369,7 +369,7 @@ TEST_F(GraphTests, ReductionsTest1) {
         }
     }
 
-    auto z = new NDArray<float>('c', {1, 5});
+    auto z = new NDArray<float>('c', {5});
 
     graph->getVariableSpace()->putVariable(-1, x);
     graph->getVariableSpace()->putVariable(-2, z);
@@ -402,7 +402,7 @@ TEST_F(GraphTests, IndexReductionsTest1) {
         }
     }
 
-    auto z = new NDArray<float>('c', {1, 5});
+    auto z = new NDArray<float>('c', {5, 1});
 
     graph->getVariableSpace()->putVariable(-1, x);
     graph->getVariableSpace()->putVariable(-2, z);
@@ -868,6 +868,7 @@ TEST_F(GraphTests, OutputValidation6) {
 }
 
 TEST_F(GraphTests, TestMultiOutput1) {
+    nd4j::ops::testop2i2o<float> op1;
     auto graph = new Graph<float>();
 
     auto x = new NDArray<float>('c', {5, 5});
@@ -886,7 +887,7 @@ TEST_F(GraphTests, TestMultiOutput1) {
     auto nodeB0 = new Node<float>(OpType_TRANSFORM, 0, 2, {-2}, {11});
     nodeB0->markInplace(false);
 
-    auto op = nd4j::ops::OpRegistrator::getInstance()->getOperationFloat("TestOp2i2o");
+    auto op = nd4j::ops::OpRegistrator::getInstance()->getOperationFloat("testop2i2o");
 
     // this op will add 1.0 to first input, and 2.0 for second input
     auto nodeT = new Node<float>(OpType_CUSTOM, 0, 11, {1, 2}, {21, 31}, {}, 0.0f);
@@ -1203,11 +1204,11 @@ TEST_F(GraphTests, TestGraphInGraph_2) {
 
 
 TEST_F(GraphTests, Test_Clone_1) {
-    NDArray<float> exp('c', (std::vector<int>){3});
+    NDArray<float> exp('c', {3});
     exp.assign(3.0);
 
 
-    auto graph = GraphExecutioner<float>::importFromFlatBuffers("./resources/reduce_dim.fb");
+    auto graph = GraphExecutioner<float>::importFromFlatBuffers("./resources/reduce_dim_false.fb");
     auto variableSpace = graph->getVariableSpace();
     //graph->buildGraph();
 
@@ -1222,8 +1223,10 @@ TEST_F(GraphTests, Test_Clone_1) {
 
     ASSERT_EQ(ND4J_STATUS_OK, statusClone);
 
-    auto z0 = variableSpace->getVariable(4)->getNDArray();
-    auto z1 = clone->getVariableSpace()->getVariable(4)->getNDArray();
+    ASSERT_TRUE(variableSpace->hasVariable(3));
+
+    auto z0 = variableSpace->getVariable(3)->getNDArray();
+    auto z1 = clone->getVariableSpace()->getVariable(3)->getNDArray();
 
     ASSERT_TRUE(exp.isSameShape(z0));
     ASSERT_TRUE(exp.equalsTo(z0));
@@ -1239,11 +1242,11 @@ TEST_F(GraphTests, Test_Clone_1) {
 
 
 TEST_F(GraphTests, Test_Clone_2) {
-    NDArray<float> exp('c', (std::vector<int>){3});
+    NDArray<float> exp('c', {3});
     exp.assign(3.0);
 
 
-    auto graph = GraphExecutioner<float>::importFromFlatBuffers("./resources/reduce_dim.fb");
+    auto graph = GraphExecutioner<float>::importFromFlatBuffers("./resources/reduce_dim_false.fb");
     auto variableSpace = graph->getVariableSpace();
     graph->buildGraph();
 
@@ -1258,8 +1261,10 @@ TEST_F(GraphTests, Test_Clone_2) {
 
     ASSERT_EQ(ND4J_STATUS_OK, statusClone);
 
-    auto z0 = variableSpace->getVariable(4)->getNDArray();
-    auto z1 = clone->getVariableSpace()->getVariable(4)->getNDArray();
+    ASSERT_TRUE(variableSpace->hasVariable(3));
+
+    auto z0 = variableSpace->getVariable(3)->getNDArray();
+    auto z1 = clone->getVariableSpace()->getVariable(3)->getNDArray();
 
     ASSERT_TRUE(exp.isSameShape(z0));
     ASSERT_TRUE(exp.equalsTo(z0));
@@ -1275,7 +1280,7 @@ TEST_F(GraphTests, Test_Dtype_Conversion_1) {
     NDArray<double> expD('c', {3}, {3.0, 3.0, 3.0});
     NDArray<float> expF('c', {3}, {3.0, 3.0, 3.0});
 
-    auto graph = GraphExecutioner<float>::importFromFlatBuffers("./resources/reduce_dim.fb");
+    auto graph = GraphExecutioner<float>::importFromFlatBuffers("./resources/reduce_dim_false.fb");
     graph->buildGraph();
 
 
@@ -1286,8 +1291,10 @@ TEST_F(GraphTests, Test_Dtype_Conversion_1) {
     Nd4jStatus statusF = GraphExecutioner<float>::execute(gf);
     ASSERT_EQ(ND4J_STATUS_OK, statusF);
 
-    ASSERT_TRUE(gf->getVariableSpace()->hasVariable(4));
-    auto z1 = gf->getVariableSpace()->getVariable(4)->getNDArray();
+    ASSERT_TRUE(gf->getVariableSpace()->hasVariable(3));
+
+    ASSERT_TRUE(gf->getVariableSpace()->hasVariable(3));
+    auto z1 = gf->getVariableSpace()->getVariable(3)->getNDArray();
 
     ASSERT_TRUE(expF.isSameShape(z1));
     ASSERT_TRUE(expF.equalsTo(z1));
@@ -1297,8 +1304,8 @@ TEST_F(GraphTests, Test_Dtype_Conversion_1) {
     Nd4jStatus statusD = GraphExecutioner<double>::execute(gd);
     ASSERT_EQ(ND4J_STATUS_OK, statusD);
 
-    ASSERT_TRUE(gd->getVariableSpace()->hasVariable(4));
-    auto z2 = gd->getVariableSpace()->getVariable(4)->getNDArray();
+    ASSERT_TRUE(gd->getVariableSpace()->hasVariable(3));
+    auto z2 = gd->getVariableSpace()->getVariable(3)->getNDArray();
 
     ASSERT_TRUE(expD.isSameShape(z2));
     ASSERT_TRUE(expD.equalsTo(z2));
@@ -1310,8 +1317,8 @@ TEST_F(GraphTests, Test_Dtype_Conversion_1) {
 }
 
 TEST_F(GraphTests, Test_Dtype_Conversion_2) {
-    NDArray<float> expF('c', {5, 4}, {0.951276f, 0.501379f, 0.501368f, 0.968136f, -0.951359f, 0.499845f, -0.501381f, 0.976955f, -0.000073f, 0.499154f, 0.000098f, 0.972500f, -0.019765f, -0.499479f, -0.005979f, -0.965330f, 0.016531f, -0.500842f, 0.004861f, -0.965910f});
-    NDArray<double> expD('c', {5, 4}, {0.951276f, 0.501379f, 0.501368f, 0.968136f, -0.951359f, 0.499845f, -0.501381f, 0.976955f, -0.000073f, 0.499154f, 0.000098f, 0.972500f, -0.019765f, -0.499479f, -0.005979f, -0.965330f, 0.016531f, -0.500842f, 0.004861f, -0.965910f});
+    NDArray<float> expF('c', {5, 4}, {0.32454616f, -0.06604697f, 0.22593613f, 0.43166467f, -0.18320604f, 0.00102305f, -0.06963076f, 0.25266643f, 0.07568010f, -0.03009197f, 0.07805517f, 0.33180334f, -0.06220427f, 0.07249600f, -0.06726961f, -0.22998397f, -0.06343779f, 0.07384885f, -0.06891008f,  -0.23745790f});
+    NDArray<double> expD('c', {5, 4}, {0.32454616f, -0.06604697f, 0.22593613f, 0.43166467f, -0.18320604f, 0.00102305f, -0.06963076f, 0.25266643f, 0.07568010f, -0.03009197f, 0.07805517f, 0.33180334f, -0.06220427f, 0.07249600f, -0.06726961f, -0.22998397f, -0.06343779f, 0.07384885f, -0.06891008f,  -0.23745790f});
 
     auto graph = GraphExecutioner<float>::importFromFlatBuffers("./resources/ae_00.fb");
     graph->buildGraph();
@@ -1376,7 +1383,7 @@ TEST_F(GraphTests, OpListTest_1) {
     GraphUtils::filterOperations(ops);
     ASSERT_TRUE(ops.size() == 7);
 
-    std::string exp(" -g \"-DLIBND4J_OPS_LIST='-DOP_rank=true -DOP_range=true -DOP_subtract=true -DOP_transpose=true -DOP_matmul=true -DOP_biasadd=true -DOP_TRANSFORM{15}=true '\"");
+    std::string exp(" -g \"-DLIBND4J_OPS_LIST='-DOP_rank=true -DOP_range=true -DOP_subtract=true -DOP_permute=true -DOP_matmul=true -DOP_biasadd=true -DOP_TRANSFORM{15}=true '\"");
     std::string out = GraphUtils::makeCommandLine(ops);
 //    nd4j_printf("EXP: >%s<\n", exp.c_str());
 //    nd4j_printf("OUT: >%s<\n", out.c_str());
@@ -1401,7 +1408,7 @@ TEST_F(GraphTests, OpListTest_2) {
 
     GraphUtils::filterOperations(ops);
 
-    std::string exp = " -g \"-DLIBND4J_OPS_LIST='-DOP_rank=true -DOP_range=true -DOP_subtract=true -DOP_transpose=true -DOP_matmul=true -DOP_biasadd=true -DOP_TRANSFORM{15}=true -DOP_strided_slice=true -DOP_ACCUMULATION{1}=true '\"";
+    std::string exp = " -g \"-DLIBND4J_OPS_LIST='-DOP_rank=true -DOP_range=true -DOP_subtract=true -DOP_permute=true -DOP_matmul=true -DOP_biasadd=true -DOP_TRANSFORM{15}=true -DOP_strided_slice=true -DOP_ACCUMULATION{1}=true '\"";
 
     ASSERT_TRUE(ops.size() == 9);
     ASSERT_EQ(exp, GraphUtils::makeCommandLine(ops));
@@ -1455,7 +1462,7 @@ TEST_F(GraphTests, OpListTest_4) {
 
 
 TEST_F(GraphTests, Test_Inplace_Execution_1) {
-    NDArray<float> exp('c', {5, 4}, {0.951276f, 0.501379f, 0.501368f, 0.968136f, -0.951359f, 0.499845f, -0.501381f, 0.976955f, -0.000073f, 0.499154f, 0.000098f, 0.972500f, -0.019765f, -0.499479f, -0.005979f, -0.965330f, 0.016531f, -0.500842f, 0.004861f, -0.965910f});
+    NDArray<float> exp('c', {5, 4}, {0.32454616f, -0.06604697f, 0.22593613f, 0.43166467f, -0.18320604f, 0.00102305f, -0.06963076f, 0.25266643f, 0.07568010f, -0.03009197f, 0.07805517f, 0.33180334f, -0.06220427f, 0.07249600f, -0.06726961f, -0.22998397f, -0.06343779f, 0.07384885f, -0.06891008f,  -0.23745790f});
 
     auto graph = GraphExecutioner<float>::importFromFlatBuffers("./resources/ae_00.fb");
     graph->printOut();
@@ -1542,4 +1549,26 @@ TEST_F(GraphTests, Test_Inplace_Outputs_1) {
 
     ASSERT_TRUE(exp.isSameShape(z));
     ASSERT_TRUE(exp.equalsTo(z));
+}
+
+TEST_F(GraphTests, Test_Inplace_Outputs_2) {
+#ifndef __APPLE_OS__
+    // we dont want testing this on apple. due to try/catch
+
+    NDArray<float> x('c', {2, 3}, {1.f, 2.f, 3.f, 4.f, 5.f, 6.f});
+    NDArray<float> exp('c', {6}, {1.f, 2.f, 3.f, 4.f, 5.f, 6.f});
+    NDArray<float> z('c', {3, 3});
+
+    bool failed = false;
+    nd4j::ops::test_output_reshape<float> op;
+    try {
+        op.execute({&x}, {&z}, {}, {});
+
+    } catch (const std::runtime_error& e) {
+        failed = true;
+    }
+    
+    
+    ASSERT_TRUE(failed);
+#endif
 }

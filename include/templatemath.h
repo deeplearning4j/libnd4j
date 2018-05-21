@@ -82,6 +82,9 @@ template<typename T>
         math_def inline T nd4j_min(T val1, T val2);
 
 		template<typename T>
+		math_def inline T nd4j_re(T val1, T val2);
+
+		template<typename T>
         math_def inline T nd4j_rint(T val1);
 
 		template<typename T>
@@ -323,7 +326,7 @@ template<typename T>
 		}
 
 		template<>
-		math_def inline Nd4jIndex nd4j_abs<Nd4jIndex>(Nd4jIndex value) {
+		math_def inline Nd4jLong nd4j_abs<Nd4jLong>(Nd4jLong value) {
 			return value < 0 ? -value : value;
 		}
 
@@ -350,7 +353,7 @@ template<typename T>
 		}
 
 		template<>
-		math_def inline Nd4jIndex nd4j_rint<Nd4jIndex>(Nd4jIndex value) {
+		math_def inline Nd4jLong nd4j_rint<Nd4jLong>(Nd4jLong value) {
 			return value;
 		}
 
@@ -375,7 +378,7 @@ template<typename T>
 		}
 
 		template<>
-		math_def inline bool nd4j_isnan<Nd4jIndex>(Nd4jIndex value) {
+		math_def inline bool nd4j_isnan<Nd4jLong>(Nd4jLong value) {
 			return false;
 		}
 
@@ -410,7 +413,7 @@ template<typename T>
 		}
 
 		template<>
-		math_def inline bool nd4j_isinf<Nd4jIndex>(Nd4jIndex value) {
+		math_def inline bool nd4j_isinf<Nd4jLong>(Nd4jLong value) {
 			return false;
 		}
 
@@ -441,9 +444,9 @@ template<typename T>
 		}
 
 		template<>
-		math_def inline Nd4jIndex nd4j_copysign<Nd4jIndex>(Nd4jIndex val1, Nd4jIndex val2) {
-			if (val2 < 0) return -(nd4j_abs<Nd4jIndex>(val1));
-			else return nd4j_abs<Nd4jIndex>(val1);
+		math_def inline Nd4jLong nd4j_copysign<Nd4jLong>(Nd4jLong val1, Nd4jLong val2) {
+			if (val2 < 0) return -(nd4j_abs<Nd4jLong>(val1));
+			else return nd4j_abs<Nd4jLong>(val1);
 		}
 
 		template<>
@@ -468,12 +471,12 @@ template<typename T>
 		}
 
 		template<>
-		math_def inline Nd4jIndex nd4j_max<Nd4jIndex>(Nd4jIndex val1, Nd4jIndex val2) {
+		math_def inline Nd4jLong nd4j_max<Nd4jLong>(Nd4jLong val1, Nd4jLong val2) {
 			return val1 > val2 ? val1 : val2;
 		}
 
 		template<>
-		math_def inline Nd4jIndex nd4j_min<Nd4jIndex>(Nd4jIndex val1, Nd4jIndex val2) {
+		math_def inline Nd4jLong nd4j_min<Nd4jLong>(Nd4jLong val1, Nd4jLong val2) {
 			return val1 < val2 ? val1 : val2;
 		}
 
@@ -663,6 +666,14 @@ template<typename T>
         math_def inline int nd4j_pow<int>(int val, int val2) {
 			return powf((float) val, (float) val2);
 		}
+
+		template<typename T>
+		math_def inline T nd4j_re(T val1, T val2) {
+			if (val1 == (T) 0.0f && val2 == (T) 0.0f)
+				return (T) 0.0f;
+
+			return nd4j_abs<T>(val1 - val2) / (nd4j_abs<T>(val1) + nd4j_abs<T>(val2));
+        }
 
 		template<>
         math_def inline float16 nd4j_round<float16>(float16 val) {

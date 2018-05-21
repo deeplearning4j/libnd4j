@@ -35,13 +35,13 @@ CUSTOM_OP_IMPL(conv2d, 2, 1, false, 0, 9) {
     int dH = INT_ARG(6);                                                        // dilations height
     int dW = INT_ARG(7);                                                        // dilations width
     int isSameMode = INT_ARG(8);                                                // 0-VALID, 1-SAME
-    int isNCHW     = block.getIArguments()->size() > 9 ? !INT_ARG(9) : 1;       // 1-NCHW,  0-NHWC        
+    int isNCHW     = block.getIArguments()->size() > 9 ? !INT_ARG(9) : 1;       // 1-NCHW,  0-NHWC
 
      int bS, iC, iH, iW, oC, oH, oW;                             // batch size, input channels, input height/width, output channels, output height/width;
     int indIOioC, indIiH, indWoC, indWiC, indWkH, indOoH;       // corresponding indexes
     ConvolutionUtils<T>::getSizesAndIndexesConv2d(isNCHW, *input, *output, bS, iC, iH, iW, oC, oH, oW, indIOioC, indIiH, indWiC, indWoC, indWkH, indOoH);
 
-    std::string expectedWeightsShape = ShapeUtils<T>::shapeAsString(ShapeUtils<T>::composeShapeUsingDimsAndIdx({iC,oC,kH,kW,  indWiC,indWoC,indWkH,indWkH+1}));        
+    std::string expectedWeightsShape = ShapeUtils<T>::shapeAsString(ShapeUtils<T>::composeShapeUsingDimsAndIdx({iC,oC,kH,kW,  indWiC,indWoC,indWkH,indWkH+1}));
     REQUIRE_TRUE(expectedWeightsShape == ShapeUtils<T>::shapeAsString(weights), 0, "CUSTOM CONV2D OP: wrong shape of weights array, expected is %s, but got %s instead !", expectedWeightsShape.c_str(), ShapeUtils<T>::shapeAsString(weights).c_str());    
     if (bias) 
         REQUIRE_TRUE(bias->rankOf() <= 2 && oC == bias->lengthOf(), 0, "CUSTOM CONV2D OP: wrong shape of array with biases, expected rank, length: <=2, %i, but got %i, %i instead !", oC, bias->rankOf(), bias->lengthOf());                
@@ -56,9 +56,9 @@ CUSTOM_OP_IMPL(conv2d, 2, 1, false, 0, 9) {
 
 DECLARE_SHAPE_FN(conv2d) {
 
-    int* inputShapeInfo   = inputShape->at(0);                                  // [bS, iH, iW, iC] (NHWC) or [bS, iC, iH, iW] (NCHW)
-    int* weightsShapeInfo = inputShape->at(1);                                  // [kH, kW, iC, oC] (NHWC) or [oC, iC, kH, kW] (NCHW)
-    int* biasShapeInfo    = block.width() > 2 ? inputShape->at(2) : nullptr;    // [oC]
+    auto inputShapeInfo   = inputShape->at(0);                                  // [bS, iH, iW, iC] (NHWC) or [bS, iC, iH, iW] (NCHW)
+    auto weightsShapeInfo = inputShape->at(1);                                  // [kH, kW, iC, oC] (NHWC) or [oC, iC, kH, kW] (NCHW)
+    auto biasShapeInfo    = block.width() > 2 ? inputShape->at(2) : nullptr;    // [oC]
 
     //output [bS, oH, oW, oC] (NHWC) or [bS, oC, oH, oW] (NCHW)
 
@@ -97,8 +97,8 @@ DECLARE_SHAPE_FN(conv2d) {
     if (biasShapeInfo) 
         REQUIRE_TRUE(biasShapeInfo[0] <= 2 && oC == shape::length(biasShapeInfo), 0, "CUSTOM CONV2D OP: wrong shape of array with biases, expected rank, length: <=2, %i, but got %i, %i instead !", oC, biasShapeInfo[0], shape::length(biasShapeInfo));
     
-    int* outputShapeInfo = nullptr;
-    ALLOCATE(outputShapeInfo, block.getWorkspace(), shape::shapeInfoLength(rank), int);
+    Nd4jLong* outputShapeInfo = nullptr;
+    ALLOCATE(outputShapeInfo, block.getWorkspace(), shape::shapeInfoLength(rank), Nd4jLong);
 
     int oH, oW;                                         // output height, width
     ConvolutionUtils<T>::calcOutSizePool2D(oH, oW, kH, kW, sH, sW, pH, pW, dH, dW, iH, iW, isSameMode);
@@ -148,7 +148,7 @@ CUSTOM_OP_IMPL(conv2d_bp, 3, 2, false, 0, 9) {
 
     REQUIRE_TRUE(input->rankOf()   == 4, 0, "CUSTOM CONV2D_BP OP: rank of input array must be equal to 4, but got %i instead !", input->rankOf());
     REQUIRE_TRUE(weights->rankOf() == 4, 0, "CUSTOM CONV2D_BP OP: rank of weights array must be equal to 4, but got %i instead !", weights->rankOf());
-    REQUIRE_TRUE(gradO->rankOf() == 4, 0, "CUSTOM CONV2D_BP OP: rank of output gradients (next epsilon) array must be equal to 4, but got %i instead !", gradO->rankOf());
+    REQUIRE_TRUE(gradO->rankOf() == 4, 0, "CUSTOM CONV2D_BP OP: rank of output's gradients (next epsilon) array must be equal to 4, but got %i instead !", gradO->rankOf());
 
     int bS, iC, iH, iW, oC, oH, oW;                             // batch size, input channels, input height/width, output channels, output height/width;
     int indIOioC, indIiH, indWoC, indWiC, indWkH, indOoH;       // corresponding indexes
@@ -173,10 +173,10 @@ CUSTOM_OP_IMPL(conv2d_bp, 3, 2, false, 0, 9) {
 
 DECLARE_SHAPE_FN(conv2d_bp) {
 
-    int* inputShapeInfo   = inputShape->at(0);                                                // [bS, iH, iW, iC] (NHWC) or [bS, iC, iH, iW] (NCHW)
-    int* weightsShapeInfo = inputShape->at(1);                                                // [kH, kW, iC, oC] (NHWC) or [oC, iC, kH, kW] (NCHW)
-    int* biasShapeInfo    = block.width() > 3 ? inputShape->at(2) : nullptr;                  // [oC]
-    int* gradOShapeInfo   = block.width() > 3 ? inputShape->at(3) : inputShape->at(2);        // [bS, oH, oW, oC] (NHWC) or [bS, oC, oH, oW] (NCHW), epsilon_next
+    auto inputShapeInfo   = inputShape->at(0);                                                // [bS, iH, iW, iC] (NHWC) or [bS, iC, iH, iW] (NCHW)
+    auto weightsShapeInfo = inputShape->at(1);                                                // [kH, kW, iC, oC] (NHWC) or [oC, iC, kH, kW] (NCHW)
+    auto biasShapeInfo    = block.width() > 3 ? inputShape->at(2) : nullptr;                  // [oC]
+    auto gradOShapeInfo   = block.width() > 3 ? inputShape->at(3) : inputShape->at(2);        // [bS, oH, oW, oC] (NHWC) or [bS, oC, oH, oW] (NCHW), epsilon_next
 
     const int rank = 4;
 
@@ -219,12 +219,12 @@ DECLARE_SHAPE_FN(conv2d_bp) {
     if(biasShapeInfo)
         REQUIRE_TRUE(biasShapeInfo[0] <= 2 && oC == shape::length(biasShapeInfo), 0, "CUSTOM CONV2D_BP OP: wrong shape of array with biases, expected rank, length: <=2, %i, but got %i, %i instead !", oC, biasShapeInfo[0], shape::length(biasShapeInfo));
     
-    int* gradIshapeInfo(nullptr), *gradWshapeInfo(nullptr);
+    Nd4jLong* gradIshapeInfo(nullptr), *gradWshapeInfo(nullptr);
     COPY_SHAPE(inputShapeInfo, gradIshapeInfo);
     COPY_SHAPE(weightsShapeInfo, gradWshapeInfo);
 
     if(biasShapeInfo) {
-        int* gradBshapeInfo(nullptr);
+        Nd4jLong* gradBshapeInfo(nullptr);
         COPY_SHAPE(biasShapeInfo, gradBshapeInfo);
         return SHAPELIST(gradIshapeInfo, gradWshapeInfo, gradBshapeInfo);
     }     

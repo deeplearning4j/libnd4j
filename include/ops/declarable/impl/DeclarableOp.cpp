@@ -5,6 +5,7 @@
 #include <ops/declarable/DeclarableOp.h>
 #include <helpers/ProviderRNG.h>
 #include <Status.h>
+#include <helpers/ShapeUtils.h>
 
 namespace nd4j {
     namespace ops {
@@ -71,7 +72,7 @@ namespace nd4j {
         }
 
         template<typename T>
-        Nd4jIndex DeclarableOp<T>::getOpHash() {
+        Nd4jLong DeclarableOp<T>::getOpHash() {
             return _descriptor->getHash();
         }
 
@@ -178,7 +179,20 @@ namespace nd4j {
 
                         ctx.pushNDArrayToVariableSpace(pair, outArr);
                     } else {
-                        // TODO: validate/compare shapes here. existent vs provided in outSha
+                        // validate/compare shapes here. existent vs provided in outSha
+                        auto var = ctx.variable(pair);
+                        auto shape = var->getNDArray()->shapeInfo();
+
+                        if (!shape::equalsSoft(out, shape)) {
+                            auto eShape = ShapeUtils<T>::shapeAsString(out);
+                            auto aShape = ShapeUtils<T>::shapeAsString(shape);
+
+                            outSha->destroy();
+                            delete outSha;
+
+                            nd4j_printf("Expected vs provided shapes mismatch: %s vs %s\n", eShape.c_str(), aShape.c_str());
+                            throw std::runtime_error("Expected vs provided shapes mismatch");
+                        }
                     }
                 }
 
@@ -216,14 +230,14 @@ namespace nd4j {
 
 
         template <typename T>
-        bool nd4j::ops::DeclarableOp<T>::allocateResult(Context<T>& block, int* shape) {
+        bool nd4j::ops::DeclarableOp<T>::allocateResult(Context<T>& block, Nd4jLong* shape) {
             auto var = block.variable(block.getNodeId(), 0);
 
             auto workspace = block.getWorkspace();
 
-            Nd4jIndex len = shape::length(shape);
-            int* __shape;
-            ALLOCATE(__shape, workspace, shape::shapeInfoLength(shape[0]), int); //new int[shape[0] * 2 + 4];
+            Nd4jLong len = shape::length(shape);
+            Nd4jLong* __shape;
+            ALLOCATE(__shape, workspace, shape::shapeInfoLength(shape[0]), Nd4jLong); //new int[shape[0] * 2 + 4];
 
             memcpy(__shape, shape, shape::shapeInfoByteLength(shape[0]));
 
@@ -250,11 +264,11 @@ namespace nd4j {
 
 
         template <typename T>
-        bool nd4j::ops::DeclarableOp<T>::allocateResult(Context<T>& block, std::initializer_list<int>& shape, char order) {
+        bool nd4j::ops::DeclarableOp<T>::allocateResult(Context<T>& block, std::initializer_list<Nd4jLong>& shape, char order) {
             auto var = block.variable(block.getNodeId(), 0);
             auto workspace = block.getWorkspace();
 
-            Nd4jIndex len = shape::length(shape);
+            Nd4jLong len = shape::length(shape);
             // if that's first run - we probably have nothing here
             if (var->getNDArray() == nullptr) {
                 var->setNDArray(new NDArray<T>(order, shape, workspace));
@@ -274,9 +288,9 @@ namespace nd4j {
             nd4j_debug("Executing op: [%s]\n", this->getOpName()->c_str());
 
             std::chrono::time_point<std::chrono::system_clock> timeEnter, timeStart, timeEnd;
-            Nd4jIndex prepTime, outerTime;
+            Nd4jLong prepTime, outerTime;
 
-            Nd4jIndex memoryBefore = block->workspace() == nullptr ? 0L : block->workspace()->getSpilledSize() + block->workspace()->getUsedSize();
+            Nd4jLong memoryBefore = block->workspace() == nullptr ? 0L : block->workspace()->getSpilledSize() + block->workspace()->getUsedSize();
             if (Environment::getInstance()->isProfiling())
                 timeEnter = std::chrono::system_clock::now();
 
@@ -308,8 +322,8 @@ namespace nd4j {
                 if (fp != nullptr) {
                     auto p = fp->profile();
                     if (p != nullptr) {
-                        Nd4jIndex memoryAfter = block->workspace() == nullptr ? 0L : block->workspace()->getSpilledSize() + block->workspace()->getUsedSize(); 
-                        Nd4jIndex memoryUsed = memoryAfter - memoryBefore;
+                        Nd4jLong memoryAfter = block->workspace() == nullptr ? 0L : block->workspace()->getSpilledSize() + block->workspace()->getUsedSize();
+                        Nd4jLong memoryUsed = memoryAfter - memoryBefore;
                         p->nodeById(block->nodeId())->setPreparationTime(prepTime);
                         p->nodeById(block->nodeId())->setExecutionTime(outerTime);
                         p->nodeById(block->nodeId())->setTotalSize(memoryUsed);
@@ -482,24 +496,39 @@ namespace nd4j {
         }
 
         template<typename T>
-        nd4j::ResultSet<T>*  nd4j::ops::DeclarableOp<T>::execute(std::initializer_list<NDArray<T>*> inputs, std::initializer_list<T> tArgs, std::initializer_list<int> iArgs, bool isInplace) {
+        nd4j::ResultSet<T>*  nd4j::ops::DeclarableOp<T>::execute(std::initializer_list<NDArray<T>*> inputs, std::initializer_list<T> tArgs, std::initializer_list<Nd4jLong> iArgs, bool isInplace) {
             std::vector<NDArray<T>*> ins(inputs);
             std::vector<T> tas(tArgs);
-            std::vector<int> ias(iArgs);
+            std::vector<Nd4jLong> ias(iArgs);
             return this->execute(ins, tas, ias, isInplace);
         }
 
         template<typename T>
-        Nd4jStatus nd4j::ops::DeclarableOp<T>::execute(std::initializer_list<NDArray<T>*> inputs, std::initializer_list<NDArray<T>*> outputs , std::initializer_list<T> tArgs, std::initializer_list<int> iArgs, bool isInplace) {
+        Nd4jStatus nd4j::ops::DeclarableOp<T>::execute(std::initializer_list<NDArray<T>*> inputs, std::initializer_list<NDArray<T>*> outputs , std::initializer_list<T> tArgs, std::initializer_list<Nd4jLong> iArgs, bool isInplace) {
             std::vector<NDArray<T>*> ins(inputs);
             std::vector<NDArray<T>*> ous(outputs);
             std::vector<T> tas(tArgs);
-            std::vector<int> ias(iArgs);
+            std::vector<Nd4jLong> ias(iArgs);
             return this->execute(ins, ous, tas, ias, isInplace);
         }
 
+        template<typename T>
+        Nd4jStatus nd4j::ops::DeclarableOp<T>::execute(nd4j::random::RandomBuffer *rng, std::initializer_list<NDArray<T>*> inputs, std::initializer_list<NDArray<T>*> outputs , std::initializer_list<T> tArgs, std::initializer_list<Nd4jLong> iArgs, bool isInplace) {
+            std::vector<NDArray<T>*> ins(inputs);
+            std::vector<NDArray<T>*> ous(outputs);
+            std::vector<T> tas(tArgs);
+            std::vector<Nd4jLong> ias(iArgs);
+            return this->execute(rng, ins, ous, tas, ias, isInplace);
+        }
+
         template <typename T>
-        Nd4jStatus nd4j::ops::DeclarableOp<T>::execute(std::vector<NDArray<T>*>& inputs, std::vector<NDArray<T>*>& outputs, std::vector<T>& tArgs, std::vector<int>& iArgs, bool isInplace) {
+        Nd4jStatus nd4j::ops::DeclarableOp<T>::execute(std::vector<NDArray<T>*>& inputs, std::vector<NDArray<T>*>& outputs, std::vector<T>& tArgs, std::vector<Nd4jLong>& iArgs, bool isInplace) {
+            // TODO: nullptr here might be replaced
+            return execute(nullptr, inputs, outputs, tArgs, iArgs, isInplace);
+        }
+
+        template <typename T>
+        Nd4jStatus nd4j::ops::DeclarableOp<T>::execute(nd4j::random::RandomBuffer *rng, std::vector<NDArray<T>*>& inputs, std::vector<NDArray<T>*>& outputs, std::vector<T>& tArgs, std::vector<Nd4jLong>& iArgs, bool isInplace) {
             VariableSpace<T> variableSpace;
             FlowPath fp;
             variableSpace.setFlowPath(&fp);
@@ -526,7 +555,11 @@ namespace nd4j {
 
             Context<T> block(1, &variableSpace, false);
             block.fillInputs(in);
-            block.markInplace(isInplace);            
+            block.markInplace(isInplace);
+
+            // we need this line for tests basically
+            if (rng != nullptr)
+                block.setRNG(rng);
 
             for (int e = 0; e < tArgs.size(); e++)
                 block.getTArguments()->emplace_back(tArgs.at(e));
@@ -541,7 +574,7 @@ namespace nd4j {
         }
 
         template <typename T>
-        nd4j::ResultSet<T>* nd4j::ops::DeclarableOp<T>::execute(std::vector<NDArray<T>*>& inputs, std::vector<T>& tArgs, std::vector<int>& iArgs, bool isInplace) {
+        nd4j::ResultSet<T>* nd4j::ops::DeclarableOp<T>::execute(std::vector<NDArray<T>*>& inputs, std::vector<T>& tArgs, std::vector<Nd4jLong>& iArgs, bool isInplace) {
             VariableSpace<T> variableSpace;
             auto arrayList = new ResultSet<T>();
             //ResultSet<T> arrayList;
@@ -622,7 +655,7 @@ namespace nd4j {
                 return ND4J_STATUS_OK;
 
 
-            Nd4jIndex l0 = block.variable(0)->getNDArray()->lengthOf();
+            Nd4jLong l0 = block.variable(0)->getNDArray()->lengthOf();
             for (uint32_t e = 0; e < block.width(); e++) {
                 if (l0 != block.variable(e)->getNDArray()->lengthOf())
                     return ND4J_STATUS_BAD_LENGTH;

@@ -62,8 +62,7 @@ CUSTOM_OP_IMPL(conv3dnew, 2, 1, false, 0, 13) {
         ConvolutionUtils<T>::calcPadding3D(pD, pH, pW, oD, oH, oW, iD, iH, iW, kD, kH, kW, sD, sH, sW, dD, dH, dW);
 
     NDArray<T> columns(input->ordering(), {bS, iC, kD, kH, kW, oD, oH, oW}, block.getWorkspace());            
-    ConvolutionUtils<T>::vol2col2(*input, columns, sD, sH, sW, pD, pH, pW, dD, dH, dW);                 // [bS, iC, iD, iH, iW] is convoluted to [bS, iC, kD, kH, kW, oD, oH, oW]        
-
+    ConvolutionUtils<T>::vol2col(*input, columns, sD, sH, sW, pD, pH, pW, dD, dH, dW);                 // [bS, iC, iD, iH, iW] is convoluted to [bS, iC, kD, kH, kW, oD, oH, oW]        
     // [bS, iC, kD, kH, kW, oD, oH, oW] x [kD, kH, kW, iC, oC]/[oC, iC, kD, kH, kW] = [bS, oD, oH, oW, oC]
     nd4j::NDArrayFactory<T>::tensorDot(&columns, weights, output, {1,2,3,4}, weightsAxesForDot, permutForGradW);
 
@@ -79,9 +78,9 @@ CUSTOM_OP_IMPL(conv3dnew, 2, 1, false, 0, 13) {
 
 DECLARE_SHAPE_FN(conv3dnew) {    
 
-    int* inputShapeInfo   = inputShape->at(0);                                  // [bS, iD, iH, iW, iC] (NDHWC) or [bS, iC, iD, iH, iW] (NCDHW)
-    int* weightsShapeInfo = inputShape->at(1);                                  // [kD, kH, kW, iC, oC] (NDHWC) or [oC, iC, kD, kH, kW] (NCDHW)
-    int* biasShapeInfo    = block.width() > 2 ? inputShape->at(2) : nullptr;    // [oC]
+    auto inputShapeInfo   = inputShape->at(0);                                  // [bS, iD, iH, iW, iC] (NDHWC) or [bS, iC, iD, iH, iW] (NCDHW)
+    auto weightsShapeInfo = inputShape->at(1);                                  // [kD, kH, kW, iC, oC] (NDHWC) or [oC, iC, kD, kH, kW] (NCDHW)
+    auto biasShapeInfo    = block.width() > 2 ? inputShape->at(2) : nullptr;    // [oC]
 
     int kD = INT_ARG(0);                                                        // filter(kernel) depth
     int kH = INT_ARG(1);                                                        // filter(kernel) height
@@ -125,8 +124,8 @@ DECLARE_SHAPE_FN(conv3dnew) {
     int oD, oH, oW;                         // output depth, height, width
     ConvolutionUtils<T>::calcOutSizePool3D(oD, oH, oW, kD, kH, kW, sD, sH, sW, pD, pH, pW, dD, dH, dW, iD, iH, iW, isSameMode);
     
-    int* outputShapeInfo = nullptr;
-    ALLOCATE(outputShapeInfo, block.getWorkspace(), shape::shapeInfoLength(inputShapeInfo), int);
+    Nd4jLong* outputShapeInfo = nullptr;
+    ALLOCATE(outputShapeInfo, block.getWorkspace(), shape::shapeInfoLength(inputShapeInfo), Nd4jLong);
 
     outputShapeInfo[0] = rank;
     outputShapeInfo[1] = bS;
@@ -177,11 +176,11 @@ CUSTOM_OP_IMPL(conv3dnew_bp, 3, 2, false, 0, 13) {
     int dH = INT_ARG(10);                                                       // dilations height
     int dW = INT_ARG(11);                                                       // dilations width
     int isSameMode = INT_ARG(12);                                               // 1-SAME,  0-VALID
-    int isNCDHW  = block.getIArguments()->size() > 13 ? !INT_ARG(13) : 1;       // 1-NDHWC, 0-NCDHW    
+    int isNDHWC  = block.getIArguments()->size() > 13 ? !INT_ARG(13) : 1;       // 1-NDHWC, 0-NCDHW
 
      int bS, iC, iD, iH, iW, oC, oD, oH, oW;                     // batch size, input channels, input depth/height/width, output channels, output depth/height/width;
     int indIOioC, indIOioD, indWoC, indWiC, indWkD;             // corresponding indexes
-    ConvolutionUtils<T>::getSizesAndIndexesConv3d(isNCDHW, *input, *gradO, bS, iC, iD, iH, iW, oC, oD, oH, oW, indIOioC, indIOioD, indWiC, indWoC, indWkD);
+    ConvolutionUtils<T>::getSizesAndIndexesConv3d(isNDHWC, *input, *gradO, bS, iC, iD, iH, iW, oC, oD, oH, oW, indIOioC, indIOioD, indWiC, indWoC, indWkD);
 
     int trueoD, trueoH, trueoW;          // true output depth/height/width
     ConvolutionUtils<T>::calcOutSizePool3D(trueoD, trueoH, trueoW, kD, kH, kW, sD, sH, sW, pD, pH, pW, dD, dH, dW, iD, iH, iW, isSameMode);
@@ -195,7 +194,7 @@ CUSTOM_OP_IMPL(conv3dnew_bp, 3, 2, false, 0, 13) {
     
     std::vector<int> gradOaxesForDot, permutForGradW, permutForColumns;    
 
-    if(!isNCDHW) {
+    if(!isNDHWC) {
         input = input->permute({0,4,1,2,3});                                    // [bS, iD, iH, iW, iC] -> [bS, iC, iD, iH, iW]
         gradI = gradI->permute({0,4,1,2,3});                                    // [bS, iD, iH, iW, iC] -> [bS, iC, iD, iH, iW]
         gradOaxesForDot  = {0,1,2,3};                                           // bS, oD, oH, oW        
@@ -213,7 +212,7 @@ CUSTOM_OP_IMPL(conv3dnew_bp, 3, 2, false, 0, 13) {
     
     // ----- calculation of gradW and gradB ----- //                
     NDArray<T> columns(input->ordering(), {bS, iC, kD, kH, kW, oD, oH, oW}, block.getWorkspace());      
-    ConvolutionUtils<T>::vol2col2(*input, columns, sD, sH, sW, pD, pH, pW, dD, dH, dW);                         // [bS, iC, iD, iH, iW] is convoluted to [bS, iC, kD, kH, kW, oD, oH, oW]        
+    ConvolutionUtils<T>::vol2col(*input, columns, sD, sH, sW, pD, pH, pW, dD, dH, dW);                         // [bS, iC, iD, iH, iW] is convoluted to [bS, iC, kD, kH, kW, oD, oH, oW]        
     nd4j::NDArrayFactory<T>::tensorDot(&columns, gradO, gradW, {0,5,6,7}, gradOaxesForDot, permutForGradW);     // [bS, iC, kD, kH, kW, oD, oH, oW] x [bS, oD, oH, oW, oC]/[bS, oC, oD, oH, oW] = [iC, kD, kH, kW, oC]
 
     if(gradB) {        
@@ -226,9 +225,9 @@ CUSTOM_OP_IMPL(conv3dnew_bp, 3, 2, false, 0, 13) {
 
     //----- calculation of gradI -----//            
     nd4j::NDArrayFactory<T>::tensorDot(weights, gradO, &columns, {indWoC}, {indIOioC}, permutForColumns);   // [kD, kH, kW, iC, oC]/[oC, iC, kD, kH, kW]] x [bS, oD, oH, oW, oC]/[bS, oC, oD, oH, oW] = [kD, kH, kW, iC, bS, oD, oH, oW]/[iC, kD, kH, kW, bS, oD, oH, oW]
-    ConvolutionUtils<T>::col2vol2(columns, *gradI, sD, sH, sW, pD, pH, pW, dD, dH, dW);                     // columns [bS, iC, kD, kH, kW, oD, oH, oW] is de-convoluted to  [bS, iC, iD, iH, iW]
+    ConvolutionUtils<T>::col2vol(columns, *gradI, sD, sH, sW, pD, pH, pW, dD, dH, dW);                     // columns [bS, iC, kD, kH, kW, oD, oH, oW] is de-convoluted to  [bS, iC, iD, iH, iW]
    
-    if(!isNCDHW) {        
+    if(!isNDHWC) {
         delete input;        
         delete gradI;
     }
@@ -240,10 +239,10 @@ CUSTOM_OP_IMPL(conv3dnew_bp, 3, 2, false, 0, 13) {
 
 DECLARE_SHAPE_FN(conv3dnew_bp) {
 
-    int* inputShapeInfo   = inputShape->at(0);                                              // [bS, iD, iH, iW, iC] (NDHWC) or [bS, iC, iD, iH, iW] (NCDHW)
-    int* weightsShapeInfo = inputShape->at(1);                                              // [kD, kH, kW, iC, oC] (NDHWC) or [oC, iC, kD, kH, kW] (NCDHW)
-    int* biasShapeInfo    = block.width() > 3 ? inputShape->at(2) : nullptr;                // [oC]
-    int* gradOShapeInfo   = block.width() > 3 ? inputShape->at(3) : inputShape->at(2);      // [bS, oD, oH, oW, oC] (NDHWC) or [bS, oC, oD, oH, oW] (NCDHW), epsilon_next
+    Nd4jLong* inputShapeInfo   = inputShape->at(0);                                              // [bS, iD, iH, iW, iC] (NDHWC) or [bS, iC, iD, iH, iW] (NCDHW)
+    Nd4jLong* weightsShapeInfo = inputShape->at(1);                                              // [kD, kH, kW, iC, oC] (NDHWC) or [oC, iC, kD, kH, kW] (NCDHW)
+    Nd4jLong* biasShapeInfo    = block.width() > 3 ? inputShape->at(2) : nullptr;                // [oC]
+    Nd4jLong* gradOShapeInfo   = block.width() > 3 ? inputShape->at(3) : inputShape->at(2);      // [bS, oD, oH, oW, oC] (NDHWC) or [bS, oC, oD, oH, oW] (NCDHW), epsilon_next
 
     int kD = INT_ARG(0);                                                        // filter(kernel) depth
     int kH = INT_ARG(1);                                                        // filter(kernel) height
@@ -258,15 +257,15 @@ DECLARE_SHAPE_FN(conv3dnew_bp) {
     int dH = INT_ARG(10);                                                       // dilations height
     int dW = INT_ARG(11);                                                       // dilations width
     int isSameMode = INT_ARG(12);                                               // 1-SAME,  0-VALID
-    int isNCDHW  = block.getIArguments()->size() > 13 ? !INT_ARG(13) : 1;       // 1-NDHWC, 0-NCDHW    
+    int isNDHWC  = block.getIArguments()->size() > 13 ? !INT_ARG(13) : 1;       // 1-NDHWC, 0-NCDHW
 
     const int rank = 5;
     REQUIRE_TRUE(inputShapeInfo[0]   == rank, 0, "CUSTOM CONV3D_BP OP: rank of input array must be equal to %i, but got %i instead !", rank, inputShapeInfo);
     REQUIRE_TRUE(weightsShapeInfo[0] == rank, 0, "CUSTOM CONV3D_BP OP: rank of weights array must be equal to %i, but got %i instead !", rank, weightsShapeInfo);
     REQUIRE_TRUE(gradOShapeInfo[0]   == rank, 0, "CUSTOM CONV3D_BP OP: rank of output gradients (next epsilon) array must be equal to %i, but got %i instead !", rank, gradOShapeInfo);
 
-    int indIOioC, indIiD, indWkD, indWoC, indWiC, indIOioD;
-    if(!isNCDHW) {
+    int indIOioC, indIiD, indWkD, indWoC, indWiC;
+    if(!isNDHWC) {
         indIOioC = 4; indIiD = 1; indWkD = 0; indWoC = 4; indWiC = 3; 
     }
     else {        
@@ -290,12 +289,12 @@ DECLARE_SHAPE_FN(conv3dnew_bp) {
     if(biasShapeInfo)        
         REQUIRE_TRUE(biasShapeInfo[0] <= 2 && oC == shape::length(biasShapeInfo), 0, "CUSTOM CONV3D_BP OP: wrong shape of array with biases, expected rank, length: <=2, %i, but got %i, %i instead !", oC, biasShapeInfo[0], shape::length(biasShapeInfo));
 
-    int* gradIshapeInfo(nullptr), *gradWshapeInfo(nullptr);
+    Nd4jLong* gradIshapeInfo(nullptr), *gradWshapeInfo(nullptr);
     COPY_SHAPE(inputShapeInfo, gradIshapeInfo);
     COPY_SHAPE(weightsShapeInfo, gradWshapeInfo);
 
     if(biasShapeInfo) {
-        int* gradBshapeInfo(nullptr);
+        Nd4jLong* gradBshapeInfo(nullptr);
         COPY_SHAPE(biasShapeInfo, gradBshapeInfo);
         return SHAPELIST(gradIshapeInfo, gradWshapeInfo, gradBshapeInfo);
     }     

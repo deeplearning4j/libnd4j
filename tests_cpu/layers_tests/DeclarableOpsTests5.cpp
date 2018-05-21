@@ -550,7 +550,7 @@ TEST_F(DeclarableOpsTests5, gatherNd_test5) {
 TEST_F(DeclarableOpsTests5, gatherNd_test6) {
 
     NDArray<float> input('c', {4}, {1,2,3,4});
-    std::vector<int> shape = {1};
+    std::vector<Nd4jLong> shape = {1};
     NDArray<float> indices('c', shape, {2});
     NDArray<float> expected(3.);
 
@@ -820,6 +820,45 @@ TEST_F(DeclarableOpsTests5, reverse_sequense_test13) {
 }
 
 //////////////////////////////////////////////////////////////////////
+TEST_F(DeclarableOpsTests5, Test_TopK_0) {
+    NDArray<float> x('c', {2, 6}, {1.0f, 1.0f, 1.0f, 1.0f, 11.0f, 3.0f, 1.0f, 1.0f, 1.0f, 14.0f, 5.0f, 6.0f});
+    NDArray<float> expV('c', {2, 1}, {11.0f, 14.0f});
+    NDArray<float> expI('c', {2, 1}, {4.0f, 3.0f});
+
+    nd4j::ops::top_k<float> op;
+    auto result = op.execute({&x}, {}, {1, 0}); // without sorting
+
+    ASSERT_EQ(ND4J_STATUS_OK, result->status());
+    ASSERT_EQ(2, result->size());
+
+    auto v = result->at(0);
+    auto i = result->at(1);
+/*
+    v->printShapeInfo("topK_0: shape v");
+    expV.printShapeInfo("topK_0: shape expV");
+
+    i->printShapeInfo("topK_0: shape I");
+    expI.printShapeInfo("topK_0: shape expI");
+
+    v->printIndexedBuffer("topK_0: v");
+    expV.printIndexedBuffer("topK_0: expV");
+    i->printIndexedBuffer("topK_0: i");
+    expI.printIndexedBuffer("topK_0: expI");
+*/
+
+    ASSERT_TRUE(expV.isSameShape(v));
+    ASSERT_TRUE(expV.equalsTo(v));
+
+    ASSERT_TRUE(expI.isSameShape(i));
+    ASSERT_TRUE(expI.equalsTo(i));
+    // repeat res again
+    for (int cases = 0; cases < 100; ++cases) {
+        op.execute({&x}, {v, i}, {}, {1, 0}); // without sorting
+    }
+    delete result;
+}
+
+//////////////////////////////////////////////////////////////////////
 TEST_F(DeclarableOpsTests5, Test_TopK_1) {
     NDArray<float> x('c', {2, 3}, {1.0f, 11.0f, 3.0f, 14.0f, 5.0f, 6.0f});
     NDArray<float> expV('c', {2, 1}, {11.0f, 14.0f});
@@ -851,7 +890,10 @@ TEST_F(DeclarableOpsTests5, Test_TopK_1) {
 
     ASSERT_TRUE(expI.isSameShape(i));
     ASSERT_TRUE(expI.equalsTo(i));
-
+    // repeat res again
+    for (int cases = 0; cases < 100; ++cases) {
+        op.execute({&x}, {v, i}, {}, {1, 0}); // without sorting
+    }
     delete result;
 }
 
@@ -1426,9 +1468,7 @@ TEST_F(DeclarableOpsTests5, random_shuffle_test3) {
 
 //////////////////////////////////////////////////////////////////////
 TEST_F(DeclarableOpsTests5, random_shuffle_test4) {
-    
-    std::vector<int> shape = {4};
-    NDArray<float> input('c', shape);
+    NDArray<float> input('c', {4});
     NDArrayFactory<float>::linspace(1, input);
 
     nd4j::ops::random_shuffle<float> op;
@@ -1757,15 +1797,14 @@ TEST_F(DeclarableOpsTests5, fusedBatchNorm_test1) {
     
     NDArray<double> x('c', {2, 2, 3, 4});
     NDArrayFactory<double>::linspace(1, x);
-    std::vector<int> shape = {4};
-    NDArray<double> scale('c', shape);
+    NDArray<double> scale('c', {4});
     
     scale = 0.5;
-    NDArray<double> offset('c', shape);
+    NDArray<double> offset('c', {4});
     offset = 2.;
     NDArray<double> expY('c', {2, 2, 3, 4}, {1.20337462,  1.20337462,  1.20337462,  1.20337462, 1.34821558,  1.34821558,  1.34821558,  1.34821558, 1.49305654,  1.49305654,  1.49305654,  1.49305654, 1.63789749,  1.63789749,  1.63789749,  1.63789749, 1.78273857,  1.78273857,  1.78273857,  1.78273857, 1.92757952,  1.92757952,  1.92757952,  1.92757952, 2.0724206 ,  2.0724206 ,  2.0724206 ,  2.0724206 , 2.21726155,  2.21726155,  2.21726155,  2.21726155, 2.36210251,  2.36210251,  2.36210251,  2.36210251, 2.50694346,  2.50694346,  2.50694346,  2.50694346, 2.65178442,  2.65178442,  2.65178442,  2.65178442, 2.79662538,  2.79662538,  2.79662538,  2.79662538});
-    NDArray<double> expBatchMean('c', shape, {23.,  24.,  25.,  26.});
-    NDArray<double> expBatchVar('c', shape, {208.00001526,  208.00001526,  208.00001526,  208.00001526});
+    NDArray<double> expBatchMean('c', {4}, {23.,  24.,  25.,  26.});
+    NDArray<double> expBatchVar('c', {4}, {208.00001526,  208.00001526,  208.00001526,  208.00001526});
 
 
     nd4j::ops::fused_batch_norm<double> op;
@@ -1787,15 +1826,15 @@ TEST_F(DeclarableOpsTests5, fusedBatchNorm_test2) {
     
     NDArray<double> x('c', {2, 2, 3, 4});
     NDArrayFactory<double>::linspace(1, x);
-    std::vector<int> shape = {4};
-    NDArray<double> scale('c', shape);
+
+    NDArray<double> scale('c', {4});
     
     scale = 0.5;
-    NDArray<double> offset('c', shape);
+    NDArray<double> offset('c', {4});
     offset = 2.;
     NDArray<double> expY('c', {2, 2, 3, 4}, {1.20347691,  1.20347691,  1.20347691,  1.20347691, 1.34829926,  1.34829926,  1.34829926,  1.34829926, 1.49312162,  1.49312162,  1.49312162,  1.49312162, 1.6379441 ,  1.6379441 ,  1.6379441 ,  1.6379441 , 1.78276646,  1.78276646,  1.78276646,  1.78276646, 1.92758882,  1.92758882,  1.92758882,  1.92758882, 2.0724113 ,  2.0724113 ,  2.0724113 ,  2.0724113 , 2.21723366,  2.21723366,  2.21723366,  2.21723366, 2.36205602,  2.36205602,  2.36205602,  2.36205602, 2.50687838,  2.50687838,  2.50687838,  2.50687838, 2.65170074,  2.65170074,  2.65170074,  2.65170074, 2.79652309,  2.79652309,  2.79652309,  2.79652309});
-    NDArray<double> expBatchMean('c', shape, {23.,  24.,  25.,  26.});
-    NDArray<double> expBatchVar('c', shape, {208.00001526,  208.00001526,  208.00001526,  208.00001526});
+    NDArray<double> expBatchMean('c', {4}, {23.,  24.,  25.,  26.});
+    NDArray<double> expBatchVar('c', {4}, {208.00001526,  208.00001526,  208.00001526,  208.00001526});
 
     nd4j::ops::fused_batch_norm<double> op;
     ResultSet<double>* results = op.execute({&x, &scale, &offset}, {0.05}, {0,1});
@@ -1816,15 +1855,15 @@ TEST_F(DeclarableOpsTests5, fusedBatchNorm_test3) {
     
     NDArray<double> x('c', {2, 4, 2, 3});
     NDArrayFactory<double>::linspace(1, x);
-    std::vector<int> shape = {4};
-    NDArray<double> scale('c', shape);
+    
+    NDArray<double> scale('c', {4});
     
     scale = 0.5;
-    NDArray<double> offset('c', shape);
+    NDArray<double> offset('c', {4});
     offset = 2.;
     NDArray<double> expY('c', {2, 4, 2, 3}, {1.20337462,  1.20337462,  1.20337462,  1.20337462, 1.34821558,  1.34821558,  1.34821558,  1.34821558, 1.49305654,  1.49305654,  1.49305654,  1.49305654, 1.63789749,  1.63789749,  1.63789749,  1.63789749, 1.78273857,  1.78273857,  1.78273857,  1.78273857, 1.92757952,  1.92757952,  1.92757952,  1.92757952, 2.0724206 ,  2.0724206 ,  2.0724206 ,  2.0724206 , 2.21726155,  2.21726155,  2.21726155,  2.21726155, 2.36210251,  2.36210251,  2.36210251,  2.36210251, 2.50694346,  2.50694346,  2.50694346,  2.50694346, 2.65178442,  2.65178442,  2.65178442,  2.65178442, 2.79662538,  2.79662538,  2.79662538,  2.79662538});
-    NDArray<double> expBatchMean('c', shape, {23.,  24.,  25.,  26.});
-    NDArray<double> expBatchVar('c', shape, {208.00001526,  208.00001526,  208.00001526,  208.00001526});
+    NDArray<double> expBatchMean('c', {4}, {23.,  24.,  25.,  26.});
+    NDArray<double> expBatchVar('c', {4}, {208.00001526,  208.00001526,  208.00001526,  208.00001526});
 
     nd4j::ops::fused_batch_norm<double> op;
     ResultSet<double>* results = op.execute({&x, &scale, &offset}, {}, {1,1});
@@ -1845,7 +1884,7 @@ TEST_F(DeclarableOpsTests5, fusedBatchNorm_test4) {
     
     NDArray<double> x('c', {2, 2, 3, 4});    
     NDArrayFactory<double>::linspace(1, x);
-    std::vector<int> shape = {4};
+    std::vector<Nd4jLong> shape = {4};
     NDArray<double> scale('c', shape);    
     NDArray<double> offset('c', shape);
     NDArray<double> mean('c', shape);
@@ -1880,7 +1919,7 @@ TEST_F(DeclarableOpsTests5, fusedBatchNorm_test5) {
     
     NDArray<double> x('c', {2, 2, 3, 4});    
     NDArrayFactory<double>::linspace(1, x);
-    std::vector<int> shape = {4};
+    std::vector<Nd4jLong> shape = {4};
     NDArray<double> scale('c', shape);    
     NDArray<double> offset('c', shape);
     NDArray<double> mean('c', shape);

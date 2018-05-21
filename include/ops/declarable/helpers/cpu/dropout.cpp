@@ -27,19 +27,17 @@ namespace helpers {
         else {
             REQUIRE_TRUE(reduceShape->lengthOf() <= input->rankOf(), 0, "dropout: Noise shape should be fittable to input");
         
-            std::vector<int> dims(reduceShape->lengthOf());
+            std::vector<Nd4jLong> dims(reduceShape->lengthOf());
         
             bool fit = true;
 
-            for( int i = 0; i < dims.size(); i++ ) {
+#pragma omp parallel
+            for( int i = 0; fit && (i < dims.size()); i++ ) {
                 dims[i] = (*reduceShape)(i);
-                for (int e = 0; e < input->rankOf(); ++e)
+                for (int e = 0; fit && (e < input->rankOf()); ++e)
                     if (input->sizeAt(e) % dims[i]) {
                         fit = false;
-                        break;
                     }
-        
-                if(!fit) break;
             }
         
             // check dims to fit input

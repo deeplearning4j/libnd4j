@@ -18,8 +18,12 @@ namespace nd4j {
             NDArray<T>* values = OUTPUT_VARIABLE(0);
             NDArray<T>* indeces = OUTPUT_VARIABLE(1);
             if (block.numI() > 0) {
+                if (block.numI() > 1) {
                 k = INT_ARG(0);
                 needSort = INT_ARG(1);
+                }
+                else 
+                    k = INT_ARG(0);
             }
 
             REQUIRE_TRUE(k <= x->sizeAt(-1), 0, "top_k: k should not be greater than last dimension");
@@ -39,9 +43,9 @@ namespace nd4j {
             }
 
             for (int e = 0; e < 2; e++) { // 2 element tuple at output
-                int* newshape;
-                ALLOCATE(newshape, block.getWorkspace(), shape::shapeInfoLength(shapeRank), int);
-                std::vector<int> internalShape(shapeRank);
+                Nd4jLong* newshape;
+                ALLOCATE(newshape, block.getWorkspace(), shape::shapeInfoLength(shapeRank), Nd4jLong);
+                std::vector<Nd4jLong> internalShape(shapeRank);
                 for (int e = 0 ; e < shapeRank - 1; ++e)
                     internalShape[e] = shape::sizeAt(in, e);
                 internalShape[shapeRank - 1] = k;

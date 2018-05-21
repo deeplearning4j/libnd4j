@@ -14,13 +14,10 @@ namespace nd4j {
             REQUIRE_TRUE(idxSegments->isVector(), 0, "segment_mean: segment indexes array should be a vector, but it rank is %i.", idxSegments->rankOf());
             REQUIRE_TRUE(idxSegments->lengthOf() == input->sizeAt(0), 0, "segment_mean: segment indexes array length should be equal to the input first dimension, but %i != %i.", idxSegments->lengthOf(), input->sizeAt(0));
 
-            T val = (*idxSegments)(0);
-            for (int e = 1; e < idxSegments->lengthOf(); e++) {
-                REQUIRE_TRUE(val <= (*idxSegments)(e), 0, "segment_mean: segment indices should be arranged, but %2.1f > %2.1f",
-                    val, (*idxSegments)(e))
-                
-                val = (*idxSegments)(e);
-            }
+            T expected, wrong;
+
+            REQUIRE_TRUE(helpers::segmentIndicesValidate(idxSegments, expected, wrong), 0, "segment_mean: segment indices should be arranged, but %2.1f > %2.1f",
+                    expected, wrong);
 
             helpers::segmentMeanFunctor(input, idxSegments, segmentedOutput);
 
@@ -31,14 +28,14 @@ namespace nd4j {
 
             NDArray<T>* idxVector = INPUT_VARIABLE(1);
 
-            int* in = inputShape->at(0);
+            auto in = inputShape->at(0);
             int outRank = shape::rank(in);
-            int* outputShape = nullptr;
+            Nd4jLong* outputShape = nullptr;
             T val = (*idxVector)(idxVector->lengthOf() - 1);
 
             int numOfClasses = static_cast<int>(val) + 1;
 
-            ALLOCATE(outputShape, block.getWorkspace(), shape::shapeInfoLength(outRank), int);
+            ALLOCATE(outputShape, block.getWorkspace(), shape::shapeInfoLength(outRank), Nd4jLong);
 
             outputShape[0] = outRank;
             outputShape[1] = numOfClasses;

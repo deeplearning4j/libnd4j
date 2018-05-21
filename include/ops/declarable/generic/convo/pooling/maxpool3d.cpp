@@ -28,7 +28,7 @@ CUSTOM_OP_IMPL(maxpool3dnew, 1, 1, false, 0, 10) {
     int pH = INT_ARG(7);                                                        // paddings height
     int pW = INT_ARG(8);                                                        // paddings width
     int isSameMode = INT_ARG(9);                                                // 1-SAME,  0-VALID
-    int isNCHW  = block.getIArguments()->size() > 10 ? !INT_ARG(10) : 1;        // 1-NDHWC, 0-NCDHW    
+    int isNCHW  = block.getIArguments()->size() > 10 ? !INT_ARG(10) : 1;        // 1-NDHWC, 0-NCDHW
 
     REQUIRE_TRUE(input->rankOf() == 5, 0, "CUSTOM MAXPOOL3D OP: rank of input array must be equal to 5, but got %i instead !", input->rankOf());    
 
@@ -92,7 +92,7 @@ DECLARE_SHAPE_FN(maxpool3dnew) {
     int isSameMode = INT_ARG(9);                                                // 1-SAME,  0-VALID;
     int isNCHW  = block.getIArguments()->size() > 10 ? !INT_ARG(10) : 1;        // 1-NDHWC, 0-NCDHW
     
-    int* inputShapeInfo = inputShape->at(0);
+    Nd4jLong* inputShapeInfo = inputShape->at(0);
 
     int idxID, idxIC;    
     if(isNCHW) { idxID = 2; idxIC = 1;}
@@ -107,8 +107,8 @@ DECLARE_SHAPE_FN(maxpool3dnew) {
     int oD, oH, oW;                         // output depth, height, width
     ConvolutionUtils<T>::calcOutSizePool3D(oD, oH, oW, kD, kH, kW, sD, sH, sW, pD, pH, pW, 1, 1, 1, iD, iH, iW, isSameMode);
     
-    int* outputShapeInfo = nullptr;
-    ALLOCATE(outputShapeInfo, block.getWorkspace(), shape::shapeInfoLength(inputShapeInfo), int);
+    Nd4jLong* outputShapeInfo = nullptr;
+    ALLOCATE(outputShapeInfo, block.getWorkspace(), shape::shapeInfoLength(inputShapeInfo), Nd4jLong);
 
     if (isNCHW) {
         outputShapeInfo[0] = 5;
@@ -212,7 +212,7 @@ CUSTOM_OP_IMPL(maxpool3dnew_bp, 2, 1, false, 0, 10) {
 
 DECLARE_SHAPE_FN(maxpool3dnew_bp) {
 
-    int* gradIshapeInfo(nullptr);
+    Nd4jLong* gradIshapeInfo(nullptr);
     COPY_SHAPE(inputShape->at(0), gradIshapeInfo);
         
     return SHAPELIST(gradIshapeInfo);        

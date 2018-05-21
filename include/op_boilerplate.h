@@ -94,7 +94,7 @@
 #endif
 
 #define DEBUG_CALL(STREAM)      if (nd4j::Environment::getInstance()->isDebug()) { cudaError_t tRes = cudaStreamSynchronize(*STREAM); checkCudaErrors(tRes); if (tRes != 0) { throw std::runtime_error(); }; }
-#define DEBUG_KERNEL(STREAM, OP_NUM)       if (nd4j::Environment::getInstance()->isDebug()) { cudaError_t tRes = cudaStreamSynchronize(*STREAM); checkCudaErrors(tRes); if (tRes != 0) {std::string tOp = "Kernel OpNum failed: [" + nd4j::StringUtils::valueToString<int>(OP_NUM) + std::string("]"); throw std::runtime_error(tOp.c_str()); }; }
+#define DEBUG_KERNEL(STREAM, OP_NUM)       if (nd4j::Environment::getInstance()->isDebug()) { cudaError_t tRes = cudaStreamSynchronize(*STREAM); checkCudaErrors(tRes); if (tRes != 0) {std::string tFile(__FILE__); std::string tOp = "Kernel OpNum failed: [" + nd4j::StringUtils::valueToString<int>(OP_NUM) + std::string("]; File: ") + tFile + std::string(":") + nd4j::StringUtils::valueToString<int>(__LINE__); throw std::runtime_error(tOp.c_str()); }; }
 
 #define EXTRACT(...) EXTRACT __VA_ARGS__ 
 #define NOTHING_EXTRACT 
@@ -1205,14 +1205,48 @@
                                       template struct ND4J_EXPORT __registratorSynonymFloat<NAME<float>>;
 
 
-#if defined(_MSC_VER) || defined(_WIN64) || defined(_WIN32) || defined(__CLION_IDE__)
+#if defined(_MSC_VER) || defined(_WIN64) || defined(_WIN32) || defined(__CLION_IDE__) || defined(__VSCODE__)
 #define NOT_EXCLUDED(NAME) 1>0
 #else
 #define NOT_EXCLUDED(NAME) defined(LIBND4J_ALL_OPS) || defined(NAME)
 #endif
 
-#ifndef __JAVACPP_HACK__
-#define REGISTER(NAME)  template <typename OpName>  \
+#ifdef __JAVACPP_HACK__
+#define REGISTER_H(NAME)
+#elif defined(LIBND4J_ALL_OPS)
+#define REGISTER_H(NAME)
+#else
+#define REGISTER_H(NAME)  template <typename OpName>  \
+                        struct __registratorFloat_##NAME {\
+                            __registratorFloat_##NAME() {\
+                                OpName *ptr = new OpName(); \
+                                OpRegistrator::getInstance()->registerOperationFloat(ptr); \
+                                OpTracker::getInstance()->storeOperation(OpType_CUSTOM, *ptr->getOpDescriptor());\
+                            }\
+                        };\
+                        template <typename OpName>  \
+                        struct __registratorHalf_##NAME {\
+                            __registratorHalf_##NAME() {\
+                                OpName *ptr = new OpName(); \
+                                OpRegistrator::getInstance()->registerOperationHalf(ptr); \
+                            }\
+                        };\
+                        template <typename OpName>  \
+                        struct __registratorDouble_##NAME {\
+                            __registratorDouble_##NAME() {\
+                                OpName *ptr = new OpName(); \
+                                OpRegistrator::getInstance()->registerOperationDouble(ptr); \
+                            }\
+                        };\
+                        static nd4j::ops::__registratorFloat_##NAME<NAME<float>> zzz_register_opf_##NAME; \
+                        static nd4j::ops::__registratorHalf_##NAME<NAME<float16>> zzz_register_oph_##NAME; \
+                        static nd4j::ops::__registratorDouble_##NAME<NAME<double>> zzz_register_opd_##NAME;
+#endif
+
+#ifdef __JAVACPP_HACK__
+#define REGISTER_C(NAME)
+#elif defined(LIBND4J_ALL_OPS)
+#define REGISTER_C(NAME)  template <typename OpName>  \
                         struct __registratorFloat_##NAME {\
                             __registratorFloat_##NAME() {\
                                 OpName *ptr = new OpName(); \
@@ -1238,7 +1272,7 @@
                         static nd4j::ops::__registratorHalf_##NAME<NAME<float16>> zzz_register_oph_##NAME; \
                         static nd4j::ops::__registratorDouble_##NAME<NAME<double>> zzz_register_opd_##NAME;
 #else
-#define REGISTER(NAME)  
+#define REGISTER_C(NAME)
 #endif
 
 #define DECLARE_OP(NAME, NIN, NOUT, INPLACEABLE)   template <typename T> \
@@ -1249,7 +1283,7 @@
                                                 protected: \
                                                     Nd4jStatus validateAndExecute(nd4j::graph::Context<T>& block); \
                                                 };\
-                                                REGISTER(NAME)
+                                                REGISTER_H(NAME)
 
 #define DECLARE_BOOLEAN_OP(NAME, NIN, SCALAR)   template <typename T> \
                                                 class NAME: public nd4j::ops::BooleanOp<T> { \
@@ -1258,10 +1292,11 @@
                                                 protected: \
                                                     Nd4jStatus validateAndExecute(nd4j::graph::Context<T>& block); \
                                                 }; \
-                                                REGISTER(NAME)
+                                                REGISTER_H(NAME)
 
 #define BOOLEAN_OP_IMPL(NAME, NIN, SCALAR)   template <typename T>\
                                                 NAME<T>::NAME() : nd4j::ops::BooleanOp<T>(#NAME, NIN, SCALAR) { }; \
+                                                REGISTER_C(NAME) \
                                                 template class ND4J_EXPORT NAME<float>; \
                                                 template class ND4J_EXPORT NAME<float16>; \
                                                 template class ND4J_EXPORT NAME<double>; \
@@ -1275,13 +1310,14 @@
                                                             protected: \
                                                                 Nd4jStatus validateAndExecute(nd4j::graph::Context<T>& block); \
                                                             };\
-                                                            REGISTER(NAME)
+                                                            REGISTER_H(NAME)
 
 #define LIST_OP_IMPL(NAME, NIN, NOUT, TARGS, IARGS)         template <typename T>\
                                                             NAME<T>::NAME() : nd4j::ops::DeclarableListOp<T>(NIN, NOUT, #NAME, TARGS, IARGS) { }; \
                                                             template class ND4J_EXPORT NAME<float>; \
                                                             template class ND4J_EXPORT NAME<float16>; \
                                                             template class ND4J_EXPORT NAME<double>; \
+                                                            REGISTER_C(NAME) \
                                                             template <typename T> \
                                                             Nd4jStatus nd4j::ops::NAME<T>::validateAndExecute(nd4j::graph::Context<T>& block)
 
@@ -1292,13 +1328,14 @@
                                     protected: \
                                         Nd4jStatus validateAndExecute(nd4j::graph::Context<T>& block); \
                                     };\
-                                    REGISTER(NAME)
+                                    REGISTER_H(NAME)
 
 #define LOGIC_OP_IMPL(NAME)     template <typename T>\
                                 NAME<T>::NAME() : nd4j::ops::LogicOp<T>(#NAME) { }; \
                                 template class ND4J_EXPORT NAME<float>; \
                                 template class ND4J_EXPORT NAME<float16>; \
                                 template class ND4J_EXPORT NAME<double>; \
+                                REGISTER_C(NAME) \
                                 template <typename T> \
                                 Nd4jStatus nd4j::ops::NAME<T>::validateAndExecute(nd4j::graph::Context<T>& block) { return nd4j::ops::LogicOp<T>::validateAndExecute(block); };
 
@@ -1309,12 +1346,13 @@
                                                 template class ND4J_EXPORT NAME<float>; \
                                                 template class ND4J_EXPORT NAME<float16>; \
                                                 template class ND4J_EXPORT NAME<double>; \
+                                                REGISTER_C(NAME) \
                                                 template <typename T>\
                                                 nd4j::ShapeList* nd4j::ops::NAME<T>::calculateOutputShape(nd4j::ShapeList* inputShape, nd4j::graph::Context<T>& block) { \
                                                     auto shapeList = SHAPELIST(); \
                                                     for (int e = 0; e < this->getOpDescriptor()->getNumberOfOutputs(); e++) { \
-                                                        int* newshape; \
-                                                        ALLOCATE(newshape, block.getWorkspace(), shape::shapeInfoLength(inputShape->at(e)), int); \
+                                                        Nd4jLong* newshape; \
+                                                        ALLOCATE(newshape, block.getWorkspace(), shape::shapeInfoLength(inputShape->at(e)), Nd4jLong); \
                                                         if (shape::order(inputShape->at(e)) == 'c') \
                                                             shape::shapeBuffer(shape::rank(inputShape->at(e)), shape::shapeOf(inputShape->at(e)), newshape);\
                                                         else \
@@ -1331,7 +1369,7 @@
 template <typename OpName>  \
 struct __registratorSynonymFloat_##NAME {\
     __registratorSynonymFloat_##NAME(const char *name, const char *oname) {\
-        OpName *ptr = (OpName *) OpRegistrator::getInstance()->getOperationFloat(oname); \
+        auto ptr = reinterpret_cast<OpName *>(OpRegistrator::getInstance()->getOperationFloat(oname)); \
         if (ptr == nullptr) { \
             std::string newName(name); \
             std::string oldName(oname); \
@@ -1344,7 +1382,7 @@ struct __registratorSynonymFloat_##NAME {\
 template <typename OpName>  \
 struct __registratorSynonymHalf_##NAME {\
     __registratorSynonymHalf_##NAME(const char *name, const char *oname) {\
-        OpName *ptr = (OpName *) OpRegistrator::getInstance()->getOperationHalf(oname); \
+        auto ptr = reinterpret_cast<OpName *>(OpRegistrator::getInstance()->getOperationHalf(oname)); \
         if (ptr == nullptr) { \
             std::string newName(name); \
             std::string oldName(oname); \
@@ -1357,7 +1395,7 @@ struct __registratorSynonymHalf_##NAME {\
 template <typename OpName>  \
 struct __registratorSynonymDouble_##NAME {\
     __registratorSynonymDouble_##NAME(const char *name, const char *oname) {\
-        OpName *ptr = (OpName *) OpRegistrator::getInstance()->getOperationDouble(oname); \
+        auto ptr = reinterpret_cast<OpName *>(OpRegistrator::getInstance()->getOperationDouble(oname)); \
         if (ptr == nullptr) { \
             std::string newName(name); \
             std::string oldName(oname); \
@@ -1379,18 +1417,19 @@ struct __registratorSynonymDouble_##NAME {\
                                                             protected: \
                                                                 Nd4jStatus validateAndExecute(nd4j::graph::Context<T>& block); \
                                                             };\
-                                                            REGISTER(NAME)
+                                                            REGISTER_H(NAME)
 
 #define DIVERGENT_OP_IMPL(NAME, NIN, NOUT, INPLACEABLE)     template <typename T> \
                                                             NAME<T>::NAME() : nd4j::ops::DeclarableOp<T>(NIN, NOUT, #NAME, INPLACEABLE, true) { }; \
                                                             template class ND4J_EXPORT NAME<float>; \
                                                             template class ND4J_EXPORT NAME<float16>; \
                                                             template class ND4J_EXPORT NAME<double>; \
+                                                            REGISTER_C(NAME) \
                                                             template <typename T>\
                                                             nd4j::ShapeList* nd4j::ops::NAME<T>::calculateOutputShape(nd4j::ShapeList* inputShape, nd4j::graph::Context<T>& block) { \
                                                                 auto shapeList = SHAPELIST(); \
                                                                 for (int e = 0; e < this->getOpDescriptor()->getNumberOfOutputs(); e++) { \
-                                                                    int* newshape; \
+                                                                    Nd4jLong* newshape; \
                                                                     COPY_SHAPE(inputShape->at(0), newshape); \
                                                                     shapeList->push_back(newshape); \
                                                                 } \
@@ -1407,19 +1446,20 @@ struct __registratorSynonymDouble_##NAME {\
                                                                                 protected: \
                                                                                     Nd4jStatus validateAndExecute(nd4j::graph::Context<T>& block); \
                                                                                 };\
-                                                                                REGISTER(NAME)
+                                                                                REGISTER_H(NAME)
 
 #define CONFIGURABLE_OP_IMPL(NAME, NIN, NOUT, INPLACEABLE, TARGS, IARGS)        template <typename T>\
                                                                                 NAME<T>::NAME() : nd4j::ops::DeclarableOp<T>(NIN, NOUT, #NAME, INPLACEABLE, TARGS, IARGS) { }; \
                                                                                 template class ND4J_EXPORT NAME<float>; \
                                                                                 template class ND4J_EXPORT NAME<float16>; \
                                                                                 template class ND4J_EXPORT NAME<double>; \
+                                                                                REGISTER_C(NAME) \
                                                                                 template <typename T>\
                                                                                 nd4j::ShapeList* nd4j::ops::NAME<T>::calculateOutputShape(nd4j::ShapeList* inputShape, nd4j::graph::Context<T>& block) { \
                                                                                     auto shapeList = SHAPELIST(); \
                                                                                     for (int e = 0; e < this->getOpDescriptor()->getNumberOfOutputs(); e++) { \
-                                                                                        int* newshape; \
-                                                                                        ALLOCATE(newshape, block.getWorkspace(), shape::shapeInfoLength(inputShape->at(e)), int); \
+                                                                                        Nd4jLong* newshape; \
+                                                                                        ALLOCATE(newshape, block.getWorkspace(), shape::shapeInfoLength(inputShape->at(e)), Nd4jLong); \
                                                                                         if (shape::order(inputShape->at(e)) == 'c') \
                                                                                             shape::shapeBuffer(shape::rank(inputShape->at(e)), shape::shapeOf(inputShape->at(e)), newshape);\
                                                                                         else \
@@ -1438,13 +1478,14 @@ struct __registratorSynonymDouble_##NAME {\
                                                                                 protected: \
                                                                                     Nd4jStatus validateAndExecute(Context<T>& block); \
                                                                                 };\
-                                                                                REGISTER(NAME)
+                                                                                REGISTER_H(NAME)
 
 #define REDUCTION_OP_IMPL(NAME, NIN, NOUT, INPLACEABLE, TARGS, IARGS)           template <typename T> \
                                                                                 NAME<T>::NAME() : nd4j::ops::DeclarableReductionOp<T>(NIN, NOUT, #NAME, INPLACEABLE, TARGS, IARGS) { }; \
                                                                                 template class ND4J_EXPORT NAME<float>; \
                                                                                 template class ND4J_EXPORT NAME<float16>; \
                                                                                 template class ND4J_EXPORT NAME<double>; \
+                                                                                REGISTER_C(NAME) \
                                                                                 template <typename T> \
                                                                                 Nd4jStatus nd4j::ops::NAME<T>::validateAndExecute(nd4j::graph::Context<T>& block)
 
@@ -1457,13 +1498,14 @@ struct __registratorSynonymDouble_##NAME {\
                                                                                     NAME(); \
                                                                                     nd4j::ShapeList* calculateOutputShape(nd4j::ShapeList* inputShape, nd4j::graph::Context<T>& block); \
                                                                                 };\
-                                                                                REGISTER(NAME)
+                                                                                REGISTER_H(NAME)
 
 #define CUSTOM_OP_IMPL(NAME, NIN, NOUT, INPLACEABLE, TARGS, IARGS)              template <typename T> \
                                                                                 NAME<T>::NAME(): nd4j::ops::DeclarableCustomOp<T>(NIN, NOUT, #NAME, INPLACEABLE, TARGS, IARGS) { }; \
                                                                                 template class ND4J_EXPORT NAME<float>; \
                                                                                 template class ND4J_EXPORT NAME<float16>; \
                                                                                 template class ND4J_EXPORT NAME<double>; \
+                                                                                REGISTER_C(NAME) \
                                                                                 template <typename T> \
                                                                                 Nd4jStatus nd4j::ops::NAME<T>::validateAndExecute(nd4j::graph::Context<T>& block)
 
@@ -1480,7 +1522,7 @@ struct __registratorSynonymDouble_##NAME {\
 
 
 
-#define ALLOCATE(VARIABLE, WORKSPACE, LENGTH, TT)   if (WORKSPACE == nullptr) {VARIABLE = new TT[LENGTH]; } else {VARIABLE = (TT*) WORKSPACE->allocateBytes(LENGTH * sizeof(TT)); }
+#define ALLOCATE(VARIABLE, WORKSPACE, LENGTH, TT)   if (WORKSPACE == nullptr) {VARIABLE = new TT[LENGTH]; } else {VARIABLE = reinterpret_cast<TT*>(WORKSPACE->allocateBytes(LENGTH * sizeof(TT))); }
 #define RELEASE(VARIABLE, WORKSPACE)    if (WORKSPACE == nullptr) delete[] VARIABLE;
 
 #define OVERWRITE_RESULT(A)     this->overwriteResult(block, 0, A)
@@ -1495,19 +1537,19 @@ struct __registratorSynonymDouble_##NAME {\
 #define CHECK_STASH(NAME)   block.getStash()->checkStash(block.getNodeId(), NAME);
 #define UNSTASH(NAME)       block.getStash()->extractArray(block.getNodeId(), NAME);
 
-#define INPUT_VARIABLE(INDEX)     (nd4j::NDArray<T> *) block.getVariable(INDEX)->getNDArray()
-#define OUTPUT_VARIABLE(INDEX)     this->getZ(block, INDEX)
+#define INPUT_VARIABLE(INDEX)     reinterpret_cast<nd4j::NDArray<T> *>(block.getVariable(INDEX)->getNDArray())
+#define OUTPUT_VARIABLE(INDEX)    reinterpret_cast<nd4j::NDArray<T> *>(this->getZ(block, INDEX))
 
-#define INPUT_LIST(INDEX)     (nd4j::NDArrayList<T> *) block.getVariable(INDEX)->getNDArrayList()
+#define INPUT_LIST(INDEX)     reinterpret_cast<nd4j::NDArrayList<T> *>(block.getVariable(INDEX)->getNDArrayList())
 
 #define INT_ARG(INDEX)     block.getIArguments()->at(INDEX)
 #define T_ARG(INDEX)     block.getTArguments()->at(INDEX)
 
 
-#define COPY_SHAPE(SRC, TGT)    ALLOCATE(TGT, block.getWorkspace(), shape::shapeInfoLength(SRC), int);\
+#define COPY_SHAPE(SRC, TGT)    ALLOCATE(TGT, block.getWorkspace(), shape::shapeInfoLength(SRC), Nd4jLong);\
                                 REPLICATE_SHAPE(SRC, TGT);
 
-#define COPY_SHAPE_EX(SRC, TGT, WORKSPACE)    ALLOCATE(TGT, WORKSPACE, shape::shapeInfoLength(SRC), int);\
+#define COPY_SHAPE_EX(SRC, TGT, WORKSPACE)    ALLOCATE(TGT, WORKSPACE, shape::shapeInfoLength(SRC), Nd4jLong);\
                                 REPLICATE_SHAPE(SRC, TGT);
 
 // define macros for compiler enforcement to make function inline  
@@ -1545,15 +1587,15 @@ struct __registratorSynonymDouble_##NAME {\
 #define LAMBDA_H(X, ...) [__VA_ARGS__] (float16 X) -> float16
 #define LAMBDA_HH(X, Y, ...) [__VA_ARGS__] (float16 X, float16 Y) -> float16
 
-#define ILAMBDA_D(X, ...) [__VA_ARGS__] (Nd4jIndex _idx, double X) -> double
-#define ILAMBDA_DD(X, Y, ...) [__VA_ARGS__] (Nd4jIndex _idx, double X, double Y) -> double
+#define ILAMBDA_D(X, ...) [__VA_ARGS__] (Nd4jLong _idx, double X) -> double
+#define ILAMBDA_DD(X, Y, ...) [__VA_ARGS__] (Nd4jLong _idx, double X, double Y) -> double
 
 #define LAMBDA_D(X, ...) [__VA_ARGS__] (double X) -> double
 #define LAMBDA_DD(X, Y, ...) [__VA_ARGS__] (double X, double Y) -> double
 #define LAMBDA_DDD(t, u, v, ...) [__VA_ARGS__] (double t, double u, double v) -> double
 
-#define ILAMBDA_F(X, ...) [__VA_ARGS__] (Nd4jIndex _idx, float X) -> float
-#define ILAMBDA_FF(X, Y, ...) [__VA_ARGS__] (Nd4jIndex _idx, float X, float Y) -> float
+#define ILAMBDA_F(X, ...) [__VA_ARGS__] (Nd4jLong _idx, float X) -> float
+#define ILAMBDA_FF(X, Y, ...) [__VA_ARGS__] (Nd4jLong _idx, float X, float Y) -> float
 
 #define LAMBDA_F(X, ...) [__VA_ARGS__] (float X) -> float
 #define LAMBDA_FF(X, Y, ...) [__VA_ARGS__] (float X, float Y) -> float
@@ -1563,7 +1605,7 @@ struct __registratorSynonymDouble_##NAME {\
 #define LAMBDA_TT(X, Y, ...) [__VA_ARGS__] (T X, T Y) -> T
 #define LAMBDA_TTT(t, u, v, ...) [__VA_ARGS__] (T t, T u, T v) -> T
 
-#define ILAMBDA_T(X, ...) [__VA_ARGS__] (Nd4jIndex _idx, T X) -> T
-#define ILAMBDA_TT(X, Y, ...) [__VA_ARGS__] (Nd4jIndex _idx, T X, T Y) -> T
+#define ILAMBDA_T(X, ...) [__VA_ARGS__] (Nd4jLong _idx, T X) -> T
+#define ILAMBDA_TT(X, Y, ...) [__VA_ARGS__] (Nd4jLong _idx, T X, T Y) -> T
 
 #endif
