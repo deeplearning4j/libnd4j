@@ -28,9 +28,15 @@ private:
     // meh
     static std::map<Nd4jLong, nd4j::ObjectFactory<float>> _factoriesOF;
     static std::map<Nd4jLong, nd4j::ObjectFactory<float16>> _factoriesOH;
-    static std::map<Nd4jLong, nd4j::ObjectFactory<double >> _factoriesOD;
+    static std::map<Nd4jLong, nd4j::ObjectFactory<double>> _factoriesOD;
+
+    static std::map<Nd4jLong, nd4j::PointerFactory<float>> _factoriesPF;
+    static std::map<Nd4jLong, nd4j::PointerFactory<float16>> _factoriesPH;
+    static std::map<Nd4jLong, nd4j::PointerFactory<double>> _factoriesPD;
 
 
+
+    // meh 2.0
     static thread_local nd4j::ObjectFactory<float> _objectFactoryF;
     static thread_local nd4j::PointerFactory<float> _pointerFactoryF;
 

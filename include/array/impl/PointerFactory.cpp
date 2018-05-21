@@ -8,6 +8,11 @@
 namespace nd4j {
 
     template <typename T>
+    PointerFactory<T>::PointerFactory(LaunchContext *context) {
+        this->_context = context;
+    }
+
+    template <typename T>
     LaunchContext* PointerFactory<T>::context() {
         return _context;
     }

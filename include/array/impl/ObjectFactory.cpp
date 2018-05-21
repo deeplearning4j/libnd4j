@@ -6,6 +6,10 @@
 
 
 namespace nd4j {
+    template <typename T>
+    ObjectFactory<T>::ObjectFactory(LaunchContext *context) {
+        this->_context = context;
+    }
 
     template <typename T>
     LaunchContext* ObjectFactory<T>::context() {

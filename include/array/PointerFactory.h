@@ -22,6 +22,8 @@ namespace nd4j {
         PointerFactory() = default;
         ~PointerFactory() = default;
 
+        explicit PointerFactory(LaunchContext *context);
+
         LaunchContext* context();
 
         NDArray<T>* valueOf(std::initializer_list<Nd4jLong> shape, T value, char order = 'c');

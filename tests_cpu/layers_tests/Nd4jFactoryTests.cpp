@@ -22,8 +22,27 @@ TEST_F(Nd4jFactoryTests,  Basic_Test_0) {
     ASSERT_NE(nullptr, p);
 }
 
-
+// both tests should NOT report any leaks
 TEST_F(Nd4jFactoryTests,  Basic_Test_1) {
+    auto o = Nd4j::o<float>();
+    auto p = Nd4j::p<float>();
+
+    auto ctx = new LaunchContext();
+
+    auto o2 = Nd4j::o<float>(ctx);
+    auto p2 = Nd4j::p<float>(ctx);
+
+    ASSERT_NE(o2, o);
+    ASSERT_NE(p2, p);
+
+    ASSERT_NE(nullptr, o2);
+    ASSERT_NE(nullptr, p2);
+
+    delete ctx;
+}
+
+// both tests should NOT report any leaks
+TEST_F(Nd4jFactoryTests,  Basic_Test_2) {
     auto o = Nd4j::o<float>();
     auto p = Nd4j::p<float>();
 
@@ -49,4 +68,6 @@ TEST_F(Nd4jFactoryTests,  Basic_Create_1) {
     ASSERT_TRUE(arrayP->isSameShape(arrayO));
 
     ASSERT_TRUE(arrayP->equalsTo(arrayO));
+
+    delete arrayP;
 }

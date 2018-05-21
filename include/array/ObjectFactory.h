@@ -23,6 +23,9 @@ namespace nd4j {
         ~ObjectFactory() = default;
 
 
+        explicit ObjectFactory(LaunchContext *context);
+
+
         // this method returns context
         LaunchContext* context();
 
