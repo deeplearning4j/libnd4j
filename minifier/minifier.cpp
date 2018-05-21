@@ -127,17 +127,12 @@ main(int argc, char *argv[]) {
     std::string output(opt.outputName());
     nd4j_printf("Run preprocessor as \ncpp %s\n", input.c_str());
 //    int err;
-    int ret;
     char const* env[] = { "HOME=/tmp", 
                           "LOGNAME=minifier", 
                           "PATH=/usr/bin:/usr/local/bin:/usr/lib/gcc/x86_64-linux-gnu/6", 
-                          "CPLUS_INCLUDE_PATH=/usr/include/c++/6:/usr/include/x86_64-linux-gnu/c++/6:/usr/include",
+                          "CPLUS_INCLUDE_PATH=/usr/include/c++/6:/usr/include/x86_64-linux-gnu/c++/6",
                           (char *)0 };
 
-//    ret = execle ("/usr/bin/cpp", "cpp", "-o", "result.h", "-I/usr/include", "file.h", (char *)0, env);
-    if (ret != 0) {
-        perror("Cannot exec preprocessor");
-    }
 // to retrieve c++ version (hardcoded 6): c++ -v 2>&1 | tail -1 | awk '{v = int($3); print v;}' 
     err = execle("/usr/bin/cpp", "cpp", "-x", "c++", "-std=c++11", "-o", output.c_str(), 
         "-I../include",
