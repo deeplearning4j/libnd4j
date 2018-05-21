@@ -1542,14 +1542,14 @@ if (volume.ordering() == 'c' &&  columns.ordering() == 'c' && shape::strideDesce
                         for (int colD = 0; colD < oD; ++colD) {
                             for (int colH = 0; colH < oH; ++colH) {
                                 for (int colW = 0; colW < oW; ++colW) {                    
-                                
+
                                     volDep = (-pD + kDep * dD) + colD*sD;
                                     volRow = (-pH + kRow * dH) + colH*sH;
                                     volCol = (-pW + kCol * dW) + colW*sW;
-                                        
+
                                     col0 = col + b*colStride0 + c*colStride1 + kDep*colStride2 + kRow*colStride3 + kCol*colStride4 + colD*colStride5 + colH*colStride6 + colW*colStride7;;
                                     vol0 = vol + b*volStride0 + c*volStride1 + volDep*volStride2 + volRow*volStride3 + volCol*volStride4;
-                                                    
+
                                     if (static_cast<unsigned>(volDep) < static_cast<unsigned>(iD) && static_cast<unsigned>(volRow) < static_cast<unsigned>(iH) && static_cast<unsigned>(volCol) < static_cast<unsigned>(iW))
                                         if(volDep == -pD &&  volRow == -pH && volCol == -pW)
                                             *vol0 = *col0;

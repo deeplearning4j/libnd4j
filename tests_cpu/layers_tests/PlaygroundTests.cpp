@@ -551,9 +551,9 @@ TEST_F(PlaygroundTests, ndarray_tile_test2) {
 //////////////////////////////////////////////////////////////////////
 TEST_F(PlaygroundTests, Test_vol2col_1) {
     
-    int bS=16, iD=37,iH=37,iW=37,  iC=3,oC=3,  kD=5,kH=5,kW=5,  sD=3,sH=3,sW=3,  pD=3,pH=2,pW=2,  dD=1,dH=1,dW=1;    
-    int        oD=15,oH=15, oW=15;
-    int iterations = 100;
+    int bS=16, iD=30,iH=30,iW=30,  iC=3,oC=3,  kD=5,kH=5,kW=5,  sD=3,sH=3,sW=3,  pD=3,pH=2,pW=2,  dD=1,dH=1,dW=1;    
+    int        oD=10,oH=10, oW=10;
+    int iterations = 1;
 
     NDArray<float> output('c', {bS, iC, kD, kH, kW, oD, oH, oW});
     NDArray<float> input('c', {bS, iC, iD, iH, iW});
@@ -594,9 +594,9 @@ TEST_F(PlaygroundTests, Test_vol2col_1) {
 //////////////////////////////////////////////////////////////////////
 TEST_F(PlaygroundTests, Test_col2vol_1) {
     
-    int bS=16, iD=37,iH=37,iW=37,  iC=3,oC=3,  kD=5,kH=5,kW=5,  sD=3,sH=3,sW=3,  pD=3,pH=2,pW=2,  dD=1,dH=1,dW=1;    
-    int        oD=15,oH=15, oW=15;
-    int iterations = 100;
+    int bS=16, iD=30,iH=30,iW=30,  iC=3,oC=3,  kD=5,kH=5,kW=5,  sD=3,sH=3,sW=3,  pD=3,pH=2,pW=2,  dD=1,dH=1,dW=1;    
+    int        oD=10,oH=10, oW=10;
+    int iterations = 1;
 
     NDArray<float> output('c', {bS, iC, kD, kH, kW, oD, oH, oW});
     NDArray<float> input('c', {bS, iC, iD, iH, iW});
