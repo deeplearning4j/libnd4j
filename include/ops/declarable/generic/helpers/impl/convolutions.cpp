@@ -1410,81 +1410,48 @@ void ConvolutionUtils<T>::vol2col(NDArray<T>& volume, NDArray<T>& columns, const
     const int oD = columns.sizeAt(5);
     const int oH = columns.sizeAt(6);
     const int oW = columns.sizeAt(7);
-    const int colStride0 = columns.stridesOf()[0];
-    const int colStride1 = columns.stridesOf()[1];
-    const int colStride2 = columns.stridesOf()[2];
-    const int colStride3 = columns.stridesOf()[3];
-    const int colStride4 = columns.stridesOf()[4];
-    const int colStride5 = columns.stridesOf()[5];
-    const int colStride6 = columns.stridesOf()[6];
-    const int colStride7 = columns.stridesOf()[7];  
-    const int volStride0 = volume.stridesOf()[0];
-    const int volStride1 = volume.stridesOf()[1];
-    const int volStride2 = volume.stridesOf()[2];
-    const int volStride3 = volume.stridesOf()[3];
-    const int volStride4 = volume.stridesOf()[4];    
+    const Nd4jLong colStride0 = columns.stridesOf()[0];
+    const Nd4jLong colStride1 = columns.stridesOf()[1];
+    const Nd4jLong colStride2 = columns.stridesOf()[2];
+    const Nd4jLong colStride3 = columns.stridesOf()[3];
+    const Nd4jLong colStride4 = columns.stridesOf()[4];
+    const Nd4jLong colStride5 = columns.stridesOf()[5];
+    const Nd4jLong colStride6 = columns.stridesOf()[6];
+    const Nd4jLong colStride7 = columns.stridesOf()[7];  
+    const Nd4jLong volStride0 = volume.stridesOf()[0];
+    const Nd4jLong volStride1 = volume.stridesOf()[1];
+    const Nd4jLong volStride2 = volume.stridesOf()[2];
+    const Nd4jLong volStride3 = volume.stridesOf()[3];
+    const Nd4jLong volStride4 = volume.stridesOf()[4];    
     
     T* vol = volume.getBuffer();
     T* col = columns.getBuffer();
 
-    const T* vol0End = vol + volStride1 * iC;
-    const int kDepEnd = -pD + kD * dD;
-    const int kRowEnd = -pH + kH * dH;
-    const int kColEnd = -pW + kW * dW;
-    const int oHW = oH * oW;
-    const int volDepEnd = oD * sD;
-    const int volRowEnd = oH * sH;
-    const int volColEnd = oW * sW;
-
-    T *vol1, *vol2, *col0;
+    T* col0, *col1, *vol0, *vol1;
     int volDepStart, volRowStart, volColStart, volDep, volRow, volCol;
 
-    if (volume.ordering() == 'c' &&  columns.ordering() == 'c' && shape::strideDescendingCAscendingF(volume.getShapeInfo()) && shape::strideDescendingCAscendingF(columns.getShapeInfo())) {
-
-#pragma omp parallel for if(bS > Environment::getInstance()->elementwiseThreshold()) schedule(static) proc_bind(close) private(vol1, vol2, col0, volDepStart, volRowStart, volColStart, volDep, volRow, volCol)
-        for (int b = 0; b < bS; b++) {            
-            col0 = col + (b * colStride0);                        
-            T *vol0 = vol + (b * volStride0);
-
-            for (int channel = 0; channel < iC; ++channel, vol0 += volStride1) { 
-
-                for (int kDep = 0; kDep < kD; ++kDep) { 
-                    volDepStart = -pD + kDep * dD;
-
-                    for (int kRow = 0; kRow < kH; ++kRow) {
-                        volRowStart = -pH + kRow * dH;
-
-                        for (int kCol = 0; kCol < kW; ++kCol) {
-                            volDep = volDepStart;
-                            volColStart = -pW + kCol * dW;
-                            
-                            for (int colDep = 0; colDep < oD; ++colDep, volDep += sD) {
-
-                                if(static_cast<unsigned>(volDep) >= static_cast<unsigned>(iD)) {                                
-                                    for (int colHW = 0; colHW < oHW; ++colHW, ++col0)
-                                            *col0 = 0.;
-                                }
-                                else {
-                                    volRow = volRowStart;
-                                    vol1 = vol0 + volDep * volStride2;
-
-                                    for (int colRow = 0; colRow < oH; ++colRow, volRow+=sH) {
-
-                                        if (static_cast<unsigned>(volRow) >= static_cast<unsigned>(iH)) {                                        
-                                            for (int colW = 0; colW < oW; ++colW, ++col0) 
-                                                *col0 = 0.;
-                                        }
-                                        else {
-                                            volCol = volColStart;
-                                            vol2 = vol1 + volRow * volStride3;
-
-                                            for (int colCol = 0; colCol < oW; ++colCol, volCol+=sW, ++col0) 
-                                                if (static_cast<unsigned>(volCol) >= static_cast<unsigned>(iW))                                                
-                                                    *col0 = 0.;                  
-                                                else 
-                                                    *col0 = *(vol2 + volCol * volStride4);                
-                                        }        
-                                    }
+if (volume.ordering() == 'c' &&  columns.ordering() == 'c' && shape::strideDescendingCAscendingF(volume.getShapeInfo()) && shape::strideDescendingCAscendingF(columns.getShapeInfo())) 
+#pragma omp parallel for schedule(static) proc_bind(close) private(vol1, col1, volDep, volRow, volCol,vol0, col0, volDepStart, volRowStart, volColStart)    
+    for (int b = 0; b < bS; b++) {
+        for (int c = 0; c < iC; ++c) {        
+            for (int kDep = 0; kDep < kD; ++kDep) { 
+                for (int kRow = 0; kRow < kH; ++kRow) {                        
+                    for (int kCol = 0; kCol < kW; ++kCol) {                            
+                        for (int colD = 0; colD < oD; ++colD) {
+                            for (int colH = 0; colH < oH; ++colH) {
+                                for (int colW = 0; colW < oW; ++colW) {                    
+                                
+                                    volDep = (-pD + kDep * dD) + colD*sD;
+                                    volRow = (-pH + kRow * dH) + colH*sH;
+                                    volCol = (-pW + kCol * dW) + colW*sW;
+                                        
+                                    col0 = col + b*colStride0 + c*colStride1 + kDep*colStride2 + kRow*colStride3 + kCol*colStride4 + colD*colStride5 + colH*colStride6 + colW*colStride7;;
+                                    vol0 = vol + b*volStride0 + c*volStride1 + volDep*volStride2 + volRow*volStride3 + volCol*volStride4;
+                                                    
+                                    if (static_cast<unsigned>(volDep) >= static_cast<unsigned>(iD) || static_cast<unsigned>(volRow) >= static_cast<unsigned>(iH) || static_cast<unsigned>(volCol) >= static_cast<unsigned>(iW))
+                                        *col0 = 0.;                                                     
+                                    else 
+                                        *col0 = *vol0;
                                 }
                             }
                         }
@@ -1492,72 +1459,43 @@ void ConvolutionUtils<T>::vol2col(NDArray<T>& volume, NDArray<T>& columns, const
                 }
             }
         }
-    }
-    else {
-        const int col5End = oH * colStride6;
-        const int col6End = oW * colStride7;
-        T *col1, *col2, *col3, *col4, *col5, *col6;
-#pragma omp parallel for if(bS > Environment::getInstance()->elementwiseThreshold()) schedule(static) proc_bind(close) private(vol1, vol2, col0, col1, col2, col3, col4, col5, col6, volDepStart, volRowStart, volColStart, volDep, volRow, volCol)
-          for (int b = 0; b < bS; b++) {            
-            col0 = col + (b * colStride0);     
-            T *vol0 = vol + (b * volStride0);                   
-            
-            for (int channel = 0; channel < iC; ++channel, vol0+=volStride1, col0+=colStride1) {            
-                col1 = col0;
+    }  
 
-                for (int kDep = 0; kDep < kD; ++kDep, col1+=colStride2) { 
-                    col2 = col1;
-                    volDepStart = -pD + kDep * dD;                   
-                    
-                    for (int kRow = 0; kRow < kH; ++kRow, col2+=colStride3) {
-                        col3 = col2;
-                        volRowStart = -pH + kRow * dH;
-                    
-                        for (int kCol = 0; kCol < kW; ++kCol, col3+=colStride4) {
-                            col4 = col3;
-                            volDep = volDepStart;
-                            volColStart = -pW + kCol * dW;
-                            
-                            for (int colDep = 0; colDep < oD; ++colDep, volDep+=sD, col4+=colStride5) {                            
-                                col5 = col4;
+else 
 
-                                if (static_cast<unsigned>(volDep) >= static_cast<unsigned>(iD)) {
-                                    for (int colH = 0; colH < oH; ++colH, col5+=colStride6) {
-                                        col6 = col5;                                        
-                                        for (int colW = 0; colW < oW; ++colW, col6+=colStride7)
-                                            *col6 = 0.;
-                                    }                                    
-                                }
-                                else {
-                                    volRow = volRowStart;                                    
-                                    vol1 = vol0 + volDep * volStride2;
-
-                                    for (int colRow = 0; colRow < oH; ++colRow, volRow+=sH, col5+=colStride6) {                                    
-                                        col6 = col5;                                        
-
-                                        if (static_cast<unsigned>(volRow) >= static_cast<unsigned>(iH)) {
-                                            for (int colW = 0; colW < oW; ++colW, col6+=colStride7)
-                                                *col6 = 0.;
-                                        }
-                                        else {
-                                            volCol = volColStart;                            
-                                            vol2 = vol1 + volRow * volStride3;
-
-                                            for (int colCol = 0; colCol < oW; ++colCol, volCol+=sW, col6+=colStride7) 
-                                                if (static_cast<unsigned>(volCol) >= static_cast<unsigned>(iW))                                                
-                                                    *col6 = 0.;                  
-                                                else 
-                                                    *col6 = *(vol2 + volCol * volStride4);
-                                        }
-                                    }
+#pragma omp parallel for schedule(static) proc_bind(close) private(vol1, col1, volDep, volRow, volCol,vol0, col0, volDepStart, volRowStart, volColStart)
+    for (int b = 0; b < bS; b++) {
+        for (int colD = 0; colD < oD; ++colD) {
+            for (int colH = 0; colH < oH; ++colH) {
+                for (int colW = 0; colW < oW; ++colW) {
+                    for (int c = 0; c < iC; ++c) {
+                        for (int kDep = 0; kDep < kD; ++kDep) { 
+                            for (int kRow = 0; kRow < kH; ++kRow) {                        
+                                for (int kCol = 0; kCol < kW; ++kCol) {                            
+                        
+                                    volDepStart = -pD + kDep * dD;
+                                    volRowStart = -pH + kRow * dH;
+                                    volColStart = -pW + kCol * dW;
+        
+                                    volDep = volDepStart + colD*sD;
+                                    volRow = volRowStart + colH*sH;
+                                    volCol = volColStart + colW*sW;
+                                        
+                                    col0 = col + b*colStride0 + c*colStride1 + kDep*colStride2 + kRow*colStride3 + kCol*colStride4 + colD*colStride5 + colH*colStride6 + colW*colStride7;;
+                                    vol0 = vol + b*volStride0 + c*volStride1 + volDep*volStride2 + volRow*volStride3 + volCol*volStride4;
+                                                    
+                                    if (static_cast<unsigned>(volDep) >= static_cast<unsigned>(iD) || static_cast<unsigned>(volRow) >= static_cast<unsigned>(iH) || static_cast<unsigned>(volCol) >= static_cast<unsigned>(iW))
+                                        *col0 = 0.;                                                     
+                                    else 
+                                        *col0 = *vol0;
                                 }
                             }
                         }
                     }
                 }
             }
-        }  
-    }
+        }
+    }  
 }
 
 //////////////////////////////////////////////////////////////////////////

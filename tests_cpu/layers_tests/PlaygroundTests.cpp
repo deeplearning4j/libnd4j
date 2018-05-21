@@ -8,6 +8,7 @@
 #include <Node.h>
 #include <ops/declarable/CustomOperations.h>
 #include <graph/profiling/GraphProfilingHelper.h>
+#include <ops/declarable/generic/helpers/convolutions.h>
 
 using namespace nd4j;
 using namespace nd4j::graph;
@@ -516,7 +517,6 @@ TEST_F(PlaygroundTests, Test_Im2Col_3) {
     nd4j_printf("Permuted time: %lld us;\n", permTime / iterations);    
 }
 
-
 //////////////////////////////////////////////////////////////////////
 TEST_F(PlaygroundTests, ndarray_tile_test1) {
 
@@ -546,4 +546,46 @@ TEST_F(PlaygroundTests, ndarray_tile_test2) {
     nd4j_printf("f-order time: %d;\n", time);
     
     ASSERT_TRUE(tiled.isSameShape(&exp)); 
+}
+
+//////////////////////////////////////////////////////////////////////
+TEST_F(PlaygroundTests, Test_vol2col_1) {
+    
+    int bS=16, iD=37,iH=37,iW=37,  iC=3,oC=3,  kD=5,kH=5,kW=5,  sD=3,sH=3,sW=3,  pD=3,pH=2,pW=2,  dD=1,dH=1,dW=1;    
+    int        oD=15,oH=15, oW=15;
+    int iterations = 100;
+
+    NDArray<float> output('c', {bS, iC, kD, kH, kW, oD, oH, oW});
+    NDArray<float> input('c', {bS, iC, iD, iH, iW});
+    
+    NDArray<float> outputPermuted('c', {bS, oD, oH, oW, iC, kD, kH, kW});
+    outputPermuted.permutei({0, 4, 5, 6, 7, 1, 2, 3});
+    NDArray<float> inputPermuted('c', {bS, iD, iH, iC, iW});
+    inputPermuted.permutei({0, 3, 1, 2, 4});
+
+    input = 10.;
+    output = 2.;
+
+    inputPermuted = 10.;
+    outputPermuted = 2.;
+
+
+    auto timeStart = std::chrono::system_clock::now();
+
+    for (int e = 0; e < iterations; e++) 
+        ConvolutionUtils<float>::vol2col(input, output, sD, sH, sW, pD, pH, pW, dD, dH, dW);
+
+    auto timeEnd = std::chrono::system_clock::now();
+    auto outerTime = std::chrono::duration_cast<std::chrono::microseconds> (timeEnd - timeStart).count();
+
+    auto permStart = std::chrono::system_clock::now();
+
+    for (int e = 0; e < iterations; e++) 
+        ConvolutionUtils<float>::vol2col(inputPermuted, outputPermuted, sD, sH, sW, pD, pH, pW, dD, dH, dW);
+
+    auto permEnd = std::chrono::system_clock::now();
+    auto permTime = std::chrono::duration_cast<std::chrono::microseconds> (permEnd - permStart).count();
+
+    nd4j_printf("C-order  time: %lld us;\n", outerTime / iterations);
+    nd4j_printf("Permuted time: %lld us;\n", permTime / iterations);    
 }
